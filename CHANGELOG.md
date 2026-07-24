@@ -47,17 +47,36 @@ All notable changes to **OmniConnect AI** are documented here.
   - Prisma: `emailVerified` + NextAuth `Account`/`Session`/`VerificationToken` models (migrations
     `init`, `auth_models`).
   - Verified end-to-end against Dockerized Postgres; lint + typecheck + build pass; 0 audit vulns.
+- **TASK-030 — Users + Organizations + Stores** (multi-tenant foundation) (spec `0011`):
+  - New **`organizations`** module (owns `Organization` + `Store`): create/list stores,
+    `getOrganizationOverview`, events `OrganizationCreated`/`StoreCreated`, `createStoreAction`.
+  - New **`users`** module (owns profile/membership/role on `User`): `updateProfile`,
+    `changeUserRole`, `getUserProfile`, `listOrganizationUsers`, events
+    `UserProfileUpdated`/`UserRoleChanged`, profile + admin role-change server actions.
+  - **Event-driven provisioning (loose coupling):** `UserRegistered` → organizations creates an
+    Organization → `OrganizationCreated` → users links the owner. Modules never write each
+    other's tables; cross-module payloads imported as **types only**; handlers subscribe by
+    event name. Wired at the app composition root (`src/server/subscribers.ts`, idempotent).
+  - Auth session now carries the tenant claim (`organizationId`) so presentation can scope
+    work without a module cycle.
+  - Prisma: `User.storeId` (Staff scoping) + `Store.staff` back-relation (migration
+    `users_orgs_stores`).
+  - Pages `/stores` (list + create, RBAC-gated) and `/settings` (profile + admin-only team
+    role management); dashboard nav links.
+  - `UniqueId` now uses Web Crypto (`globalThis.crypto`) — edge/runtime-agnostic.
+  - Verified end-to-end: register → org auto-created + linked → store created (tenant-scoped);
+    lint + typecheck + build pass; 0 audit vulns.
 
 ### 🔨 In Progress
 - Repo kept local on the VM per user (no remote/PR yet).
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-030 — Users + Organizations + Stores** (multi-tenant foundation).
+- Next: **TASK-040 — eCommerce connector framework + Shopify provider**.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
 2. ~~**Module 1 — Auth**~~ ✅ done (TASK-020).
-3. **Users + Organizations + Stores** (multi-tenant foundation). ← next
-4. **Module 2 — eCommerce connector framework** + Shopify provider (OAuth, products, coupons).
+3. ~~**Users + Organizations + Stores**~~ ✅ done (TASK-030).
+4. **Module 2 — eCommerce connector framework** + Shopify provider (OAuth, products, coupons). ← next
 5. **Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events).
 6. **Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts).
 7. **Module 5 — First-time follower campaign** (event-driven: follow → coupon → message).

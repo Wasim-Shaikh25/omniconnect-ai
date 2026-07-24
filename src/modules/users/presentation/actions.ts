@@ -1,0 +1,52 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { requireUser, requireRole } from "@/modules/auth";
+import { updateProfileSchema } from "../application/update-profile";
+import { changeRoleSchema } from "../application/change-role";
+import { updateProfile, changeUserRole } from "../infrastructure/container";
+
+export interface ProfileActionState {
+  error?: string;
+  ok?: boolean;
+}
+
+export async function updateProfileAction(
+  _prev: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  const user = await requireUser();
+  const parsed = updateProfileSchema.safeParse({
+    name: formData.get("name") || undefined,
+    image: formData.get("image") || undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const result = await updateProfile(user.id, parsed.data);
+  if (!result.ok) return { error: result.error.message };
+
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function changeUserRoleAction(
+  _prev: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  const admin = await requireRole("ADMIN");
+  const parsed = changeRoleSchema.safeParse({
+    userId: formData.get("userId"),
+    role: formData.get("role"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const result = await changeUserRole(parsed.data, admin.id);
+  if (!result.ok) return { error: result.error.message };
+
+  revalidatePath("/settings");
+  return { ok: true };
+}

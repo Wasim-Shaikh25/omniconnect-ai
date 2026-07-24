@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { ensureSubscribers } from "@/server/subscribers";
+
+ensureSubscribers();
 
 export const metadata: Metadata = {
   title: "OmniConnect AI",

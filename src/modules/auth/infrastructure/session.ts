@@ -7,6 +7,7 @@ export interface SessionUser {
   email: string;
   name: string | null;
   role: Role;
+  organizationId: string | null;
 }
 
 /** Returns the current user or null. Safe to call from server components. */
@@ -19,6 +20,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     email: user.email,
     name: user.name ?? null,
     role: user.role,
+    organizationId: user.organizationId ?? null,
   };
 }
 

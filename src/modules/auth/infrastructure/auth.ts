@@ -37,6 +37,7 @@ const providers: NextAuthConfig["providers"] = [
         email: account.email,
         name: account.name,
         role: account.role,
+        organizationId: account.organizationId,
       };
     },
   }),
@@ -61,11 +62,20 @@ export const authConfig: NextAuthConfig = {
   pages: { signIn: "/login" },
   providers,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         const role = (user as { role?: unknown }).role;
         token.role = isRole(role) ? role : "STORE_OWNER";
+        const orgId = (user as { organizationId?: unknown }).organizationId;
+        token.organizationId = typeof orgId === "string" ? orgId : null;
+      }
+      // Refresh tenant claim when the session is explicitly updated.
+      if (trigger === "update" && typeof token.id === "string") {
+        const fresh = await accounts.findByEmail(
+          typeof token.email === "string" ? token.email : "",
+        );
+        if (fresh) token.organizationId = fresh.organizationId;
       }
       return token;
     },
@@ -75,6 +85,10 @@ export const authConfig: NextAuthConfig = {
         session.user.role = isRole(token.role)
           ? (token.role as Role)
           : "STORE_OWNER";
+        session.user.organizationId =
+          typeof token.organizationId === "string"
+            ? token.organizationId
+            : null;
       }
       return session;
     },

@@ -1,12 +1,38 @@
 /**
  * Users module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/users`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: User profile management.
- * Public contract (to implement): UserService (getProfile, updateProfile); events: UserProfileUpdated.
+ * The ONLY entry point other modules may import from `@/modules/users`.
+ * Owns user profile + membership + role changes on the `User` table.
  */
 export const MODULE_NAME = "users" as const;
+
+// Domain
+export { UserError, UserNotFoundError } from "./domain/errors";
+export { UserProfileUpdated, UserRoleChanged } from "./domain/events";
+export type {
+  UserProfileUpdatedPayload,
+  UserRoleChangedPayload,
+} from "./domain/events";
+
+// Application
+export { updateProfileSchema } from "./application/update-profile";
+export type { UpdateProfileInput } from "./application/update-profile";
+export { changeRoleSchema } from "./application/change-role";
+export type { ChangeRoleInput } from "./application/change-role";
+export type { UserProfile } from "./application/ports";
+
+// Queries + use-cases (composed)
+export {
+  getUserProfile,
+  listOrganizationUsers,
+  updateProfile,
+  changeUserRole,
+} from "./infrastructure/container";
+
+// Presentation + bootstrap wiring
+export {
+  updateProfileAction,
+  changeUserRoleAction,
+} from "./presentation/actions";
+export type { ProfileActionState } from "./presentation/actions";
+export { registerUsersSubscribers } from "./infrastructure/subscribers";

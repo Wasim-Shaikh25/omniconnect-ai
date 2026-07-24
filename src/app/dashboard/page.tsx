@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, signOutAction } from "@/modules/auth";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,12 @@ export default async function DashboardPage() {
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Dashboard</h1>
         <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/stores">Stores</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/settings">Settings</Link>
+          </Button>
           <ThemeToggle />
           <form action={signOutAction}>
             <Button variant="outline" size="sm" type="submit">

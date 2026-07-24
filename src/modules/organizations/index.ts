@@ -1,12 +1,42 @@
 /**
  * Organizations module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/organizations`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: Multi-tenant organizations owning stores and members.
- * Public contract (to implement): OrganizationService (create, addMember); events: OrganizationCreated.
+ * The ONLY entry point other modules may import from `@/modules/organizations`.
+ * Owns the Organization + Store tables. Exposes queries, use-cases, events, and
+ * the server action / subscriber-registration for the app composition root.
  */
 export const MODULE_NAME = "organizations" as const;
+
+// Domain
+export {
+  ECOMMERCE_PROVIDERS,
+  isEcommerceProvider,
+} from "./domain/provider";
+export type { EcommerceProvider } from "./domain/provider";
+export {
+  OrganizationError,
+  OrganizationNotFoundError,
+  StoreLimitError,
+} from "./domain/errors";
+export { OrganizationCreated, StoreCreated } from "./domain/events";
+export type {
+  OrganizationCreatedPayload,
+  StoreCreatedPayload,
+} from "./domain/events";
+
+// Application
+export { createStoreSchema } from "./application/create-store";
+export type { CreateStoreInput } from "./application/create-store";
+export type {
+  OrganizationRecord,
+  StoreRecord,
+} from "./application/ports";
+export type { OrganizationOverview } from "./application/queries";
+
+// Queries + use-cases (composed)
+export { organizationQueries, createStore } from "./infrastructure/container";
+
+// Presentation + bootstrap wiring
+export { createStoreAction } from "./presentation/actions";
+export type { StoreActionState } from "./presentation/actions";
+export { registerOrganizationSubscribers } from "./infrastructure/subscribers";

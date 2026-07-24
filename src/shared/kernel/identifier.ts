@@ -1,11 +1,10 @@
-import { randomUUID } from "node:crypto";
-
 /** A stable unique identifier for entities and aggregates. */
 export class UniqueId {
   private readonly value: string;
 
   constructor(value?: string) {
-    this.value = value ?? randomUUID();
+    // Web Crypto is available across Node, edge, and browser runtimes.
+    this.value = value ?? globalThis.crypto.randomUUID();
   }
 
   toString(): string {

@@ -28,6 +28,8 @@ model User {
   role           Role          @default(STORE_OWNER)
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
+  storeId        String?
+  store          Store?        @relation(fields: [storeId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -110,6 +112,7 @@ model Store {
   followers      Follower[]
   campaigns      Campaign[]
   aiConfig       AIConfiguration?
+  staff          User[]
 }
 
 enum IntegrationType {
