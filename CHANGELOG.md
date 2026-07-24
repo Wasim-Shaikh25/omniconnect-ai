@@ -36,15 +36,27 @@ All notable changes to **OmniConnect AI** are documented here.
   - Prisma schema with all core tables + enums.
   - ESLint import-boundary rule blocking deep cross-module imports; Prettier config; `.env.example`.
   - `npm run lint`, `typecheck`, and `build` all pass; 0 npm audit vulnerabilities.
+- **TASK-020 — Authentication module** (spec `0001`):
+  - NextAuth (Auth.js) v5 + Prisma adapter, **JWT session strategy**.
+  - Credentials provider (email + **bcrypt**, cost 12); **Google** auto-enabled when configured.
+  - RBAC: `Role` (Admin/Store Owner/Staff) in JWT + session; `roleSatisfies` hierarchy;
+    `getCurrentUser`/`requireUser`/`requireRole` session guards exposed via the barrel.
+  - Domain events `UserRegistered`/`UserLoggedIn` on the shared event bus.
+  - Pages `/login`, `/register`, protected `/dashboard`, route handler `/api/auth/[...nextauth]`;
+    server actions for login/register/sign-out; auto sign-in after registration.
+  - Prisma: `emailVerified` + NextAuth `Account`/`Session`/`VerificationToken` models (migrations
+    `init`, `auth_models`).
+  - Verified end-to-end against Dockerized Postgres; lint + typecheck + build pass; 0 audit vulns.
 
 ### 🔨 In Progress
 - Repo kept local on the VM per user (no remote/PR yet).
-- Next: **TASK-020 — Authentication module**.
+- Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
+- Next: **TASK-030 — Users + Organizations + Stores** (multi-tenant foundation).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
-2. **Module 1 — Auth** (Email + Google, JWT, RBAC: Admin/Store Owner/Staff, profile mgmt). ← next
-3. **Users + Organizations + Stores** (multi-tenant foundation).
+2. ~~**Module 1 — Auth**~~ ✅ done (TASK-020).
+3. **Users + Organizations + Stores** (multi-tenant foundation). ← next
 4. **Module 2 — eCommerce connector framework** + Shopify provider (OAuth, products, coupons).
 5. **Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events).
 6. **Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts).

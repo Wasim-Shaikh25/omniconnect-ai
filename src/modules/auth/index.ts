@@ -1,12 +1,49 @@
 /**
  * Auth module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/auth`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: Authentication & RBAC (Email + Google, JWT sessions, roles Admin/Store Owner/Staff).
- * Public contract (to implement): AuthService (authenticate, getSession, assertRole); events: UserRegistered, UserLoggedIn, UserRoleChanged.
+ * The ONLY entry point other modules may import from `@/modules/auth`.
+ * Exposes RBAC helpers, session accessors, domain events, and use-cases —
+ * never internal entities, repositories, or the raw NextAuth instance.
  */
 export const MODULE_NAME = "auth" as const;
+
+// Domain — RBAC
+export { ROLES, isRole, roleSatisfies } from "./domain/role";
+export type { Role } from "./domain/role";
+export {
+  AuthError,
+  EmailAlreadyInUseError,
+  InvalidCredentialsError,
+  UnauthorizedError,
+  ForbiddenError,
+} from "./domain/errors";
+
+// Domain — events (for cross-module subscribers)
+export { UserRegistered, UserLoggedIn } from "./domain/events";
+export type {
+  UserRegisteredPayload,
+  UserLoggedInPayload,
+} from "./domain/events";
+
+// Application — use-cases
+export { registerUserSchema } from "./application/register-user";
+export type { RegisterUserInput, RegisteredUser } from "./application/register-user";
+
+// Session accessors (RBAC entry points for other modules' presentation layers)
+export {
+  getCurrentUser,
+  requireUser,
+  requireRole,
+} from "./infrastructure/session";
+export type { SessionUser } from "./infrastructure/session";
+
+// Presentation wiring for the app composition root (route handlers + server actions)
+export { handlers } from "./infrastructure/auth";
+export { googleAuthEnabled } from "./infrastructure/auth";
+export {
+  loginAction,
+  registerAction,
+  signOutAction,
+  googleSignInAction,
+} from "./presentation/actions";
+export type { ActionState } from "./presentation/actions";
