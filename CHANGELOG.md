@@ -66,18 +66,34 @@ All notable changes to **OmniConnect AI** are documented here.
   - `UniqueId` now uses Web Crypto (`globalThis.crypto`) — edge/runtime-agnostic.
   - Verified end-to-end: register → org auto-created + linked → store created (tenant-scoped);
     lint + typecheck + build pass; 0 audit vulns.
+- **TASK-040 — eCommerce connector framework + Shopify** (spec `0002`):
+  - Provider-agnostic **`EcommerceConnector`** contract (`getProducts`/`getOrders`/
+    `getCustomers`/`generateCoupon`/`disableCoupon`/`fetchDiscounts`/`fetchStoreInfo`) with
+    pure-domain DTOs.
+  - **Provider registry** (`getConnector`) — adding a provider = implement the interface +
+    register; callers never depend on a concrete provider. **ShopifyConnector** (Admin REST
+    API) + **MockConnector** (deterministic dev data) shipped.
+  - Use-cases `connectStore` / `syncProducts` / `generateCoupon` + queries
+    (`getStoreConnection`/`listProducts`/`listCoupons`); events `StoreConnected`/
+    `ProductsSynced`/`CouponGenerated`/`CouponDisabled`.
+  - Prisma repositories for `Integration` (per-store connection + token), `Product`
+    (upsert on sync, `@@unique([storeId, externalId])`), `Coupon` (persist + disable).
+  - Store detail page `/stores/[storeId]`: connect (Mock by default, or paste Shopify
+    domain+token), sync catalog, generate coupons — all RBAC-gated + tenant-checked.
+  - Credentials read from per-store `Integration` records via the infra layer only; never
+    logged. Verified end-to-end (connect → 6 products synced → coupon created, persisted).
 
 ### 🔨 In Progress
 - Repo kept local on the VM per user (no remote/PR yet).
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-040 — eCommerce connector framework + Shopify provider**.
+- Next: **TASK-050 — Meta integration** (webhooks, FB Pages + IG Business, events).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
 2. ~~**Module 1 — Auth**~~ ✅ done (TASK-020).
 3. ~~**Users + Organizations + Stores**~~ ✅ done (TASK-030).
-4. **Module 2 — eCommerce connector framework** + Shopify provider (OAuth, products, coupons). ← next
-5. **Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events).
+4. ~~**Module 2 — eCommerce connector framework** + Shopify provider~~ ✅ done (TASK-040).
+5. **Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events). ← next
 6. **Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts).
 7. **Module 5 — First-time follower campaign** (event-driven: follow → coupon → message).
 8. **Module 8 — Human takeover**, **Module 9 — Notifications**.

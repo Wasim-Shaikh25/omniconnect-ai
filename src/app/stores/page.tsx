@@ -51,12 +51,16 @@ export default async function StoresPage() {
             {overview && overview.stores.length > 0 ? (
               <ul className="space-y-2">
                 {overview.stores.map((store) => (
-                  <li
-                    key={store.id}
-                    className="flex items-center justify-between rounded-md border p-3 text-sm"
-                  >
-                    <span className="font-medium">{store.name}</span>
-                    <span className="text-muted-foreground">{store.provider}</span>
+                  <li key={store.id}>
+                    <Link
+                      href={`/stores/${store.id}`}
+                      className="flex items-center justify-between rounded-md border p-3 text-sm transition-colors hover:bg-accent"
+                    >
+                      <span className="font-medium">{store.name}</span>
+                      <span className="text-muted-foreground">
+                        {store.provider}
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -11,7 +11,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-010** App scaffold: Next.js 15 + TS + Tailwind + ShadCN, Prisma schema, config/env validation, PWA, DDD module skeleton, event bus, import-boundary lint — spec: `0010`
 - [x] **TASK-020** Module 1 — Authentication (NextAuth v5, JWT, RBAC, bcrypt credentials + Google-ready) — spec: `0001`
 - [x] **TASK-030** Users + Organizations + Stores (multi-tenant foundation; event-driven org provisioning) — spec: `0011`
-- [ ] **TASK-040** Module 2 — eCommerce connector framework + Shopify provider — spec: `0002`
+- [x] **TASK-040** Module 2 — eCommerce connector framework + Shopify + Mock providers (connect/sync/coupon) — spec: `0002`
 - [ ] **TASK-050** Module 3 — Meta integration (webhooks, FB Pages + IG Business) — spec: `0003`
 - [ ] **TASK-060** Module 6 — Customer Memory (CRM) — spec: `0006`
 - [ ] **TASK-070** Module 4 — AI Customer Assistant (per-page prompts, provider interface) — spec: `0004`
