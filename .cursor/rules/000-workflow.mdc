@@ -1,0 +1,19 @@
+---
+description: Mandatory spec-first, changelog-first, task-driven workflow for MetaBridge AI
+globs:
+alwaysApply: true
+---
+
+# Workflow (always applies)
+
+The single source of truth is `AGENTS.md`. Follow this loop for ANY code change, in order:
+
+1. **Read `CHANGELOG.md` first** — understand Done / In Progress / Next.
+2. **Read + update the relevant spec** in `docs/specs/` BEFORE writing code (spec-first).
+   - Use `docs/specs/_TEMPLATE.md` for new specs.
+3. **Create/append a task** in `docs/tasks/` (`_TEMPLATE.md`) or `docs/tasks/backlog.md`.
+4. **Implement** to match the spec.
+5. **Update `CHANGELOG.md`** as the last step (move to Done, add the Next item).
+6. **Verify**: lint + typecheck + tests pass.
+
+Rule of thumb: **No code without a spec. No work without a task. No session without reading the changelog.**

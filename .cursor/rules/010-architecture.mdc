@@ -1,0 +1,23 @@
+---
+description: DDD layering, loose coupling, event-driven and repository patterns
+globs:
+alwaysApply: true
+---
+
+# Architecture — Loose Coupling is Law
+
+- **Modules:** auth, users, organizations, ecommerce, meta, ai, coupons, crm,
+  conversations, analytics, reports, notifications.
+- **Never import another module's internals** (domain entities, repositories, infra).
+  Cross-module communication happens ONLY via a module's public contract
+  (application service / port) or **domain events**.
+- **No circular dependencies** between modules.
+- **DDD layering per module:** Presentation → Application → Domain ← Infrastructure.
+  Dependencies point inward. The **Domain layer is pure** — no Prisma, no fetch, no env,
+  no framework imports.
+- **Repository Pattern** for all persistence; **Event-Driven** across module boundaries.
+- **Extensible connectors:** eCommerce and AI providers sit behind interfaces. Adding a
+  provider (WooCommerce, BigCommerce, a new LLM) = implement the interface only, no caller changes.
+- Prefer domain events for reactive flows (e.g. new follower → coupon → notification).
+
+See `docs/architecture/` for full detail.

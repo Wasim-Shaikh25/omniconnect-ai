@@ -1,0 +1,24 @@
+---
+description: TypeScript coding standards, naming, imports, security
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Coding Standards (TypeScript)
+
+- **TypeScript strict.** No `any`, no `@ts-ignore`, no dynamic property-access hacks.
+  If you need one, you don't understand the type — read it and model it correctly.
+- **Naming:** `camelCase` vars/functions, `PascalCase` types/components/classes,
+  `SCREAMING_SNAKE_CASE` constants, kebab-case files (`PascalCase.tsx` for React components).
+- **Imports at the top of the file only.** Access other modules via their public barrel;
+  never deep-import their internals.
+- **Config/secrets:** read env only through a validated config module; never scatter
+  `process.env`. Never log or commit secrets/tokens/PII.
+- **Errors:** typed, fail loudly, never swallowed.
+- **Comments:** default none — rely on good names; comment only non-obvious *why*. Never
+  describe the diff.
+- **Persistence:** Prisma migrations for all schema changes; never hand-edit generated artifacts.
+- **Dependencies:** prefer versions published ≥7 days ago; no floating ranges (`latest`, `*`).
+- **Tests:** do not edit tests just to make them pass.
+
+Full detail in `AGENTS.md` §3.

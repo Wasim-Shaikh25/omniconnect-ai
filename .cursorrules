@@ -1,0 +1,34 @@
+# Cursor Rules — MetaBridge AI (legacy .cursorrules; see also .cursor/rules/*.mdc)
+
+The single source of truth for this repo is AGENTS.md. Follow it. This file mirrors the
+non-negotiables so they are always enforced.
+
+WORKFLOW (every session, in order):
+1. Read CHANGELOG.md first (Done / In Progress / Next).
+2. Read + update the relevant spec in docs/specs/ BEFORE writing code (spec-first).
+3. Create/append a task in docs/tasks/.
+4. Implement to match the spec.
+5. Update CHANGELOG.md last (move to Done, add Next).
+6. Ensure lint + typecheck + tests pass.
+
+Rule of thumb: No code without a spec. No work without a task. No session without reading the changelog.
+
+ARCHITECTURE (loose coupling is law):
+- Modules: auth, users, organizations, ecommerce, meta, ai, coupons, crm, conversations, analytics, reports, notifications.
+- Never import another module's internals. Cross-module communication = public contract
+  (application service / port) or DOMAIN EVENTS only. No circular dependencies.
+- DDD layering per module: Presentation -> Application -> Domain <- Infrastructure.
+  Dependencies point inward. Domain layer is PURE (no Prisma, fetch, env, framework).
+- Repository pattern for all persistence. Event-driven across module boundaries.
+- eCommerce/AI providers behind interfaces: adding a provider = implement the interface only.
+
+CODING STANDARDS:
+- TypeScript strict everywhere. No `any`, no `@ts-ignore`, no dynamic property access hacks.
+- Naming: camelCase vars/functions, PascalCase types/components, SCREAMING_SNAKE_CASE consts,
+  kebab-case files (PascalCase.tsx for React components).
+- Imports at top of file only. Access other modules via their public barrel, never deep imports.
+- Validated config module for env; never scatter process.env. Never log/commit secrets or PII.
+- Prisma migrations for all schema changes. Prefer deps published >=7 days ago; no floating ranges.
+- Do not edit tests just to make them pass.
+
+Full detail: AGENTS.md (§0–§7) and docs/architecture/.
