@@ -1,44 +1,68 @@
 # Spec 0003: Meta Integration
 
-- **Module(s):** meta
-- **Status:** Draft
+- **Module(s):** meta (+ event consumers: crm, conversations)
+- **Status:** Implemented (Phase 1)
 - **Owner:** wasim
-- **Related task(s):** docs/tasks/backlog.md
+- **Related task(s):** docs/tasks/backlog.md (TASK-050)
 - **Related ADR(s):** —
 - **Last updated:** 2026-07-24
 
 ## 1. Summary
-Webhook-based integration with Facebook Pages and Instagram Business accounts via Meta Graph, Messenger, and Instagram Messaging APIs. Receives DMs, page messages, comments, mentions, follows, and post interactions; stores interaction records.
+Webhook-based integration with Facebook Pages and Instagram Business accounts. The `meta`
+module verifies + ingests Meta webhooks, **normalizes** them into domain events, and
+publishes them on the shared bus. It **does not** write conversation/customer tables —
+`conversations` and `crm` subscribe and own that persistence (loose coupling in action).
 
 ## 2. Goals
-- Connect FB Pages and IG Business accounts (OAuth + page tokens)
-- Receive DMs, page messages, comment notifications, post interactions
-- View conversation history; store customer interaction records
-- Verify webhook signatures
+- Webhook **verification** (GET `hub.challenge`) against a configured verify token.
+- Webhook **signature** check (`X-Hub-Signature-256`, HMAC-SHA256 with the app secret).
+- Normalize inbound payloads → `MetaMessageReceived`, `MetaFollowReceived`,
+  `MetaCommentReceived` (channel = INSTAGRAM | FACEBOOK).
+- Map an incoming page/IG account → the owning Store via a `META` `Integration` record.
+- Connect a Page/IG account to a store (store page token); `MetaService.sendMessage` adapter
+  (Graph API, config-gated).
+- A **dev simulator** action so the whole event-driven flow is testable without live Meta.
 
 ## 3. Non-Goals
-- Anything listed under Phase 2/3 in the Future Roadmap (see `docs/specs/0000-project-overview.md`).
+- Full OAuth install/login-with-Facebook flow (accepts an existing page token for now).
+- Comment/mention replies, post publishing, Ads — Phase 2/3.
 
 ## 4. Public Contract (loose coupling)
-- Inbound webhook handler normalizes Meta events into domain events: `NewFollow`, `NewMessage`, `Comment`, `Mention`, `PageInteraction`.
-- `MetaService` port: `sendMessage`, `getConversation`, `listPages`.
-- `conversations`, `crm`, `ai`, `crm`/`coupons` subscribe to these events (loose coupling).
+`@/modules/meta`:
+- Events: `MetaMessageReceived`, `MetaFollowReceived`, `MetaCommentReceived` (+ payload types).
+- `verifyWebhookChallenge`, `processMetaWebhook` (normalize + publish), `simulateInbound`.
+- `connectMetaAction`, `simulateInboundAction`, `metaQueries.getMetaConnection`.
 
-> Other modules interact ONLY through the contract above (application service / port /
-> domain events). No module imports this module's internals. No circular dependencies.
+`@/modules/crm` (owns Customer + Follower): subscribes to `MetaFollowReceived` /
+`MetaMessageReceived` → upserts Customer, records Follower. Exposes `crmQueries`
+(`listFollowers`, `listCustomers`) + `FirstTimeFollowerDetected` event (for TASK-080).
+
+`@/modules/conversations` (owns Conversation + Message): subscribes to `MetaMessageReceived`
+→ upserts the Conversation and appends the CUSTOMER Message. Exposes `conversationQueries`
+(`listConversations`, `getConversation`).
+
+> Cross-module only via events + public queries. `meta` never imports crm/conversations
+> internals and never writes their tables. No cycles.
 
 ## 5. Data / Persistence
-`Integrations` (meta), `Conversations`, `Messages`, `Followers`, `Customers`. Ownership: `meta` (raw events) → normalized into `conversations`/`crm`.
-All schema changes via Prisma migrations.
+- `Integration` (type=META, externalId=page/IG id, accessToken=page token) — owned by `meta`.
+- `Customer`, `Follower` — owned by `crm`.
+- `Conversation`, `Message` — owned by `conversations`.
+- No schema changes required (tables already exist). All changes via Prisma migrations.
 
-## 6. Notes
-All external Meta calls behind an adapter in Infrastructure; Domain deals only with normalized events.
+## 6. Security
+- Verify token + app secret read via validated config; never logged.
+- Signature verified before processing; invalid signatures → 401, no side effects.
+- Page tokens stored per-store in `Integration`, read only in infrastructure.
 
-## 7. Acceptance Criteria (Definition of Done)
-- [ ] Domain modeled (entities, events) with pure unit tests.
-- [ ] Application services/ports implemented and exposed via the module's public barrel.
-- [ ] Infrastructure adapters/repositories implemented (Prisma, external APIs).
-- [ ] Presentation (routes/UI) wired where applicable, with RBAC.
-- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` updated.
+## 7. Acceptance Criteria (DoD)
+- [x] GET verification returns the challenge only when the token matches.
+- [x] POST validates the signature, normalizes events, publishes domain events.
+- [x] crm records Customer + Follower; conversations records Conversation + Message — via events.
+- [x] Store detail page shows Meta connection, a dev simulator, recent conversations + followers.
+- [x] Lint + typecheck + build pass; `CHANGELOG.md` updated.
 
-> This is an initial stub. Expand using `_TEMPLATE.md` before implementation begins.
+## 8. Follow-ups
+- Real Login-with-Facebook OAuth + page subscription management.
+- AI auto-reply (TASK-070) + first-time-follower coupon campaign (TASK-080) subscribe next.
+- Signature check + delivery retries hardening; per-page rate limiting.
