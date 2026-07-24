@@ -25,13 +25,25 @@ All notable changes to **OmniConnect AI** are documented here.
     event-driven, loose-coupling rules).
   - ADR process: `docs/decisions/` (template + ADR-0001).
 
+### ✅ Done (continued)
+- **TASK-010 — App scaffold** (spec `0010`):
+  - Next.js 15.5.21 (patched) + TypeScript (strict) + TailwindCSS + ShadCN-style UI.
+  - Dark/light theming via `next-themes` + theme toggle; PWA manifest; landing page.
+  - DDD module skeleton for all 12 modules (`domain/application/infrastructure/presentation`
+    + public `index.ts` barrel + README each).
+  - Shared kernel (`Entity`, `AggregateRoot`, `UniqueId`, `DomainEvent`, `Result`),
+    in-memory event bus, validated config (`zod`), structured logger, Prisma client singleton.
+  - Prisma schema with all core tables + enums.
+  - ESLint import-boundary rule blocking deep cross-module imports; Prettier config; `.env.example`.
+  - `npm run lint`, `typecheck`, and `build` all pass; 0 npm audit vulnerabilities.
+
 ### 🔨 In Progress
-- Awaiting confirmation of the GitHub remote to open the first PR for this foundation.
+- Repo kept local on the VM per user (no remote/PR yet).
+- Next: **TASK-020 — Authentication module**.
 
 ### ⏭️ Next (proposed build order)
-1. **Scaffold the app** — Next.js 15 + TS + Tailwind + ShadCN, Prisma + Postgres, BullMQ + Redis,
-   NextAuth, config/env validation, Sentry/OTel wiring, PWA setup, module folder skeleton.
-2. **Module 1 — Auth** (Email + Google, JWT, RBAC: Admin/Store Owner/Staff, profile mgmt).
+1. ~~Scaffold the app~~ ✅ done (TASK-010).
+2. **Module 1 — Auth** (Email + Google, JWT, RBAC: Admin/Store Owner/Staff, profile mgmt). ← next
 3. **Users + Organizations + Stores** (multi-tenant foundation).
 4. **Module 2 — eCommerce connector framework** + Shopify provider (OAuth, products, coupons).
 5. **Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events).

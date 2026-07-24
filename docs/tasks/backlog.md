@@ -5,11 +5,11 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 
 ## Foundation
 - [x] **TASK-000** Project governance foundation (rules, specs, tasks, changelog, architecture docs) — spec: `0000`
-- [~] **TASK-001** Confirm GitHub remote and open foundation PR — spec: `0000`
+- [x] **TASK-001** Remote decision: kept local on VM per user (no PR) — spec: `0000`
 
 ## Phase 1 build order
-- [ ] **TASK-010** App scaffold: Next.js 15 + TS + Tailwind + ShadCN, Prisma + Postgres, BullMQ + Redis, NextAuth, config/env validation, Sentry/OTel, PWA, module folder skeleton — spec: `0000`
-- [ ] **TASK-020** Module 1 — Authentication (Email + Google, JWT, RBAC, profiles) — spec: `0001`
+- [x] **TASK-010** App scaffold: Next.js 15 + TS + Tailwind + ShadCN, Prisma schema, config/env validation, PWA, DDD module skeleton, event bus, import-boundary lint — spec: `0010`
+- [~] **TASK-020** Module 1 — Authentication (Email + Google, JWT, RBAC, profiles) — spec: `0001`
 - [ ] **TASK-030** Users + Organizations + Stores (multi-tenant foundation) — spec: `0001`, `0000`
 - [ ] **TASK-040** Module 2 — eCommerce connector framework + Shopify provider — spec: `0002`
 - [ ] **TASK-050** Module 3 — Meta integration (webhooks, FB Pages + IG Business) — spec: `0003`

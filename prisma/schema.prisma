@@ -1,0 +1,290 @@
+// OmniConnect AI — Prisma schema (core tables).
+// Each model is owned by a module (see docs/architecture/module-boundaries.md).
+// Schema changes go through `prisma migrate` — never hand-edit generated artifacts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── auth / users ────────────────────────────────────────────────────────────
+enum Role {
+  ADMIN
+  STORE_OWNER
+  STAFF
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String?
+  passwordHash   String?
+  image          String?
+  role           Role          @default(STORE_OWNER)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  notifications  Notification[]
+}
+
+// ── organizations ───────────────────────────────────────────────────────────
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  stores    Store[]
+}
+
+// ── ecommerce ───────────────────────────────────────────────────────────────
+enum EcommerceProvider {
+  SHOPIFY
+  WOOCOMMERCE
+  BIGCOMMERCE
+  MAGENTO
+  WIX
+  CUSTOM
+}
+
+model Store {
+  id             String            @id @default(cuid())
+  name           String
+  provider       EcommerceProvider @default(SHOPIFY)
+  domain         String?
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  integrations   Integration[]
+  products       Product[]
+  coupons        Coupon[]
+  customers      Customer[]
+  conversations  Conversation[]
+  followers      Follower[]
+  campaigns      Campaign[]
+  aiConfig       AIConfiguration?
+}
+
+enum IntegrationType {
+  ECOMMERCE
+  META
+}
+
+model Integration {
+  id           String          @id @default(cuid())
+  type         IntegrationType
+  provider     String
+  externalId   String?
+  accessToken  String?
+  refreshToken String?
+  scopes       String?
+  metadata     Json?
+  storeId      String
+  store        Store           @relation(fields: [storeId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  externalId  String
+  title       String
+  description String?
+  price       Decimal? @db.Decimal(12, 2)
+  currency    String?
+  inventory   Int?
+  imageUrl    String?
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([storeId, externalId])
+}
+
+// ── coupons ─────────────────────────────────────────────────────────────────
+enum CouponStatus {
+  ACTIVE
+  DISABLED
+  EXPIRED
+}
+
+model Coupon {
+  id            String        @id @default(cuid())
+  code          String
+  discountPct   Int
+  status        CouponStatus  @default(ACTIVE)
+  expiresAt     DateTime?
+  storeId       String
+  store         Store         @relation(fields: [storeId], references: [id])
+  customerId    String?
+  customer      Customer?     @relation(fields: [customerId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  usages        CouponUsage[]
+
+  @@unique([storeId, code])
+}
+
+model CouponUsage {
+  id         String   @id @default(cuid())
+  couponId   String
+  coupon     Coupon   @relation(fields: [couponId], references: [id])
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  usedAt     DateTime @default(now())
+  orderRef   String?
+}
+
+// ── crm (customers) ─────────────────────────────────────────────────────────
+model Customer {
+  id            String         @id @default(cuid())
+  storeId       String
+  store         Store          @relation(fields: [storeId], references: [id])
+  igUserId      String?
+  fbUserId      String?
+  username      String?
+  interests     String[]
+  tags          String[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  conversations Conversation[]
+  coupons       Coupon[]
+  couponUsages  CouponUsage[]
+  followers     Follower[]
+}
+
+// ── meta / conversations ────────────────────────────────────────────────────
+enum ConversationChannel {
+  INSTAGRAM
+  FACEBOOK
+}
+
+enum ConversationStatus {
+  AI_ACTIVE
+  HUMAN_ACTIVE
+}
+
+model Conversation {
+  id            String              @id @default(cuid())
+  channel       ConversationChannel
+  status        ConversationStatus  @default(AI_ACTIVE)
+  externalId    String?
+  storeId       String
+  store         Store               @relation(fields: [storeId], references: [id])
+  customerId    String?
+  customer      Customer?           @relation(fields: [customerId], references: [id])
+  assignedHumanId String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  messages      Message[]
+}
+
+enum MessageSender {
+  CUSTOMER
+  AI
+  HUMAN
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id])
+  sender         MessageSender
+  content        String
+  createdAt      DateTime      @default(now())
+}
+
+model Follower {
+  id         String   @id @default(cuid())
+  storeId    String
+  store      Store    @relation(fields: [storeId], references: [id])
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  igUserId   String?
+  username   String?
+  followedAt DateTime @default(now())
+
+  @@unique([storeId, igUserId])
+}
+
+// ── ai ──────────────────────────────────────────────────────────────────────
+model AIConfiguration {
+  id             String   @id @default(cuid())
+  storeId        String   @unique
+  store          Store    @relation(fields: [storeId], references: [id])
+  systemPrompt   String
+  tone           String?
+  welcomeStrategy String?
+  couponStrategy String?
+  salesStrategy  String?
+  escalationRules String?
+  model          String   @default("gpt-4o-mini")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ── campaigns (first-time follower) ─────────────────────────────────────────
+model Campaign {
+  id              String   @id @default(cuid())
+  storeId         String
+  store           Store    @relation(fields: [storeId], references: [id])
+  name            String
+  discountPct     Int      @default(10)
+  couponTtlDays   Int      @default(30)
+  messageTemplate String
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ── reports ─────────────────────────────────────────────────────────────────
+enum ReportPeriod {
+  WEEKLY
+  MONTHLY
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  storeId     String
+  period      ReportPeriod
+  content     Json
+  generatedAt DateTime     @default(now())
+}
+
+// ── notifications ───────────────────────────────────────────────────────────
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_FOLLOWER
+  COUPON_USED
+  ESCALATION
+  SYSTEM_ERROR
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String
+  user      User                @relation(fields: [userId], references: [id])
+  type      NotificationType
+  channel   NotificationChannel @default(IN_APP)
+  payload   Json
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now())
+}
