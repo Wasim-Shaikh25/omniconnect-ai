@@ -1,12 +1,18 @@
 /**
  * Crm module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/crm`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: Customer memory system for personalization.
- * Public contract (to implement): CustomerMemory (getProfile, recordInteraction, tag, recordCoupon); events: FirstInteractionDetected, CustomerProfileUpdated.
+ * The ONLY entry point other modules may import from `@/modules/crm`.
+ * Owns Customer + Follower persistence. Subscribes to Meta events to upsert
+ * customers and record followers, emitting `FirstTimeFollowerDetected`.
  */
 export const MODULE_NAME = "crm" as const;
+
+// Domain events
+export { FirstTimeFollowerDetected } from "./domain/events";
+export type { FirstTimeFollowerDetectedPayload } from "./domain/events";
+
+// Application record types
+export type { CustomerRecord, FollowerRecord } from "./application/ports";
+
+// Queries (composed)
+export { crmQueries } from "./infrastructure/container";

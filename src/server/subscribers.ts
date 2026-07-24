@@ -1,6 +1,8 @@
 import { eventBus } from "@/shared/events";
 import { registerOrganizationSubscribers } from "@/modules/organizations/bootstrap";
 import { registerUsersSubscribers } from "@/modules/users/bootstrap";
+import { registerCrmSubscribers } from "@/modules/crm/bootstrap";
+import { registerConversationsSubscribers } from "@/modules/conversations/bootstrap";
 
 /**
  * App composition root for event subscribers.
@@ -16,4 +18,6 @@ export function ensureSubscribers(): void {
   wired = true;
   registerOrganizationSubscribers(eventBus);
   registerUsersSubscribers(eventBus);
+  registerCrmSubscribers(eventBus);
+  registerConversationsSubscribers(eventBus);
 }

@@ -1,12 +1,60 @@
 /**
  * Meta module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/meta`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: Facebook/Instagram integration via webhooks and Graph APIs.
- * Public contract (to implement): MetaService (sendMessage, getConversation, listPages); events: NewFollow, NewMessage, Comment, Mention, PageInteraction.
+ * The ONLY entry point other modules may import from `@/modules/meta`.
+ * Verifies + ingests Meta webhooks, normalizes them into domain events, and
+ * publishes them on the shared bus. Owns META `Integration` persistence. It does
+ * NOT write conversation/customer tables — `conversations` and `crm` subscribe.
  */
 export const MODULE_NAME = "meta" as const;
+
+// Domain — normalized primitives + events
+export { META_CHANNELS, META_EVENT_KINDS } from "./domain/types";
+export type {
+  MetaChannel,
+  MetaEventKind,
+  NormalizedMetaEvent,
+} from "./domain/types";
+export {
+  MetaMessageReceived,
+  MetaFollowReceived,
+  MetaCommentReceived,
+} from "./domain/events";
+export type {
+  MetaMessageReceivedPayload,
+  MetaFollowReceivedPayload,
+  MetaCommentReceivedPayload,
+} from "./domain/events";
+export {
+  MetaError,
+  InvalidSignatureError,
+  UnknownAccountError,
+  MetaNotConnectedError,
+} from "./domain/errors";
+
+// Application — schemas, webhook verification + processing
+export {
+  verifyWebhookChallenge,
+  verifyWebhookSignature,
+} from "./application/verify-webhook";
+export { connectMetaSchema } from "./application/connect-meta";
+export type { ConnectMetaInput } from "./application/connect-meta";
+export { simulateInboundSchema } from "./application/simulate-inbound";
+export type { SimulateInboundInput } from "./application/simulate-inbound";
+export type { MetaIntegrationRecord, MetaService } from "./application/ports";
+export type { MetaConnectionView } from "./application/queries";
+
+// Composition root — use-cases, queries, outbound service
+export {
+  connectMeta,
+  processMetaWebhook,
+  metaQueries,
+  metaService,
+} from "./infrastructure/container";
+
+// Presentation
+export {
+  connectMetaAction,
+  simulateInboundAction,
+} from "./presentation/actions";
+export type { MetaActionState } from "./presentation/actions";

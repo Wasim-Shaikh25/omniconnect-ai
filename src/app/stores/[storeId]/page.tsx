@@ -8,9 +8,18 @@ import {
   generateCouponAction,
   syncProductsAction,
 } from "@/modules/ecommerce";
+import {
+  connectMetaAction,
+  metaQueries,
+  simulateInboundAction,
+} from "@/modules/meta";
+import { conversationQueries } from "@/modules/conversations";
+import { crmQueries } from "@/modules/crm";
 import { ConnectStoreForm } from "@/components/connect-store-form";
 import { SyncProductsButton } from "@/components/sync-products-button";
 import { GenerateCouponForm } from "@/components/generate-coupon-form";
+import { MetaConnectForm } from "@/components/meta-connect-form";
+import { MetaSimulateForm } from "@/components/meta-simulate-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,10 +51,21 @@ export default async function StoreDetailPage({
   if (!store) notFound();
 
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
-  const [connection, products, coupons] = await Promise.all([
+  const isDev = process.env.NODE_ENV !== "production";
+  const [
+    connection,
+    products,
+    coupons,
+    metaConnection,
+    conversations,
+    followers,
+  ] = await Promise.all([
     ecommerceQueries.getStoreConnection(storeId),
     ecommerceQueries.listProducts(storeId),
     ecommerceQueries.listCoupons(storeId),
+    metaQueries.getMetaConnection(storeId),
+    conversationQueries.listConversations(storeId, 10),
+    crmQueries.listFollowers(storeId, 10),
   ]);
 
   return (
@@ -164,6 +184,120 @@ export default async function StoreDetailPage({
           )}
         </CardContent>
       </Card>
+
+      <h2 className="mt-10 text-lg font-semibold">Meta integration</h2>
+      <p className="text-sm text-muted-foreground">
+        Connect a Facebook Page or Instagram Business account. Inbound events
+        become conversations and followers via domain events.
+      </p>
+
+      <div className="mt-4 grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Meta connection</CardTitle>
+            <CardDescription>
+              {metaConnection.connected
+                ? `Connected: ${metaConnection.integration?.channel}${
+                    metaConnection.integration?.accountId
+                      ? ` (${metaConnection.integration.accountId})`
+                      : ""
+                  }.`
+                : "No Facebook/Instagram account connected yet."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {canManage ? (
+              <MetaConnectForm action={connectMetaAction} storeId={storeId} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Only owners/admins can manage connections.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {isDev && canManage && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Dev simulator</CardTitle>
+              <CardDescription>
+                Publish a simulated inbound Meta event to exercise the full
+                event-driven flow without a live Meta app.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MetaSimulateForm
+                action={simulateInboundAction}
+                storeId={storeId}
+              />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent conversations</CardTitle>
+            <CardDescription>
+              {conversations.length} conversation(s) from Meta messages.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {conversations.length > 0 ? (
+              <ul className="divide-y">
+                {conversations.map((c) => (
+                  <li
+                    key={c.id}
+                    className="flex items-center justify-between py-2 text-sm"
+                  >
+                    <span className="font-medium">
+                      {c.channel} · {c.externalId ?? "—"}
+                    </span>
+                    <span className="text-muted-foreground">{c.status}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No conversations yet. Simulate a message to create one.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Followers</CardTitle>
+            <CardDescription>
+              {followers.length} follower(s) recorded from Meta events.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {followers.length > 0 ? (
+              <ul className="divide-y">
+                {followers.map((f) => (
+                  <li
+                    key={f.id}
+                    className="flex items-center justify-between py-2 text-sm"
+                  >
+                    <span className="font-medium">
+                      {f.username ?? f.igUserId ?? "unknown"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {f.followedAt.toLocaleDateString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No followers yet. Simulate a follow event to create one.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

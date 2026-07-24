@@ -12,7 +12,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-020** Module 1 — Authentication (NextAuth v5, JWT, RBAC, bcrypt credentials + Google-ready) — spec: `0001`
 - [x] **TASK-030** Users + Organizations + Stores (multi-tenant foundation; event-driven org provisioning) — spec: `0011`
 - [x] **TASK-040** Module 2 — eCommerce connector framework + Shopify + Mock providers (connect/sync/coupon) — spec: `0002`
-- [ ] **TASK-050** Module 3 — Meta integration (webhooks, FB Pages + IG Business) — spec: `0003`
+- [x] **TASK-050** Module 3 — Meta integration (webhooks, FB Pages + IG Business; crm + conversations consumers) — spec: `0003`
 - [ ] **TASK-060** Module 6 — Customer Memory (CRM) — spec: `0006`
 - [ ] **TASK-070** Module 4 — AI Customer Assistant (per-page prompts, provider interface) — spec: `0004`
 - [ ] **TASK-080** Module 5 — First-time follower campaign (event-driven) — spec: `0005`

@@ -1,12 +1,20 @@
 /**
  * Conversations module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/conversations`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: Conversation state & human takeover.
- * Public contract (to implement): ConversationService (takeOver, resumeAI, getStatus); events: ConversationTakenOver, AIResumed.
+ * The ONLY entry point other modules may import from `@/modules/conversations`.
+ * Owns Conversation + Message persistence. Subscribes to `MetaMessageReceived`
+ * to upsert the conversation and append the customer message.
  */
 export const MODULE_NAME = "conversations" as const;
+
+// Application record types
+export type {
+  ConversationRecord,
+  MessageRecord,
+  ConversationChannel,
+  MessageSender,
+} from "./application/ports";
+export type { ConversationDetail } from "./application/queries";
+
+// Queries (composed)
+export { conversationQueries } from "./infrastructure/container";

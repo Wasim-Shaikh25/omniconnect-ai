@@ -20,6 +20,12 @@ export interface MetaIntegrationRepository {
 
   /** Resolve which store owns an inbound page/IG account. */
   findStoreByAccountId(accountId: string): Promise<string | null>;
+
+  /** Read the stored page/IG token for outbound calls (infra-only). */
+  findAccessToken(
+    storeId: string,
+    channel?: MetaChannel,
+  ): Promise<string | null>;
 }
 
 /** Outbound Graph API port (send replies, etc.). */

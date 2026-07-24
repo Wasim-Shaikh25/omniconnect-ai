@@ -82,19 +82,37 @@ All notable changes to **OmniConnect AI** are documented here.
     domain+token), sync catalog, generate coupons — all RBAC-gated + tenant-checked.
   - Credentials read from per-store `Integration` records via the infra layer only; never
     logged. Verified end-to-end (connect → 6 products synced → coupon created, persisted).
+- **TASK-050 — Meta integration** (spec `0003`):
+  - **`meta`** module: webhook **verification** (GET `hub.challenge`) + **signature** check
+    (`X-Hub-Signature-256`, HMAC-SHA256 with app secret, constant-time; invalid → 401, no
+    side effects). Route handler `/api/meta/webhook` (GET + POST, Node runtime).
+  - Normalizes raw payloads (zod, rejects malformed) into domain events
+    `MetaMessageReceived`/`MetaFollowReceived`/`MetaCommentReceived` (channel INSTAGRAM |
+    FACEBOOK); resolves the owning store via a `META` `Integration` (channel in `provider`,
+    page/IG id in `externalId`, token in `accessToken` — infra-only, never logged).
+  - `connectMeta` use-case + `metaQueries.getMetaConnection`; outbound `MetaService.sendMessage`
+    Graph API adapter (config-gated, no-op without a token); **dev simulator** action.
+  - **`crm`** module (owns `Customer` + `Follower`): subscribes to Meta events → upserts
+    Customer, records Follower, emits `FirstTimeFollowerDetected` (for TASK-080). `crmQueries`.
+  - **`conversations`** module (owns `Conversation` + `Message`): subscribes to
+    `MetaMessageReceived` → upserts Conversation, appends CUSTOMER Message. `conversationQueries`.
+  - Loose coupling: `meta` never writes crm/conversations tables; consumers subscribe by event
+    name and import payload **types only**. Subscribers wired at `src/server/subscribers.ts`.
+  - Store detail page: Meta connection form, dev inbound simulator, recent conversations +
+    followers — RBAC-gated + tenant-checked. Lint + typecheck + build pass.
 
 ### 🔨 In Progress
-- Repo kept local on the VM per user (no remote/PR yet).
+- Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-050 — Meta integration** (webhooks, FB Pages + IG Business, events).
+- Next: **TASK-060/070 — Customer Memory (CRM) refinement + AI Assistant** (per-page prompts).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
 2. ~~**Module 1 — Auth**~~ ✅ done (TASK-020).
 3. ~~**Users + Organizations + Stores**~~ ✅ done (TASK-030).
 4. ~~**Module 2 — eCommerce connector framework** + Shopify provider~~ ✅ done (TASK-040).
-5. **Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events). ← next
-6. **Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts).
+5. ~~**Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events)~~ ✅ done (TASK-050).
+6. **Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts). ← next
 7. **Module 5 — First-time follower campaign** (event-driven: follow → coupon → message).
 8. **Module 8 — Human takeover**, **Module 9 — Notifications**.
 9. **Module 7 — Marketing insights dashboard** + **Reports**.
