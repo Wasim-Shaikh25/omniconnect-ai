@@ -1,5 +1,5 @@
 ---
-description: Mandatory spec-first, changelog-first, task-driven workflow for MetaBridge AI
+description: Mandatory spec-first, changelog-first, task-driven workflow for OmniConnect AI
 globs:
 alwaysApply: true
 ---

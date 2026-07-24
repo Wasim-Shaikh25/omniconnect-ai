@@ -1,4 +1,4 @@
-# AGENTS.md — Canonical Engineering Standard for MetaBridge AI
+# AGENTS.md — Canonical Engineering Standard for OmniConnect AI
 
 > **This file is the single source of truth** for how ALL contributors — human or AI
 > (Cursor, Windsurf, Claude, Devin, Copilot, etc.) — write code in this repository.

@@ -5,7 +5,7 @@
 - **Deciders:** wasim
 
 ## Context
-MetaBridge AI is a large, multi-module SaaS intended to grow across three phases and multiple
+OmniConnect AI is a large, multi-module SaaS intended to grow across three phases and multiple
 integrations. Multiple contributors — including AI assistants (Cursor, Windsurf, Claude,
 Devin) — will work on it. Without a single enforced standard, code style, architecture, and
 process will drift and modules will become tightly coupled, making future expansion costly.

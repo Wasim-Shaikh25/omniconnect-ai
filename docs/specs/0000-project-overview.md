@@ -8,7 +8,7 @@
 - **Last updated:** 2026-07-24
 
 ## 1. Summary
-**MetaBridge AI** is a production-ready SaaS that bridges Meta platforms (Instagram &
+**OmniConnect AI** is a production-ready SaaS that bridges Meta platforms (Instagram &
 Facebook) with eCommerce platforms (Shopify first, provider-agnostic by design). It monitors
 messages/comments/interactions, responds with a configurable AI assistant, onboards first-time
 followers with personalized discount codes, manages coupons/products via a universal eCommerce

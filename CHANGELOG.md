@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **MetaBridge AI** are documented here.
+All notable changes to **OmniConnect AI** are documented here.
 
 > **READ THIS FIRST every session.** This changelog is the entry point to the project.
 > The `[Unreleased]` section below always answers: what is **Done**, what is **In Progress**,

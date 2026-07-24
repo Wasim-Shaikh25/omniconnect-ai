@@ -1,7 +1,7 @@
-# MetaBridge AI
+# OmniConnect AI
 
 An intelligent bridge between **Meta platforms** (Instagram & Facebook) and **eCommerce
-platforms** (Shopify first, provider-agnostic). MetaBridge AI monitors messages, comments,
+platforms** (Shopify first, provider-agnostic). OmniConnect AI monitors messages, comments,
 and interactions, replies with a configurable AI assistant, onboards first-time followers with
 personalized discount codes, manages coupons/products through a universal connector, and
 surfaces AI-driven marketing insights.

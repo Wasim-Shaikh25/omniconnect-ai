@@ -1,6 +1,6 @@
 # Architecture Overview
 
-MetaBridge AI is built with **Domain-Driven Design (DDD)**, the **Repository Pattern**, and
+OmniConnect AI is built with **Domain-Driven Design (DDD)**, the **Repository Pattern**, and
 **Event-Driven Architecture**, organized into loosely-coupled domain **modules**. The guiding
 principle: **modules must not be tightly coupled.**
 
