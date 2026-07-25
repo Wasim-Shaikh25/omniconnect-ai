@@ -7,6 +7,7 @@ export const MODULE_NAME = "analytics" as const;
 
 export type {
   TrackedAccountRecord,
+  SuggestedCompetitor,
   CreateTrackedAccountInput,
   UpdateTrackedAccountInput,
   TrackedAccountRepository,
@@ -18,10 +19,12 @@ export {
   getCompetitorMediaAction,
   analyzeCompetitorAction,
   deleteTrackedCompetitorAction,
+  discoverCompetitorsAction,
 } from "./presentation/actions";
 export type {
   TrackCompetitorState,
   ListCompetitorsState,
   CompetitorMediaState,
   CompetitorAnalysisState,
+  DiscoverCompetitorsState,
 } from "./presentation/actions";

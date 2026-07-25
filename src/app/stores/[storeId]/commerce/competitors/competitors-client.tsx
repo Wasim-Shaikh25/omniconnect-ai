@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis, TrendIdea } from "@/modules/ai";
 import { generatePostIdeasAction } from "@/modules/ai";
-import type { TrackedAccountRecord } from "@/modules/analytics";
+import type { TrackedAccountRecord, SuggestedCompetitor } from "@/modules/analytics";
 import {
   trackCompetitorAction,
   getCompetitorMediaAction,
   analyzeCompetitorAction,
   deleteTrackedCompetitorAction,
+  discoverCompetitorsAction,
 } from "@/modules/analytics";
 
 export default function CompetitorsPageClient({
@@ -29,6 +30,7 @@ export default function CompetitorsPageClient({
   const [accounts, setAccounts] = useState<TrackedAccountRecord[]>(initialAccounts);
   const [trackState, trackAction, trackPending] = useActionState(trackCompetitorAction, {});
   const [deleteState, deleteAction, deletePending] = useActionState(deleteTrackedCompetitorAction, {});
+  const [discoverState, discoverAction, discoverPending] = useActionState(discoverCompetitorsAction, {});
 
   useEffect(() => {
     setAccounts(initialAccounts);
@@ -75,6 +77,56 @@ export default function CompetitorsPageClient({
             </form>
             {trackState.error && <p className="text-sm text-destructive mt-4">{trackState.error}</p>}
             {trackState.ok && <p className="text-sm text-green-600 mt-4">Competitor tracked.</p>}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Discover competitors</CardTitle>
+            <CardDescription>Enter a niche or hashtag to find the most influential accounts posting about it.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={discoverAction} className="grid gap-4 md:grid-cols-4">
+              <input type="hidden" name="storeId" value={storeId} />
+              <input type="hidden" name="mediaLimit" value={25} />
+              <input type="hidden" name="topAccounts" value={5} />
+              <div className="md:col-span-2">
+                <Label htmlFor="query">Niche / hashtag</Label>
+                <Input id="query" name="query" placeholder="e.g. sustainablefashion" required />
+              </div>
+              <div>
+                <Label htmlFor="topAccounts">Top accounts</Label>
+                <Input id="topAccounts" name="topAccounts" type="number" min={1} max={20} defaultValue={5} />
+              </div>
+              <div className="flex items-end">
+                <Button type="submit" disabled={discoverPending}>{discoverPending ? "Discovering…" : "Discover"}</Button>
+              </div>
+            </form>
+            {discoverState.error && <p className="text-sm text-destructive mt-4">{discoverState.error}</p>}
+
+            {discoverState.suggestions && discoverState.suggestions.length > 0 && (
+              <div className="mt-6 space-y-4">
+                <p className="text-sm font-medium">Top accounts found</p>
+                {discoverState.suggestions.map((s: SuggestedCompetitor, idx: number) => (
+                  <div key={idx} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">@{s.handle}</p>
+                        <p className="text-xs text-muted-foreground">{s.postCount} posts · {s.avgLikes.toLocaleString()} avg likes · {s.avgComments.toLocaleString()} avg comments</p>
+                      </div>
+                      <form action={trackAction}>
+                        <input type="hidden" name="storeId" value={storeId} />
+                        <input type="hidden" name="handle" value={s.handle} />
+                        <input type="hidden" name="niche" value={discoverState.query ?? ''} />
+                        <input type="hidden" name="note" value="Discovered via competitor search" />
+                        <Button type="submit" size="sm" disabled={trackPending}>Track</Button>
+                      </form>
+                    </div>
+                    {s.topCaption && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{s.topCaption}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

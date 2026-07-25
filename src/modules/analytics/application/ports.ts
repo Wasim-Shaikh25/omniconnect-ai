@@ -1,6 +1,17 @@
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 
+export interface SuggestedCompetitor {
+  handle: string;
+  platform: string;
+  postCount: number;
+  avgLikes: number;
+  avgComments: number;
+  totalLikes: number;
+  totalComments: number;
+  topCaption: string | null;
+}
+
 export interface TrackedAccountRecord {
   id: string;
   storeId: string;

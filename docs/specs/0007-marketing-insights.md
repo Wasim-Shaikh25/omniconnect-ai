@@ -140,6 +140,7 @@ Meta content intelligence turns a connected Instagram/Facebook account into acti
 - [x] AI-generated content ideas (hook, format, why it works, hashtags, audio suggestion, best time, CTA, predicted engagement score).
 - [x] Inline media previews and "AI idea from this post" generation on the Trends page.
 - [x] Dedicated competitor analysis page with `TrackedAccount` persistence, media fetch, and AI strategy analysis.
+- [x] "Discover competitors" search by niche/hashtag that ranks influential accounts by engagement and lets users track them.
 - [ ] Full dashboard pages for content performance, trend explorer, reports, and recommendations.
 - [ ] AI-generated "why it worked" analysis and slide-by-slide storyboards.
 - [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
