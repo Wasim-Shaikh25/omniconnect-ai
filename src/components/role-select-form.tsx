@@ -31,6 +31,7 @@ export function RoleSelectForm({
     <form action={formAction} className="flex items-center gap-2">
       <input type="hidden" name="userId" value={userId} />
       <select
+        key={currentRole}
         name="role"
         defaultValue={currentRole}
         className="h-9 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

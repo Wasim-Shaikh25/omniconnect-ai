@@ -224,10 +224,16 @@ All notable changes to **OmniConnect AI** are documented here.
 - **TASK-320 — Integrations Catalog** (spec `0030`):
   - New `/stores/[storeId]/integrations` page showing eCommerce and Meta connection status, provider/channel, domain/account id, product count, and connected-at date.
   - Health summary with connected count; linked from the store detail page.
+- **TASK-330 — Settings & Administration** (spec `0031`):
+  - New `AuditLog` Prisma model + `audit` module (repository, use-cases, actions).
+  - `changeUserRoleAction` now records an audit entry; role changes revalidate `/settings/audit`.
+  - New `/settings/audit` page listing admin/system events, and `/settings/billing` placeholder page.
+  - Settings page now links to Audit and Billing for `ADMIN` and `STORE_OWNER` roles.
+  - `changeUserRoleAction` now requires `STORE_OWNER` or higher, so store owners can manage their team.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Settings & Administration (TASK-330)**, then Mobile/PWA polish (TASK-340).
+- Next: **Mobile/PWA polish (TASK-340)**.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

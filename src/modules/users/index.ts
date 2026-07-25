@@ -20,6 +20,10 @@ export type { UpdateProfileInput } from "./application/update-profile";
 export { changeRoleSchema } from "./application/change-role";
 export type { ChangeRoleInput } from "./application/change-role";
 export type { UserProfile } from "./application/ports";
+export type {
+  AuditLogRecord,
+  CreateAuditLogInput,
+} from "./application/audit-ports";
 
 // Queries + use-cases (composed)
 export {
@@ -27,6 +31,8 @@ export {
   listOrganizationUsers,
   updateProfile,
   changeUserRole,
+  auditQueries,
+  auditCommands,
 } from "./infrastructure/container";
 
 // Presentation + bootstrap wiring
