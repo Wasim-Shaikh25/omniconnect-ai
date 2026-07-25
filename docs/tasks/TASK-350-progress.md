@@ -181,21 +181,21 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ## Validation-driven additions (from first completeness pass)
 
-- [~] 126. Resolve the five fragmentation forms (data, context, decision, learning, experience) by unifying identity, metrics, timeline, recommendations, and shared UI patterns.
+- [x] 126. Resolve the five fragmentation forms (data, context, decision, learning, experience) by unifying identity, metrics, timeline, recommendations, and shared UI patterns.
 - [x] 127. Implement Customer 360 header (relationship summary, lifecycle/value band, current intent, risks/opportunities, consent, preferred channel, best next action) on `/customers/[customerId]`.
 - [x] 128. Implement proactive intelligence interruption policy: delivery tiers (critical interrupt, action required, Today feed, digest, on-demand), interruption score, cooldown windows, user tuning (topics, channels, quiet hours, thresholds), and deduplication.
-- [ ] 129. Implement the knowledge graph query set: content→conversation→product influence, Instagram exchange→purchase, campaign/coupon→order attribution, content patterns→brand outreach, segment response to early access vs discounts.
-- [ ] 130. Implement feature and profile outputs per §3.2.5: customer RFM/affinity/channel preference/response-time/lifecycle/discount sensitivity/propensity/churn risk; product velocity/margin proxy/stock-cover/return/mentions/demand/cross-sell; content format/topic/hook/CTA/timing/response/attributed revenue; campaign audience/offer/sequence/channel/cost/conversion/fatigue; business seasonality/forecast/anomalies/goal pacing/constraints.
-- [ ] 131. Implement the full goal-plan generation flow: user edits/approves, system creates a versioned workflow in the existing automation engine, test run, launch with control/holdout, and post-launch recommendation to continue/adjust/pause/conclude.
-- [ ] 132. Implement learning evidence hierarchy: workspace-specific, segment-specific, anonymized benchmark, and general product guidance with confidence labels.
-- [ ] 133. Implement model operations: version datasets/features/models/thresholds/policies, temporal-split validation, baseline comparison, calibration/drift/segment/latency/cost monitoring, abstention, feature flags, shadow mode, rollback.
-- [ ] 134. Implement prediction prioritization criteria (predicted event matters, intervention possible, result measurable, data sufficient, error costs manageable) and abstention when not met.
-- [ ] 135. Implement the "I understand why" user rating, verified hours saved, and false positive/negative rate tracking in intelligence KPI dashboards.
-- [ ] 136. Implement Today feed interaction requirements: every sentence expands into evidence, "Why?", "Compared with what?", "What changed?" drill-downs, and dismissal reason improving future ranking.
+- [x] 129. Implement the knowledge graph query set: content→conversation→product influence, Instagram exchange→purchase, campaign/coupon→order attribution, content patterns→brand outreach, segment response to early access vs discounts.
+- [x] 130. Implement feature and profile outputs per §3.2.5: customer RFM/affinity/channel preference/response-time/lifecycle/discount sensitivity/propensity/churn risk; product velocity/margin proxy/stock-cover/return/mentions/demand/cross-sell; content format/topic/hook/CTA/timing/response/attributed revenue; campaign audience/offer/sequence/channel/cost/conversion/fatigue; business seasonality/forecast/anomalies/goal pacing/constraints.
+- [x] 131. Implement the full goal-plan generation flow: user edits/approves, system creates a versioned workflow in the existing automation engine, test run, launch with control/holdout, and post-launch recommendation to continue/adjust/pause/conclude.
+- [x] 132. Implement learning evidence hierarchy: workspace-specific, segment-specific, anonymized benchmark, and general product guidance with confidence labels.
+- [x] 133. Implement model operations: version datasets/features/models/thresholds/policies, temporal-split validation, baseline comparison, calibration/drift/segment/latency/cost monitoring, abstention, feature flags, shadow mode, rollback.
+- [x] 134. Implement prediction prioritization criteria (predicted event matters, intervention possible, result measurable, data sufficient, error costs manageable) and abstention when not met.
+- [x] 135. Implement the "I understand why" user rating, verified hours saved, and false positive/negative rate tracking in intelligence KPI dashboards.
+- [x] 136. Implement Today feed interaction requirements: every sentence expands into evidence, "Why?", "Compared with what?", "What changed?" drill-downs, and dismissal reason improving future ranking.
 - [x] 137. Implement brand-deal follow-up next-best action and CRM advocate/early-access/suppression recommendations.
-- [ ] 138. Implement narrative analytics chart acceptance rule: promote a chart to default dashboard only if it supports a stated decision; otherwise keep in exploration/custom reports.
-- [ ] 139. Implement the data-quality gate check before high-priority insight generation: required sources connected, freshness within threshold, identity confidence sufficient, metric definition valid, minimum history/sample available, no unresolved reconciliation issue.
+- [x] 138. Implement narrative analytics chart acceptance rule: promote a chart to default dashboard only if it supports a stated decision; otherwise keep in exploration/custom reports.
+- [x] 139. Implement the data-quality gate check before high-priority insight generation: required sources connected, freshness within threshold, identity confidence sufficient, metric definition valid, minimum history/sample available, no unresolved reconciliation issue.
 
 ---
 
-Last updated: 2026-07-25 after TASK-368.
+Last updated: 2026-07-25 after TASK-369.

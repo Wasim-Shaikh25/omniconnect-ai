@@ -3,9 +3,11 @@ import {
   signals,
   insights,
   metrics,
+  links,
   recommendationService,
   actionPlanService,
   outcomeService,
+  dataQualityGateService,
 } from "./container";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { conversationQueries } from "@/modules/conversations";
@@ -66,9 +68,11 @@ export async function runWeek4ThinSlice(input: {
     signals,
     insights,
     metrics,
+    links,
     ecommerce: ecommerceQueries,
     conversations: conversationQueries,
     crm: crmQueries,
+    dataQualityGate: dataQualityGateService,
     now,
   });
 

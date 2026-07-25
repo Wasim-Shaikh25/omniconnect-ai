@@ -7,6 +7,7 @@ import {
   PrismaBusinessInsightRepository,
   PrismaMetricRepository,
   PrismaRecommendationRepository,
+  PrismaEntityLinkRepository,
 } from "@/modules/intelligence/infrastructure/repositories";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
@@ -76,6 +77,7 @@ async function main() {
     signals: new PrismaSignalRepository(),
     insights: new PrismaBusinessInsightRepository(),
     metrics: new PrismaMetricRepository(),
+    links: new PrismaEntityLinkRepository(),
     ecommerce,
     conversations: fakeConversations(),
     crm: fakeCrm(),

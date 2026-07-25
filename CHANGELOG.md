@@ -381,10 +381,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-366 (AI Governance, Trust, and Workflow Acceptance) completed.
 - TASK-367 (Testing, Rollout, and Risk Mitigations) completed.
 - TASK-368 (Operating Model, 30-Day Plan, and Success Criteria) completed.
+- TASK-369 (Validation-Driven Additions) completed: unified context, knowledge graph, feature profiles, goal-plan versioning with test/holdout launch, learning evidence hierarchy, model ops, prediction prioritization/abstention, intelligence feedback KPIs, Today feed drill-downs and dismissal reasons, chart acceptance rules, and data-quality gate before high-priority insight generation.
 
 ### 🔨 In Progress
 
-- Remaining TASK-350 subtasks: validation-driven additions (126–139).
+- All `TASK-350` subtasks completed during the first completeness pass. Next: verify full `TASK-350` checklist and close the umbrella task, then continue backlog (billing page, real email channel, live connectors, or next strategic priority).
 
 ### ⏭️ Next (proposed build order)
 

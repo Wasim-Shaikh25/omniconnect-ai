@@ -70,6 +70,7 @@ export interface EntityLinkRepository {
     entityId: string,
     activeOnly?: boolean,
   ): Promise<EntityLinkRecord[]>;
+  listForOrganization(organizationId: string, limit?: number): Promise<EntityLinkRecord[]>;
   findBetween(
     organizationId: string,
     sourceType: string,
