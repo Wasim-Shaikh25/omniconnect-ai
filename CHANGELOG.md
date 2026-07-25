@@ -319,6 +319,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - `BrandDealCreated` event is now published from the `branddeals` application command.
   - End-to-end validation (`scripts/verify-task363.ts`) confirmed all four NBA outputs and 13+ cross-module signals.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-364 — Goal-based Automation Templates and Guardrails** (spec `0040`):
+  - Added `GoalAutomationService` with eight outcome-first templates (repeat purchase, abandoned cart, response time, re-engage, product launch, reviews, affiliates, brand-deal follow-up).
+  - `createFromTemplate` generates a `Goal`, `Recommendation`, and `ActionPlan` draft.
+  - `AutomationGuard` validates audience size, consent, discount exposure, frequency/fatigue, and actions per day.
+  - Added `/stores/[storeId]/automations/goals` page and a card on `/stores/[storeId]/automations`.
+  - Server actions `getAutomationTemplatesAction` and `createGoalAutomationAction`.
+  - End-to-end validation (`scripts/verify-task364.ts`) confirmed template listing, goal/recommendation/action-plan creation, and guardrail blocking.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -328,10 +336,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-361 (Revenue decline & funnel diagnosis) completed.
 - TASK-362 (Next Best Action for Inbox, Orders, and CRM) completed.
 - TASK-363 (Next Best Action for Content, Campaigns, Brand Deals, and Competitor Intelligence) completed.
+- TASK-364 (Goal-based Automation Templates and Guardrails) completed.
 
 ### 🔨 In Progress
 
-- Remaining TASK-350 subtasks: goal-based automation templates/guardrails (93–96), AI behavior/governance/trust (97–101), KPIs and operating rhythm (107–109), testing/rollout/risk mitigations (110–116), and operating model/30-day plan items (117–125).
+- Remaining TASK-350 subtasks: AI-generated workflow acceptance (96), AI behavior/governance/trust (97–101), KPIs and operating rhythm (107–109), testing/rollout/risk mitigations (110–116), and operating model/30-day plan items (117–125).
 
 ### ⏭️ Next (proposed build order)
 

@@ -24,6 +24,7 @@ import {
   competitorIntelligenceService,
   costLatencyMonitor,
   nextBestActionService,
+  goalAutomationService,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -492,4 +493,52 @@ export async function getStoreMetricsAction(storeId?: string) {
   );
 
   return { metrics };
+}
+
+export async function getAutomationTemplatesAction() {
+  const user = await getCurrentUser();
+  if (!user) return { templates: [] };
+  return { templates: goalAutomationService.listTemplates() };
+}
+
+const createGoalAutomationSchema = z.object({
+  storeId: z.string().min(1),
+  templateId: z.string().min(1),
+  target: z.coerce.number().optional(),
+  endDate: z.coerce.date().optional(),
+  audienceEstimate: z.coerce.number().optional(),
+  discountPct: z.coerce.number().optional(),
+  consentConfirmed: z.coerce.boolean().optional(),
+  daysSinceLastTouch: z.coerce.number().optional(),
+  actionsPerDay: z.coerce.number().optional(),
+});
+
+export async function createGoalAutomationAction(formData: FormData): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) throw new Error("Not authenticated");
+
+  const raw = Object.fromEntries(formData.entries());
+  const parsed = createGoalAutomationSchema.safeParse({
+    ...raw,
+    target: raw.target ? Number(raw.target) : undefined,
+    discountPct: raw.discountPct ? Number(raw.discountPct) : undefined,
+    audienceEstimate: raw.audienceEstimate ? Number(raw.audienceEstimate) : undefined,
+    daysSinceLastTouch: raw.daysSinceLastTouch ? Number(raw.daysSinceLastTouch) : undefined,
+    actionsPerDay: raw.actionsPerDay ? Number(raw.actionsPerDay) : undefined,
+    consentConfirmed: raw.consentConfirmed === "on" || raw.consentConfirmed === "true",
+  });
+  if (!parsed.success) throw new Error(parsed.error.errors[0]?.message ?? "Validation failed");
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === parsed.data.storeId)) {
+    throw new Error("Unauthorized");
+  }
+
+  await goalAutomationService.createFromTemplate({
+    organizationId: user.organizationId,
+    ownerUserId: user.id,
+    ...parsed.data,
+  });
+  revalidatePath(`/stores/${parsed.data.storeId}/automations`);
+  revalidatePath(`/stores/${parsed.data.storeId}/automations/goals`);
 }

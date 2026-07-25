@@ -80,6 +80,7 @@ export {
   costLatencyMonitor,
   nextBestActionService,
   proactiveNotificationService,
+  goalAutomationService,
 } from "./infrastructure/container";
 
 export {
@@ -109,6 +110,8 @@ export {
   getBrandDealsNextBestActionAction,
   getCompetitorNextBestActionAction,
   getStoreMetricsAction,
+  getAutomationTemplatesAction,
+  createGoalAutomationAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";

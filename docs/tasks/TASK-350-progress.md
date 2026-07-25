@@ -130,10 +130,10 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ## Goal-based automation & guardrails
 
-- [~] 93. Implement outcome-first automation templates: increase repeat purchases, recover abandoned carts/conversations, improve response time, re-engage inactive customers, product launch, collect reviews, grow affiliates, improve brand-deal follow-up.
-- [~] 94. Implement goal-plan generation flow: goal selection, data readiness, eligible audience, channels, consent, constraints, AI strategy, rationale, drafts, delays, stop conditions, reach/risk, approval, test run, launch, control/holdout, measurement.
-- [ ] 95. Implement automation guardrails: audience preview/count, consent/suppression validation, frequency/fatigue, conflict detection, max spend/discount exposure, stop conditions, test contacts, approval by risk tier, versioning/rollback, live run history, global kill switch, per-workflow pause.
-- [ ] 96. Implement AI-generated workflow acceptance criteria: every node maps to supported action, clear goal/success event, explicit entry/exit, no duplicate enrollment, suppression at send time, estimated audience/volume, highlighted assumptions, editable workflow.
+- [x] 93. Implement outcome-first automation templates: increase repeat purchases, recover abandoned carts/conversations, improve response time, re-engage inactive customers, product launch, collect reviews, grow affiliates, improve brand-deal follow-up.
+- [x] 94. Implement goal-plan generation flow: goal selection, data readiness, eligible audience, channels, consent, constraints, AI strategy, rationale, drafts, delays, stop conditions, reach/risk, approval, test run, launch, control/holdout, measurement.
+- [x] 95. Implement automation guardrails: audience preview/count, consent/suppression validation, frequency/fatigue, conflict detection, max spend/discount exposure, stop conditions, test contacts, approval by risk tier, versioning/rollback, live run history, global kill switch, per-workflow pause.
+- [~] 96. Implement AI-generated workflow acceptance criteria: every node maps to supported action, clear goal/success event, explicit entry/exit, no duplicate enrollment, suppression at send time, estimated audience/volume, highlighted assumptions, editable workflow.
 
 ## AI behavior, governance & trust
 
@@ -198,4 +198,4 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ---
 
-Last updated: 2026-07-25 during TASK-363.
+Last updated: 2026-07-25 after TASK-364.
