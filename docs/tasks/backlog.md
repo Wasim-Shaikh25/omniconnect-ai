@@ -41,5 +41,5 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-310** Media Kit MVP — spec: `0029`
 - [x] **TASK-320** Integrations catalog & health dashboard — spec: `0030`
 - [x] **TASK-330** Settings & Administration (members, roles, audit log, billing) — spec: `0031`
-- [ ] **TASK-340** Mobile responsive quick actions & PWA polish — spec: `0000`
+- [x] **TASK-340** Mobile responsive quick actions & PWA polish — spec: `0032`
 - [~] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
