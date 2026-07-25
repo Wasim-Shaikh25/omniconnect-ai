@@ -16,11 +16,11 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] `intelligence` becomes a prioritizer/scorer/conflict resolver via `recommendationLifecycleService`.
 
 ### 2. Domain knowledge is leaking
-- [~] Product availability/demand detection moved to `ecommerce` (order/revenue detection extracted; product-mention/demand cross-domain logic still in intelligence).
-- [~] Conversation intent/support detection moved to `conversations` (high-intent conversation detection extracted; intent-keyword deduplication pending).
-- [~] Customer churn/follower-growth detection moved to `crm` (stale-follower detection extracted; churn detection pending).
-- [~] Campaign/UGC/affiliate detection moved to `growth` (DM campaign staleness and UGC presence extracted).
-- [~] Brand-deal pipeline detection moved to `branddeals` (stuck-negotiation detection extracted).
+- [~] Product availability/demand detection remains a cross-domain correlation in `intelligence` (order/revenue detection extracted to `ecommerce`; product-mention signals owned by `conversations` and centralized via `intelligence/application/vocabulary.ts`).
+- [x] Conversation intent/support detection moved to `conversations` (high-intent conversation detection extracted).
+- [x] Customer churn/follower-growth detection moved to `crm` (stale-follower detection extracted).
+- [x] Campaign/UGC/affiliate detection moved to `growth` (DM campaign staleness and UGC presence extracted).
+- [x] Brand-deal pipeline detection moved to `branddeals` (stuck-negotiation detection extracted).
 
 ### 3. Recommendation lifecycle is incomplete
 - [x] `Recommendation` has `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, `invalidatedByEvent`.
@@ -56,8 +56,8 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [ ] Conflicts surfaced in UI with reason and runner-up.
 
 ### 10. Action execution knows too much
-- [ ] `WorkspaceActionExecutor` removed or reduced to a dispatcher.
-- [ ] Domain modules execute their own actions and publish outcomes.
+- [x] `WorkspaceActionExecutor` reduced to an `execute` dispatcher; approval/risk gating moved to `decision-policy.ts`.
+- [ ] Domain modules execute their own actions and publish outcomes (remaining long-term refactor).
 
 ### 11. Intelligence queries operational data directly
 - [ ] Domains expose read-model query ports; `intelligence` stops loading `listOrders(500)` / `listProducts(100)` for scoring.

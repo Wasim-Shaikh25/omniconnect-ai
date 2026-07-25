@@ -26,7 +26,7 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 9. `conversations`: create `detectConversationInsights` + publish `ConversationInsightGenerated` / `ConversationRecommendationGenerated` (high-intent conversation detection extracted).
 - [x] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
 - [x] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
-- [~] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce, CRM, conversation, growth, and brand-deal rules removed; product availability/demand and stale metrics remain).
+- [x] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce, CRM, conversation, growth, and brand-deal rules delegated to respective modules; product availability/demand correlation and stale metrics remain in intelligence as cross-domain concerns).
 - [x] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
 
 ### Phase 2 — Reframe intelligence as a cross-domain prioritizer
@@ -34,7 +34,7 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 15. Implement `intelligence.prioritizeRecommendations` scoring.
 - [x] 16. Implement `intelligence.resolveConflicts` for conflicting cross-domain recommendations.
 - [x] 17. Implement `intelligence.expireStaleRecommendations` lifecycle job.
-- [ ] 18. Shrink or remove `WorkspaceActionExecutor`; dispatch execution to domain commands through public barrels.
+- [x] 18. Shrink `WorkspaceActionExecutor` by moving `canExecute` logic into `decision-policy.ts`; executor now only dispatches `execute` to domain commands through public barrels.
 
 ### Phase 3 — Business Brain consumes Intelligence
 - [x] 19. Create `intelligence.getBusinessBrainContext` (insights, predictions, recommendations, outcomes, learning).

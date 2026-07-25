@@ -190,7 +190,7 @@ export const businessBrainContextService = makeBusinessBrainContextService({
   learning: learnings,
   goals,
 });
-export const decisionPolicyService = makeDecisionPolicyService({ executor: actionExecutor });
+export const decisionPolicyService = makeDecisionPolicyService();
 export const outcomeService = makeOutcomeService({ outcomes });
 export const businessLearningService = makeBusinessLearningService({ learning: learnings });
 export const actionPlanService = makeActionPlanService({
@@ -262,6 +262,7 @@ export const qualityAssuranceService = makeQualityAssuranceService({
   recommendations: recommendationService,
   recommendationRepo: recommendations,
   actionExecutor,
+  decisionPolicy: decisionPolicyService,
   aiGovernance: aiGovernanceService,
   outcomes: outcomeService,
   outcomeRepo: outcomes,

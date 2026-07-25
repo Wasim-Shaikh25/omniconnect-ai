@@ -422,11 +422,12 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `BrainConversationMemory` Prisma model and migration.
     - Created `ai/application/brain-memory.ts` service and `PrismaBrainMemoryRepository` with save/list/update feedback methods.
     - `askBusinessBrain` now loads recent memory into the prompt and persists each Q/A pair with `userId`/`organizationId`/`storeId`.
-  - **Phase 4 (cleanup and vocabulary deduplication) implemented:**
+  - **Phase 4 (cleanup, vocabulary deduplication, and action-executor shrink) implemented:**
     - Centralized `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and `detectProductMentions` in `intelligence/application/vocabulary.ts` and updated `subscribers.ts`, `next-best-action.ts`, and `detection.ts` to use them.
+    - Shrunk `WorkspaceActionExecutor` to an `execute` dispatcher; moved risk/approval gating into `decision-policy.ts` and removed `canExecute` from the `ActionExecutor` port.
     - Added `scripts/verify-task370.ts` end-to-end validation script covering detection, recommendation lifecycle, and Business Brain context wiring.
     - Updated `intelligence/index.ts` public barrel and validated `npm run lint`, `npm run typecheck`, `npm run build`.
-    - Remaining: move product availability/demand logic to `ecommerce` and shrink `WorkspaceActionExecutor`.
+    - Remaining long-term: full event-driven action dispatch, materialized read models, and retention rules for Brain memory.
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.

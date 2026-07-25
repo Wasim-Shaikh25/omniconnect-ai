@@ -1,5 +1,4 @@
 import type { ActionExecutor } from "../application/ports";
-import type { RiskTier } from "../domain/types";
 
 export interface WorkspaceActionExecutorDeps {
   generateCoupon(input: {
@@ -22,29 +21,6 @@ export interface WorkspaceActionExecutorDeps {
   }): Promise<{ id: string }>;
 }
 
-function canExecuteAction(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean } {
-  switch (riskTier) {
-    case "TIER_1":
-      return { allowed: true, requiresApproval: false };
-    case "TIER_2":
-      return {
-        allowed: userRole !== null,
-        requiresApproval: userRole === "STAFF",
-      };
-    case "TIER_3":
-      return {
-        allowed: userRole === "ADMIN" || userRole === "STORE_OWNER" || userRole === "STAFF",
-        requiresApproval: true,
-      };
-    case "TIER_4":
-    default:
-      return {
-        allowed: userRole === "ADMIN" || userRole === "STORE_OWNER",
-        requiresApproval: true,
-      };
-  }
-}
-
 function generateCouponCode(): string {
   const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `OMNI-${suffix}`;
@@ -52,8 +28,6 @@ function generateCouponCode(): string {
 
 export function makeWorkspaceActionExecutor(deps: WorkspaceActionExecutorDeps): ActionExecutor {
   return {
-    canExecute: canExecuteAction,
-
     async execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }> {
       const typed = typeof params === "object" && params !== null ? (params as Record<string, unknown>) : {};
 

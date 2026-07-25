@@ -204,7 +204,6 @@ export interface KpiRepository {
 }
 
 export interface ActionExecutor {
-  canExecute(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean };
   execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;
 }
 
