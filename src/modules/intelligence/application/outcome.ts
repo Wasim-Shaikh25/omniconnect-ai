@@ -38,6 +38,10 @@ export function makeOutcomeService(input: OutcomeServiceInput) {
     ): Promise<OutcomeRecord> {
       return input.outcomes.updateMeasured(id, beforeValue, afterValue, status, new Date());
     },
+
+    async list(organizationId: string, storeId?: string, limit = 20): Promise<OutcomeRecord[]> {
+      return input.outcomes.list(organizationId, storeId, limit);
+    },
   };
 }
 

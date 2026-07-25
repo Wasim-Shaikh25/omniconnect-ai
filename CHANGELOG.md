@@ -413,7 +413,12 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `RecommendationExpired` and `RecommendationConflictDetected` domain events.
     - Updated `PrismaRecommendationRepository` with `listActive` and `invalidate` and wired the lifecycle service through `intelligence/infrastructure/container.ts` and the public barrel.
     - `recommendationService` now sets `producedByModule`/`producedByService`/`validFrom` when generating recommendations from insights.
-    - Remaining: move product availability/demand logic to `ecommerce`, shrink `WorkspaceActionExecutor`, and connect Business Brain (Phase 3).
+  - **Phase 3 (Business Brain consumes Intelligence) implemented:**
+    - Created `intelligence/application/business-brain-context.ts` exposing `businessBrainContextService.getContext(organizationId, storeId)` that returns top insights, active recommendations, predictions, recent outcomes, business learning, and active goals.
+    - Added `OutcomeRepository.list` and `outcomeService.list` to support context.
+    - `ai/application/ask-business-brain.ts` now optionally consumes `BusinessBrainContextPort` and injects intelligence summaries into prompts and fallback answers.
+    - Wired `businessBrainContextService` through `intelligence/infrastructure/container.ts` and the public barrel; connected in `ai/infrastructure/container.ts`.
+    - Remaining: move product availability/demand logic to `ecommerce`, shrink `WorkspaceActionExecutor`, and add Business Brain conversation memory.
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.

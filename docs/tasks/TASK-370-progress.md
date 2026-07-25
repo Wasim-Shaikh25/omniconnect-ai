@@ -34,8 +34,9 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [ ] `intelligence` no longer creates recommendations for other domains.
 
 ### 5. Business Brain is disconnected
-- [ ] `getBusinessBrainContext` returns insights/predictions/recommendations/outcomes/learning.
-- [ ] `askBusinessBrain` uses the new context instead of raw counts.
+- [x] `getBusinessBrainContext` returns insights/predictions/recommendations/outcomes/learning.
+- [x] `askBusinessBrain` uses the new context instead of raw counts.
+- [ ] Business Brain conversation memory (accepted/rejected advice, goals) added.
 
 ### 6. Intelligence duplicates logic
 - [ ] `SUPPORT_KEYWORDS` / `INTENT_KEYWORDS` exist in one place.

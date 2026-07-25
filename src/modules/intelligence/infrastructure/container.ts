@@ -20,6 +20,7 @@ import { makeDiagnosisService } from "../application/diagnosis";
 import { makeIntelligenceFeed } from "../application/intelligence-feed";
 import { makeRecommendationService } from "../application/recommendation";
 import { makeRecommendationLifecycleService } from "../application/recommendation-lifecycle";
+import { makeBusinessBrainContextService } from "../application/business-brain-context";
 import { makeActionPlanService } from "../application/action-plan";
 import { makeDecisionPolicyService } from "../application/decision-policy";
 import { makeOutcomeService } from "../application/outcome";
@@ -181,6 +182,14 @@ const actionExecutor = makeWorkspaceActionExecutor({
 
 export const recommendationService = makeRecommendationService({ insights, recommendations, ecommerce: ecommerceQueries });
 export const recommendationLifecycleService = makeRecommendationLifecycleService({ recommendations });
+export const businessBrainContextService = makeBusinessBrainContextService({
+  insights,
+  recommendations,
+  predictions,
+  outcomes,
+  learning: learnings,
+  goals,
+});
 export const decisionPolicyService = makeDecisionPolicyService({ executor: actionExecutor });
 export const outcomeService = makeOutcomeService({ outcomes });
 export const businessLearningService = makeBusinessLearningService({ learning: learnings });

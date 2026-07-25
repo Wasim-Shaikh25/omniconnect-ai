@@ -37,8 +37,8 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [ ] 18. Shrink or remove `WorkspaceActionExecutor`; dispatch execution to domain commands through public barrels.
 
 ### Phase 3 — Business Brain consumes Intelligence
-- [ ] 19. Create `intelligence.getBusinessBrainContext` (insights, predictions, recommendations, outcomes, learning).
-- [ ] 20. Update `askBusinessBrain` and `workspace-context` to use the new context.
+- [x] 19. Create `intelligence.getBusinessBrainContext` (insights, predictions, recommendations, outcomes, learning).
+- [x] 20. Update `askBusinessBrain` and `workspace-context` to use the new context.
 - [ ] 21. Add conversation memory to Business Brain (previous questions, accepted/rejected advice, goals).
 
 ### Phase 4 — Cleanup and verification

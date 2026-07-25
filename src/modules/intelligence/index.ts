@@ -55,6 +55,7 @@ export type {
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
 export type { TimelineQuery } from "./application/timeline";
+export type { BusinessBrainContext, BusinessBrainContextService } from "./application/business-brain-context";
 export type {
   InboxNextBestAction,
   OrdersNextBestAction,
@@ -77,6 +78,7 @@ export {
   intelligenceFeedService,
   recommendationService,
   recommendationLifecycleService,
+  businessBrainContextService,
   actionPlanService,
   decisionPolicyService,
   outcomeService,

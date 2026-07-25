@@ -686,6 +686,18 @@ export class PrismaOutcomeRepository implements OutcomeRepository {
     return (row as StoredOutcome) ?? null;
   }
 
+  async list(organizationId: string, storeId?: string, limit = 20): Promise<OutcomeRecord[]> {
+    const rows = await prisma.outcome.findMany({
+      where: {
+        organizationId,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => r as StoredOutcome);
+  }
+
   async updateMeasured(
     id: string,
     beforeValue: number | null,

@@ -1,6 +1,6 @@
 import type { AIMessage, AIProvider } from "./ports";
 import type { AIConfigurationRepository } from "./ports";
-import type { MarketingMemoryRecord, DailyBriefRecord } from "@/modules/intelligence";
+import type { MarketingMemoryRecord, DailyBriefRecord, BusinessBrainContext } from "@/modules/intelligence";
 
 export interface BusinessBrainAnswer {
   answer: string;
@@ -38,37 +38,43 @@ export interface MarketingMemoryPort {
   getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
 }
 
+export interface BusinessBrainContextPort {
+  getContext(organizationId: string, storeId?: string): Promise<BusinessBrainContext>;
+}
+
 function buildFallbackAnswer(
   question: string,
   ctx: Awaited<ReturnType<WorkspaceContextPort["getContext"]>>,
   brief?: DailyBriefRecord,
+  brainContext?: BusinessBrainContext,
 ): string {
   const q = question.toLowerCase();
   const summary = `Workspace "${ctx.organizationName}" has ${ctx.storeCount} store(s), ${ctx.productCount} product(s), ${ctx.conversationCount} conversation(s), ${ctx.followerCount} follower(s), ${ctx.couponCount} coupon(s), and ${ctx.unreadNotificationCount} unread notification(s).`;
+  const intelligenceSummary = brainContext ? ` ${brainContext.summary}` : "";
   const daily = brief
     ? `Today's brief: ${brief.priorities.join("; ")}.`
     : "";
 
   if (q.includes("summary") || q.includes("overview")) {
-    return `${summary} Connected integrations: ${ctx.connectedIntegrations}.${daily ? ` ${daily}` : ""}`;
+    return `${summary} Connected integrations: ${ctx.connectedIntegrations}.${intelligenceSummary}${daily ? ` ${daily}` : ""}`;
   }
   if (q.includes("focus") || q.includes("today") || q.includes("prioritize")) {
     if (brief && brief.priorities.length > 0) {
-      return `${summary} ${daily}`;
+      return `${summary}${intelligenceSummary} ${daily}`;
     }
     if (ctx.unreadNotificationCount > 0) {
-      return `${summary} You have unread notifications to review. If conversations are pending, consider replying or taking over high-intent threads.`;
+      return `${summary}${intelligenceSummary} You have unread notifications to review. If conversations are pending, consider replying or taking over high-intent threads.`;
     }
     if (ctx.conversationCount === 0) {
-      return `${summary} No conversations yet. Connect Meta and simulate or wait for inbound messages to start engaging.`;
+      return `${summary}${intelligenceSummary} No conversations yet. Connect Meta and simulate or wait for inbound messages to start engaging.`;
     }
-    return `${summary} Review pending conversations and consider creating a first-time follower campaign to convert new followers.`;
+    return `${summary}${intelligenceSummary} Review pending conversations and consider creating a first-time follower campaign to convert new followers.`;
   }
   if (q.includes("content") || q.includes("post") || q.includes("reel")) {
     const idea = brief?.contentIdea ?? "Use the Trends or Competitors page to find high-performing content ideas, then generate captions with AI.";
-    return `${summary} ${idea}`;
+    return `${summary}${intelligenceSummary} ${idea}`;
   }
-  return `${summary} ${daily ? `${daily} ` : ""}Ask me about your workspace summary, what to focus on today, or what content to create next.`;
+  return `${summary}${intelligenceSummary}${daily ? ` ${daily} ` : ""}Ask me about your workspace summary, what to focus on today, or what content to create next.`;
 }
 
 function buildPrompt(
@@ -76,6 +82,7 @@ function buildPrompt(
   ctx: Awaited<ReturnType<WorkspaceContextPort["getContext"]>>,
   memory?: MarketingMemoryRecord,
   brief?: DailyBriefRecord,
+  brainContext?: BusinessBrainContext,
 ): AIMessage[] {
   const topProducts = memory?.productScores
     .slice(0, 3)
@@ -102,6 +109,25 @@ Trending hashtags: ${brief.trendingHashtags.map((h) => `#${h}`).join(", ") || "n
 `
     : "";
 
+  const topInsight = brainContext?.topInsights[0]?.title ?? "none";
+  const topRecommendation = brainContext?.topRecommendations[0]?.title ?? "none";
+  const topPrediction = brainContext?.activePredictions[0]?.predictionType ?? "none";
+  const latestOutcome = brainContext?.recentOutcomes[0]?.status ?? "none";
+  const latestLearning = brainContext?.learning[0]?.ruleName ?? "none";
+  const activeGoal = brainContext?.activeGoals[0]?.name ?? "none";
+
+  const intelligenceContext = brainContext
+    ? `
+Intelligence summary: ${brainContext.summary}
+Top insight: ${topInsight}
+Top recommendation: ${topRecommendation}
+Top prediction: ${topPrediction}
+Latest outcome: ${latestOutcome}
+Latest learning: ${latestLearning}
+Active goal: ${activeGoal}
+`
+    : "";
+
   const context = `
 Workspace: ${ctx.organizationName}
 Stores: ${ctx.storeNames.join(", ") || "none"}
@@ -114,7 +140,7 @@ Unread notifications: ${ctx.unreadNotificationCount}
 Connected integrations: ${ctx.connectedIntegrations}
 Top products: ${topProducts}
 DM patterns: ${dmPatterns}
-Comment patterns: ${commentPatterns}${dailyBrief}
+Comment patterns: ${commentPatterns}${dailyBrief}${intelligenceContext}
 `;
 
   return [
@@ -131,6 +157,7 @@ export interface AskBusinessBrainDeps {
   aiConfigurationRepository: AIConfigurationRepository;
   workspaceContext: WorkspaceContextPort;
   marketingMemory?: MarketingMemoryPort;
+  businessBrainContext?: BusinessBrainContextPort;
 }
 
 export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
@@ -145,6 +172,7 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
 
     let memory: MarketingMemoryRecord | undefined;
     let brief: DailyBriefRecord | undefined;
+    let brainContext: BusinessBrainContext | undefined;
     const storeId = input.storeId ?? ctx.storeNames[0];
     if (deps.marketingMemory && storeId) {
       try {
@@ -155,8 +183,16 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
       }
     }
 
-    const fallback = buildFallbackAnswer(input.question, ctx, brief);
-    const messages = buildPrompt(input.question, ctx, memory, brief);
+    if (deps.businessBrainContext) {
+      try {
+        brainContext = await deps.businessBrainContext.getContext(input.organizationId, input.storeId);
+      } catch {
+        // Intelligence context is optional; answer from workspace context if unavailable.
+      }
+    }
+
+    const fallback = buildFallbackAnswer(input.question, ctx, brief, brainContext);
+    const messages = buildPrompt(input.question, ctx, memory, brief, brainContext);
 
     const configStoreId = storeId ?? "";
     const config = await deps.aiConfigurationRepository.getByStore(configStoreId);

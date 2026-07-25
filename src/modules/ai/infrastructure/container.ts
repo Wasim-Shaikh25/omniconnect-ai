@@ -9,7 +9,11 @@ import { organizationQueries } from "@/modules/organizations";
 import { notificationQueries } from "@/modules/notifications";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
-import { updateMarketingMemory, generateDailyBrief } from "@/modules/intelligence";
+import {
+  updateMarketingMemory,
+  generateDailyBrief,
+  businessBrainContextService,
+} from "@/modules/intelligence";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
@@ -92,4 +96,5 @@ export const askBusinessBrain = makeAskBusinessBrain({
   aiConfigurationRepository,
   workspaceContext,
   marketingMemory,
+  businessBrainContext: businessBrainContextService,
 });
