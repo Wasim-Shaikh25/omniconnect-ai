@@ -44,6 +44,10 @@ export type {
 } from "./application/analyze-competitor";
 export { updateAIConfigSchema } from "./application/update-config";
 export type { UpdateAIConfigInput } from "./application/update-config";
+export type {
+  BusinessBrainAnswer,
+  AskBusinessBrainInput,
+} from "./application/ask-business-brain";
 
 // Presentation
 export {
@@ -51,5 +55,6 @@ export {
   generateCaptionsAction,
   generateTrendsAction,
   generatePostIdeasAction,
+  askBusinessBrainAction,
 } from "./presentation/actions";
-export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState } from "./presentation/actions";
+export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState, AskBusinessBrainState } from "./presentation/actions";

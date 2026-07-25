@@ -2,13 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole, ForbiddenError } from "@/modules/auth";
+import { getCurrentUser, requireRole, ForbiddenError } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
-import { updateAIConfiguration, generateCaptions, generateTrends, generatePostIdeas } from "../infrastructure/container";
+import { updateAIConfiguration, generateCaptions, generateTrends, generatePostIdeas, askBusinessBrain } from "../infrastructure/container";
 import { updateAIConfigSchema } from "../application/update-config";
 import type { GeneratedCaption } from "../application/generate-captions";
 import type { TrendIdea } from "../application/generate-trends";
+import type { BusinessBrainAnswer } from "../application/ask-business-brain";
 
 export interface AIActionState {
   error?: string;
@@ -219,5 +220,52 @@ export async function generatePostIdeasAction(
     return { trends };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not generate ideas" };
+  }
+}
+
+export interface AskBusinessBrainState {
+  error?: string;
+  answer?: BusinessBrainAnswer;
+}
+
+const askBusinessBrainSchema = z.object({
+  question: z.string().min(1).max(2000),
+  storeId: z.string().optional(),
+});
+
+export async function askBusinessBrainAction(
+  _prev: AskBusinessBrainState,
+  formData: FormData,
+): Promise<AskBusinessBrainState> {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) {
+    return { error: "You must be signed in to a workspace." };
+  }
+
+  const parsed = askBusinessBrainSchema.safeParse({
+    question: formData.get("question"),
+    storeId: formData.get("storeId") || undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (
+    parsed.data.storeId &&
+    !(await assertStoreInOrg(user.organizationId, parsed.data.storeId))
+  ) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const answer = await askBusinessBrain({
+      question: parsed.data.question,
+      organizationId: user.organizationId,
+      userId: user.id,
+      storeId: parsed.data.storeId,
+    });
+    return { answer };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not answer" };
   }
 }

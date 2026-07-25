@@ -18,6 +18,7 @@ export async function AppHeader() {
           {user ? (
             <>
               <Link href="/dashboard">Dashboard</Link>
+              <Link href="/business-brain">AI Brain</Link>
               <Link href="/stores">Stores</Link>
               <Link href="/help">Help</Link>
               <Link href="/notifications" className="relative">

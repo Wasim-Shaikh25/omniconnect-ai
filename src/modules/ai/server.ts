@@ -13,4 +13,5 @@ export {
   generateReply,
   generateWelcome,
   updateAIConfiguration,
+  askBusinessBrain,
 } from "./infrastructure/container";
