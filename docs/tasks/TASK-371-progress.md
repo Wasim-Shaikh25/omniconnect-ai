@@ -20,7 +20,8 @@ Status legend:
 ### 2. Analytics doesn't close the loop
 - [x] Marketing analytics reorganized around Content / Audience / Product / Campaign sections in `getMarketingPerformance` and `/stores/[storeId]/analytics`.
 - [x] `getMarketingPerformance` now returns `why` and `nextRecommendation` per section, plus an overall `explanation` that closes the loop from metrics → reason → next action.
-- [~] Full post-to-order attribution and rich media metrics (hook retention, caption length, etc.) require additional Meta media data and order line-item modeling.
+- [x] Post-to-order attribution foundation implemented: `getMarketingPerformance` attributes orders to the nearest preceding own post within a 7-day window and exposes `orders`/`revenue` per post.
+- [x] Rich media metrics (likes, comments, shares, plays, reach, impressions) surfaced in `ContentPerformanceSection.topPosts` and the Content analytics subpage.
 
 ### 3. Competitor Analysis is passive
 - [x] Competitor change detection implemented (`CompetitorChangeDetected` published when `lastMedia` post count changes in `getCompetitorBenchmark`).
@@ -41,7 +42,7 @@ Status legend:
 - [x] New `/stores/[storeId]/analytics/product` page with revenue, AOV, top products to promote, and product next step.
 - [x] New `/stores/[storeId]/analytics/campaign` page with active coupons, coupons generated/used, and campaign next step.
 - [x] `/stores/[storeId]/analytics` links to the four subpages and surfaces the overall AI marketing explanation.
-- [~] Full attribution (which content sold, which gained followers, etc.) depends on post-to-order and richer media metrics.
+- [x] Post-to-order attribution and rich media metrics foundation implemented; full causality modeling (hook retention, exact click source) requires deeper Meta media data and order UTM tracking.
 
 ### 7. Products should influence content
 - [x] `ProductScore` computed in `intelligence` (content, engagement, conversation, sales, trend, competitor scores) from ecommerce, conversations, and orders.
@@ -51,7 +52,7 @@ Status legend:
 - [x] `MarketingMemory` aggregate per workspace (`updateMarketingMemory()` in `intelligence`).
 - [x] `topPerformingPosts` populated from the connected Meta account's own media.
 - [x] `competitorChanges` populated with each tracked competitor's top post caption, media type, and engagement.
-- [~] Winning posting times remain a placeholder until engagement timestamps are captured.
+- [x] `winningPostingTimes` computed in `MarketingMemory` from own post `publishedAt` + engagement; top slot surfaced in `DailyBrief` and `generatePostIdeas` prompt.
 
 ### 9. Inbox should generate insights automatically
 - [x] One DM theme creates product insight, marketing insight, content idea, and surfaces on Daily Marketing dashboard.
@@ -64,7 +65,7 @@ Status legend:
 
 ### 11. AI should explain marketing
 - [x] `MarketingPerformanceView` includes an `explanation` field that tells the user why the metrics look the way they do and what to do next.
-- [~] Rich post-level explanation (hook retention, caption length, best/worst hooks) requires Meta media metrics and per-post attribution.
+- [~] Rich post-level explanation (hook retention, caption length, best/worst hooks) requires deeper Meta media metrics and per-post attribution beyond the current time-window foundation.
 
 ### 12. Business Brain should become Marketing Brain
 - [x] `/business-brain` rebranded as Marketing Brain.

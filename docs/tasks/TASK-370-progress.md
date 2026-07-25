@@ -90,7 +90,7 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] AI prompt audit log without PII.
 - [x] `/api/meta/webhook` rate limiting and replay idempotency.
 - [x] `env.ts` rejects startup via `validateProductionSecrets()` + `instrumentation.ts`.
-- [~] Tenant isolation audit: existing `assertStoreInOrg` pattern is used across mutating server actions; a full audit of every action remains a follow-up checklist item.
+- [x] Tenant isolation audit: `tenantGuard` added to `organizations`; `coupons` (`updateCampaignAction`, `simulateFirstTimeFollower`) and `users` (`changeUserRole`) now enforce organization ownership; explicit store-ownership checks added to `intelligence` read actions (`getUnifiedContextAction`, `getKnowledgeGraphAction`, `getFeatureProfileAction`).
 - [x] Dev-only simulators blocked in production (`simulateInbound` in `meta/application/simulate-inbound.ts` and `simulateFirstTimeFollower` in `coupons/presentation/actions.ts` reject production calls).
 
 ---

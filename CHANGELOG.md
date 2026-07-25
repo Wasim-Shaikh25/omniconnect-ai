@@ -471,6 +471,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Synced `TASK-350-unified-intelligence-layer.md` statuses from `TASK-350-progress.md`.
   - Marked verified items done: `FeatureService` (67), AI-generated workflow acceptance criteria (96), brand-deal follow-up + CRM advocate NBA (137).
   - Active `TASK-370`/`TASK-371` trackers updated to reflect current remaining work.
+- **Follow-up fixes**:
+  - Replaced `eslint-config-next` / `@eslint/eslintrc` with direct `@next/eslint-plugin-next` + `typescript-eslint` flat config; upgraded `eslint` to v10. `npm audit` now reports 0 high-severity findings; `npm run lint` / `typecheck` / `build` still pass.
+  - Computed `winningPostingTimes` in `MarketingMemory` from own post engagement timestamps and surfaced the top slot in the `DailyBrief` and `generatePostIdeas` prompt.
+  - Added `tenantGuard` to the `organizations` module and hardened tenant isolation for `coupons` (`updateCampaignAction`, `simulateFirstTimeFollower`) and `users` (`changeUserRole` now enforces same-organization target); added explicit store-ownership checks to `intelligence` read actions (`getUnifiedContextAction`, `getKnowledgeGraphAction`, `getFeatureProfileAction`).
+  - Built post-to-order attribution foundation: `getMarketingPerformance` now fetches own Meta media, computes richer per-post metrics (likes, comments, shares, plays, reach, impressions), attributes orders to the nearest preceding post within a 7-day window, and exposes `orders`/`revenue` per post in the Content analytics subpage.
+  - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup all pass; `npm audit` reports 0 vulnerabilities.
 
 ### ⏭️ Next (proposed build order)
 
