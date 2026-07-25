@@ -4,10 +4,12 @@ Ordered list of tasks. `[x]` = done, `[~]` = in progress, `[ ]` = todo.
 Each links a spec. Keep in sync with `CHANGELOG.md`.
 
 ## Foundation
+
 - [x] **TASK-000** Project governance foundation (rules, specs, tasks, changelog, architecture docs) — spec: `0000`
 - [x] **TASK-001** Remote decision: kept local on VM per user (no PR) — spec: `0000`
 
 ## Phase 1 build order
+
 - [x] **TASK-010** App scaffold: Next.js 15 + TS + Tailwind + ShadCN, Prisma schema, config/env validation, PWA, DDD module skeleton, event bus, import-boundary lint — spec: `0010`
 - [x] **TASK-020** Module 1 — Authentication (NextAuth v5, JWT, RBAC, bcrypt credentials + Google-ready) — spec: `0001`
 - [x] **TASK-030** Users + Organizations + Stores (multi-tenant foundation; event-driven org provisioning) — spec: `0011`
@@ -43,3 +45,13 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-330** Settings & Administration (members, roles, audit log, billing) — spec: `0031`
 - [x] **TASK-340** Mobile responsive quick actions & PWA polish — spec: `0032`
 - [~] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
+
+## OmniConnect 2.0 — Unified Intelligence Layer
+
+- [~] **TASK-350** Unified Intelligence Layer — phased implementation — spec: `0033`
+  - Phase 0: Alignment & instrumentation (canonical signals, metric dictionary, identity graph, data-quality gate, first three stories).
+  - Phase 1: Shared context MVP (unified timeline, semantic metrics, freshness indicators, cross-module deep links).
+  - Phase 2: Explanatory intelligence (Today feed, Intelligence Panel, anomaly detection, revenue/funnel decomposition, evidence drawer).
+  - Phase 3: Next Best Action & goals (recommendations, action plans, decision policy, goal pacing, automation wizard, outcomes).
+  - Phase 4: Predictions & learning (forecasts, stock-out/churn/propensity risks, BusinessLearning, experiments).
+  - Phase 5: Scale & optimization (Brand Deals, Affiliates, Media Kit, Competitor Intelligence, agency portfolio, cost/latency).
