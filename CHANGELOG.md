@@ -176,10 +176,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - Split `meta` module the same way: `@/modules/meta` is client-safe (events, types, schemas, server actions), while `@/modules/meta/server` exports `connectMeta`, `processMetaWebhook`, `metaQueries`, `metaService`, and webhook verification functions.
   - Updated server consumers (`coupons`, `growth`, `ai`, `route.ts`, store detail page) to import wired services from `@/modules/meta/server`.
 
+### ✅ Done (continued)
+- **TASK-210 — Content Studio MVP** (spec `0018`):
+  - New `/stores/[storeId]/content` page reuses `generatePostIdeasAction` and `generateCaptionsAction` to produce AI post ideas and captions with engagement scores and best-time-to-post hints.
+  - Store detail page links to **Content Studio**.
+
 ### 🔨 In Progress
-- Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Meta content intelligence / analytics dashboard (TASK-110)** or **live Meta Graph API adapters** for commerce, comments, and messaging.
+- Next: **Orders module (TASK-220)**, **Meta analytics dashboard (TASK-110)**, or **live Meta Graph API adapters**.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
