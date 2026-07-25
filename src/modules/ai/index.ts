@@ -21,7 +21,10 @@ export type {
   AIMessage,
   AIProvider,
   AssistantService,
+  BrainConversationMemoryRecord,
+  BrainMemoryRepository,
 } from "./application/ports";
+export type { BrainMemoryService } from "./application/brain-memory";
 export type { GenerateWelcome } from "./application/generate-welcome";
 export type {
   GeneratedCaption,

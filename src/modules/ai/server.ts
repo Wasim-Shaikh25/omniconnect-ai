@@ -14,4 +14,5 @@ export {
   generateWelcome,
   updateAIConfiguration,
   askBusinessBrain,
+  brainMemoryService,
 } from "./infrastructure/container";

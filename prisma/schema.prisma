@@ -320,6 +320,23 @@ model AIConfiguration {
   updatedAt       DateTime @updatedAt
 }
 
+model BrainConversationMemory {
+  id                String   @id @default(cuid())
+  userId            String
+  organizationId    String
+  storeId           String?
+  question          String
+  answer            String
+  acceptedAdviceIds String[]
+  rejectedAdviceIds String[]
+  goals             String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, storeId])
+  @@index([organizationId, createdAt])
+}
+
 // ── campaigns (first-time follower) ─────────────────────────────────────────
 enum CampaignType {
   FIRST_TIME_FOLLOWER

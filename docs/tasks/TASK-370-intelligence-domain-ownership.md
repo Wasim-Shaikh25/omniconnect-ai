@@ -39,7 +39,7 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 ### Phase 3 — Business Brain consumes Intelligence
 - [x] 19. Create `intelligence.getBusinessBrainContext` (insights, predictions, recommendations, outcomes, learning).
 - [x] 20. Update `askBusinessBrain` and `workspace-context` to use the new context.
-- [ ] 21. Add conversation memory to Business Brain (previous questions, accepted/rejected advice, goals).
+- [x] 21. Add conversation memory to Business Brain (previous questions, accepted/rejected advice, goals).
 
 ### Phase 4 — Cleanup and verification
 - [ ] 22. Update `intelligence/index.ts` public barrel and remove deprecated exports.

@@ -1,11 +1,12 @@
-import type { AIMessage, AIProvider } from "./ports";
-import type { AIConfigurationRepository } from "./ports";
+import type { AIMessage, AIProvider, AIConfigurationRepository, BrainConversationMemoryRecord } from "./ports";
+import type { BrainMemoryService } from "./brain-memory";
 import type { MarketingMemoryRecord, DailyBriefRecord, BusinessBrainContext } from "@/modules/intelligence";
 
 export interface BusinessBrainAnswer {
   answer: string;
   sources: string[];
   confidence: "high" | "medium" | "low";
+  memoryId?: string;
 }
 
 export interface AskBusinessBrainInput {
@@ -83,6 +84,7 @@ function buildPrompt(
   memory?: MarketingMemoryRecord,
   brief?: DailyBriefRecord,
   brainContext?: BusinessBrainContext,
+  recentMemory?: BrainConversationMemoryRecord[],
 ): AIMessage[] {
   const topProducts = memory?.productScores
     .slice(0, 3)
@@ -128,6 +130,18 @@ Active goal: ${activeGoal}
 `
     : "";
 
+  const memoryContext = recentMemory && recentMemory.length > 0
+    ? `
+Recent conversation memory:
+${recentMemory
+      .map(
+        (m) =>
+          `- Q: ${m.question}\n  A: ${m.answer}${m.goals.length > 0 ? `\n  Goals: ${m.goals.join(", ")}` : ""}${m.acceptedAdviceIds.length > 0 ? `\n  Accepted: ${m.acceptedAdviceIds.join(", ")}` : ""}${m.rejectedAdviceIds.length > 0 ? `\n  Rejected: ${m.rejectedAdviceIds.join(", ")}` : ""}`,
+      )
+      .join("\n")}
+`
+    : "";
+
   const context = `
 Workspace: ${ctx.organizationName}
 Stores: ${ctx.storeNames.join(", ") || "none"}
@@ -140,7 +154,7 @@ Unread notifications: ${ctx.unreadNotificationCount}
 Connected integrations: ${ctx.connectedIntegrations}
 Top products: ${topProducts}
 DM patterns: ${dmPatterns}
-Comment patterns: ${commentPatterns}${dailyBrief}${intelligenceContext}
+Comment patterns: ${commentPatterns}${dailyBrief}${intelligenceContext}${memoryContext}
 `;
 
   return [
@@ -158,6 +172,7 @@ export interface AskBusinessBrainDeps {
   workspaceContext: WorkspaceContextPort;
   marketingMemory?: MarketingMemoryPort;
   businessBrainContext?: BusinessBrainContextPort;
+  brainMemory?: BrainMemoryService;
 }
 
 export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
@@ -173,6 +188,7 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
     let memory: MarketingMemoryRecord | undefined;
     let brief: DailyBriefRecord | undefined;
     let brainContext: BusinessBrainContext | undefined;
+    let recentMemory: BrainConversationMemoryRecord[] | undefined;
     const storeId = input.storeId ?? ctx.storeNames[0];
     if (deps.marketingMemory && storeId) {
       try {
@@ -191,8 +207,16 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
       }
     }
 
+    if (deps.brainMemory) {
+      try {
+        recentMemory = await deps.brainMemory.getRecentContext(input.userId, input.organizationId, input.storeId, 5);
+      } catch {
+        // Conversation memory is optional.
+      }
+    }
+
     const fallback = buildFallbackAnswer(input.question, ctx, brief, brainContext);
-    const messages = buildPrompt(input.question, ctx, memory, brief, brainContext);
+    const messages = buildPrompt(input.question, ctx, memory, brief, brainContext, recentMemory);
 
     const configStoreId = storeId ?? "";
     const config = await deps.aiConfigurationRepository.getByStore(configStoreId);
@@ -202,10 +226,27 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
       fallback,
     });
 
+    let memoryId: string | undefined;
+    if (deps.brainMemory) {
+      try {
+        const entry = await deps.brainMemory.rememberQuestion(
+          input.userId,
+          input.organizationId,
+          input.question,
+          answer,
+          input.storeId,
+        );
+        memoryId = entry.id;
+      } catch {
+        // Do not fail the answer if memory persistence fails.
+      }
+    }
+
     return {
       answer,
       sources: ctx.storeNames,
       confidence: answer === fallback ? "low" : "high",
+      memoryId,
     };
   };
 }

@@ -36,7 +36,7 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 ### 5. Business Brain is disconnected
 - [x] `getBusinessBrainContext` returns insights/predictions/recommendations/outcomes/learning.
 - [x] `askBusinessBrain` uses the new context instead of raw counts.
-- [ ] Business Brain conversation memory (accepted/rejected advice, goals) added.
+- [x] Business Brain conversation memory (`BrainConversationMemory`) added to `askBusinessBrain` prompts.
 
 ### 6. Intelligence duplicates logic
 - [ ] `SUPPORT_KEYWORDS` / `INTENT_KEYWORDS` exist in one place.
@@ -48,11 +48,11 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [ ] Snapshots recomputed from canonical events/tables, not hand-edited.
 
 ### 8. Business Brain is stateless
-- [ ] Conversation memory for Brain (previous questions, accepted/rejected advice, goals).
+- [x] Conversation memory for Brain (`BrainConversationMemory`) persists previous questions, answers, accepted/rejected advice, and goals.
 - [ ] Stored per workspace/user with retention rules.
 
 ### 9. No recommendation conflict resolution
-- [ ] `resolveConflicts` implemented with policy and human-escalation fallback.
+- [x] `resolveConflicts` implemented with `single_discount_per_run` policy and `RecommendationConflictDetected` event.
 - [ ] Conflicts surfaced in UI with reason and runner-up.
 
 ### 10. Action execution knows too much

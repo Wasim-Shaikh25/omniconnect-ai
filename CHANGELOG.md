@@ -418,7 +418,11 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `OutcomeRepository.list` and `outcomeService.list` to support context.
     - `ai/application/ask-business-brain.ts` now optionally consumes `BusinessBrainContextPort` and injects intelligence summaries into prompts and fallback answers.
     - Wired `businessBrainContextService` through `intelligence/infrastructure/container.ts` and the public barrel; connected in `ai/infrastructure/container.ts`.
-    - Remaining: move product availability/demand logic to `ecommerce`, shrink `WorkspaceActionExecutor`, and add Business Brain conversation memory.
+  - **Phase 3b (Business Brain memory) implemented:**
+    - Added `BrainConversationMemory` Prisma model and migration.
+    - Created `ai/application/brain-memory.ts` service and `PrismaBrainMemoryRepository` with save/list/update feedback methods.
+    - `askBusinessBrain` now loads recent memory into the prompt and persists each Q/A pair with `userId`/`organizationId`/`storeId`.
+    - Remaining: move product availability/demand logic to `ecommerce`, shrink `WorkspaceActionExecutor`, and add memory retention rules.
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
