@@ -10,8 +10,11 @@ export {
   getRolloutGatesAction,
   setRolloutGateAction,
   getRiskMitigationsAction,
+  getOperatingModelAction,
+  getRiskMatrixAction,
 } from "./presentation/actions";
 
 export type { QualityReport, QualityCheck } from "./application/quality-assurance";
 export type { RolloutGate, RolloutMode } from "./application/rollout";
 export type { RiskMitigation } from "./application/risk-mitigations";
+export type { OperatingModel, Story, RiskTierRow, SuccessCriterion } from "./application/operating-model";

@@ -361,6 +361,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions `runQualityChecksAction`, `getRolloutGatesAction`, `setRolloutGateAction`, `getRiskMitigationsAction`.
   - End-to-end validation (`scripts/verify-task367.ts`) confirmed `QualityAssuranceService` PASS, default rollout gates disabled, and risk mitigations present.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-368 — Operating Model, 30-Day Plan, and Success Criteria** (spec `0044`):
+  - Added `OperatingModelService` with governance squads, 90-day milestones, first three intelligence stories, integration health inventory, offline evaluation cases, risk/approval matrix, thin-slice review checklist, and first-year success criteria.
+  - Added `runWeek4ThinSlice` orchestrator and `scripts/verify-thin-slice-week4.ts` that seeds a store with out-of-stock products and an inbox message, runs `DetectionService` with a shifted reference time to produce a revenue-decline insight driven by availability, and flows through `RecommendationService`, `ActionPlanService`, and `OutcomeService` to create and measure an alternative-product DM campaign.
+  - Added `/settings/operating-model` page displaying governance, plan, stories, integration health, risk matrix, and success criteria.
+  - Server actions `getOperatingModelAction` and `getRiskMatrixAction`.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -374,10 +380,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-365 (KPIs and Operating Rhythm) completed.
 - TASK-366 (AI Governance, Trust, and Workflow Acceptance) completed.
 - TASK-367 (Testing, Rollout, and Risk Mitigations) completed.
+- TASK-368 (Operating Model, 30-Day Plan, and Success Criteria) completed.
 
 ### 🔨 In Progress
 
-- Remaining TASK-350 subtasks: operating model/30-day plan items (117–125) and validation-driven additions (126–139).
+- Remaining TASK-350 subtasks: validation-driven additions (126–139).
 
 ### ⏭️ Next (proposed build order)
 

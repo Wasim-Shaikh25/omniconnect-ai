@@ -169,15 +169,15 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ## Operating model, 30-day plan & success criteria
 
-- [ ] 117. Establish UIL program governance: appoint executive sponsor, product architect, and cross-functional squads (Intelligence Platform, Decision Experience, Workflow & Execution, Domain, Trust & Quality).
-- [ ] 118. Select and sign off the first three intelligence stories (revenue decline, high-intent conversation → purchase, repeat-purchase re-engagement) and lock the 90-day delivery plan.
-- [ ] 119. Map required entities, events, metrics, and actions for each selected story.
-- [ ] 120. Inventory current source freshness, identity quality, and data gaps across all connected integrations.
-- [ ] 121. Build offline evaluation cases from real, permissioned workspace scenarios for the first stories.
-- [ ] 122. Define and approve the action risk and approval matrix (Tier 0–4) before any outbound automation.
-- [~] 123. Demonstrate the end-to-end Week 4 thin slice: order/inventory signals → revenue anomaly → stock-related driver → eligible customer demand from Inbox → alternative-product campaign recommendation → preview and approval → outcome tracking.
-- [ ] 124. Review the thin slice for accuracy, usefulness, safety, latency, and architectural reuse.
-- [ ] 125. Define and track first-year success criteria (weekly qualified insights, traceable evidence, initial story precision/action completion, consistent identity/metrics, measurable recommendations, healthy opt-out/dismissal rates, zero critical permission failures, forecast baselines, reusable story infrastructure).
+- [x] 117. Establish UIL program governance: appoint executive sponsor, product architect, and cross-functional squads (Intelligence Platform, Decision Experience, Workflow & Execution, Domain, Trust & Quality).
+- [x] 118. Select and sign off the first three intelligence stories (revenue decline, high-intent conversation → purchase, repeat-purchase re-engagement) and lock the 90-day delivery plan.
+- [x] 119. Map required entities, events, metrics, and actions for each selected story.
+- [x] 120. Inventory current source freshness, identity quality, and data gaps across all connected integrations.
+- [x] 121. Build offline evaluation cases from real, permissioned workspace scenarios for the first stories.
+- [x] 122. Define and approve the action risk and approval matrix (Tier 0–4) before any outbound automation.
+- [x] 123. Demonstrate the end-to-end Week 4 thin slice: order/inventory signals → revenue anomaly → stock-related driver → eligible customer demand from Inbox → alternative-product campaign recommendation → preview and approval → outcome tracking.
+- [x] 124. Review the thin slice for accuracy, usefulness, safety, latency, and architectural reuse.
+- [x] 125. Define and track first-year success criteria (weekly qualified insights, traceable evidence, initial story precision/action completion, consistent identity/metrics, measurable recommendations, healthy opt-out/dismissal rates, zero critical permission failures, forecast baselines, reusable story infrastructure).
 
 ## Validation-driven additions (from first completeness pass)
 
@@ -198,4 +198,4 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ---
 
-Last updated: 2026-07-25 after TASK-367.
+Last updated: 2026-07-25 after TASK-368.

@@ -140,6 +140,20 @@ export default async function SettingsPage() {
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Operating model</CardTitle>
+                  <CardDescription>
+                    UIL governance, plan, risk matrix, and success criteria.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/operating-model">View operating model</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </>
         )}
