@@ -5,6 +5,7 @@ import type {
   MetaMediaItem,
   MetaService,
   HashtagMediaOptions,
+  CompetitorMediaOptions,
 } from "../application/ports";
 
 const GRAPH_API_BASE = "https://graph.facebook.com/v21.0";
@@ -155,6 +156,44 @@ export class GraphApiMetaService implements MetaService {
       return [];
     }
   }
+
+  async getCompetitorMedia(
+    storeId: string,
+    handle: string,
+    options: CompetitorMediaOptions = {},
+  ): Promise<MetaMediaItem[]> {
+    const token = await this.integrations.findAccessToken(storeId);
+    const integration = await this.integrations.findByStore(storeId);
+    const limit = Math.min(Math.max(options.limit ?? 10, 1), 25);
+    if (!token || !integration?.accountId) {
+      logger.info("meta.getCompetitorMedia.skipped", { storeId, handle, reason: "not-configured" });
+      if (env.NODE_ENV !== "production") {
+        return generateSampleCompetitorMedia(handle, limit);
+      }
+      return [];
+    }
+
+    const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
+    const url = `${GRAPH_API_BASE}/${integration.accountId}?fields=business_discovery.username(${handle}){id,media{${fields}}}&access_token=${token}`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        logger.warn("meta.getCompetitorMedia.failed", { storeId, handle, status: res.status });
+        return [];
+      }
+      const payload: unknown = await res.json();
+      const media = (payload as { business_discovery?: { media?: { data?: unknown[] } } })?.business_discovery?.media?.data ?? [];
+      return media.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
+    } catch (error) {
+      logger.error("meta.getCompetitorMedia.error", {
+        storeId,
+        handle,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return [];
+    }
+  }
 }
 
 function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaMediaItem | null {
@@ -277,6 +316,62 @@ function generateSampleMedia(query: string, limit: number): MetaMediaItem[] {
       ownerUsername: owner,
       publishedAt: new Date(now - i * 86400000),
       hashtags: [`#${query}`, "#viral", "#trending"],
+      metrics: { likes: t.likes, comments: t.comments },
+    });
+  }
+  return items;
+}
+
+function generateSampleCompetitorMedia(handle: string, limit: number): MetaMediaItem[] {
+  const templates = [
+    {
+      caption: `POV: you just found the ultimate ${handle} hack ✨ #${handle} #viral #trending`,
+      mediaType: "REEL" as const,
+      likes: 12400,
+      comments: 430,
+    },
+    {
+      caption: `5 ${handle} mistakes I wish I knew sooner 😤 Save this for later! #${handle} #tips`,
+      mediaType: "CAROUSEL" as const,
+      likes: 8900,
+      comments: 210,
+    },
+    {
+      caption: `This ${handle} transformation is INSANE 🔥 Which look is your fave? #${handle} #style`,
+      mediaType: "IMAGE" as const,
+      likes: 5600,
+      comments: 150,
+    },
+    {
+      caption: `Day in the life: running a ${handle} brand from my phone 📱 #${handle} #behindthescenes`,
+      mediaType: "VIDEO" as const,
+      likes: 7200,
+      comments: 310,
+    },
+    {
+      caption: `The ${handle} trend everyone is talking about — here's how to do it #${handle} #howto`,
+      mediaType: "REEL" as const,
+      likes: 15300,
+      comments: 620,
+    },
+  ];
+  const now = Date.now();
+  const items: MetaMediaItem[] = [];
+  for (let i = 0; i < limit; i++) {
+    const t = templates[i % templates.length];
+    const id = `mock-${handle}-${i}`;
+    items.push({
+      id,
+      externalId: id,
+      platform: "INSTAGRAM",
+      mediaType: t.mediaType,
+      caption: t.caption,
+      permalink: `https://instagram.com/p/MOCK-${handle}-${i}`,
+      mediaUrl: null,
+      thumbnailUrl: `https://placehold.co/600x400?text=${encodeURIComponent(t.mediaType)}`,
+      ownerUsername: handle,
+      publishedAt: new Date(now - i * 86400000),
+      hashtags: [`#${handle}`, "#viral", "#trending"],
       metrics: { likes: t.likes, comments: t.comments },
     });
   }
