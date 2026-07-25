@@ -1,5 +1,8 @@
+import { crmQueries } from "@/modules/crm";
+import { organizationQueries } from "@/modules/organizations";
 import { makeConversationCommands } from "../application/commands";
 import { makeConversationQueries } from "../application/queries";
+import { makeGetUnifiedInbox } from "../application/unified-inbox";
 import { PrismaConversationRepository } from "./conversation.repository";
 import { PrismaMessageRepository } from "./message.repository";
 
@@ -8,6 +11,13 @@ const messages = new PrismaMessageRepository();
 
 /** Composition root for the conversations module. */
 export const conversationQueries = makeConversationQueries({
+  conversations,
+  messages,
+});
+
+export const unifiedInboxQueries = makeGetUnifiedInbox({
+  organizations: organizationQueries,
+  customers: crmQueries,
   conversations,
   messages,
 });

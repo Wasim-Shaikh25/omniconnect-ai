@@ -176,10 +176,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - Split `meta` module the same way: `@/modules/meta` is client-safe (events, types, schemas, server actions), while `@/modules/meta/server` exports `connectMeta`, `processMetaWebhook`, `metaQueries`, `metaService`, and webhook verification functions.
   - Updated server consumers (`coupons`, `growth`, `ai`, `route.ts`, store detail page) to import wired services from `@/modules/meta/server`.
 
+### ✅ Done (continued)
+- **TASK-190 — Unified Inbox** (spec `0016`):
+  - New `getUnifiedInbox` aggregates conversations across all stores in an organization, with last message, participant name from CRM, channel/status/search filters, and unread highlighting.
+  - New `/inbox` page with filter bar, conversation cards, view links, and take-over/resume actions.
+  - `AppHeader` updated with **Inbox** global nav link.
+  - Reuses the existing `ConversationTakeoverButton` and extends `takeOverConversationAction`/`resumeAIConversationAction` to revalidate `/inbox`.
+
 ### 🔨 In Progress
-- Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Meta content intelligence / analytics dashboard (TASK-110)** or **live Meta Graph API adapters** for commerce, comments, and messaging.
+- Next: **AI CRM refinements (TASK-200)**, **Content Studio (TASK-210)**, or **live Meta Graph API adapters** for commerce, comments, and messaging.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

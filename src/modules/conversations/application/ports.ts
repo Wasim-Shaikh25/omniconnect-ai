@@ -31,6 +31,8 @@ export interface ConversationRepository {
 
   listByStore(storeId: string, limit?: number): Promise<ConversationRecord[]>;
 
+  listByStoreIds(storeIds: string[], limit?: number): Promise<ConversationRecord[]>;
+
   findById(id: string): Promise<ConversationRecord | null>;
 
   updateStatus(
@@ -57,6 +59,10 @@ export interface MessageRepository {
     conversationId: string,
     limit?: number,
   ): Promise<MessageRecord[]>;
+
+  listLatestByConversationIds(
+    conversationIds: string[],
+  ): Promise<Record<string, MessageRecord>>;
 
   countByConversation(conversationId: string): Promise<number>;
 }
