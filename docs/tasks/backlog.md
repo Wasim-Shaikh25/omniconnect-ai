@@ -20,3 +20,6 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [ ] **TASK-100** Module 9 — Notifications (in-app + email) — spec: `0009`
 - [ ] **TASK-110** Module 7 — Meta content intelligence, analytics dashboard + reports — spec: `0007`
 - [ ] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
+
+## Phase 2 build order
+- [ ] **TASK-130** Meta commerce & engagement automation (Instagram Shop sync, comment/mention automation, Lead Ads, UGC, ambassador referrals, conversational commerce) — spec: `0012`
