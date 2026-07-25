@@ -34,6 +34,7 @@ import { makeAiGovernanceService } from "../application/ai-governance";
 import { makeQualityAssuranceService } from "../application/quality-assurance";
 import { makeRolloutService } from "../application/rollout";
 import { makeRiskMitigationRegistry } from "../application/risk-mitigations";
+import { makeOperatingModelService } from "../application/operating-model";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -230,5 +231,6 @@ export const qualityAssuranceService = makeQualityAssuranceService({
 });
 export const rolloutService = makeRolloutService();
 export const riskMitigationRegistry = makeRiskMitigationRegistry();
+export const operatingModelService = makeOperatingModelService();
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };

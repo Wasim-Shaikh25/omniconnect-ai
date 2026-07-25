@@ -125,6 +125,8 @@ export {
   getRolloutGatesAction,
   setRolloutGateAction,
   getRiskMitigationsAction,
+  getOperatingModelAction,
+  getRiskMatrixAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";
@@ -133,3 +135,7 @@ export type { IntelligenceActionState } from "./presentation/actions";
 export type { QualityReport, QualityCheck } from "./application/quality-assurance";
 export type { RolloutGate, RolloutMode } from "./application/rollout";
 export type { RiskMitigation } from "./application/risk-mitigations";
+export { operatingModelService } from "./infrastructure/container";
+export { runWeek4ThinSlice } from "./infrastructure/thin-slice";
+export type { OperatingModel, OperatingModelService, Story, RiskTierRow, SuccessCriterion, Squad, Milestone, IntegrationHealth, EvaluationCase, ThinSliceReview } from "./application/operating-model";
+export type { ThinSliceResult } from "./infrastructure/thin-slice";

@@ -30,6 +30,7 @@ import {
   qualityAssuranceService,
   rolloutService,
   riskMitigationRegistry,
+  operatingModelService,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -640,4 +641,16 @@ export async function getRiskMitigationsAction() {
   const user = await getCurrentUser();
   if (!user) return null;
   return riskMitigationRegistry.list();
+}
+
+export async function getOperatingModelAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return operatingModelService.getModel();
+}
+
+export async function getRiskMatrixAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return operatingModelService.getRiskMatrix();
 }
