@@ -7,6 +7,7 @@ import type {
 } from "./ports";
 import type { MetricService } from "./metrics";
 import type { OutcomeService } from "./outcome";
+import type { BusinessLearningService } from "./business-learning";
 import type { DecisionPolicyService } from "./decision-policy";
 import {
   ActionPlanApproved,
@@ -20,6 +21,7 @@ export interface ActionPlanServiceInput {
   recommendations: RecommendationRepository;
   decisions: DecisionRepository;
   outcomeService: OutcomeService;
+  businessLearning: BusinessLearningService;
   executor: ActionExecutor;
   policy: DecisionPolicyService;
   metrics: MetricService;
@@ -155,6 +157,10 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
 
       const status: OutcomeRecord["status"] = result.ok ? "SUCCESS" : "FAILURE";
       const measuredOutcome = await input.outcomeService.measure(outcome.id, beforeValue, afterValue, status);
+
+      if (recommendation) {
+        await input.businessLearning.learnFromOutcome(recommendation, measuredOutcome);
+      }
 
       const planStatus: ActionPlanRecord["status"] = result.ok ? "EXECUTED" : "FAILED";
       const executed = await input.actionPlans.updateStatus(plan.id, planStatus, undefined, new Date(), null);

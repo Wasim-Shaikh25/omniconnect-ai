@@ -16,6 +16,9 @@ import {
   recommendationService,
   actionPlanService,
   goalService,
+  predictionService,
+  hypothesisService,
+  businessLearningService,
 } from "../infrastructure/container";
 
 export interface IntelligenceActionState {
@@ -284,4 +287,45 @@ export async function splitEntityAction(formData: FormData): Promise<void> {
   await entityResolutionService.split(parsed.data.linkId);
   revalidatePath("/customers");
   revalidatePath(`/customers/${link.targetId}`);
+}
+
+export async function getPredictionsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { predictions: [] };
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { predictions: [] };
+  }
+
+  await predictionService.generateForStore(user.organizationId, storeId);
+  const predictions = await predictionService.listActive(user.organizationId, storeId, 20);
+  return { predictions };
+}
+
+export async function getHypothesesAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { hypotheses: [] };
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { hypotheses: [] };
+  }
+
+  await hypothesisService.generateFromOpenInsights(user.organizationId, storeId);
+  const hypotheses = await hypothesisService.list(user.organizationId, storeId, 20);
+  return { hypotheses };
+}
+
+export async function getBusinessLearningAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { learning: [] };
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { learning: [] };
+  }
+
+  const learning = await businessLearningService.list(user.organizationId, storeId, 20);
+  return { learning };
 }

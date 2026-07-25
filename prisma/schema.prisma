@@ -1108,3 +1108,84 @@ model Goal {
   @@index([organizationId, status, endDate])
   @@index([organizationId, storeId, targetMetric, status])
 }
+
+// ── intelligence: predictions, hypotheses, business learning ────────────────
+
+enum PredictionType {
+  CHURN
+  STOCK_OUT
+  PURCHASE_PROPENSITY
+  REVENUE_FORECAST
+}
+
+enum PredictionStatus {
+  ACTIVE
+  EXPIRED
+  ABSTAINED
+}
+
+enum HypothesisStatus {
+  PROPOSED
+  VALIDATED
+  REFUTED
+}
+
+model Prediction {
+  id              String           @id @default(cuid())
+  organizationId  String
+  storeId         String?
+  predictionType  PredictionType
+  targetEntityType String?
+  targetEntityId  String?
+  horizon         String
+  estimate        Float
+  probability     Float?
+  lowerBound      Float?
+  upperBound      Float?
+  features        Json?
+  calibration     String?
+  expiresAt       DateTime
+  status          PredictionStatus @default(ACTIVE)
+  reason          String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([organizationId, status, expiresAt])
+  @@index([organizationId, storeId, predictionType, status])
+}
+
+model Hypothesis {
+  id              String           @id @default(cuid())
+  organizationId String
+  storeId         String?
+  insightId       String?
+  statement       String
+  features        Json?
+  expectedOutcome String?
+  status          HypothesisStatus @default(PROPOSED)
+  validatedAt     DateTime?
+  confidence      Float?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, storeId, insightId])
+}
+
+model BusinessLearning {
+  id             String   @id @default(cuid())
+  organizationId String
+  storeId        String?
+  ruleName       String
+  condition      Json?
+  effect         Json?
+  weight         Float    @default(0)
+  successCount   Int      @default(0)
+  failureCount   Int      @default(0)
+  lastOutcomeAt  DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, ruleName])
+  @@index([organizationId, storeId, ruleName])
+}

@@ -8,6 +8,9 @@ import type {
   DecisionRecord,
   OutcomeRecord,
   GoalRecord,
+  PredictionRecord,
+  HypothesisRecord,
+  BusinessLearningRecord,
 } from "./types";
 
 export interface SignalIngestedPayload {
@@ -104,4 +107,28 @@ export interface GoalPacingChangedPayload {
 
 export class GoalPacingChanged extends BaseDomainEvent<GoalPacingChangedPayload> {
   readonly name = "GoalPacingChanged";
+}
+
+export interface PredictionGeneratedPayload {
+  prediction: PredictionRecord;
+}
+
+export class PredictionGenerated extends BaseDomainEvent<PredictionGeneratedPayload> {
+  readonly name = "PredictionGenerated";
+}
+
+export interface HypothesisProposedPayload {
+  hypothesis: HypothesisRecord;
+}
+
+export class HypothesisProposed extends BaseDomainEvent<HypothesisProposedPayload> {
+  readonly name = "HypothesisProposed";
+}
+
+export interface BusinessLearningUpdatedPayload {
+  learning: BusinessLearningRecord;
+}
+
+export class BusinessLearningUpdated extends BaseDomainEvent<BusinessLearningUpdatedPayload> {
+  readonly name = "BusinessLearningUpdated";
 }

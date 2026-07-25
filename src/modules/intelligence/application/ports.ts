@@ -10,11 +10,17 @@ import type {
   DecisionRecord,
   OutcomeRecord,
   GoalRecord,
+  PredictionRecord,
+  HypothesisRecord,
+  BusinessLearningRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,
   OutcomeStatus,
   GoalStatus,
+  PredictionType,
+  PredictionStatus,
+  HypothesisStatus,
   ConfidenceLevel,
   LinkStatus,
   DataQualityStatus,
@@ -130,6 +136,27 @@ export interface GoalRepository {
   updatePacing(id: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord>;
 }
 
+export interface PredictionRepository {
+  save(prediction: Omit<PredictionRecord, "id" | "createdAt" | "updatedAt">): Promise<PredictionRecord>;
+  listActive(organizationId: string, storeId?: string, limit?: number): Promise<PredictionRecord[]>;
+  findById(id: string): Promise<PredictionRecord | null>;
+  expire(id: string): Promise<PredictionRecord>;
+}
+
+export interface HypothesisRepository {
+  save(hypothesis: Omit<HypothesisRecord, "id" | "createdAt" | "updatedAt">): Promise<HypothesisRecord>;
+  list(organizationId: string, storeId?: string, limit?: number): Promise<HypothesisRecord[]>;
+  findById(id: string): Promise<HypothesisRecord | null>;
+  updateStatus(id: string, status: HypothesisStatus, validatedAt?: Date | null): Promise<HypothesisRecord>;
+}
+
+export interface BusinessLearningRepository {
+  save(record: Omit<BusinessLearningRecord, "id" | "createdAt" | "updatedAt">): Promise<BusinessLearningRecord>;
+  findByRule(organizationId: string, ruleName: string, storeId?: string): Promise<BusinessLearningRecord | null>;
+  list(organizationId: string, storeId?: string, limit?: number): Promise<BusinessLearningRecord[]>;
+  updateOutcome(id: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord>;
+}
+
 export interface ActionExecutor {
   canExecute(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean };
   execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;
@@ -147,11 +174,17 @@ export type {
   DecisionRecord,
   OutcomeRecord,
   GoalRecord,
+  PredictionRecord,
+  HypothesisRecord,
+  BusinessLearningRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,
   OutcomeStatus,
   GoalStatus,
+  PredictionType,
+  PredictionStatus,
+  HypothesisStatus,
   ConfidenceLevel,
   LinkStatus,
   DataQualityStatus,
