@@ -202,7 +202,7 @@ export default async function GrowthPage({
                 <option key={p.id} value={p.id}>{p.title}</option>
               ))}
             </select>
-            <Input name="externalUserId" placeholder="External user ID" />
+            <Input name="externalUserId" placeholder="Instagram / Messenger user ID" />
             <Button type="submit">Subscribe</Button>
           </form>
 
@@ -210,9 +210,11 @@ export default async function GrowthPage({
             <p className="text-sm text-muted-foreground">No subscriptions yet.</p>
           ) : (
             <ul className="divide-y">
-              {data.backInStock.map((s) => (
-                <li key={s.id} className="py-2 text-sm flex items-center justify-between">
-                  <span>{s.productId} · {s.externalUserId ?? "Anonymous"} · {s.notifiedAt ? "Notified" : "Waiting"}</span>
+              {(() => {
+                const productById = new Map(products.map((p) => [p.id, p.title]));
+                return data.backInStock.map((s) => (
+                  <li key={s.id} className="py-2 text-sm flex items-center justify-between">
+                    <span>{productById.get(s.productId) ?? "Unknown product"} · {s.externalUserId ? `@${s.externalUserId}` : "Anonymous"} · {s.notifiedAt ? "Notified" : "Waiting"}</span>
                   {!s.notifiedAt && (
                     <form action={notifyBackInStockAction}>
                       <input type="hidden" name="storeId" value={storeId} />
@@ -221,7 +223,7 @@ export default async function GrowthPage({
                     </form>
                   )}
                 </li>
-              ))}
+              ))})()}
             </ul>
           )}
         </CardContent>

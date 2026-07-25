@@ -144,6 +144,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - New `/stores/[storeId]/commerce/growth` UI with sections for UGC assets, ambassadors/referrals, DM campaigns (welcome, abandoned cart, back-in-stock, review, re-engage), and back-in-stock alerts.
   - Domain events: `UgcAssetCollected`, `UgcRightsRequested`, `UgcRightsApproved`, `AmbassadorEnrolled`, `ReferralConverted`, `DmCampaignCreated`, `DmCampaignSent`, `BackInStockSubscribed`, `BackInStockAlertSent`.
   - Verified end-to-end: collect and approve UGC, enroll ambassador, record referral with commission, create and send an abandoned-cart DM campaign, subscribe to back-in-stock and notify.
+- **UI polish & SaaS deployment:**
+  - Replaced raw IDs and `JSON.stringify` payloads on commerce/catalog, commerce/leads, and commerce/growth with readable product names, ambassador codes, and formatted lead details.
+  - Ambassador referral codes now use a readable numeric suffix instead of a random hash.
+  - Added a searchable `/help` page with in-depth guides for every app area.
+  - Added `Dockerfile`, `fly.toml`, `.dockerignore`, and `deploy.sh` for one-command Vercel/Fly/Docker builds.
+  - Added `docs/deployment.md` with SaaS architecture, environment variables, and multi-tenant checklist.
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.

@@ -11,6 +11,20 @@ import {
   scoreLeadAction,
 } from "@/modules/social";
 
+function formatPayload(payload: unknown): string {
+  if (typeof payload !== "object" || payload === null) return String(payload ?? "—");
+  const p = payload as Record<string, string | undefined>;
+  const parts: string[] = [];
+  if (p.name) parts.push(`Name: ${p.name}`);
+  if (p.email) parts.push(`Email: ${p.email}`);
+  if (p.note) parts.push(`Note: ${p.note}`);
+  if (p.text) parts.push(`Message: ${p.text}`);
+  if (p.username) parts.push(`From @${p.username}`);
+  if (p.channel) parts.push(`Channel: ${p.channel}`);
+  if (p.intent) parts.push(`Intent: ${p.intent}`);
+  return parts.length > 0 ? parts.join(" · ") : "—";
+}
+
 export default function LeadsPage({
   params,
 }: {
@@ -85,7 +99,7 @@ export default function LeadsPage({
                 <li key={l.id} className="py-3 text-sm flex items-start justify-between gap-4">
                   <div>
                     <p className="font-medium">{l.source} · score {l.score} · {l.status}</p>
-                    <p className="text-muted-foreground">{JSON.stringify(l.payload)}</p>
+                    <p className="text-muted-foreground">{formatPayload(l.payload)}</p>
                     <p className="text-xs text-muted-foreground">{l.createdAt.toLocaleString()}</p>
                   </div>
                   <form action={scoreAction}>

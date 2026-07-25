@@ -18,6 +18,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-080** Module 5 — First-time follower campaign (event-driven) — spec: `0005`
 - [x] **TASK-090** Module 8 — Human takeover — spec: `0008`
 - [x] **TASK-100** Module 9 — Notifications (in-app + email) — spec: `0009`
+- [x] **TASK-140** UI polish, help page, and SaaS deployment setup — spec: `0000` (raw IDs/JSON removed, `/help` added, `deploy.sh` + `Dockerfile` + `fly.toml` + `docs/deployment.md` added)
 - [ ] **TASK-110** Module 7 — Meta content intelligence, analytics dashboard + reports — spec: `0007`
 - [ ] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
 

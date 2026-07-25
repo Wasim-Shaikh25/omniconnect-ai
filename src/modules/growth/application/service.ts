@@ -21,8 +21,8 @@ import {
 
 function generateCode(handle: string | null): string {
   const base = (handle ?? "amb").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
-  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `${base}_${suffix}`;
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  return `${base}${suffix}`;
 }
 
 export interface GrowthServiceDeps {

@@ -65,11 +65,14 @@ function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
         <CardContent>
           {data?.mappings.length ? (
             <ul className="divide-y text-sm">
-              {data.mappings.map((m) => (
-                <li key={m.id} className="py-2">
-                  {m.productId} → {m.externalProductId ?? "not mapped"} · {m.status}
-                </li>
-              ))}
+              {(() => {
+                const productById = new Map(data.products.map((p) => [p.id, p.title]));
+                return data.mappings.map((m) => (
+                  <li key={m.id} className="py-2">
+                    {productById.get(m.productId) ?? "Unknown product"} · {m.status === "SYNCED" ? "Mapped to Meta" : "Pending"}
+                  </li>
+                ));
+              })()}
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">No mappings yet. Sync the catalog to create them.</p>
@@ -85,11 +88,14 @@ function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
         <CardContent>
           {data?.media.length ? (
             <ul className="divide-y text-sm mb-4">
-              {data.media.map((m) => (
-                <li key={m.id} className="py-2">
-                  {m.mediaType} · {m.status} · {m.caption ?? "no caption"} · {Array.isArray(m.productTags) ? m.productTags.length : 0} tag(s)
-                </li>
-              ))}
+              {data.media.map((m) => {
+                const tags = Array.isArray(m.productTags) ? (m.productTags as { name?: string }[]).map((t) => t.name).filter(Boolean) : [];
+                return (
+                  <li key={m.id} className="py-2">
+                    {m.mediaType} · {m.status} · {m.caption ?? "no caption"}{tags.length > 0 ? ` · tagged: ${tags.join(", ")}` : " · no tags"}
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
           <form action={mediaAction} className="space-y-4">
