@@ -1,7 +1,8 @@
 "use server";
 
+import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 import { z } from "zod";
-import { AuthError as NextAuthError } from "next-auth";
 import { registerUser } from "../infrastructure/container";
 import { signIn, signOut } from "../infrastructure/auth";
 import { registerUserSchema } from "../application/register-user";
@@ -33,12 +34,12 @@ export async function registerAction(
       redirectTo: "/dashboard",
     });
   } catch (error) {
-    if (error instanceof NextAuthError) {
+    if (error instanceof AuthError) {
       return { error: "Registered, but automatic sign-in failed." };
     }
     throw error;
   }
-  return {};
+  redirect("/dashboard");
 }
 
 export async function signOutAction(): Promise<void> {
@@ -73,10 +74,10 @@ export async function loginAction(
       redirectTo: "/dashboard",
     });
   } catch (error) {
-    if (error instanceof NextAuthError) {
+    if (error instanceof AuthError) {
       return { error: "Invalid email or password" };
     }
     throw error;
   }
-  return {};
+  redirect("/dashboard");
 }
