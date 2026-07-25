@@ -21,7 +21,7 @@ Implement the first per-module Next Best Action batch from TASK-350: Inbox, Orde
 - [x] 92. **Automation ↔ Every module:** execute through domain APIs, respect module validation/audit/idempotency, subscribe to canonical events, return status/outcome refs to learning service.
 - [x] 127. **Customer 360 header** on `/customers/[customerId]` (relationship summary, lifecycle/value band, current intent, risks/opportunities, consent, preferred channel, best next action).
 - [x] 128. **Proactive notification policy:** delivery tiers (critical interrupt, action required, Today feed, digest, on-demand), interruption score, cooldown windows, user tuning (topics, channels, quiet hours, thresholds), and deduplication.
-- [~] 137. **Brand-deal follow-up next-best action** and CRM advocate/early-access/suppression recommendations (CRM advocate candidates implemented; brand-deal surface deferred to a later task).
+- [x] 137. **Brand-deal follow-up next-best action** and CRM advocate/early-access/suppression recommendations (`forBrandDeals` next-best action and `advocateCandidates`/`suppressed` in `forCrm` implemented).
 
 ## Acceptance Criteria
 
