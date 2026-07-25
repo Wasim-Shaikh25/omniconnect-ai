@@ -53,6 +53,7 @@ export function makeConversationCommands(deps: {
           conversationId: conversation.id,
           storeId: conversation.storeId,
           humanUserId: input.humanUserId,
+          customerId: conversation.customerId,
         }),
       );
     },
@@ -70,6 +71,7 @@ export function makeConversationCommands(deps: {
         new AIResumed(conversation.id, {
           conversationId: conversation.id,
           storeId: conversation.storeId,
+          customerId: conversation.customerId,
         }),
       );
     },

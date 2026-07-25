@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { ElementType } from "react";
 import { getCurrentUser } from "@/modules/auth";
 import { analyticsQueries } from "@/modules/analytics";
+import { DataQualityAlerts } from "@/components/data-quality-alerts";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -168,6 +169,30 @@ export default async function DashboardPage() {
             </Button>
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/help">Help center</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mb-8 grid gap-6 md:grid-cols-3">
+        <DataQualityAlerts />
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Cross-module deep links</CardTitle>
+            <CardDescription>Jump to the modules that share unified context.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-2 sm:grid-cols-2">
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/customers">Customer directory</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/inbox">Unified inbox</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/analytics">Analytics</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start">
+              <Link href="/stores">Stores & integrations</Link>
             </Button>
           </CardContent>
         </Card>

@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CustomerEditForms } from "@/components/customer-edit-forms";
+import { CustomerIntelligence } from "@/components/customer-intelligence";
 
 function formatDate(date: Date | null): string {
   if (!date) return "—";
@@ -173,6 +174,8 @@ export default async function CustomerDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <CustomerIntelligence customerId={customerId} />
     </main>
   );
 }

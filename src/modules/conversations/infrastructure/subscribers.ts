@@ -37,7 +37,7 @@ const onMetaMessageReceived: EventHandler = async (event) => {
       storeId: p.storeId,
       channel: p.channel,
       externalUserId: p.externalUserId,
-      customerId: null,
+      customerId: conversation.customerId,
       content: message.content,
     }),
   );

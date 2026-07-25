@@ -50,8 +50,10 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 
 - [~] **TASK-350** Unified Intelligence Layer — phased implementation — spec: `0033`
   - Phase 0: Alignment & instrumentation (canonical signals, metric dictionary, identity graph, data-quality gate, first three stories).
-  - Phase 1: Shared context MVP (unified timeline, semantic metrics, freshness indicators, cross-module deep links).
-  - Phase 2: Explanatory intelligence (Today feed, Intelligence Panel, anomaly detection, revenue/funnel decomposition, evidence drawer).
-  - Phase 3: Next Best Action & goals (recommendations, action plans, decision policy, goal pacing, automation wizard, outcomes).
-  - Phase 4: Predictions & learning (forecasts, stock-out/churn/propensity risks, BusinessLearning, experiments).
-  - Phase 5: Scale & optimization (Brand Deals, Affiliates, Media Kit, Competitor Intelligence, agency portfolio, cost/latency).
+- [x] **TASK-351** Phase 1 — Shared Context MVP — spec: `0033`
+  - Unified timeline, semantic metrics, freshness/quality indicators, cross-module deep links, customer summary/priority context.
+- [~] **TASK-352** Phase 2 — Explanatory intelligence (Today feed, Intelligence Panel, anomaly detection, revenue/funnel decomposition, evidence drawer) — spec: `0033`
+  - Build on Phase 1 signals to add workspace "Today" feed, anomaly detection, predictive scoring, and actionable recommendations.
+- [ ] **TASK-353** Phase 3 — Next Best Action & goals (recommendations, action plans, decision policy, goal pacing, automation wizard, outcomes) — spec: `0033`
+- [ ] **TASK-354** Phase 4 — Predictions & learning (forecasts, stock-out/churn/propensity risks, BusinessLearning, experiments) — spec: `0033`
+- [ ] **TASK-355** Phase 5 — Scale & optimization (Brand Deals, Affiliates, Media Kit, Competitor Intelligence, agency portfolio, cost/latency) — spec: `0033`

@@ -22,6 +22,7 @@ export interface ConversationTakenOverPayload {
   conversationId: string;
   storeId: string;
   humanUserId: string;
+  customerId: string | null;
 }
 
 export class ConversationTakenOver extends BaseDomainEvent<ConversationTakenOverPayload> {
@@ -31,6 +32,7 @@ export class ConversationTakenOver extends BaseDomainEvent<ConversationTakenOver
 export interface AIResumedPayload {
   conversationId: string;
   storeId: string;
+  customerId: string | null;
 }
 
 export class AIResumed extends BaseDomainEvent<AIResumedPayload> {

@@ -22,5 +22,14 @@ export function makeOrganizationQueries(deps: {
     async listStores(organizationId: string): Promise<StoreRecord[]> {
       return deps.stores.listByOrganization(organizationId);
     },
+
+    async getStoreById(storeId: string): Promise<StoreRecord | null> {
+      return deps.stores.findById(storeId);
+    },
+
+    async getOrganizationIdByStoreId(storeId: string): Promise<string | null> {
+      const store = await deps.stores.findById(storeId);
+      return store?.organizationId ?? null;
+    },
   };
 }
