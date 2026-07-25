@@ -20,4 +20,5 @@ export const ecommerceQueries = makeEcommerceQueries({
   integrations,
   products,
   coupons,
+  connectors,
 });

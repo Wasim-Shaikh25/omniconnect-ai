@@ -342,6 +342,24 @@ export default async function StoreDetailPage({
           >
             Competitors
           </Link>
+          <Link
+            href={`/stores/${storeId}/content`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Content Studio
+          </Link>
+          <Link
+            href={`/stores/${storeId}/orders`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Orders
+          </Link>
+          <Link
+            href={`/stores/${storeId}/analytics`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Analytics
+          </Link>
         </CardContent>
       </Card>
 
