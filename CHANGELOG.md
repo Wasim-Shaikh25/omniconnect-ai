@@ -176,10 +176,18 @@ All notable changes to **OmniConnect AI** are documented here.
   - Split `meta` module the same way: `@/modules/meta` is client-safe (events, types, schemas, server actions), while `@/modules/meta/server` exports `connectMeta`, `processMetaWebhook`, `metaQueries`, `metaService`, and webhook verification functions.
   - Updated server consumers (`coupons`, `growth`, `ai`, `route.ts`, store detail page) to import wired services from `@/modules/meta/server`.
 
+### ✅ Done (continued)
+- **TASK-170 / TASK-180 — Executive Dashboard + AI Business Brain** (specs `0014` and `0015`):
+  - New `analyticsQueries.getWorkspaceKpis` aggregates tenant-scoped store, product, conversation, follower, coupon, integration, and notification counts.
+  - `/dashboard` rebuilt as an Executive Dashboard with KPI cards, recent stores list, and quick-action navigation.
+  - New `/business-brain` page with natural-language question form, preset prompts, and grounded answers built from workspace context.
+  - `askBusinessBrainAction` and `makeAskBusinessBrain` use-case in the `ai` module, with deterministic fallback when `OPENAI_API_KEY` is absent.
+  - Global nav (`AppHeader`) updated with Dashboard and AI Brain links.
+  - Verified end-to-end: register → create store → connect mock Shopify → sync products → simulate follow → dashboard shows updated KPIs → ask AI Business Brain.
+
 ### 🔨 In Progress
-- Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Meta content intelligence / analytics dashboard (TASK-110)** or **live Meta Graph API adapters** for commerce, comments, and messaging.
+- Next: **Unified Inbox (TASK-190)**, **Orders (TASK-220)**, or **live Meta Graph API adapters** for commerce, comments, and messaging.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

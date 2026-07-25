@@ -12,6 +12,12 @@ export type {
   UpdateTrackedAccountInput,
   TrackedAccountRepository,
 } from "./application/ports";
+export type {
+  WorkspaceKpiSnapshot,
+  AnalyticsQueries,
+} from "./application/queries";
+
+export { analyticsQueries } from "./infrastructure/container";
 
 export {
   trackCompetitorAction,

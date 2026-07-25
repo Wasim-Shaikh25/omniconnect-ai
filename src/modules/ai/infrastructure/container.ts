@@ -5,6 +5,8 @@ import {
   conversationQueries,
 } from "@/modules/conversations";
 import { ecommerceQueries } from "@/modules/ecommerce";
+import { organizationQueries } from "@/modules/organizations";
+import { notificationQueries } from "@/modules/notifications";
 import { metaService } from "@/modules/meta/server";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
@@ -13,8 +15,10 @@ import { makeGenerateCaptions } from "../application/generate-captions";
 import { makeGenerateTrends } from "../application/generate-trends";
 import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
 import { makeAnalyzeCompetitor } from "../application/analyze-competitor";
+import { makeAskBusinessBrain } from "../application/ask-business-brain";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { OpenAIProvider } from "./openai.provider";
+import { makeWorkspaceContext } from "./workspace-context";
 
 const aiConfigurationRepository = new PrismaAIConfigurationRepository();
 const aiProvider = new OpenAIProvider();
@@ -63,4 +67,18 @@ export const generatePostIdeas = makeGeneratePostIdeas({
 export const analyzeCompetitor = makeAnalyzeCompetitor({
   aiProvider,
   aiConfigurationRepository,
+});
+
+const workspaceContext = makeWorkspaceContext({
+  organizations: organizationQueries,
+  ecommerce: ecommerceQueries,
+  conversations: conversationQueries,
+  crm: crmQueries,
+  notifications: notificationQueries,
+});
+
+export const askBusinessBrain = makeAskBusinessBrain({
+  aiProvider,
+  aiConfigurationRepository,
+  workspaceContext,
 });
