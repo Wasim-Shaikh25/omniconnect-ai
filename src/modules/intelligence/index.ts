@@ -82,6 +82,7 @@ export {
   proactiveNotificationService,
   goalAutomationService,
   kpiService,
+  aiGovernanceService,
 } from "./infrastructure/container";
 
 export {
@@ -114,6 +115,9 @@ export {
   getAutomationTemplatesAction,
   createGoalAutomationAction,
   getWorkspaceKpisAction,
+  formatAiResponseAction,
+  validateToolCallAction,
+  validateWorkflowAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";

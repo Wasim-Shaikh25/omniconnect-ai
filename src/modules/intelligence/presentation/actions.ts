@@ -26,6 +26,7 @@ import {
   nextBestActionService,
   goalAutomationService,
   kpiService,
+  aiGovernanceService,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -554,4 +555,59 @@ export async function getWorkspaceKpisAction(storeId?: string, period: "24h" | "
   }
 
   return kpiService.getWorkspaceSnapshot(user.organizationId, storeId, period);
+}
+
+export async function formatAiResponseAction(input: {
+  conclusion: string;
+  evidencePeriod: string;
+  likelyDrivers: string[];
+  confidence: string;
+  uncertainty: string;
+  missingData: string[];
+  recommendedAction: string;
+  expectedResultRange: string;
+  previewLink?: string | null;
+}): Promise<{ rendered: string } | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  const response = aiGovernanceService.formatResponse(input);
+  return { rendered: response.rendered };
+}
+
+const toolCallSchema = z.object({
+  tool: z.string().min(1),
+  params: z.record(z.unknown()),
+  idempotencyKey: z.string().min(8),
+});
+
+export async function validateToolCallAction(formData: FormData): Promise<{ allowed: boolean; reason: string }> {
+  const user = await getCurrentUser();
+  const raw = Object.fromEntries(formData.entries());
+  const parsed = toolCallSchema.safeParse({
+    tool: raw.tool,
+    params: JSON.parse(typeof raw.params === "string" ? raw.params : "{}"),
+    idempotencyKey: raw.idempotencyKey,
+  });
+  if (!parsed.success) return { allowed: false, reason: parsed.error.errors[0]?.message ?? "Invalid tool call" };
+
+  return aiGovernanceService.validateToolCall(parsed.data, user?.role ?? null);
+}
+
+export async function validateWorkflowAction(workflow: {
+  name: string;
+  nodes: Array<{
+    id: string;
+    actionType: string;
+    goalEvent: string;
+    entry: string[];
+    exit: string[];
+    suppressesDuplicates: boolean;
+    suppressesAtSend: boolean;
+  }>;
+  estimatedAudience?: number;
+  assumptions?: string[];
+}) {
+  const user = await getCurrentUser();
+  if (!user) return { valid: false, errors: ["Not authenticated"], warnings: [], estimatedAudience: null, assumptions: [] };
+  return goalAutomationService.validateWorkflow(workflow);
 }
