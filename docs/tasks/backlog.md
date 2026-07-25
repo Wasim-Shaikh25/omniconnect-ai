@@ -38,8 +38,8 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-280** Automation hub — spec: `0026`
 - [x] **TASK-290** Brand Deals pipeline MVP — spec: `0027`
 - [x] **TASK-300** Affiliate Center MVP — spec: `0028`
-- [ ] **TASK-310** Media Kit (shareable creator portfolio) — spec: `0000`
-- [ ] **TASK-320** Integrations catalog & health dashboard — spec: `0000`
+- [x] **TASK-310** Media Kit MVP — spec: `0029`
+- [x] **TASK-320** Integrations catalog & health dashboard — spec: `0030`
 - [ ] **TASK-330** Settings & Administration (members, roles, audit log, billing) — spec: `0000`
 - [ ] **TASK-340** Mobile responsive quick actions & PWA polish — spec: `0000`
 - [~] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
