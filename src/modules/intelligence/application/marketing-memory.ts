@@ -182,6 +182,35 @@ function engagementScore(item: MetaMediaItem): number {
   return (metrics.likes ?? 0) + (metrics.comments ?? 0) * 2 + (metrics.shares ?? 0) * 3 + (metrics.plays ?? 0) * 0.1;
 }
 
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function computeWinningPostingTimes(
+  media: MetaMediaItem[],
+): { dayOfWeek: string; hour: number; engagementScore: number }[] {
+  const buckets = new Map<string, { dayOfWeek: string; hour: number; total: number; count: number }>();
+
+  for (const item of media) {
+    const publishedAt = item.publishedAt;
+    if (!publishedAt) continue;
+    const score = engagementScore(item);
+    const dayIndex = publishedAt.getUTCDay();
+    const hour = publishedAt.getUTCHours();
+    const key = `${dayIndex}-${hour}`;
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.total += score;
+      existing.count += 1;
+    } else {
+      buckets.set(key, { dayOfWeek: DAYS[dayIndex], hour, total: score, count: 1 });
+    }
+  }
+
+  return Array.from(buckets.values())
+    .map((b) => ({ dayOfWeek: b.dayOfWeek, hour: b.hour, engagementScore: b.total / b.count }))
+    .sort((a, b) => b.engagementScore - a.engagementScore)
+    .slice(0, 5);
+}
+
 function detectCompetitorChanges(accounts: TrackedAccountRecord[]) {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   return accounts
@@ -269,6 +298,7 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
     const commentPatterns = extractCommentPatterns(comments);
     const trendingHashtags = extractTrendingHashtags(mentions);
     const competitorChanges = detectCompetitorChanges(accounts);
+    const winningPostingTimes = computeWinningPostingTimes(ownMedia);
 
     const topPerformingPosts = ownMedia
       .filter((m) => Boolean(m.caption))
@@ -290,7 +320,7 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
       dmPatterns,
       commentPatterns,
       trendingHashtags,
-      winningPostingTimes: [],
+      winningPostingTimes,
       customerObjections: dmPatterns
         .filter((p) => p.category === "PRICE_OBJECTION" || p.category === "COMPLAINT")
         .map((p) => ({ phrase: p.category, frequency: p.frequency })),

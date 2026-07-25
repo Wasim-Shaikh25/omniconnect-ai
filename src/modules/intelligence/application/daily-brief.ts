@@ -10,9 +10,16 @@ interface DailyBriefDeps {
   eventBus: EventBus;
 }
 
-function bestPostingTime(): string {
-  // Placeholder until analytics backend computes this from historical engagement.
-  return "Today at 6:00 PM";
+function formatHour(hour: number): string {
+  const period = hour >= 12 ? "PM" : "AM";
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display}:00 ${period}`;
+}
+
+function bestPostingTime(memory: MarketingMemoryRecord): string {
+  const top = memory.winningPostingTimes[0];
+  if (!top) return "Today at 6:00 PM";
+  return `${top.dayOfWeek}, ${formatHour(top.hour)} UTC`;
 }
 
 function buildSections(
@@ -75,7 +82,7 @@ function buildSections(
     },
     {
       title: "Best time to post",
-      value: bestPostingTime(),
+      value: bestPostingTime(memory),
     },
   ];
 
@@ -113,7 +120,7 @@ export function makeGenerateDailyBrief(deps: DailyBriefDeps) {
       contentIdea,
       recommendedProductId: topProduct?.productId ?? null,
       recommendedProductTitle: topProduct?.productTitle ?? null,
-      bestPostingTime: bestPostingTime(),
+      bestPostingTime: bestPostingTime(memory),
       trendingAudio: null,
       trendingHashtags,
       expectedReach: null,
