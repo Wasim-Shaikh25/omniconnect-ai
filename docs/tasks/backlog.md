@@ -25,18 +25,21 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-130** Meta commerce & engagement automation (Instagram Shop sync, comment/mention automation, Lead Ads, UGC, ambassador referrals, conversational commerce) — spec: `0012` — Phase 2A/2B/2C/2D/2E implemented
 - [x] **TASK-170** Executive Dashboard & workspace KPIs — spec: `0014`
 - [x] **TASK-180** AI Business Brain — natural-language workspace assistant — spec: `0015`
-- [ ] **TASK-190** Unified Inbox (global conversation triage) — spec: `0000`
-- [ ] **TASK-200** AI CRM refinements (segments, scoring, consent) — spec: `0006`
-- [ ] **TASK-210** Content Studio (calendar, composer, asset library) — spec: `0000`
-- [ ] **TASK-220** Orders module (orders, refunds, fulfillment, attribution) — spec: `0000`
-- [ ] **TASK-230** Campaigns beyond first-time follower (manual broadcasts, automation) — spec: `0005`
-- [ ] **TASK-240** Brand Deals (pipeline, deliverables, reporting) — spec: `0000`
-- [ ] **TASK-250** Affiliate Center (enrollment, codes, commissions, payouts) — spec: `0000`
-- [ ] **TASK-260** Media Kit (shareable creator portfolio) — spec: `0000`
-- [~] **TASK-271** Workspace Reports page — spec: `0025`
-- [ ] **TASK-270** Analytics & Reports (full dashboard, scheduled reports, metric definitions) — spec: `0007`
+- [x] **TASK-190** Unified Inbox (global conversation triage) — spec: `0016`
+- [x] **TASK-200** AI CRM refinements (lifecycle, consent, scoring, segments) — spec: `0017`
+- [x] **TASK-210** Content Studio MVP (AI ideas + captions) — spec: `0018`
+- [x] **TASK-220** Orders view (read-only connector orders) — spec: `0019`
+- [x] **TASK-230** Store Analytics page — spec: `0020`
+- [x] **TASK-240** INR currency support — spec: `0021`
+- [x] **TASK-250** Campaigns hub — spec: `0022`
+- [x] **TASK-260** Store Coupons page — spec: `0023`
+- [x] **TASK-270** Store Followers page — spec: `0024`
+- [x] **TASK-271** Workspace Reports page — spec: `0025`
 - [ ] **TASK-280** Automation module (workflow builder, triggers, actions, run history) — spec: `0000`
-- [ ] **TASK-290** Integrations catalog & health dashboard — spec: `0000`
-- [ ] **TASK-300** Settings & Administration (members, roles, audit log, billing) — spec: `0000`
-- [ ] **TASK-310** Mobile responsive quick actions & PWA polish — spec: `0000`
-- [ ] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
+- [ ] **TASK-290** Brand Deals (pipeline, deliverables, reporting) — spec: `0000`
+- [ ] **TASK-300** Affiliate Center (enrollment, codes, commissions, payouts) — spec: `0000`
+- [ ] **TASK-310** Media Kit (shareable creator portfolio) — spec: `0000`
+- [ ] **TASK-320** Integrations catalog & health dashboard — spec: `0000`
+- [ ] **TASK-330** Settings & Administration (members, roles, audit log, billing) — spec: `0000`
+- [ ] **TASK-340** Mobile responsive quick actions & PWA polish — spec: `0000`
+- [~] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`

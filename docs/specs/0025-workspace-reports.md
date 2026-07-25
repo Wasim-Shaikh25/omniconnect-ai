@@ -49,9 +49,9 @@ A global `/reports` page that gives a workspace-level snapshot: total KPIs and a
 
 ## 12. Acceptance Criteria (Definition of Done)
 - [x] Spec created and linked to backlog.
-- [ ] `/reports` renders workspace KPIs and per-store breakdown.
-- [ ] Lint + typecheck + build pass.
-- [ ] CHANGELOG.md and backlog updated.
+- [x] `/reports` renders workspace KPIs and per-store breakdown.
+- [x] Lint + typecheck + build pass.
+- [x] CHANGELOG.md and backlog updated.
 
 ## 13. Open Questions
 1. Should reports be exportable (CSV/PDF)?
