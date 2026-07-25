@@ -17,7 +17,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-070** Module 4 — AI Customer Assistant (per-page prompts, provider interface) — spec: `0004`
 - [x] **TASK-080** Module 5 — First-time follower campaign (event-driven) — spec: `0005`
 - [x] **TASK-090** Module 8 — Human takeover — spec: `0008`
-- [ ] **TASK-100** Module 9 — Notifications (in-app + email) — spec: `0009`
+- [x] **TASK-100** Module 9 — Notifications (in-app + email) — spec: `0009`
 - [ ] **TASK-110** Module 7 — Meta content intelligence, analytics dashboard + reports — spec: `0007`
 - [ ] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
 

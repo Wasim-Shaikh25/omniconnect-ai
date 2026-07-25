@@ -5,6 +5,7 @@ import { registerCrmSubscribers } from "@/modules/crm/bootstrap";
 import { registerCouponsBootstrap } from "@/modules/coupons/bootstrap";
 import { registerAiSubscribers } from "@/modules/ai/bootstrap";
 import { registerConversationsSubscribers } from "@/modules/conversations/bootstrap";
+import { registerNotificationsSubscribers } from "@/modules/notifications/bootstrap";
 
 /**
  * App composition root for event subscribers.
@@ -24,4 +25,5 @@ export function ensureSubscribers(): void {
   registerCouponsBootstrap(eventBus);
   registerConversationsSubscribers(eventBus);
   registerAiSubscribers(eventBus);
+  registerNotificationsSubscribers(eventBus);
 }

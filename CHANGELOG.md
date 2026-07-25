@@ -127,11 +127,18 @@ All notable changes to **OmniConnect AI** are documented here.
   - New `/stores/[storeId]/conversations` list page and `/stores/[storeId]/conversations/[conversationId]` detail page with "Take over" / "Resume AI" controls.
   - Store detail page links to the conversations list.
   - Verified end-to-end (screenshots captured): take over → simulate message → no AI reply; resume AI → simulate message → AI dev reply.
+- **TASK-100 — Notifications** (spec `0009`):
+  - Expanded spec for in-app + email notifications with `NotificationService` port, channel adapters, and RBAC.
+  - Added `Notification` Prisma model with `title`, `body`, `payload`, `storeId`, `read` state and `@@index([userId, read, createdAt])`.
+  - New `notifications` module: repository, organization-member resolver, in-app + email (stub) channel adapters, `notify` service, queries, and domain-event subscribers.
+  - Subscribes to `NewMessage`, `FirstTimeFollowerDetected`, `CouponGenerated`, `EscalationRequested`, `ConversationTakenOver`, `AIResumed` to create per-user notifications.
+  - New global `AppHeader` with unread notification badge; new `/notifications` page to list and mark notifications as read.
+  - Verified end-to-end: simulate follow/message/takeover/resume/escalation events and watch unread badge increment; mark as read clears badge (screenshots captured).
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-100 — Notifications** (in-app + email) or move to Phase 2/TASK-130 per backlog.
+- Next: **Phase 2 — TASK-130** Meta commerce & engagement automation (Instagram Shop sync, comment/mention automation, Lead Ads, UGC, ambassador referrals, conversational commerce) or **TASK-110** Meta content intelligence.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

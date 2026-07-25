@@ -319,8 +319,11 @@ model Report {
 enum NotificationType {
   NEW_MESSAGE
   NEW_FOLLOWER
+  COUPON_GENERATED
   COUPON_USED
   ESCALATION
+  CONVERSATION_TAKEN_OVER
+  AI_RESUMED
   SYSTEM_ERROR
 }
 
@@ -332,10 +335,15 @@ enum NotificationChannel {
 model Notification {
   id        String              @id @default(cuid())
   userId    String
-  user      User                @relation(fields: [userId], references: [id])
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeId   String?
   type      NotificationType
   channel   NotificationChannel @default(IN_APP)
-  payload   Json
+  title     String
+  body      String
+  payload   Json?
   read      Boolean             @default(false)
   createdAt DateTime            @default(now())
+
+  @@index([userId, read, createdAt])
 }
