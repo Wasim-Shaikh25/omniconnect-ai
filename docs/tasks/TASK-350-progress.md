@@ -153,9 +153,9 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ## KPIs, monitoring & operating rhythm
 
-- [ ] 107. Implement North-star metric **IAVA** (Intelligence-Assisted Value Actions) tracking.
-- [ ] 108. Implement supporting KPIs: active-workspace insight coverage, open/evidence rates, time to insight, recommendation acceptance/edit/completion, dismissal reasons, attributed revenue, prevented loss, forecast calibration, unsupported-claim rate, permission failures, alert mute rate, signal freshness, identity confidence, entity-link coverage, insight latency, action success, outcome-linkage coverage.
-- [ ] 109. Implement operating-rhythm dashboards/views: intelligence quality, outcome, data quality, safety, product, and monthly model/rule reviews.
+- [x] 107. Implement North-star metric **IAVA** (Intelligence-Assisted Value Actions) tracking.
+- [x] 108. Implement supporting KPIs: active-workspace insight coverage, open/evidence rates, time to insight, recommendation acceptance/edit/completion, dismissal reasons, attributed revenue, prevented loss, forecast calibration, unsupported-claim rate, permission failures, alert mute rate, signal freshness, identity confidence, entity-link coverage, insight latency, action success, outcome-linkage coverage.
+- [~] 109. Implement operating-rhythm dashboards/views: intelligence quality, outcome, data quality, safety, product, and monthly model/rule reviews.
 
 ## Testing, rollout & risk mitigations
 
@@ -198,4 +198,4 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ---
 
-Last updated: 2026-07-25 after TASK-364.
+Last updated: 2026-07-25 after TASK-365.

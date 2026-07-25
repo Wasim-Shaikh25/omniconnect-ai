@@ -12,6 +12,7 @@ import { LearningPanel } from "@/components/learning-panel";
 import { AgencyPortfolioPanel } from "@/components/agency-portfolio-panel";
 import { CompetitorIntelligencePanel } from "@/components/competitor-intelligence-panel";
 import { SystemHealthPanel } from "@/components/system-health-panel";
+import { WorkspaceKpis } from "@/components/workspace-kpis";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -114,6 +115,11 @@ export default async function DashboardPage() {
           href="/business-brain"
         />
       </div>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-lg font-medium">Intelligence KPIs</h2>
+        <WorkspaceKpis />
+      </section>
 
       <section className="mb-8">
         <IntelligencePanel />

@@ -25,6 +25,7 @@ import {
   costLatencyMonitor,
   nextBestActionService,
   goalAutomationService,
+  kpiService,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -541,4 +542,16 @@ export async function createGoalAutomationAction(formData: FormData): Promise<vo
   });
   revalidatePath(`/stores/${parsed.data.storeId}/automations`);
   revalidatePath(`/stores/${parsed.data.storeId}/automations/goals`);
+}
+
+export async function getWorkspaceKpisAction(storeId?: string, period: "24h" | "7d" | "30d" = "7d") {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
+  return kpiService.getWorkspaceSnapshot(user.organizationId, storeId, period);
 }

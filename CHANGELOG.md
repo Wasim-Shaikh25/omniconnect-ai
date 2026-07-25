@@ -327,6 +327,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions `getAutomationTemplatesAction` and `createGoalAutomationAction`.
   - End-to-end validation (`scripts/verify-task364.ts`) confirmed template listing, goal/recommendation/action-plan creation, and guardrail blocking.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-365 — KPIs and Operating Rhythm** (spec `0041`):
+  - Added `KpiService` and `PrismaKpiRepository` computing IAVA and supporting KPIs over 24h/7d/30d windows.
+  - North-star IAVA combines successful outcomes, accepted recommendations, and executed action plans.
+  - Supporting KPIs include insights generated/acted, recommendation accept/dismiss counts, action-plan execution/success, outcome linkage, signal freshness %, identity-confidence average, and high-confidence entity links.
+  - Added `getWorkspaceKpisAction` and `WorkspaceKpis`/`WorkspaceKpisSection` components rendered on `/dashboard` and `/business-brain`.
+  - Refactored `/business-brain` to a server page with a client `AskBusinessBrainForm` child so server-only KPI code is not pulled into the client bundle.
+  - End-to-end validation (`scripts/verify-task365.ts`) confirmed KPI counts after seeding signals, insights, recommendations, action plans, outcomes, and entity links.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -337,10 +345,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-362 (Next Best Action for Inbox, Orders, and CRM) completed.
 - TASK-363 (Next Best Action for Content, Campaigns, Brand Deals, and Competitor Intelligence) completed.
 - TASK-364 (Goal-based Automation Templates and Guardrails) completed.
+- TASK-365 (KPIs and Operating Rhythm) completed.
 
 ### 🔨 In Progress
 
-- Remaining TASK-350 subtasks: AI-generated workflow acceptance (96), AI behavior/governance/trust (97–101), KPIs and operating rhythm (107–109), testing/rollout/risk mitigations (110–116), and operating model/30-day plan items (117–125).
+- Remaining TASK-350 subtasks: AI-generated workflow acceptance (96), AI behavior/governance/trust (97–101), testing/rollout/risk mitigations (110–116), and operating model/30-day plan items (117–125).
 
 ### ⏭️ Next (proposed build order)
 
