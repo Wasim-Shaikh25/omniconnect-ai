@@ -19,8 +19,10 @@ export type {
 
 // Application record types
 export type {
+  CustomerConsent,
   CustomerCouponRecord,
   CustomerCouponUsageRecord,
+  CustomerLifecycleStage,
   CustomerMemory,
   CustomerProfile,
   CustomerRecord,
@@ -29,7 +31,20 @@ export type {
 
 export type { CrmQueries } from "./application/queries";
 export type { CrmCommands } from "./application/commands";
+export type {
+  CustomerActivity,
+  CustomerDetailView,
+  CustomerDirectoryFilter,
+  CustomerListView,
+} from "./application/customer-directory";
 
 // Commands + Queries (composed)
 export { crmCommands } from "./infrastructure/container";
-export { crmQueries } from "./infrastructure/container";
+export { crmQueries, customerDirectory } from "./infrastructure/container";
+
+// Presentation
+export {
+  updateCustomerLifecycleAction,
+  updateCustomerConsentAction,
+} from "./presentation/actions";
+export type { CustomerActionState } from "./presentation/actions";

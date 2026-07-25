@@ -21,6 +21,7 @@ export async function AppHeader() {
               <Link href="/business-brain">AI Brain</Link>
               <Link href="/inbox">Inbox</Link>
               <Link href="/stores">Stores</Link>
+              <Link href="/customers">Customers</Link>
               <Link href="/help">Help</Link>
               <Link href="/notifications" className="relative">
                 Notifications
