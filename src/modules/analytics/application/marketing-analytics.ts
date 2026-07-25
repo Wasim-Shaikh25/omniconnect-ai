@@ -2,6 +2,7 @@ import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";
 import type { SocialQueries } from "@/modules/social";
+import type { MetaMediaItem } from "@/modules/meta";
 import type { EventBus } from "@/shared/events";
 import { MarketingPerformanceUpdated } from "../domain/events";
 import type { MarketingPerformanceView } from "../domain/types";
@@ -33,12 +34,61 @@ function topN<T>(items: T[], key: (item: T) => number, limit: number): T[] {
     .slice(0, limit);
 }
 
+function engagementScore(media: MetaMediaItem): number {
+  const metrics = media.metrics ?? {};
+  return (
+    (metrics.likes ?? 0) +
+    (metrics.comments ?? 0) * 2 +
+    (metrics.shares ?? 0) * 3 +
+    (metrics.plays ?? 0) * 0.1
+  );
+}
+
+const ATTRIBUTION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+function attributeOrdersToMedia(
+  media: MetaMediaItem[],
+  orders: { createdAt: Date; total: number | null }[],
+): Map<string, { orders: number; revenue: number }> {
+  const result = new Map<string, { orders: number; revenue: number }>();
+  for (const item of media) {
+    result.set(item.id, { orders: 0, revenue: 0 });
+  }
+
+  for (const order of orders) {
+    const orderDate = new Date(order.createdAt);
+    let best: MetaMediaItem | null = null;
+    let bestPublishedAt: Date | null = null;
+    for (const m of media) {
+      if (!m.publishedAt) continue;
+      const published = new Date(m.publishedAt);
+      if (published > orderDate) continue;
+      const diff = orderDate.getTime() - published.getTime();
+      if (diff > ATTRIBUTION_WINDOW_MS) continue;
+      if (!bestPublishedAt || published > bestPublishedAt) {
+        best = m;
+        bestPublishedAt = published;
+      }
+    }
+    if (best) {
+      const entry = result.get(best.id);
+      if (entry) {
+        entry.orders += 1;
+        entry.revenue += order.total ?? 0;
+      }
+    }
+  }
+
+  return result;
+}
+
 export function makeGetMarketingPerformance(deps: {
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
   social: SocialQueries;
   eventBus: EventBus;
+  getAccountMedia?: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
 }) {
   return async function getMarketingPerformance(
     input: GetMarketingPerformanceInput,
@@ -57,6 +107,15 @@ export function makeGetMarketingPerformance(deps: {
         deps.ecommerce.listCoupons(storeId, 500).catch(() => []),
         deps.ecommerce.listProducts(storeId, 100).catch(() => []),
       ]);
+
+    let ownMedia: MetaMediaItem[] = [];
+    if (deps.getAccountMedia) {
+      try {
+        ownMedia = await deps.getAccountMedia(storeId, 25);
+      } catch {
+        ownMedia = [];
+      }
+    }
 
     const newFollowersThisWeek = followers.filter((f) => f.followedAt >= since).length;
 
@@ -98,27 +157,45 @@ export function makeGetMarketingPerformance(deps: {
 
     const activeCoupons = coupons.filter((c) => c.status === "ACTIVE");
 
-    // Content heuristics
-    const totalPosts = mentions.length;
-    const topContentPosts = topN(mentions, (m) => new Date(m.createdAt).getTime(), 5).map((m) => ({
-      caption: m.caption ?? "",
-      mediaType: m.mediaUrl ? "IMAGE" : "OTHER",
-      likes: 0,
-      comments: 0,
-    }));
-    const topIntent = Object.entries(byIntent).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    const byType: Record<string, number> = {};
+    for (const m of ownMedia) {
+      byType[m.mediaType] = (byType[m.mediaType] ?? 0) + 1;
+    }
+
+    const attribution = attributeOrdersToMedia(ownMedia, orders);
+    const postOrders = ownMedia.reduce((sum, m) => sum + (attribution.get(m.id)?.orders ?? 0), 0);
+    const postRevenue = ownMedia.reduce((sum, m) => sum + (attribution.get(m.id)?.revenue ?? 0), 0);
+
+    const topContentPosts = topN(ownMedia, (m) => attribution.get(m.id)?.revenue ?? engagementScore(m), 5).map((m) => {
+      const metrics = m.metrics ?? {};
+      const attr = attribution.get(m.id) ?? { orders: 0, revenue: 0 };
+      return {
+        id: m.id,
+        caption: m.caption ?? "",
+        mediaType: m.mediaType,
+        likes: metrics.likes ?? 0,
+        comments: metrics.comments ?? 0,
+        shares: metrics.shares ?? 0,
+        plays: metrics.plays ?? 0,
+        reach: metrics.reach ?? 0,
+        impressions: metrics.impressions ?? 0,
+        orders: attr.orders,
+        revenue: attr.revenue,
+      };
+    });
+
+    const totalPosts = ownMedia.length || mentions.length;
     const contentWhy =
       totalPosts === 0
-        ? "No content mentions have been captured yet."
-        : `Captured ${totalPosts} mention(s)${topIntent ? `; top comment intent is "${topIntent.toLowerCase()}"` : ""}.`;
+        ? "No content has been captured yet."
+        : `Captured ${totalPosts} post(s); ${postOrders} order(s) and ${formatCurrency(postRevenue, currency)} attributed within a 7-day window.`;
     const contentNext =
-      totalPosts < 5
+      totalPosts === 0
         ? "Publish more Reels/posts and track them via the connected Meta account."
-        : topIntent === "PRICE_OBJECTION" || topIntent === "SIZE_QUESTION"
-          ? "Create content that directly answers the top comment/DM objections."
-          : "Double down on the formats that are getting mentions; test competitor trending formats.";
+        : postOrders === 0
+          ? "Add clear CTAs and coupon codes to posts to make attribution stronger."
+          : "Double down on the posts that drove orders; reuse their hooks and timing.";
 
-    // Audience heuristics
     const audienceWhy =
       newFollowersThisWeek === 0
         ? "No new followers this week."
@@ -134,7 +211,6 @@ export function makeGetMarketingPerformance(deps: {
       { label: "Messages", count: messageCount },
     ];
 
-    // Product heuristics
     const productTopByPrice = topN(products, (p) => p.price ?? 0, 5).map((p) => ({
       title: p.title,
       revenue: p.price ?? 0,
@@ -149,7 +225,6 @@ export function makeGetMarketingPerformance(deps: {
         ? "Feature your highest-engagement product in the next Reel and add a shoppable link."
         : "Run a coupon campaign for your top product to increase average order value.";
 
-    // Campaign heuristics
     const topCampaigns = activeCoupons.slice(0, 5).map((c) => ({
       name: `Coupon ${c.code}`,
       couponsGenerated: 1,
@@ -166,7 +241,7 @@ export function makeGetMarketingPerformance(deps: {
 
     const explanation = `Content: ${contentWhy} ${contentNext} Audience: ${audienceWhy} ${audienceNext} Product: ${productWhy} ${productNext} Campaign: ${campaignWhy} ${campaignNext}`;
 
-    const summary = `Followers: ${followers.length} (${newFollowersThisWeek} new this week). Conversations: ${conversations.length}. Orders: ${orders.length}, revenue ${formatCurrency(revenue, currency)}. Top hashtags: ${topHashtags.map((h) => `#${h}`).join(", ") || "none"}.`;
+    const summary = `Followers: ${followers.length} (${newFollowersThisWeek} new this week). Conversations: ${conversations.length}. Orders: ${orders.length}, revenue ${formatCurrency(revenue, currency)}. Post-attributed orders: ${postOrders} (${formatCurrency(postRevenue, currency)}). Top hashtags: ${topHashtags.map((h) => `#${h}`).join(", ") || "none"}.`;
 
     const view: MarketingPerformanceView = {
       organizationId: input.organizationId,
@@ -174,10 +249,10 @@ export function makeGetMarketingPerformance(deps: {
       generatedAt: new Date(),
       content: {
         totalPosts,
-        published: totalPosts,
+        published: ownMedia.length,
         draft: 0,
         failed: 0,
-        byType: byIntent,
+        byType,
         why: contentWhy,
         nextRecommendation: contentNext,
         topPosts: topContentPosts,

@@ -9,7 +9,8 @@ import { analyzeCompetitor } from "@/modules/ai/server";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
-import { getMarketingPerformance, getCompetitorBenchmark } from "../infrastructure/container";
+import { getMarketingPerformance } from "../server";
+import { getCompetitorBenchmark } from "../infrastructure/container";
 import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
 

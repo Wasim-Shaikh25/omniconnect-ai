@@ -26,7 +26,7 @@ export {
   CompetitorBenchmarkReady,
 } from "./domain/events";
 
-export { analyticsQueries, getMarketingPerformance, getCompetitorBenchmark } from "./infrastructure/container";
+export { analyticsQueries, getCompetitorBenchmark } from "./infrastructure/container";
 
 export {
   trackCompetitorAction,

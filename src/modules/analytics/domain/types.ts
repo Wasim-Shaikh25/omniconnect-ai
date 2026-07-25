@@ -6,7 +6,19 @@ export interface ContentPerformanceSection {
   byType: Record<string, number>;
   why: string;
   nextRecommendation: string;
-  topPosts: { caption: string; mediaType: string | null; likes: number; comments: number }[];
+  topPosts: {
+    id: string;
+    caption: string;
+    mediaType: string | null;
+    likes: number;
+    comments: number;
+    shares: number;
+    plays: number;
+    reach: number;
+    impressions: number;
+    orders: number;
+    revenue: number;
+  }[];
 }
 
 export interface AudienceSection {

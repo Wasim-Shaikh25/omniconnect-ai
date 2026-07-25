@@ -30,7 +30,7 @@ export default async function ContentAnalyticsPage({
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Content performance</h1>
-          <p className="text-sm text-muted-foreground">Which content drives attention for {store.name}.</p>
+          <p className="text-sm text-muted-foreground">Which content drives attention and revenue for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
           <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
@@ -50,17 +50,17 @@ export default async function ContentAnalyticsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Intent breakdown</CardTitle>
-            <CardDescription>Comment and mention intent signals.</CardDescription>
+            <CardTitle>Format breakdown</CardTitle>
+            <CardDescription>Own posts by media type.</CardDescription>
           </CardHeader>
           <CardContent>
             {Object.entries(view.content.byType).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No intent data yet.</p>
+              <p className="text-sm text-muted-foreground">No own media data yet.</p>
             ) : (
               <ul className="divide-y text-sm">
-                {Object.entries(view.content.byType).map(([intent, count]) => (
-                  <li key={intent} className="flex items-center justify-between py-2">
-                    <span className="capitalize">{intent.toLowerCase()}</span>
+                {Object.entries(view.content.byType).map(([type, count]) => (
+                  <li key={type} className="flex items-center justify-between py-2">
+                    <span className="capitalize">{type.toLowerCase()}</span>
                     <span className="font-medium">{count}</span>
                   </li>
                 ))}
@@ -71,18 +71,28 @@ export default async function ContentAnalyticsPage({
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Top recent mentions</CardTitle>
-            <CardDescription>Recent content mentions captured for this store.</CardDescription>
+            <CardTitle>Top posts</CardTitle>
+            <CardDescription>Own posts ranked by attributed orders and engagement.</CardDescription>
           </CardHeader>
           <CardContent>
             {view.content.topPosts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No mentions captured yet.</p>
+              <p className="text-sm text-muted-foreground">No own posts captured yet.</p>
             ) : (
               <ul className="divide-y text-sm">
                 {view.content.topPosts.map((post, i) => (
-                  <li key={i} className="py-3">
+                  <li key={post.id ?? i} className="py-3">
                     <p className="font-medium">{post.caption || "(no caption)"}</p>
-                    <p className="text-xs text-muted-foreground">{post.mediaType}</p>
+                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <span className="capitalize">{post.mediaType?.toLowerCase() ?? "post"}</span>
+                      <span>Likes {post.likes}</span>
+                      <span>Comments {post.comments}</span>
+                      <span>Shares {post.shares}</span>
+                      <span>Plays {post.plays}</span>
+                      <span>Reach {post.reach}</span>
+                      <span>Impressions {post.impressions}</span>
+                      <span className="font-medium text-foreground">Orders {post.orders}</span>
+                      <span className="font-medium text-foreground">Revenue {post.revenue}</span>
+                    </div>
                   </li>
                 ))}
               </ul>
