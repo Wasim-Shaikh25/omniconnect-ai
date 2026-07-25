@@ -180,6 +180,10 @@ All notable changes to **OmniConnect AI** are documented here.
 - **TASK-210 — Content Studio MVP** (spec `0018`):
   - New `/stores/[storeId]/content` page reuses `generatePostIdeasAction` and `generateCaptionsAction` to produce AI post ideas and captions with engagement scores and best-time-to-post hints.
   - Store detail page links to **Content Studio**.
+- **TASK-220 — Orders View** (spec `0019`):
+  - `ecommerceQueries.listOrders(storeId)` resolves the connector and returns `ConnectorOrder[]` live from the provider or mock fallback.
+  - New `/stores/[storeId]/orders` page lists recent orders with total, currency, customer reference, and date.
+  - Store detail page links to **Orders**.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).

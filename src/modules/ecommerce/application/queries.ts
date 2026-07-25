@@ -1,4 +1,5 @@
 import type {
+  ConnectorFactory,
   CouponRecord,
   CouponRepository,
   IntegrationRecord,
@@ -6,6 +7,7 @@ import type {
   ProductRecord,
   ProductRepository,
 } from "./ports";
+import type { ConnectorOrder } from "../domain/connector";
 
 export interface StoreConnectionView {
   connected: boolean;
@@ -17,6 +19,7 @@ export function makeEcommerceQueries(deps: {
   integrations: IntegrationRepository;
   products: ProductRepository;
   coupons: CouponRepository;
+  connectors: ConnectorFactory;
 }) {
   return {
     async getStoreConnection(storeId: string): Promise<StoreConnectionView> {
@@ -36,6 +39,14 @@ export function makeEcommerceQueries(deps: {
 
     async listCoupons(storeId: string, limit = 50): Promise<CouponRecord[]> {
       return deps.coupons.listByStore(storeId, limit);
+    },
+
+    async listOrders(
+      storeId: string,
+      limit = 50,
+    ): Promise<ConnectorOrder[]> {
+      const connector = await deps.connectors.forStore(storeId);
+      return connector.getOrders(limit);
     },
   };
 }

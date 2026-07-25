@@ -348,6 +348,12 @@ export default async function StoreDetailPage({
           >
             Content Studio
           </Link>
+          <Link
+            href={`/stores/${storeId}/orders`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Orders
+          </Link>
         </CardContent>
       </Card>
 
