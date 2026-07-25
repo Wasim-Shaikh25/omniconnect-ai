@@ -415,7 +415,10 @@ All notable changes to **OmniConnect AI** are documented here.
     - Product promotion scores are now displayed in `/stores/[storeId]/commerce/catalog` via `listCommerceCatalogAction`, which consumes `updateMarketingMemory()`.
     - Marketing analytics view (`getMarketingPerformance`) reorganizes metrics around Content, Audience, Product, and Campaign and publishes `MarketingPerformanceUpdated`.
     - `/stores/[storeId]/analytics` dashboard renders the marketing performance sections.
-  - Remaining: full competitor benchmarking, reusable workflow cards, `verify-task371.ts`.
+    - Competitor benchmark (`getCompetitorBenchmark`) computes post frequency, Reel ratio, hook/caption length, engagement, top hashtags, and consistency, and produces actionable adaptation suggestions.
+    - `CompetitorChangeDetected` and `CompetitorBenchmarkReady` domain events published from `analytics`.
+    - Competitor page displays benchmark panel with recommendations.
+  - Remaining: reusable workflow cards, `verify-task371.ts`.
 
 ### ⏭️ Next (proposed build order)
 

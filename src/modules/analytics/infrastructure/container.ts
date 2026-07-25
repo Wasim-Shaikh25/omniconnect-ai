@@ -7,6 +7,7 @@ import { socialQueries } from "@/modules/social";
 import { notificationQueries } from "@/modules/notifications";
 import { makeAnalyticsQueries } from "../application/queries";
 import { makeGetMarketingPerformance } from "../application/marketing-analytics";
+import { makeGetCompetitorBenchmark } from "../application/competitor-benchmark";
 import { PrismaTrackedAccountRepository } from "./tracked-account.repository";
 
 const trackedAccounts = new PrismaTrackedAccountRepository();
@@ -26,5 +27,10 @@ export const getMarketingPerformance = makeGetMarketingPerformance({
   conversations: conversationQueries,
   crm: crmQueries,
   social: socialQueries,
+  eventBus,
+});
+
+export const getCompetitorBenchmark = makeGetCompetitorBenchmark({
+  trackedAccounts,
   eventBus,
 });

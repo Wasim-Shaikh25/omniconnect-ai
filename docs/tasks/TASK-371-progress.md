@@ -20,9 +20,9 @@ Status legend:
 - [~] Post performance drives summary and content engagement section; full "why" explanation + competitor comparison + next recommendation needs media metrics and post-to-order attribution.
 
 ### 3. Competitor Analysis is passive
-- [ ] Competitor change detection implemented.
-- [ ] Competitor benchmarking (frequency, hook length, trending audio, engagement) implemented.
-- [ ] Benchmark gaps produce actionable content/campaign suggestions.
+- [x] Competitor change detection implemented (`CompetitorChangeDetected` published when `lastMedia` post count changes in `getCompetitorBenchmark`).
+- [x] Competitor benchmarking (frequency, hook length, trending audio placeholder, engagement) implemented in `analytics/application/competitor-benchmark.ts` and `getCompetitorBenchmarkAction`.
+- [x] Benchmark gaps produce actionable content/campaign suggestions (posting frequency, Reel ratio, hook length, engagement, top hashtags).
 
 ### 4. DM AI doesn't influence marketing
 - [x] DM pattern extraction (categories, frequency, anonymized samples) in `intelligence`.
@@ -51,8 +51,9 @@ Status legend:
 - [ ] Auto-generate campaign suggestions / business alerts from patterns.
 
 ### 10. Competitor Intelligence should benchmark
-- [ ] Workspace vs competitor posting frequency, reel frequency, hook length, trending audio usage, engagement rate, follower growth.
-- [ ] Gap → recommendation mapping.
+- [x] Competitor posting frequency, Reel frequency, hook/caption length, engagement, top hashtags, and consistency computed in `getCompetitorBenchmark`.
+- [x] Gap → recommendation mapping implemented (posting frequency, Reel ratio, hook length, engagement, top hashtags).
+- [ ] Workspace vs competitor side-by-side comparison needs workspace media metrics.
 
 ### 11. AI should explain marketing
 - [~] AI prompt now includes top products, DM/comment patterns, and today's brief. Full post-performance explanation (hook retention, caption length, etc.) needs media metrics.

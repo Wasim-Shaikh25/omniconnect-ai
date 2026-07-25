@@ -9,7 +9,7 @@ import { analyzeCompetitor } from "@/modules/ai/server";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
-import { getMarketingPerformance } from "../infrastructure/container";
+import { getMarketingPerformance, getCompetitorBenchmark } from "../infrastructure/container";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
 
 const trackedAccountRepository = new PrismaTrackedAccountRepository();
@@ -325,5 +325,44 @@ export async function getMarketingPerformanceAction(
     return { view };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not load marketing performance" };
+  }
+}
+
+export interface CompetitorBenchmarkState {
+  error?: string;
+  benchmark?: Awaited<ReturnType<typeof getCompetitorBenchmark>>;
+}
+
+const competitorBenchmarkSchema = z.object({
+  storeId: z.string().min(1),
+  accountId: z.string().min(1),
+});
+
+export async function getCompetitorBenchmarkAction(
+  _prev: CompetitorBenchmarkState,
+  formData: FormData,
+): Promise<CompetitorBenchmarkState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = competitorBenchmarkSchema.safeParse({
+    storeId: formData.get("storeId"),
+    accountId: formData.get("accountId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+  if (!user.organizationId) return { error: "Organization not found." };
+
+  try {
+    const benchmark = await getCompetitorBenchmark({
+      organizationId: user.organizationId,
+      storeId: parsed.data.storeId,
+      accountId: parsed.data.accountId,
+    });
+    if (!benchmark) return { error: "Competitor not found or no media available." };
+    return { benchmark };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load competitor benchmark" };
   }
 }

@@ -23,9 +23,9 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 - [x] 6. `analytics` publishes `MarketingPerformanceUpdated` from `getMarketingPerformance`.
 
 ### Competitor Intelligence
-- [ ] 7. `competitors` detects competitor changes and publishes `CompetitorChangeDetected`.
-- [ ] 8. `competitors` benchmarks workspace vs competitor and publishes `CompetitorBenchmarkReady`.
-- [ ] 9. Competitor benchmark produces concrete adaptation suggestions.
+- [x] 7. `analytics` detects competitor changes and publishes `CompetitorChangeDetected` from `getCompetitorBenchmark` when last media post count changes.
+- [x] 8. `analytics` computes competitor benchmark (post frequency, Reel ratio, hook/caption length, engagement, top hashtags, consistency) and publishes `CompetitorBenchmarkReady`.
+- [x] 9. Competitor benchmark produces concrete adaptation suggestions (posting frequency, Reel ratio, hook length, engagement, top hashtags).
 
 ### DM & Comment Insights
 - [x] 10. DM pattern extraction: `intelligence` reads conversations and extracts categories (price objection, size, availability, compliment, complaint).
