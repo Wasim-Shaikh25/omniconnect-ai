@@ -20,6 +20,9 @@ import { makeGoalService } from "../application/goal";
 import { makePredictionService } from "../application/prediction";
 import { makeHypothesisService } from "../application/hypothesis";
 import { makeBusinessLearningService } from "../application/business-learning";
+import { makePortfolioService } from "../application/portfolio";
+import { makeCompetitorIntelligenceService } from "../application/competitor-intelligence";
+import { makeCostLatencyMonitor } from "../application/system-health";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -35,6 +38,9 @@ import {
   PrismaPredictionRepository,
   PrismaHypothesisRepository,
   PrismaBusinessLearningRepository,
+  PrismaCompetitorInsightRepository,
+  PrismaPortfolioSnapshotRepository,
+  PrismaSystemMetricRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -50,6 +56,9 @@ const goals = new PrismaGoalRepository();
 const predictions = new PrismaPredictionRepository();
 const hypotheses = new PrismaHypothesisRepository();
 const learnings = new PrismaBusinessLearningRepository();
+const competitorInsights = new PrismaCompetitorInsightRepository();
+const portfolioSnapshots = new PrismaPortfolioSnapshotRepository();
+const systemMetrics = new PrismaSystemMetricRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
@@ -131,5 +140,22 @@ export const predictionService = makePredictionService({
   listCustomers: crmQueries.listCustomers.bind(crmQueries),
 });
 export const hypothesisService = makeHypothesisService({ insights, hypotheses });
+export const portfolioService = makePortfolioService({
+  snapshots: portfolioSnapshots,
+  predictions,
+  recommendations,
+  getStores: async (organizationId: string) => {
+    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    return overview?.stores.map((s) => ({ id: s.id, name: s.name })) ?? [];
+  },
+});
+export const competitorIntelligenceService = makeCompetitorIntelligenceService({
+  insights: competitorInsights,
+  getStoreFollowerCount: async (organizationId: string, storeId: string) => {
+    const snapshot = await metricService.getMetric("follower_count", organizationId, storeId);
+    return typeof snapshot?.value === "number" ? snapshot.value : 0;
+  },
+});
+export const costLatencyMonitor = makeCostLatencyMonitor({ metrics: systemMetrics });
 
-export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings };
+export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics };

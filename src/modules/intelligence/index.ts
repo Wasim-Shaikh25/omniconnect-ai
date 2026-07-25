@@ -24,6 +24,9 @@ export type {
   PredictionRecord,
   HypothesisRecord,
   BusinessLearningRecord,
+  CompetitorInsightRecord,
+  PortfolioSnapshotRecord,
+  SystemMetricRecord,
   JourneyStage,
   ConfidenceLevel,
   LinkStatus,
@@ -63,6 +66,9 @@ export {
   goalService,
   predictionService,
   hypothesisService,
+  portfolioService,
+  competitorIntelligenceService,
+  costLatencyMonitor,
 } from "./infrastructure/container";
 
 export {
@@ -81,6 +87,9 @@ export {
   getPredictionsAction,
   getHypothesesAction,
   getBusinessLearningAction,
+  getAgencyPortfolioAction,
+  getCompetitorIntelligenceAction,
+  getSystemHealthAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";

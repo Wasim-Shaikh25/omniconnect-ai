@@ -9,6 +9,9 @@ import { RecommendationsPanel } from "@/components/recommendations-panel";
 import { GoalsPanel } from "@/components/goals-panel";
 import { PredictionsPanel } from "@/components/predictions-panel";
 import { LearningPanel } from "@/components/learning-panel";
+import { AgencyPortfolioPanel } from "@/components/agency-portfolio-panel";
+import { CompetitorIntelligencePanel } from "@/components/competitor-intelligence-panel";
+import { SystemHealthPanel } from "@/components/system-health-panel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -124,6 +127,12 @@ export default async function DashboardPage() {
       <section className="mb-8 grid gap-6 md:grid-cols-2">
         <PredictionsPanel />
         <LearningPanel />
+      </section>
+
+      <section className="mb-8 grid gap-6 md:grid-cols-3">
+        <AgencyPortfolioPanel />
+        <CompetitorIntelligencePanel />
+        <SystemHealthPanel />
       </section>
 
       <section className="mb-8 grid gap-6 md:grid-cols-3">

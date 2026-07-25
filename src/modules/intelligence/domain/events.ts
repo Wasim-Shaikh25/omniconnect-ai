@@ -11,6 +11,9 @@ import type {
   PredictionRecord,
   HypothesisRecord,
   BusinessLearningRecord,
+  CompetitorInsightRecord,
+  PortfolioSnapshotRecord,
+  SystemMetricRecord,
 } from "./types";
 
 export interface SignalIngestedPayload {
@@ -131,4 +134,28 @@ export interface BusinessLearningUpdatedPayload {
 
 export class BusinessLearningUpdated extends BaseDomainEvent<BusinessLearningUpdatedPayload> {
   readonly name = "BusinessLearningUpdated";
+}
+
+export interface CompetitorInsightGeneratedPayload {
+  insight: CompetitorInsightRecord;
+}
+
+export class CompetitorInsightGenerated extends BaseDomainEvent<CompetitorInsightGeneratedPayload> {
+  readonly name = "CompetitorInsightGenerated";
+}
+
+export interface PortfolioSnapshotGeneratedPayload {
+  snapshot: PortfolioSnapshotRecord;
+}
+
+export class PortfolioSnapshotGenerated extends BaseDomainEvent<PortfolioSnapshotGeneratedPayload> {
+  readonly name = "PortfolioSnapshotGenerated";
+}
+
+export interface SystemMetricRecordedPayload {
+  metric: SystemMetricRecord;
+}
+
+export class SystemMetricRecorded extends BaseDomainEvent<SystemMetricRecordedPayload> {
+  readonly name = "SystemMetricRecorded";
 }

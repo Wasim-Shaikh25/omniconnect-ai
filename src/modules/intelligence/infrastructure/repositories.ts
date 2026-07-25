@@ -14,6 +14,9 @@ import type {
   PredictionRepository,
   HypothesisRepository,
   BusinessLearningRepository,
+  CompetitorInsightRepository,
+  PortfolioSnapshotRepository,
+  SystemMetricRepository,
 } from "../application/ports";
 import type {
   SignalRecord,
@@ -30,6 +33,9 @@ import type {
   PredictionRecord,
   HypothesisRecord,
   BusinessLearningRecord,
+  CompetitorInsightRecord,
+  PortfolioSnapshotRecord,
+  SystemMetricRecord,
   RecommendationStatus,
   ActionPlanStatus,
   OutcomeStatus,
@@ -889,5 +895,161 @@ export class PrismaBusinessLearningRepository implements BusinessLearningReposit
     };
     const updated = await prisma.businessLearning.update({ where: { id }, data });
     return toBusinessLearningRecord(updated as StoredBusinessLearning);
+  }
+}
+
+type StoredCompetitorInsight = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  competitorHandle: string;
+  metricName: string;
+  value: number;
+  benchmarkDelta: number | null;
+  features: unknown;
+  source: string | null;
+  capturedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toCompetitorInsightRecord(row: StoredCompetitorInsight): CompetitorInsightRecord {
+  return {
+    ...row,
+    features: typeof row.features === "object" && row.features !== null ? row.features : null,
+  };
+}
+
+export class PrismaCompetitorInsightRepository implements CompetitorInsightRepository {
+  async save(insight: Omit<CompetitorInsightRecord, "id" | "createdAt" | "updatedAt">): Promise<CompetitorInsightRecord> {
+    const created = await prisma.competitorInsight.create({
+      data: insight as unknown as Prisma.CompetitorInsightCreateInput,
+    });
+    return toCompetitorInsightRecord(created as StoredCompetitorInsight);
+  }
+
+  async list(organizationId: string, storeId?: string, limit = 50): Promise<CompetitorInsightRecord[]> {
+    const rows = await prisma.competitorInsight.findMany({
+      where: { organizationId, ...(storeId ? { storeId } : {}) },
+      orderBy: { capturedAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toCompetitorInsightRecord(r as StoredCompetitorInsight));
+  }
+
+  async findById(id: string): Promise<CompetitorInsightRecord | null> {
+    const row = await prisma.competitorInsight.findUnique({ where: { id } });
+    return row ? toCompetitorInsightRecord(row as StoredCompetitorInsight) : null;
+  }
+}
+
+type StoredPortfolioSnapshot = {
+  id: string;
+  organizationId: string;
+  storeCount: number;
+  totalRevenueEstimate: number | null;
+  totalChurnRisk: number | null;
+  topRecommendationType: string | null;
+  topRiskStoreId: string | null;
+  features: unknown;
+  generatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toPortfolioSnapshotRecord(row: StoredPortfolioSnapshot): PortfolioSnapshotRecord {
+  return {
+    ...row,
+    features: typeof row.features === "object" && row.features !== null ? row.features : null,
+  };
+}
+
+export class PrismaPortfolioSnapshotRepository implements PortfolioSnapshotRepository {
+  async save(snapshot: Omit<PortfolioSnapshotRecord, "id" | "createdAt" | "updatedAt">): Promise<PortfolioSnapshotRecord> {
+    const created = await prisma.portfolioSnapshot.create({
+      data: snapshot as unknown as Prisma.PortfolioSnapshotCreateInput,
+    });
+    return toPortfolioSnapshotRecord(created as StoredPortfolioSnapshot);
+  }
+
+  async findLatest(organizationId: string): Promise<PortfolioSnapshotRecord | null> {
+    const row = await prisma.portfolioSnapshot.findFirst({
+      where: { organizationId },
+      orderBy: { generatedAt: "desc" },
+    });
+    return row ? toPortfolioSnapshotRecord(row as StoredPortfolioSnapshot) : null;
+  }
+
+  async list(organizationId: string, limit = 10): Promise<PortfolioSnapshotRecord[]> {
+    const rows = await prisma.portfolioSnapshot.findMany({
+      where: { organizationId },
+      orderBy: { generatedAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toPortfolioSnapshotRecord(r as StoredPortfolioSnapshot));
+  }
+}
+
+type StoredSystemMetric = {
+  id: string;
+  organizationId: string;
+  operation: string;
+  module: string;
+  latencyMs: number | null;
+  costCents: number | null;
+  status: string;
+  traceId: string | null;
+  metadata: unknown;
+  recordedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toSystemMetricRecord(row: StoredSystemMetric): SystemMetricRecord {
+  return {
+    ...row,
+    metadata: typeof row.metadata === "object" && row.metadata !== null ? row.metadata : null,
+  };
+}
+
+export class PrismaSystemMetricRepository implements SystemMetricRepository {
+  async save(metric: Omit<SystemMetricRecord, "id" | "createdAt" | "updatedAt">): Promise<SystemMetricRecord> {
+    const created = await prisma.systemMetric.create({
+      data: metric as unknown as Prisma.SystemMetricCreateInput,
+    });
+    return toSystemMetricRecord(created as StoredSystemMetric);
+  }
+
+  async list(organizationId: string, operation?: string, limit = 50): Promise<SystemMetricRecord[]> {
+    const rows = await prisma.systemMetric.findMany({
+      where: { organizationId, ...(operation ? { operation } : {}) },
+      orderBy: { recordedAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toSystemMetricRecord(r as StoredSystemMetric));
+  }
+
+  async summary(organizationId: string): Promise<{ avgLatencyMs: number | null; totalCostCents: number | null; operationCount: number; slowestOperation: string | null }> {
+    const rows = await prisma.systemMetric.findMany({
+      where: { organizationId },
+      orderBy: { recordedAt: "desc" },
+      take: 1000,
+    });
+    const withLatency = rows
+      .map((r) => toSystemMetricRecord(r as StoredSystemMetric))
+      .filter((r) => typeof r.latencyMs === "number" && r.latencyMs !== null) as { latencyMs: number; operation: string; costCents: number | null }[];
+    const avgLatencyMs = withLatency.length > 0
+      ? withLatency.reduce((sum, r) => sum + r.latencyMs, 0) / withLatency.length
+      : null;
+    const totalCostCents = rows.reduce((sum, r) => sum + (r.costCents ?? 0), 0);
+    const slowest = withLatency.length > 0
+      ? withLatency.sort((a, b) => b.latencyMs - a.latencyMs)[0]
+      : null;
+    return {
+      avgLatencyMs,
+      totalCostCents,
+      operationCount: rows.length,
+      slowestOperation: slowest?.operation ?? null,
+    };
   }
 }

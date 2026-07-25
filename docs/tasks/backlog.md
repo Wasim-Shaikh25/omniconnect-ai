@@ -58,4 +58,5 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
   - `Recommendation`/`ActionPlan`/`Decision`/`Outcome`/`Goal` models, repositories, services, server actions, UI `RecommendationsPanel`/`GoalsPanel`, end-to-end validation.
 - [x] **TASK-354** Phase 4 — Predictions & learning (forecasts, stock-out/churn/propensity risks, BusinessLearning, experiments) — spec: `0033`
   - `Prediction`/`Hypothesis`/`BusinessLearning` models, repositories, services, server actions, UI `PredictionsPanel`/`LearningPanel`, closed learning loop, end-to-end validation.
-- [ ] **TASK-355** Phase 5 — Scale & optimization (Brand Deals, Affiliates, Media Kit, Competitor Intelligence, agency portfolio, cost/latency) — spec: `0033`
+- [x] **TASK-355** Phase 5 — Scale & optimization (Brand Deals, Affiliates, Media Kit, Competitor Intelligence, agency portfolio, cost/latency) — spec: `0034`
+  - `CompetitorInsight`/`PortfolioSnapshot`/`SystemMetric` models, repositories, services, server actions, UI `AgencyPortfolioPanel`/`CompetitorIntelligencePanel`/`SystemHealthPanel`, end-to-end validation.

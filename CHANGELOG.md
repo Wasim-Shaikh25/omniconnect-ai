@@ -271,6 +271,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions: `getPredictionsAction`, `getHypothesesAction`, `getBusinessLearningAction`.
   - UI components `PredictionsPanel` + `LearningPanel` wired into `/dashboard` and `/stores/[storeId]`.
   - End-to-end validation: insight → prediction → action → outcome → `BusinessLearning` weight update; `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-355 — Unified Intelligence Layer Phase 5: Scale & Optimization** (spec `0034`):
+  - Prisma models + migration for `CompetitorInsight`, `PortfolioSnapshot`, `SystemMetric`.
+  - Domain types/events and Prisma repositories for the new aggregates.
+  - `PortfolioService` for cross-store rollups using predictions and recommendations.
+  - `CompetitorIntelligenceService` derives benchmarks from public `analytics` tracked-account data.
+  - `CostLatencyMonitor` records and summarizes operation latency/cost.
+  - Server actions: `getAgencyPortfolioAction`, `getCompetitorIntelligenceAction`, `getSystemHealthAction`.
+  - UI components `AgencyPortfolioPanel`, `CompetitorIntelligencePanel`, `SystemHealthPanel` wired into `/dashboard` and `/stores/[storeId]`.
+  - End-to-end validation: multi-store portfolio snapshot, competitor insights, and system-health summary; `npm run lint`, `npm run typecheck`, `npm run build` pass.
+
+### ✅ Done (all UIL phases complete)
+
+- Phases 1–5 of the Unified Intelligence Layer are implemented and merged.
 
 ### 🔨 In Progress
 

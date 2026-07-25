@@ -19,7 +19,11 @@ import {
   predictionService,
   hypothesisService,
   businessLearningService,
+  portfolioService,
+  competitorIntelligenceService,
+  costLatencyMonitor,
 } from "../infrastructure/container";
+import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
 export interface IntelligenceActionState {
   error?: string;
@@ -328,4 +332,54 @@ export async function getBusinessLearningAction(storeId?: string) {
 
   const learning = await businessLearningService.list(user.organizationId, storeId, 20);
   return { learning };
+}
+
+export async function getAgencyPortfolioAction() {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { snapshot: null };
+
+  const start = Date.now();
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview) return { snapshot: null };
+
+  for (const store of overview.stores) {
+    await predictionService.generateForStore(user.organizationId, store.id);
+  }
+
+  await portfolioService.generateSnapshot(user.organizationId);
+  const snapshot = await portfolioService.getLatest(user.organizationId);
+  await costLatencyMonitor.record(user.organizationId, "getAgencyPortfolioAction", "intelligence", Date.now() - start, 0.1, "OK");
+  return { snapshot };
+}
+
+export async function getCompetitorIntelligenceAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { insights: [] };
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { insights: [] };
+  }
+
+  const start = Date.now();
+  const storeIds = storeId ? [storeId] : (await organizationQueries.getOrganizationOverview(user.organizationId))?.stores.map((s) => s.id) ?? [];
+
+  for (const id of storeIds) {
+    const accounts = await listTrackedCompetitorsAction(id);
+    if (accounts.accounts && accounts.accounts.length > 0) {
+      await competitorIntelligenceService.generateForStore(user.organizationId, id, accounts.accounts);
+    }
+  }
+
+  const insights = await competitorIntelligenceService.list(user.organizationId, storeId, 20);
+  await costLatencyMonitor.record(user.organizationId, "getCompetitorIntelligenceAction", "intelligence", Date.now() - start, 0.25, "OK");
+  return { insights };
+}
+
+export async function getSystemHealthAction() {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { summary: null };
+
+  const summary = await costLatencyMonitor.summary(user.organizationId);
+  return { summary };
 }
