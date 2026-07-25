@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { requireUser, requireRole } from "@/modules/auth";
 import { updateProfileSchema } from "../application/update-profile";
 import { changeRoleSchema } from "../application/change-role";
-import { updateProfile, changeUserRole } from "../infrastructure/container";
+import {
+  updateProfile,
+  changeUserRole,
+  auditCommands,
+} from "../infrastructure/container";
 
 export interface ProfileActionState {
   error?: string;
@@ -35,7 +39,7 @@ export async function changeUserRoleAction(
   _prev: ProfileActionState,
   formData: FormData,
 ): Promise<ProfileActionState> {
-  const admin = await requireRole("ADMIN");
+  const admin = await requireRole("STORE_OWNER");
   const parsed = changeRoleSchema.safeParse({
     userId: formData.get("userId"),
     role: formData.get("role"),
@@ -47,6 +51,19 @@ export async function changeUserRoleAction(
   const result = await changeUserRole(parsed.data, admin.id);
   if (!result.ok) return { error: result.error.message };
 
+  if (admin.organizationId) {
+    await auditCommands.create({
+      organizationId: admin.organizationId,
+      actorId: admin.id,
+      actorEmail: admin.email ?? undefined,
+      action: "USER_ROLE_CHANGED",
+      resource: "User",
+      resourceId: parsed.data.userId,
+      details: `Role changed to ${parsed.data.role}`,
+    });
+  }
+
   revalidatePath("/settings");
+  revalidatePath("/settings/audit");
   return { ok: true };
 }

@@ -23,7 +23,7 @@ export default async function SettingsPage() {
   if (!user) redirect("/login");
 
   const profile = await getUserProfile(user.id);
-  const isAdmin = user.role === "ADMIN";
+  const isAdmin = user.role === "ADMIN" || user.role === "STORE_OWNER";
   const members =
     isAdmin && user.organizationId
       ? await listOrganizationUsers(user.organizationId)
@@ -54,34 +54,66 @@ export default async function SettingsPage() {
         </Card>
 
         {isAdmin && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Team members</CardTitle>
-              <CardDescription>Manage roles in your organization.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {members.length > 0 ? (
-                <ul className="space-y-3">
-                  {members.map((member) => (
-                    <li
-                      key={member.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
-                    >
-                      <span className="font-medium">{member.email}</span>
-                      <RoleSelectForm
-                        action={changeUserRoleAction}
-                        userId={member.id}
-                        currentRole={member.role}
-                        roles={ROLES}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground">No members yet.</p>
-              )}
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Team members</CardTitle>
+                <CardDescription>Manage roles in your organization.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {members.length > 0 ? (
+                  <ul className="space-y-3">
+                    {members.map((member) => (
+                      <li
+                        key={member.id}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+                      >
+                        <span className="font-medium">{member.email}</span>
+                        <RoleSelectForm
+                          action={changeUserRoleAction}
+                          userId={member.id}
+                          currentRole={member.role}
+                          roles={ROLES}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No members yet.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Audit log</CardTitle>
+                  <CardDescription>
+                    Track admin and system events.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/audit">View audit log</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Billing</CardTitle>
+                  <CardDescription>
+                    Manage your plan and subscription.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/billing">View billing</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
       </div>
     </main>

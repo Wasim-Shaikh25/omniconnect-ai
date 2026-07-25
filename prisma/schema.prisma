@@ -36,6 +36,7 @@ model User {
   notifications  Notification[]
   accounts       Account[]
   sessions       Session[]
+  auditLogs      AuditLog[]
 }
 
 // NextAuth (Auth.js) adapter models.
@@ -75,13 +76,14 @@ model VerificationToken {
 
 // ── organizations ───────────────────────────────────────────────────────────
 model Organization {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
-  users     User[]
-  stores    Store[]
+  users      User[]
+  stores     Store[]
+  auditLogs  AuditLog[]
 }
 
 // ── ecommerce ───────────────────────────────────────────────────────────────
@@ -755,4 +757,22 @@ model BrandDeal {
 
   @@index([storeId, status])
   @@index([storeId, createdAt])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  actorId        String?
+  actorEmail     String?
+  action         String
+  resource       String
+  resourceId     String?
+  details        String?
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor          User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action])
 }
