@@ -1,5 +1,6 @@
 import { makeCreateStore } from "../application/create-store";
 import { makeOrganizationQueries } from "../application/queries";
+import { makeTenantGuard } from "../application/tenant";
 import { PrismaOrganizationRepository } from "./organization.repository";
 import { PrismaStoreRepository } from "./store.repository";
 
@@ -13,3 +14,4 @@ export const organizationQueries = makeOrganizationQueries({
   organizations,
   stores,
 });
+export const tenantGuard = makeTenantGuard({ queries: organizationQueries });

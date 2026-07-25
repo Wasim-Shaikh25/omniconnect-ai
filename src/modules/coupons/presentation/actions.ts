@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/modules/auth";
+import { tenantGuard } from "@/modules/organizations";
 import { env } from "@/shared/config";
 import { eventBus } from "@/shared/events";
 import { MetaFollowReceived } from "@/modules/meta";
@@ -18,8 +19,10 @@ export async function updateCampaignAction(
   _prev: CouponsActionState,
   formData: FormData,
 ): Promise<CouponsActionState> {
+  let user;
   try {
-    await requireRole("STORE_OWNER");
+    user = await requireRole("STORE_OWNER");
+    await tenantGuard.assertStoreAccess(user, String(formData.get("storeId") ?? ""));
   } catch {
     return { status: "error", message: "Unauthorized" };
   }
@@ -58,8 +61,9 @@ export async function simulateFirstTimeFollower(
   if (env.NODE_ENV === "production") {
     return { status: "error", message: "Simulation is disabled in production." };
   }
+  let user;
   try {
-    await requireRole("STORE_OWNER");
+    user = await requireRole("STORE_OWNER");
   } catch {
     return { status: "error", message: "Unauthorized" };
   }
@@ -74,6 +78,12 @@ export async function simulateFirstTimeFollower(
   }
 
   const { storeId, externalUserId, username, channel } = parsed.data;
+  try {
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch {
+    return { status: "error", message: "Unauthorized" };
+  }
+
   await eventBus.publish(
     new MetaFollowReceived(storeId, {
       storeId,

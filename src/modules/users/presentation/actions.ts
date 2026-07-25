@@ -48,7 +48,7 @@ export async function changeUserRoleAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const result = await changeUserRole(parsed.data, admin.id);
+  const result = await changeUserRole(parsed.data, admin.id, admin.organizationId);
   if (!result.ok) return { error: result.error.message };
 
   if (admin.organizationId) {

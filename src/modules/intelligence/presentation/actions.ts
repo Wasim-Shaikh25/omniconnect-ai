@@ -720,18 +720,36 @@ export async function getRiskMatrixAction() {
 export async function getUnifiedContextAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
   return unifiedContextService.getContext({ organizationId: user.organizationId, storeId });
 }
 
 export async function getKnowledgeGraphAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
   return knowledgeGraphService.query({ organizationId: user.organizationId, storeId });
 }
 
 export async function getFeatureProfileAction(type: "customer" | "product" | "content" | "campaign" | "business", id: string, storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
   if (type === "customer") return featureService.getCustomerFeatures(user.organizationId, storeId ?? "", id);
   if (type === "product") return featureService.getProductFeatures(user.organizationId, storeId ?? "", id);
   if (type === "content") return featureService.getContentFeatures();

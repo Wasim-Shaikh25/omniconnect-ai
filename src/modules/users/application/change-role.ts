@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { eventBus } from "@/shared/events";
 import { Result, ok, err } from "@/shared/kernel";
-import { ROLES } from "@/modules/auth";
+import { ROLES, ForbiddenError } from "@/modules/auth";
 import { UserNotFoundError } from "../domain/errors";
 import { UserRoleChanged } from "../domain/events";
 import { UserProfile, UserProfileRepository } from "./ports";
@@ -17,10 +17,14 @@ export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
   return async function changeUserRole(
     raw: ChangeRoleInput,
     changedByUserId: string,
-  ): Promise<Result<UserProfile, UserNotFoundError>> {
+    changedByOrganizationId: string | null,
+  ): Promise<Result<UserProfile, UserNotFoundError | ForbiddenError>> {
     const input = changeRoleSchema.parse(raw);
     const existing = await deps.users.findById(input.userId);
     if (!existing) return err(new UserNotFoundError(input.userId));
+    if (existing.organizationId !== changedByOrganizationId) {
+      return err(new ForbiddenError());
+    }
 
     const profile = await deps.users.setRole(input.userId, input.role);
     await eventBus.publish(

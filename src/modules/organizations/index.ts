@@ -34,7 +34,7 @@ export type {
 export type { OrganizationOverview } from "./application/queries";
 
 // Queries + use-cases (composed)
-export { organizationQueries, createStore } from "./infrastructure/container";
+export { organizationQueries, createStore, tenantGuard } from "./infrastructure/container";
 
 // Presentation + bootstrap wiring
 export { createStoreAction } from "./presentation/actions";
