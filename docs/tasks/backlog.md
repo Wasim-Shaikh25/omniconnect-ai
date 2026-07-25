@@ -44,12 +44,12 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-320** Integrations catalog & health dashboard — spec: `0030`
 - [x] **TASK-330** Settings & Administration (members, roles, audit log, billing) — spec: `0031`
 - [x] **TASK-340** Mobile responsive quick actions & PWA polish — spec: `0032`
-- [~] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
+- [x] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0035`
 
 ## OmniConnect 2.0 — Unified Intelligence Layer
 
-- [~] **TASK-350** Unified Intelligence Layer — phased implementation — spec: `0033`
-  - Phase 0: Alignment & instrumentation (canonical signals, metric dictionary, identity graph, data-quality gate, first three stories).
+- [x] **TASK-350** Unified Intelligence Layer — phased implementation — spec: `0033`
+  - Phases 0–5 complete (TASK-351 through TASK-355).
 - [x] **TASK-351** Phase 1 — Shared Context MVP — spec: `0033`
   - Unified timeline, semantic metrics, freshness/quality indicators, cross-module deep links, customer summary/priority context.
 - [x] **TASK-352** Phase 2 — Explanatory intelligence (Today feed, Intelligence Panel, anomaly detection, revenue/funnel decomposition, evidence drawer) — spec: `0033`
