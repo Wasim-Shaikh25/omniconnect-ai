@@ -218,10 +218,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - Enroll ambassador and record referral forms; actions now also revalidate the affiliates page.
   - Lists ambassadors (code, discount/commission, referrals, earnings) and referral orders (order id, amount, commission, status) with INR formatting.
   - Store detail page links to Affiliate Center.
+- **TASK-310 — Media Kit** (spec `0029`):
+  - New `/stores/[storeId]/media-kit` page with store KPIs (followers, products, conversations, revenue), about section, top products, and ready-made collab pitch.
+  - Print-friendly layout and linked from the store detail page.
+- **TASK-320 — Integrations Catalog** (spec `0030`):
+  - New `/stores/[storeId]/integrations` page showing eCommerce and Meta connection status, provider/channel, domain/account id, product count, and connected-at date.
+  - Health summary with connected count; linked from the store detail page.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Media Kit (TASK-310)**, then Integrations catalog, Settings/Admin, and Mobile/PWA polish.
+- Next: **Settings & Administration (TASK-330)**, then Mobile/PWA polish (TASK-340).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

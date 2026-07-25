@@ -505,6 +505,38 @@ export default async function StoreDetailPage({
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Media Kit</CardTitle>
+            <CardDescription>
+              Shareable creator portfolio and brand pitch.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/media-kit`}>
+                View media kit
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Integrations</CardTitle>
+            <CardDescription>
+              Connected stores, Meta accounts, and health status.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/integrations`}>
+                View integrations
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
