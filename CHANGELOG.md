@@ -4,7 +4,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 > **READ THIS FIRST every session.** This changelog is the entry point to the project.
 > The `[Unreleased]` section below always answers: what is **Done**, what is **In Progress**,
-> and what is **Next**. Update it as the *last* step of any unit of work.
+> and what is **Next**. Update it as the _last_ step of any unit of work.
 >
 > Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 > [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -14,6 +14,7 @@ All notable changes to **OmniConnect AI** are documented here.
 ## [Unreleased]
 
 ### ✅ Done
+
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.
   - Tool-specific rule files pointing back to `AGENTS.md`: `.cursorrules`, `.cursor/rules/*.mdc`,
@@ -26,11 +27,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - ADR process: `docs/decisions/` (template + ADR-0001).
 
 ### ✅ Done (continued)
+
 - **TASK-010 — App scaffold** (spec `0010`):
   - Next.js 15.5.21 (patched) + TypeScript (strict) + TailwindCSS + ShadCN-style UI.
   - Dark/light theming via `next-themes` + theme toggle; PWA manifest; landing page.
   - DDD module skeleton for all 12 modules (`domain/application/infrastructure/presentation`
-    + public `index.ts` barrel + README each).
+    - public `index.ts` barrel + README each).
   - Shared kernel (`Entity`, `AggregateRoot`, `UniqueId`, `DomainEvent`, `Result`),
     in-memory event bus, validated config (`zod`), structured logger, Prisma client singleton.
   - Prisma schema with all core tables + enums.
@@ -177,6 +179,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - Updated server consumers (`coupons`, `growth`, `ai`, `route.ts`, store detail page) to import wired services from `@/modules/meta/server`.
 
 ### ✅ Done (continued)
+
 - **TASK-170 / TASK-180 — Executive Dashboard + AI Business Brain** (specs `0014` and `0015`):
   - New `analyticsQueries.getWorkspaceKpis` aggregates tenant-scoped store, product, conversation, follower, coupon, integration, and notification counts.
   - `/dashboard` rebuilt as an Executive Dashboard with KPI cards, recent stores list, and quick-action navigation.
@@ -236,10 +239,17 @@ All notable changes to **OmniConnect AI** are documented here.
   - `AppHeader` updated to hide horizontal links on mobile and show the mobile menu toggle.
 
 ### 🔨 In Progress
+
+- **TASK-350 — Unified Intelligence Layer (OmniConnect 2.0)** (spec `0033`):
+  - Added Spec 0033 and task file `TASK-350` covering the full strategy: signal/identity foundation,
+    semantic metrics, Today feed, Intelligence Panel, recommendations, action plans, goals,
+    predictions, learning, cross-module contracts, AI governance, testing, rollout, and risk mitigations.
+  - Backlog and validation-driven additions included; phased build order aligned with strategy.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
 - Next: stabilize, harden, and address feedback from merged PRs.
 
 ### ⏭️ Next (proposed build order)
+
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
 2. ~~**Module 1 — Auth**~~ ✅ done (TASK-020).
 3. ~~**Users + Organizations + Stores**~~ ✅ done (TASK-030).
