@@ -33,6 +33,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [ ] **TASK-240** Brand Deals (pipeline, deliverables, reporting) — spec: `0000`
 - [ ] **TASK-250** Affiliate Center (enrollment, codes, commissions, payouts) — spec: `0000`
 - [ ] **TASK-260** Media Kit (shareable creator portfolio) — spec: `0000`
+- [~] **TASK-271** Workspace Reports page — spec: `0025`
 - [ ] **TASK-270** Analytics & Reports (full dashboard, scheduled reports, metric definitions) — spec: `0007`
 - [ ] **TASK-280** Automation module (workflow builder, triggers, actions, run history) — spec: `0000`
 - [ ] **TASK-290** Integrations catalog & health dashboard — spec: `0000`
