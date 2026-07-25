@@ -154,8 +154,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added Google, Facebook, Apple, and GitHub providers to NextAuth.
   - Replaced the single Google button with an "Or continue with" grid that renders all configured OAuth providers.
   - Updated `.env.example` and `docs/deployment.md` with OAuth client setup instructions.
-- **Viral growth research:**
-  - Added `docs/specs/0013-viral-growth.md` with feature candidates: AI caption/hook generator, optimal posting time, comment-to-DM unlock loop, hashtag suggestions, giveaway campaigns, collab posts, UGC challenges, broadcast channels, creator marketplace, and viral analytics.
+- **Phase A — Viral Growth MVP** (spec `0013`):
+  - AI caption/hook generator with optimal posting time and hashtag suggestions, wired into the shoppable-media composer (`/stores/[storeId]/commerce/catalog`).
+  - Comment-to-DM unlock loop: `CommentUnlockCampaign` + `CommentUnlockRedemption` Prisma models, `GrowthService.processCommentUnlock`, and a `MetaCommentReceived` subscriber that matches keywords and triggers a reward DM.
+  - New `/stores/[storeId]/commerce/growth` section to create and list unlock campaigns.
+- **Social media trends & ideas** (spec `0007`):
+  - New `ai/application/generate-trends` use-case that returns trending content ideas (hook, format, why it works, hashtags, audio suggestion, predicted engagement score, best time to post, CTA) for any niche.
+  - New `/stores/[storeId]/commerce/trends` page linked from the store detail page.
+- **Module barrel client-safety fix:**
+  - Split `ai` module into a client-safe public barrel (`@/modules/ai`) and a server-only composition barrel (`@/modules/ai/server`) so client pages importing AI server actions no longer pull in `node:crypto`/Prisma/OpenAI provider bundles.
+  - Updated server consumers (`coupons`, store detail page) to import wired services from `@/modules/ai/server`.
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.

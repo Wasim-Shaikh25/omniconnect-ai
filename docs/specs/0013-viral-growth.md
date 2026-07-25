@@ -1,9 +1,9 @@
 # Spec 0013: Viral Growth & Follower Acceleration
 
 - **Module(s):** growth, social, ai, analytics
-- **Status:** Planned
+- **Status:** Phase A implemented (in progress: B/C)
 - **Owner:** wasim
-- **Related task(s):** `docs/tasks/backlog.md` (TASK-150)
+- **Related task(s):** `docs/tasks/backlog.md` (TASK-160)
 - **Related ADR(s):** —
 - **Last updated:** 2026-07-25
 
@@ -99,8 +99,8 @@ Implement in this order:
 
 ## 6. Acceptance criteria
 
-- [ ] Users can generate AI captions/hooks for posts.
-- [ ] Composer suggests best posting time and hashtags.
-- [ ] Comment keyword triggers an automated DM reward flow.
+- [x] Users can generate AI captions/hooks for posts in the shoppable-media composer.
+- [x] Composer suggests best posting time and hashtags.
+- [x] Comment keyword triggers an automated DM reward flow (comment-to-DM unlock loop).
 - [ ] Campaign analytics show shares/sends/follower growth per post.
-- [ ] `lint`, `typecheck`, and `build` pass; docs/backlog updated.
+- [x] `lint`, `typecheck`, and `build` pass; docs/backlog updated.

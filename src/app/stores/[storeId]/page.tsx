@@ -15,7 +15,8 @@ import {
 } from "@/modules/meta";
 import { conversationQueries } from "@/modules/conversations";
 import { crmQueries } from "@/modules/crm";
-import { aiQueries, updateAIConfigurationAction } from "@/modules/ai";
+import { aiQueries } from "@/modules/ai/server";
+import { updateAIConfigurationAction } from "@/modules/ai";
 import { ConnectStoreForm } from "@/components/connect-store-form";
 import { AISettingsForm } from "@/components/ai-settings-form";
 import { SyncProductsButton } from "@/components/sync-products-button";
@@ -326,6 +327,12 @@ export default async function StoreDetailPage({
             className="ml-4 text-sm text-primary underline"
           >
             Growth
+          </Link>
+          <Link
+            href={`/stores/${storeId}/commerce/trends`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Trends
           </Link>
         </CardContent>
       </Card>

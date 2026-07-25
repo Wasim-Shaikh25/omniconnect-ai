@@ -129,12 +129,62 @@ export interface BackInStockRepository {
   markNotified(id: string): Promise<BackInStockSubscriptionRecord>;
 }
 
+export interface CommentUnlockCampaignRecord {
+  id: string;
+  storeId: string;
+  keyword: string;
+  rewardType: "LINK" | "COUPON" | "MESSAGE";
+  rewardValue: string | null;
+  message: string;
+  referralAsk: string | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CommentUnlockRedemptionRecord {
+  id: string;
+  campaignId: string;
+  storeId: string;
+  externalUserId: string;
+  username: string | null;
+  commentId: string | null;
+  status: "PENDING" | "SENT" | "REFERRED";
+  createdAt: Date;
+  sentAt: Date | null;
+}
+
+export interface CommentUnlockRepository {
+  createCampaign(input: {
+    storeId: string;
+    keyword: string;
+    rewardType: "LINK" | "COUPON" | "MESSAGE";
+    rewardValue?: string | null;
+    message: string;
+    referralAsk?: string | null;
+  }): Promise<CommentUnlockCampaignRecord>;
+  listCampaignsByStore(storeId: string): Promise<CommentUnlockCampaignRecord[]>;
+  findActiveCampaignByKeyword(storeId: string, keyword: string): Promise<CommentUnlockCampaignRecord | null>;
+  createRedemption(input: {
+    campaignId: string;
+    storeId: string;
+    externalUserId: string;
+    username?: string | null;
+    commentId?: string | null;
+  }): Promise<CommentUnlockRedemptionRecord>;
+  listRedemptionsByCampaign(campaignId: string): Promise<CommentUnlockRedemptionRecord[]>;
+  markSent(id: string): Promise<CommentUnlockRedemptionRecord>;
+  markReferred(id: string): Promise<CommentUnlockRedemptionRecord>;
+  findExistingRedemption(campaignId: string, externalUserId: string): Promise<CommentUnlockRedemptionRecord | null>;
+}
+
 export interface GrowthQueries {
   listUgc(storeId: string, limit?: number): Promise<UgcAssetRecord[]>;
   listAmbassadors(storeId: string, limit?: number): Promise<AmbassadorRecord[]>;
   listReferrals(storeId: string, limit?: number): Promise<ReferralOrderRecord[]>;
   listCampaigns(storeId: string, limit?: number): Promise<DmCampaignRecord[]>;
   listBackInStock(storeId: string, limit?: number): Promise<BackInStockSubscriptionRecord[]>;
+  listCommentUnlockCampaigns(storeId: string): Promise<CommentUnlockCampaignRecord[]>;
 }
 
 export interface GrowthService {
@@ -175,4 +225,20 @@ export interface GrowthService {
     customerId?: string | null;
   }): Promise<BackInStockSubscriptionRecord>;
   notifyBackInStock(id: string, storeId: string): Promise<BackInStockSubscriptionRecord>;
+  createCommentUnlockCampaign(input: {
+    storeId: string;
+    keyword: string;
+    rewardType: "LINK" | "COUPON" | "MESSAGE";
+    rewardValue?: string | null;
+    message: string;
+    referralAsk?: string | null;
+  }): Promise<CommentUnlockCampaignRecord>;
+  processCommentUnlock(input: {
+    storeId: string;
+    externalUserId: string;
+    username: string | null;
+    commentId: string | null;
+    text: string;
+    channel: "INSTAGRAM" | "FACEBOOK";
+  }): Promise<{ sent: boolean; campaignId?: string }>;
 }

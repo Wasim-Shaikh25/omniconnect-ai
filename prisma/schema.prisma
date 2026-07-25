@@ -124,6 +124,7 @@ model Store {
   referralOrders ReferralOrder[]
   dmCampaigns    DmCampaign[]
   backInStockSubscriptions BackInStockSubscription[]
+  commentUnlockCampaigns CommentUnlockCampaign[]
 }
 
 enum IntegrationType {
@@ -647,4 +648,51 @@ model BackInStockSubscription {
 
   @@unique([storeId, productId, externalUserId])
   @@index([storeId, productId])
+}
+
+// ── viral growth (Phase 3) ─────────────────────────────────────────────────
+enum CommentUnlockRewardType {
+  LINK
+  COUPON
+  MESSAGE
+}
+
+model CommentUnlockCampaign {
+  id            String                  @id @default(cuid())
+  storeId       String
+  store         Store                   @relation(fields: [storeId], references: [id])
+  keyword       String
+  rewardType    CommentUnlockRewardType @default(MESSAGE)
+  rewardValue   String?
+  message       String
+  referralAsk   String?
+  active        Boolean                 @default(true)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  redemptions   CommentUnlockRedemption[]
+
+  @@unique([storeId, keyword])
+  @@index([storeId, active])
+}
+
+enum CommentUnlockStatus {
+  PENDING
+  SENT
+  REFERRED
+}
+
+model CommentUnlockRedemption {
+  id            String                @id @default(cuid())
+  campaignId    String
+  campaign      CommentUnlockCampaign @relation(fields: [campaignId], references: [id])
+  storeId       String
+  externalUserId String
+  username      String?
+  commentId     String?
+  status        CommentUnlockStatus   @default(PENDING)
+  createdAt     DateTime              @default(now())
+  sentAt        DateTime?
+
+  @@index([campaignId, status])
+  @@index([storeId, externalUserId])
 }

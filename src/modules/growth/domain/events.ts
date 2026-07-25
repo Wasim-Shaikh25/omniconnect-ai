@@ -99,3 +99,26 @@ export interface BackInStockAlertSentPayload {
 export class BackInStockAlertSent extends BaseDomainEvent<BackInStockAlertSentPayload> {
   readonly name = "BackInStockAlertSent";
 }
+
+export interface CommentUnlockTriggeredPayload {
+  storeId: string;
+  campaignId: string;
+  redemptionId: string;
+  externalUserId: string;
+  keyword: string;
+}
+
+export class CommentUnlockTriggered extends BaseDomainEvent<CommentUnlockTriggeredPayload> {
+  readonly name = "CommentUnlockTriggered";
+}
+
+export interface CommentUnlockSentPayload {
+  storeId: string;
+  campaignId: string;
+  redemptionId: string;
+  externalUserId: string;
+}
+
+export class CommentUnlockSent extends BaseDomainEvent<CommentUnlockSentPayload> {
+  readonly name = "CommentUnlockSent";
+}

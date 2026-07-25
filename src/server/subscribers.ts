@@ -7,6 +7,7 @@ import { registerAiSubscribers } from "@/modules/ai/bootstrap";
 import { registerConversationsSubscribers } from "@/modules/conversations/bootstrap";
 import { registerNotificationsSubscribers } from "@/modules/notifications/bootstrap";
 import { registerSocialSubscribers } from "@/modules/social";
+import { registerGrowthSubscribers } from "@/modules/growth/bootstrap";
 
 /**
  * App composition root for event subscribers.
@@ -28,4 +29,5 @@ export function ensureSubscribers(): void {
   registerAiSubscribers(eventBus);
   registerNotificationsSubscribers(eventBus);
   registerSocialSubscribers(eventBus);
+  registerGrowthSubscribers(eventBus);
 }

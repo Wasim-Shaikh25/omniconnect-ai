@@ -2,6 +2,8 @@ import type {
   AmbassadorRecord,
   BackInStockRepository,
   BackInStockSubscriptionRecord,
+  CommentUnlockCampaignRecord,
+  CommentUnlockRepository,
   DmCampaignRecord,
   DmCampaignRepository,
   ReferralOrderRecord,
@@ -19,6 +21,7 @@ export function makeGrowthQueries(deps: {
   referrals: ReferralOrderRepository;
   campaigns: DmCampaignRepository;
   backInStock: BackInStockRepository;
+  commentUnlocks: CommentUnlockRepository;
 }): GrowthQueries {
   return {
     async listUgc(storeId: string, limit = 50): Promise<UgcAssetRecord[]> {
@@ -35,6 +38,9 @@ export function makeGrowthQueries(deps: {
     },
     async listBackInStock(storeId: string, limit = 50): Promise<BackInStockSubscriptionRecord[]> {
       return deps.backInStock.listByStore(storeId, limit);
+    },
+    async listCommentUnlockCampaigns(storeId: string): Promise<CommentUnlockCampaignRecord[]> {
+      return deps.commentUnlocks.listCampaignsByStore(storeId);
     },
   };
 }

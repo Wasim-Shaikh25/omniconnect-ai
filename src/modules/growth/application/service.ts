@@ -1,7 +1,9 @@
 import { eventBus } from "@/shared/events";
+import type { MetaService } from "@/modules/meta";
 import type {
   AmbassadorRepository,
   BackInStockRepository,
+  CommentUnlockRepository,
   DmCampaignRepository,
   GrowthService,
   ReferralOrderRepository,
@@ -17,6 +19,8 @@ import {
   DmCampaignSent,
   BackInStockSubscribed,
   BackInStockAlertSent,
+  CommentUnlockTriggered,
+  CommentUnlockSent,
 } from "../domain/events";
 
 function generateCode(handle: string | null): string {
@@ -31,6 +35,8 @@ export interface GrowthServiceDeps {
   referrals: ReferralOrderRepository;
   campaigns: DmCampaignRepository;
   backInStock: BackInStockRepository;
+  commentUnlocks: CommentUnlockRepository;
+  meta: MetaService;
 }
 
 export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
@@ -191,6 +197,81 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
         }),
       );
       return subscription;
+    },
+
+    async createCommentUnlockCampaign(input) {
+      return deps.commentUnlocks.createCampaign({
+        storeId: input.storeId,
+        keyword: input.keyword,
+        rewardType: input.rewardType,
+        rewardValue: input.rewardValue,
+        message: input.message,
+        referralAsk: input.referralAsk,
+      });
+    },
+
+    async processCommentUnlock(input) {
+      const lowerText = input.text.toLowerCase();
+      const campaigns = await deps.commentUnlocks.listCampaignsByStore(input.storeId);
+      const campaign = campaigns.find((c) => {
+        if (!c.active) return false;
+        const keyword = c.keyword.toLowerCase().trim();
+        const regex = new RegExp(`(?:^|[^\\w])${keyword}(?:[^\\w]|$)`, "i");
+        return regex.test(lowerText);
+      });
+      if (!campaign) return { sent: false };
+
+      const existing = await deps.commentUnlocks.findExistingRedemption(
+        campaign.id,
+        input.externalUserId,
+      );
+      if (existing) return { sent: false, campaignId: campaign.id };
+
+      const redemption = await deps.commentUnlocks.createRedemption({
+        campaignId: campaign.id,
+        storeId: input.storeId,
+        externalUserId: input.externalUserId,
+        username: input.username,
+        commentId: input.commentId,
+      });
+
+      await eventBus.publish(
+        new CommentUnlockTriggered(input.storeId, {
+          storeId: input.storeId,
+          campaignId: campaign.id,
+          redemptionId: redemption.id,
+          externalUserId: input.externalUserId,
+          keyword: campaign.keyword,
+        }),
+      );
+
+      const rewardText = campaign.rewardValue
+        ? `\n\nReward: ${campaign.rewardValue}`
+        : "";
+      const referralText = campaign.referralAsk
+        ? `\n\n${campaign.referralAsk}`
+        : "";
+      const dm = `${campaign.message}${rewardText}${referralText}`;
+
+      try {
+        await deps.meta.sendMessage({
+          storeId: input.storeId,
+          recipientId: input.externalUserId,
+          text: dm,
+        });
+        await deps.commentUnlocks.markSent(redemption.id);
+        await eventBus.publish(
+          new CommentUnlockSent(input.storeId, {
+            storeId: input.storeId,
+            campaignId: campaign.id,
+            redemptionId: redemption.id,
+            externalUserId: input.externalUserId,
+          }),
+        );
+        return { sent: true, campaignId: campaign.id };
+      } catch {
+        return { sent: false, campaignId: campaign.id };
+      }
     },
   };
 }

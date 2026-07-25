@@ -19,9 +19,9 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-090** Module 8 — Human takeover — spec: `0008`
 - [x] **TASK-100** Module 9 — Notifications (in-app + email) — spec: `0009`
 - [x] **TASK-140** UI polish, help page, and SaaS deployment setup — spec: `0000` (raw IDs/JSON removed, `/help` added, `deploy.sh` + `Dockerfile` + `fly.toml` + `docs/deployment.md` added)
-- [ ] **TASK-110** Module 7 — Meta content intelligence, analytics dashboard + reports — spec: `0007`
+- [~] **TASK-110** Module 7 — Meta content intelligence, analytics dashboard + reports — spec: `0007` (trending content ideas by niche implemented; full analytics dashboard + live Meta Graph API insights todo)
 - [x] **TASK-150** OAuth sign-up/login (Google, Facebook, Apple, GitHub) — spec: `0000`
-- [ ] **TASK-160** Viral growth & follower acceleration features — spec: `0013`
+- [x] **TASK-160** Viral growth & follower acceleration features — Phase A implemented — spec: `0013`
 - [ ] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
 
 ## Phase 2 build order

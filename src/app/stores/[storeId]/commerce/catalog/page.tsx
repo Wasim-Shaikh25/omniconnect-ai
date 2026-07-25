@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { GeneratedCaption } from "@/modules/ai";
+import { generateCaptionsAction } from "@/modules/ai";
 import {
   createShoppableMediaAction,
   syncMetaCatalogAction,
@@ -26,6 +28,8 @@ function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
   const [data, setData] = useState<Awaited<ReturnType<typeof listCommerceCatalogAction>> | null>(null);
   const [syncState, syncAction, syncPending] = useActionState(syncMetaCatalogAction, { ok: false });
   const [mediaState, mediaAction, mediaPending] = useActionState(createShoppableMediaAction, { ok: false });
+  const [captionState, captionAction, captionPending] = useActionState(generateCaptionsAction, {});
+  const [caption, setCaption] = useState("");
 
   useEffect(() => {
     listCommerceCatalogAction(storeId).then(setData);
@@ -82,6 +86,67 @@ function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
 
       <Card className="mb-6">
         <CardHeader>
+          <CardTitle>AI caption generator</CardTitle>
+          <CardDescription>Generate viral captions, hooks, hashtags, and best posting times for shoppable media.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={captionAction} className="space-y-4">
+            <input type="hidden" name="storeId" value={storeId} />
+            <div>
+              <Label htmlFor="captionMediaType">Media type</Label>
+              <select name="mediaType" id="captionMediaType" className="w-full rounded-md border bg-background px-3 py-2 text-sm" required>
+                <option value="POST">Instagram Post</option>
+                <option value="REEL">Instagram Reel</option>
+                <option value="STORY">Instagram Story</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="niche">Niche</Label>
+                <Input id="niche" name="niche" placeholder="e.g. sustainable fashion" />
+              </div>
+              <div>
+                <Label htmlFor="goal">Goal</Label>
+                <Input id="goal" name="goal" placeholder="e.g. drive clicks to store" />
+              </div>
+            </div>
+            <div>
+              <Label>Products to tag</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {data?.products.map((p) => (
+                  <label key={p.id} className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="productTagIds" value={p.id} className="h-4 w-4" />
+                    {p.title}
+                  </label>
+                ))}
+              </div>
+              {data?.products.length === 0 && <p className="text-sm text-muted-foreground">No products. Connect a store and sync first.</p>}
+            </div>
+            <Button type="submit" disabled={captionPending}>{captionPending ? "Generating…" : "Generate captions"}</Button>
+            {captionState.error && <p className="text-sm text-destructive">{captionState.error}</p>}
+          </form>
+
+          {captionState.captions && captionState.captions.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <h4 className="text-sm font-medium">Generated captions</h4>
+              {captionState.captions.map((c: GeneratedCaption, idx) => (
+                <div key={idx} className="rounded-md border p-4 text-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">Hook: {c.hook}</span>
+                    <span className="text-xs text-muted-foreground">Score: {c.predictedEngagementScore}/100 · {c.bestTimeToPost}</span>
+                  </div>
+                  <p className="text-muted-foreground">{c.caption}</p>
+                  <p className="text-xs text-muted-foreground">{c.hashtags.join(" ")}</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setCaption(c.caption)}>Use this caption</Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
           <CardTitle>Shoppable media</CardTitle>
           <CardDescription>Create an Instagram post or Reel with AI-suggested product tags.</CardDescription>
         </CardHeader>
@@ -110,7 +175,7 @@ function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
             </div>
             <div>
               <Label htmlFor="caption">Caption</Label>
-              <Textarea name="caption" id="caption" placeholder="Write a caption..." />
+              <Textarea name="caption" id="caption" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a caption..." />
             </div>
             <div>
               <Label>Product tags</Label>

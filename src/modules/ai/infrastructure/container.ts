@@ -9,6 +9,8 @@ import { metaService } from "@/modules/meta";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
+import { makeGenerateCaptions } from "../application/generate-captions";
+import { makeGenerateTrends } from "../application/generate-trends";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { OpenAIProvider } from "./openai.provider";
 
@@ -39,4 +41,14 @@ export const generateReply = makeGenerateReply({
 
 export const updateAIConfiguration = makeUpdateAIConfiguration({
   repository: aiConfigurationRepository,
+});
+
+export const generateCaptions = makeGenerateCaptions({
+  aiProvider,
+  aiConfigurationRepository,
+});
+
+export const generateTrends = makeGenerateTrends({
+  aiProvider,
+  aiConfigurationRepository,
 });
