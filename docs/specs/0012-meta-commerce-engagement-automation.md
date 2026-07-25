@@ -1,7 +1,7 @@
 # Spec 0012: Meta Commerce & Engagement Automation (Phase 2)
 
-- **Module(s):** ecommerce, meta, crm, ai, notifications, analytics
-- **Status:** Draft
+- **Module(s):** ecommerce, meta, crm, ai, notifications, commerce, social
+- **Status:** In Progress
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-130)
 - **Related ADR(s):** —
@@ -177,12 +177,12 @@ Indexes: all `storeId` foreign keys plus `external*` IDs for idempotency.
 - UI tests for comment moderation queue, UGC rights flow, and campaign creation.
 
 ## 13. Acceptance Criteria (Definition of Done)
-- [ ] Domain modeled (entities + events) and exposed via public ports.
-- [ ] Infrastructure adapters for Meta Commerce, Comments, Mentions, Leads, and Messaging.
+- [x] Domain modeled (entities + events) and exposed via public ports.
+- [~] Infrastructure adapters for Meta Commerce, Comments, Mentions, Leads, and Messaging — Meta Commerce and Comments/Leads stubs implemented; Messaging/Ugc/Ambassador adapters pending.
 - [ ] Shopify-side hooks for catalog, orders, and abandoned cart events.
-- [ ] UI pages for catalog, shoppable media, comments, mentions, leads, UGC, ambassadors, and campaigns.
-- [ ] AI integration for intent, replies, lead scoring, and product-tag suggestions.
-- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [~] UI pages for catalog, shoppable media, comments, mentions, leads, UGC, ambassadors, and campaigns — catalog, comments, and leads UIs implemented; UGC, ambassadors, and campaign UIs pending.
+- [~] AI integration for intent, replies, lead scoring, and product-tag suggestions — heuristic intent/sentiment and scoring implemented; OpenAI integration pending.
+- [x] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Phasing/Roadmap
 - **Phase 2A — Instagram Shop:** Meta catalog sync, product mapping, shoppable media tagging.
