@@ -80,3 +80,5 @@ export function makeCompetitorIntelligenceService(input: CompetitorIntelligenceS
 }
 
 export type CompetitorIntelligenceService = ReturnType<typeof makeCompetitorIntelligenceService>;
+
+

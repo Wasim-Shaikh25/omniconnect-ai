@@ -34,3 +34,11 @@ export {
 } from "./presentation/actions";
 
 export type { GrowthActionState } from "./presentation/actions";
+
+export type {
+  UgcAssetCollectedPayload,
+  AmbassadorEnrolledPayload,
+  ReferralConvertedPayload,
+  DmCampaignCreatedPayload,
+  DmCampaignSentPayload,
+} from "./domain/events";

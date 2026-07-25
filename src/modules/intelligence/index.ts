@@ -52,6 +52,10 @@ export type {
   InboxNextBestAction,
   OrdersNextBestAction,
   CustomerNextBestAction,
+  ContentNextBestAction,
+  CampaignsNextBestAction,
+  BrandDealNextBestAction,
+  CompetitorNextBestAction,
 } from "./application/next-best-action";
 
 export {
@@ -100,6 +104,10 @@ export {
   getInboxNextBestActionAction,
   getOrdersNextBestActionAction,
   getCrmNextBestActionAction,
+  getContentNextBestActionAction,
+  getCampaignsNextBestActionAction,
+  getBrandDealsNextBestActionAction,
+  getCompetitorNextBestActionAction,
   getStoreMetricsAction,
   mergeEntityAction,
   splitEntityAction,

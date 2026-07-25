@@ -18,6 +18,14 @@ import type {
   ConversationTakenOverPayload,
   AIResumedPayload,
 } from "@/modules/conversations";
+import type {
+  DmCampaignCreatedPayload,
+  DmCampaignSentPayload,
+  UgcAssetCollectedPayload,
+  AmbassadorEnrolledPayload,
+  ReferralConvertedPayload,
+} from "@/modules/growth";
+import type { BrandDealCreatedPayload } from "@/modules/branddeals";
 import {
   signalIngestionService,
   entityResolutionService,
@@ -26,6 +34,7 @@ import {
 import type {
   BusinessInsightGeneratedPayload,
   RecommendationGeneratedPayload,
+  CompetitorInsightGeneratedPayload,
 } from "../domain/events";
 
 async function orgForStore(storeId: string): Promise<string | null> {
@@ -384,6 +393,131 @@ const onRecommendationGenerated: EventHandler = async (event) => {
   }
 };
 
+const onDmCampaignCreated: EventHandler = async (event) => {
+  const p = event.payload as DmCampaignCreatedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.storeId,
+    eventType: "DmCampaignCreated",
+    subjectType: "campaign",
+    subjectId: p.campaignId,
+    stage: "Consideration",
+    data: { campaignType: p.campaignType, status: p.status },
+    source: "growth",
+    occurredAt: new Date(),
+  });
+};
+
+const onDmCampaignSent: EventHandler = async (event) => {
+  const p = event.payload as DmCampaignSentPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.storeId,
+    eventType: "DmCampaignSent",
+    subjectType: "campaign",
+    subjectId: p.campaignId,
+    stage: "Consideration",
+    data: { sentAt: p.sentAt },
+    source: "growth",
+    occurredAt: new Date(),
+  });
+};
+
+const onUgcAssetCollected: EventHandler = async (event) => {
+  const p = event.payload as UgcAssetCollectedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.storeId,
+    eventType: "UgcAssetCollected",
+    subjectType: "content",
+    subjectId: p.assetId,
+    stage: "Discovery",
+    relatedEntities: [{ type: "customer", id: p.creatorHandle ?? "unknown" }],
+    data: { creatorHandle: p.creatorHandle, source: p.source },
+    source: "growth",
+    occurredAt: new Date(),
+  });
+};
+
+const onAmbassadorEnrolled: EventHandler = async (event) => {
+  const p = event.payload as AmbassadorEnrolledPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.storeId,
+    eventType: "AmbassadorEnrolled",
+    subjectType: "customer",
+    subjectId: p.ambassadorId,
+    stage: "Advocacy",
+    data: { code: p.code, discountPct: p.discountPct, commissionPct: p.commissionPct },
+    source: "growth",
+    occurredAt: new Date(),
+  });
+};
+
+const onReferralConverted: EventHandler = async (event) => {
+  const p = event.payload as ReferralConvertedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.storeId,
+    eventType: "ReferralConverted",
+    subjectType: "order",
+    subjectId: p.orderId,
+    stage: "Purchase",
+    relatedEntities: [
+      { type: "customer", id: p.ambassadorId },
+      { type: "order", id: p.orderId },
+    ],
+    data: { orderAmount: p.orderAmount, commissionAmount: p.commissionAmount },
+    source: "growth",
+    occurredAt: new Date(),
+  });
+};
+
+const onBrandDealCreated: EventHandler = async (event) => {
+  const p = event.payload as BrandDealCreatedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.storeId,
+    eventType: "BrandDealCreated",
+    subjectType: "brand-deal",
+    subjectId: p.dealId,
+    stage: "Discovery",
+    data: { brandName: p.brandName, value: p.value },
+    source: "branddeals",
+    occurredAt: new Date(),
+  });
+};
+
+const onCompetitorInsightGenerated: EventHandler = async (event) => {
+  const p = event.payload as CompetitorInsightGeneratedPayload;
+  if (!p.insight.storeId) return;
+  const organizationId = await orgForStore(p.insight.storeId);
+  if (!organizationId) return;
+  await signalIngestionService.ingest({
+    organizationId,
+    storeId: p.insight.storeId,
+    eventType: "CompetitorInsightGenerated",
+    subjectType: "market",
+    subjectId: p.insight.id,
+    stage: "Discovery",
+    data: { competitorHandle: p.insight.competitorHandle, metricName: p.insight.metricName, value: p.insight.value },
+    source: "intelligence",
+    occurredAt: new Date(),
+  });
+};
+
 export function registerIntelligenceSubscribers(bus: EventBus = eventBus): void {
   bus.subscribe("FirstTimeFollowerDetected", onFirstTimeFollowerDetected);
   bus.subscribe("CustomerProfileUpdated", onCustomerProfileUpdated);
@@ -395,4 +529,11 @@ export function registerIntelligenceSubscribers(bus: EventBus = eventBus): void 
   bus.subscribe("AIResumed", onAIResumed);
   bus.subscribe("BusinessInsightGenerated", onBusinessInsightGenerated);
   bus.subscribe("RecommendationGenerated", onRecommendationGenerated);
+  bus.subscribe("DmCampaignCreated", onDmCampaignCreated);
+  bus.subscribe("DmCampaignSent", onDmCampaignSent);
+  bus.subscribe("UgcAssetCollected", onUgcAssetCollected);
+  bus.subscribe("AmbassadorEnrolled", onAmbassadorEnrolled);
+  bus.subscribe("ReferralConverted", onReferralConverted);
+  bus.subscribe("BrandDealCreated", onBrandDealCreated);
+  bus.subscribe("CompetitorInsightGenerated", onCompetitorInsightGenerated);
 }

@@ -423,6 +423,50 @@ export async function getCrmNextBestActionAction() {
   return { action };
 }
 
+export async function getContentNextBestActionAction(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+
+  const action = await nextBestActionService.forContent(storeId);
+  return { action };
+}
+
+export async function getCampaignsNextBestActionAction(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+
+  const action = await nextBestActionService.forCampaigns(storeId);
+  return { action };
+}
+
+export async function getBrandDealsNextBestActionAction(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+
+  const action = await nextBestActionService.forBrandDeals(storeId);
+  return { action };
+}
+
+export async function getCompetitorNextBestActionAction(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+
+  const action = await nextBestActionService.forCompetitorIntelligence(user.organizationId, storeId);
+  return { action };
+}
+
 export async function getStoreMetricsAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { metrics: [] };

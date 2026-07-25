@@ -112,19 +112,19 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 - [x] 78. **Orders:** resolve stock/fulfillment exceptions first; contact high-value at-risk customers; recommend complementary items post-delivery, suppress during unresolved support.
 - [x] 79. **Inbox:** prioritize high-intent or high-value conversations; suggest evidence-based reply + relevant product; escalate risk/uncertainty; suppress sales during sensitive support.
 - [x] 80. **CRM:** retain at-risk valuable customers; invite advocates; use early access/education/service over unnecessary discounting.
-- [ ] 81. **Content:** repeat/test successful formats; fill identified content gaps; connect idea to goal/audience; recommend timing from workspace history.
-- [ ] 82. **Campaigns:** correct audience/offer/channel/timing/budget; pause underperforming step with guardrails; duplicate success as controlled experiment.
-- [ ] 83. **Brand Deals:** follow up based on engagement/deadline; improve proposal packaging; surface performance evidence; flag deliverable/payment risk.
-- [ ] 84. **Competitor Intelligence:** convert patterns into controlled content experiments; avoid copying assets/unsupported claims; explain whether trend is broad or limited.
+- [x] 81. **Content:** repeat/test successful formats; fill identified content gaps; connect idea to goal/audience; recommend timing from workspace history.
+- [x] 82. **Campaigns:** correct audience/offer/channel/timing/budget; pause underperforming step with guardrails; duplicate success as controlled experiment.
+- [x] 83. **Brand Deals:** follow up based on engagement/deadline; improve proposal packaging; surface performance evidence; flag deliverable/payment risk.
+- [x] 84. **Competitor Intelligence:** convert patterns into controlled content experiments; avoid copying assets/unsupported claims; explain whether trend is broad or limited.
 
 ## Cross-module integration contracts
 
 - [x] 85. Inbox ↔ CRM: resolve participant to contact, write intents/product mentions/assignments/resolution to timeline, read lifecycle/orders/consent/issues, hide internal notes from replies.
 - [x] 86. Inbox ↔ Orders/Products: detect product/order references, show order state in conversation, attribute assisted conversion, suppress automation on refund/fraud/support exceptions.
-- [ ] 87. Content ↔ Campaigns ↔ Analytics: link content variants to objective/audience/offer/campaign, preserve publication metrics and downstream clicks/conversations/orders, compare variants, convert outcomes to learnings.
-- [ ] 88. CRM ↔ Campaigns ↔ Automation: use governed segments, re-evaluate consent/suppression before each send, write exposure/response to timeline, prevent overlapping journeys.
+- [~] 87. Content ↔ Campaigns ↔ Analytics: link content variants to objective/audience/offer/campaign, preserve publication metrics and downstream clicks/conversations/orders, compare variants, convert outcomes to learnings.
+- [~] 88. CRM ↔ Campaigns ↔ Automation: use governed segments, re-evaluate consent/suppression before each send, write exposure/response to timeline, prevent overlapping journeys.
 - [~] 89. Products ↔ Competitor Intelligence ↔ Content: combine internal demand and market signals, recommend content experiment, include stock/margin guardrails.
-- [ ] 90. Brand Deals ↔ Media Kit ↔ Content: record media-kit views/inquiries, link proposal claims to metrics, convert deliverables into content objects/approvals, feed results into deal reporting/pricing.
+- [~] 90. Brand Deals ↔ Media Kit ↔ Content: record media-kit views/inquiries, link proposal claims to metrics, convert deliverables into content objects/approvals, feed results into deal reporting/pricing.
 - [x] 91. Analytics ↔ Every module: shared metric IDs/filters/attribution/timezone/currency, deep links, annotations for operational actions, consistent freshness/quality warnings.
 - [x] 92. Automation ↔ Every module: execute through domain APIs, respect module validation/audit/idempotency, subscribe to canonical events, return status/outcome refs to learning service.
 
@@ -192,10 +192,10 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 - [ ] 134. Implement prediction prioritization criteria (predicted event matters, intervention possible, result measurable, data sufficient, error costs manageable) and abstention when not met.
 - [ ] 135. Implement the "I understand why" user rating, verified hours saved, and false positive/negative rate tracking in intelligence KPI dashboards.
 - [ ] 136. Implement Today feed interaction requirements: every sentence expands into evidence, "Why?", "Compared with what?", "What changed?" drill-downs, and dismissal reason improving future ranking.
-- [~] 137. Implement brand-deal follow-up next-best action and CRM advocate/early-access/suppression recommendations (CRM advocate/early-access/suppression implemented; brand-deal surface deferred to later task).
+- [x] 137. Implement brand-deal follow-up next-best action and CRM advocate/early-access/suppression recommendations.
 - [ ] 138. Implement narrative analytics chart acceptance rule: promote a chart to default dashboard only if it supports a stated decision; otherwise keep in exploration/custom reports.
 - [ ] 139. Implement the data-quality gate check before high-priority insight generation: required sources connected, freshness within threshold, identity confidence sufficient, metric definition valid, minimum history/sample available, no unresolved reconciliation issue.
 
 ---
 
-Last updated: 2026-07-25 after TASK-362 merged.
+Last updated: 2026-07-25 during TASK-363.

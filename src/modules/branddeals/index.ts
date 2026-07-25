@@ -11,3 +11,5 @@ export type {
 
 export { brandDealQueries, brandDealCommands } from "./infrastructure/container";
 export { createBrandDealAction } from "./presentation/actions";
+
+export type { BrandDealCreatedPayload } from "./domain/events";
