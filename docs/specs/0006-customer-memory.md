@@ -1,7 +1,7 @@
 # Spec 0006: Customer Memory System (CRM)
 
 - **Module(s):** crm
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-060)
 - **Related ADR(s):** —

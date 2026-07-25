@@ -1,7 +1,7 @@
 # Spec 0004: AI Customer Assistant
 
 - **Module(s):** ai
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-070)
 - **Related ADR(s):** —
@@ -24,7 +24,7 @@ Per-page configurable AI assistant. Each connected store has a custom system pro
 
 ## 4. Public Contract (loose coupling)
 - `AIProvider` interface: `complete(messages, config)` — swap models by implementing it.
-- `AssistantService` port: `generateReply(conversationId)`.
+- `AssistantService` port: `generateReply({ conversationId, externalUserId })`.
 - `AIConfigurationRepository` port: `getByStore`, `getOrCreateDefault`, `update`.
 - Consumes `NewMessage` from `conversations`; emits `ReplyGenerated` and `EscalationRequested`.
 - Reads product/coupon data via `ecommerce` queries and customer memory via `crm` queries.
