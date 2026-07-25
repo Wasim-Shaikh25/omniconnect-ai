@@ -191,7 +191,7 @@ New fields proposed:
 
 ## 13. Acceptance Criteria
 
-- [ ] Content Studio generates ideas with grounding evidence (competitor, own post, comment, DM, product, campaign, trend).
+- [~] Content Studio generates ideas with grounding evidence (DM, comment, product, trend, and daily brief via `content.generateContentIdeasAction`); competitor/own posts and campaign analytics integration remain.
 - [ ] Analytics has Content / Audience / Product / Campaign marketing dimensions.
 - [ ] Competitor Analysis detects changes and produces benchmark gaps with actionable suggestions.
 - [ ] Repeated DM questions produce a `DmPatternDetected` insight and at least one content/campaign recommendation.

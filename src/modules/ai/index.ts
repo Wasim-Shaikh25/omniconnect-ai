@@ -39,6 +39,7 @@ export type {
 export type {
   GeneratePostIdeasInput,
   GeneratePostIdeas,
+  GeneratePostIdeasResult,
 } from "./application/generate-post-ideas";
 export type {
   AnalyzeCompetitorInput,

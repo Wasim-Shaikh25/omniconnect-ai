@@ -1,12 +1,11 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { generateCaptionsAction, type GenerateCaptionsState } from "@/modules/ai";
 import {
-  generatePostIdeasAction,
-  generateCaptionsAction,
-  type GeneratePostIdeasState,
-  type GenerateCaptionsState,
-} from "@/modules/ai";
+  generateContentIdeasAction,
+  type GenerateContentIdeasState,
+} from "@/modules/content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,7 @@ function formatScore(value: number): string {
   return `${value}/100`;
 }
 
-function IdeaResults({ state }: { state: GeneratePostIdeasState }) {
+function IdeaResults({ state }: { state: GenerateContentIdeasState }) {
   if (state.error) {
     return <p className="text-sm text-destructive" role="alert">{state.error}</p>;
   }
@@ -101,8 +100,8 @@ export function ContentStudioForms({
   storeId: string;
   products: Product[];
 }) {
-  const [ideaState, ideaAction, ideaPending] = useActionState<GeneratePostIdeasState, FormData>(
-    generatePostIdeasAction,
+  const [ideaState, ideaAction, ideaPending] = useActionState<GenerateContentIdeasState, FormData>(
+    generateContentIdeasAction,
     {},
   );
   const [captionState, captionAction, captionPending] = useActionState<GenerateCaptionsState, FormData>(
