@@ -20,6 +20,8 @@ export function makeNotificationService(deps: {
       body: string;
       payload?: unknown;
       channel?: NotificationChannel;
+      tier?: Parameters<NotificationService["notify"]>[0]["tier"];
+      dedupKey?: string;
     }): Promise<void> {
       const userIds = await deps.members.getUserIdsForStore(input.storeId);
       if (userIds.length === 0) {
@@ -36,9 +38,11 @@ export function makeNotificationService(deps: {
           storeId: input.storeId,
           type: input.type,
           channel,
+          tier: input.tier,
           title: input.title,
           body: input.body,
           payload: input.payload,
+          dedupKey: input.dedupKey,
         });
 
         try {

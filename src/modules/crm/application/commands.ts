@@ -1,6 +1,9 @@
-import type { FollowerRepository } from "./ports";
+import type { CustomerRepository, FollowerRepository } from "./ports";
 
-export function makeCrmCommands(deps: { followers: FollowerRepository }) {
+export function makeCrmCommands(deps: {
+  customers: CustomerRepository;
+  followers: FollowerRepository;
+}) {
   return {
     recordFollowerCampaignEnrollment(input: {
       followerId: string;
@@ -8,6 +11,15 @@ export function makeCrmCommands(deps: { followers: FollowerRepository }) {
       welcomeMessageText: string;
     }) {
       return deps.followers.recordCampaignEnrollment(input);
+    },
+
+    upsertByExternalId(input: {
+      storeId: string;
+      channel: "INSTAGRAM" | "FACEBOOK";
+      externalUserId: string;
+      username: string | null;
+    }) {
+      return deps.customers.upsertByExternalId(input);
     },
   };
 }

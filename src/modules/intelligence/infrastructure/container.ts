@@ -1,8 +1,9 @@
 import { organizationQueries } from "@/modules/organizations";
 import { ecommerceQueries, generateCoupon } from "@/modules/ecommerce";
 import { conversationQueries, conversationCommands } from "@/modules/conversations";
-import { crmQueries } from "@/modules/crm";
+import { crmQueries, customerDirectory } from "@/modules/crm";
 import { growthService } from "@/modules/growth";
+import { notificationService, notificationQueries } from "@/modules/notifications";
 import { makeSignalIngestionService } from "../application/signal-ingestion";
 import { makeEntityResolutionService } from "../application/entity-resolution";
 import { makeTimelineService } from "../application/timeline";
@@ -23,6 +24,8 @@ import { makeBusinessLearningService } from "../application/business-learning";
 import { makePortfolioService } from "../application/portfolio";
 import { makeCompetitorIntelligenceService } from "../application/competitor-intelligence";
 import { makeCostLatencyMonitor } from "../application/system-health";
+import { makeNextBestActionService } from "../application/next-best-action";
+import { makeProactiveNotificationService } from "../application/proactive-notifications";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -176,5 +179,16 @@ export const competitorIntelligenceService = makeCompetitorIntelligenceService({
   },
 });
 export const costLatencyMonitor = makeCostLatencyMonitor({ metrics: systemMetrics });
+export const nextBestActionService = makeNextBestActionService({
+  ecommerce: ecommerceQueries,
+  crmQueries,
+  customerDirectory,
+  conversations: conversationQueries,
+  signals,
+});
+export const proactiveNotificationService = makeProactiveNotificationService({
+  notifications: notificationService,
+  notificationQueries,
+});
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics };

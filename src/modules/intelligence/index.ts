@@ -48,6 +48,11 @@ export type {
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
 export type { TimelineQuery } from "./application/timeline";
+export type {
+  InboxNextBestAction,
+  OrdersNextBestAction,
+  CustomerNextBestAction,
+} from "./application/next-best-action";
 
 export {
   signalIngestionService,
@@ -69,6 +74,8 @@ export {
   portfolioService,
   competitorIntelligenceService,
   costLatencyMonitor,
+  nextBestActionService,
+  proactiveNotificationService,
 } from "./infrastructure/container";
 
 export {
@@ -90,6 +97,10 @@ export {
   getAgencyPortfolioAction,
   getCompetitorIntelligenceAction,
   getSystemHealthAction,
+  getInboxNextBestActionAction,
+  getOrdersNextBestActionAction,
+  getCrmNextBestActionAction,
+  getStoreMetricsAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";

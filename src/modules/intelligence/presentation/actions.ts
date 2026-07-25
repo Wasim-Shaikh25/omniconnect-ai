@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getCurrentUser, requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { customerDirectory } from "@/modules/crm";
+import { conversationQueries } from "@/modules/conversations";
 import {
   timelineService,
   customerSummaryService,
@@ -22,6 +23,7 @@ import {
   portfolioService,
   competitorIntelligenceService,
   costLatencyMonitor,
+  nextBestActionService,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -382,4 +384,68 @@ export async function getSystemHealthAction() {
 
   const summary = await costLatencyMonitor.summary(user.organizationId);
   return { summary };
+}
+
+export async function getInboxNextBestActionAction(conversationId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  const conversation = await conversationQueries.getConversation(conversationId);
+  if (!conversation || !overview?.stores.some((s) => s.id === conversation.conversation.storeId)) {
+    return { action: null };
+  }
+
+  const action = await nextBestActionService.forConversation(
+    user.organizationId,
+    conversation.conversation.storeId,
+    conversationId,
+  );
+  return { action };
+}
+
+export async function getOrdersNextBestActionAction(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+
+  const action = await nextBestActionService.forStoreOrders(user.organizationId, storeId);
+  return { action };
+}
+
+export async function getCrmNextBestActionAction() {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { action: null };
+
+  const action = await nextBestActionService.forCrm(user.organizationId);
+  return { action };
+}
+
+export async function getStoreMetricsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { metrics: [] };
+  const organizationId = user.organizationId;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { metrics: [] };
+  }
+
+  const definitions = await metricService.getDefinitions();
+  const storeIds = storeId
+    ? [storeId]
+    : (await organizationQueries.getOrganizationOverview(organizationId))?.stores.map((s) => s.id) ?? [];
+
+  const metrics = await Promise.all(
+    definitions.map(async (d) => {
+      const snapshots = await Promise.all(
+        storeIds.map((id) => metricService.getMetric(d.name, organizationId, id).catch(() => null)),
+      );
+      return { definition: d, snapshots: snapshots.filter(Boolean) };
+    }),
+  );
+
+  return { metrics };
 }

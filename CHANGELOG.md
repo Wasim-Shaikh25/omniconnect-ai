@@ -302,6 +302,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - `RecommendationService` maps revenue-decline insights to the dominant-driver action: `GENERATE_COUPON` for AOV decline, `CREATE_DM_CAMPAIGN` for order-volume decline, `CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN` when availability is the driver.
   - End-to-end validation (`scripts/verify-task361.ts`) confirms revenue decline → insight → recommendation → executed action plan.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-362 — Next Best Action for Inbox, Orders, and CRM** (spec `0038`):
+  - Created `NextBestActionService` (`intelligence/application/next-best-action.ts`) with `forConversation`, `forStoreOrders`, and `forCrm` methods using only public module contracts.
+  - Exposed server actions `getInboxNextBestActionAction`, `getOrdersNextBestActionAction`, `getCrmNextBestActionAction`, and `getStoreMetricsAction`.
+  - Wired UI panels into `/stores/[storeId]/conversations/[conversationId]`, `/stores/[storeId]/orders`, and `/customers`.
+  - Implemented Inbox ↔ CRM identity resolution and Inbox ↔ Orders/Products product-mention detection in `onNewMessage`.
+  - Added `ProactiveNotificationService` with delivery tiers, dedup/cooldown, and quiet-hour guard; wired to `BusinessInsightGenerated` and `RecommendationGenerated` events.
+  - Extended `Notification` model/migration with `NotificationDeliveryTier`, `tier`, and `dedupKey` plus `User.notificationPreferences`.
+  - Added `crmCommands.upsertByExternalId` so Inbox participants can resolve to CRM contacts through the public `crm` contract.
+  - End-to-end validation (`scripts/verify-task362.ts`) confirms Inbox, Orders, and CRM NBA plus proactive notifications.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -309,11 +319,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-120 (UI pages + dark/light mode) completed.
 - TASK-360 (Product availability & demand mismatch) completed.
 - TASK-361 (Revenue decline & funnel diagnosis) completed.
+- TASK-362 (Next Best Action for Inbox, Orders, and CRM) completed.
 
 ### 🔨 In Progress
 
-- Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: stabilize, harden, and address feedback from merged PRs.
+- TASK-363 and remaining TASK-350 subtasks (Content/Campaigns/Brand Deals/Competitor Intelligence NBA, cross-module contracts, goal-based automation guardrails, AI governance).
 
 ### ⏭️ Next (proposed build order)
 

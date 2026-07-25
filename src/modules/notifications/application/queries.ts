@@ -13,5 +13,8 @@ export function makeNotificationQueries(deps: {
     markAsRead(userId: string, notificationId: string): Promise<void> {
       return deps.notifications.markAsRead(notificationId, userId);
     },
+    findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]> {
+      return deps.notifications.findRecentByDedupKey(dedupKey, since);
+    },
   };
 }

@@ -9,7 +9,7 @@ const customers = new PrismaCustomerRepository();
 const followers = new PrismaFollowerRepository();
 
 /** Composition root for the crm module. */
-export const crmCommands = makeCrmCommands({ followers });
+export const crmCommands = makeCrmCommands({ customers, followers });
 export const crmQueries = makeCrmQueries({ customers, followers });
 
 export const customerDirectory = makeCustomerDirectory({
