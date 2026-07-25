@@ -1,6 +1,6 @@
 import { eventBus } from "@/shared/events";
 import type { DetectCommerceInsights, EcommerceQueries } from "@/modules/ecommerce";
-import type { ConversationQueries } from "@/modules/conversations";
+import type { ConversationQueries, DetectConversationInsights } from "@/modules/conversations";
 import type { DetectCrmInsights, CrmQueries } from "@/modules/crm";
 import type { SignalRepository, MetricRepository, BusinessInsightRepository, EntityLinkRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
@@ -24,6 +24,7 @@ export interface DetectionServiceInput {
   links: EntityLinkRepository;
   detectCommerceInsights: DetectCommerceInsights;
   detectCrmInsights: DetectCrmInsights;
+  detectConversationInsights: DetectConversationInsights;
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
@@ -33,26 +34,6 @@ export interface DetectionServiceInput {
 
 export function makeDetectionService(input: DetectionServiceInput) {
   const now = input.now ?? new Date();
-
-  async function recentSignals(
-    organizationId: string,
-    storeId: string,
-    since: Date,
-    eventType?: string,
-  ): Promise<SignalSummary[]> {
-    const rows = await input.signals.listByStore(storeId, 500);
-    return rows
-      .filter((s) => s.occurredAt >= since && (!eventType || s.eventType === eventType))
-      .map((s) => ({
-        id: s.id,
-        eventType: s.eventType,
-        subjectType: s.subjectType,
-        subjectId: s.subjectId,
-        storeId: s.storeId,
-        occurredAt: s.occurredAt,
-        data: s.data,
-      }));
-  }
 
   async function emit(insight: Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt">) {
     const saved = await input.insights.save(insight);
@@ -114,40 +95,13 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function detectHighIntentConversation(organizationId: string, storeId: string) {
-    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
-    const recent = await recentSignals(organizationId, storeId, thirtyMinutesAgo, "NewMessage");
-    const seen = new Set<string>();
-
-    for (const signal of recent) {
-      if (signal.subjectType !== "conversation") continue;
-      if (seen.has(signal.subjectId)) continue;
-      seen.add(signal.subjectId);
-
-      const detail = await input.conversations.getConversation(signal.subjectId);
-      if (!detail || detail.conversation.status === "HUMAN_ACTIVE") continue;
-      if (new Date(detail.conversation.updatedAt) > thirtyMinutesAgo) continue;
-
-      const evidence: BusinessInsightEvidence = {
-        signalIds: [signal.subjectId],
-        metricIds: [],
-        summary: `Conversation ${signal.subjectId.slice(0, 8)} received a new customer message and has not been taken over by a human.`,
-      };
-
-      await emit({
-        organizationId,
-        storeId,
-        type: "OPPORTUNITY" as InsightType,
-        severity: "MEDIUM" as InsightSeverity,
-        status: "OPEN",
-        title: "High-intent conversation needs attention",
-        description: `A ${detail.conversation.channel} conversation has an unanswered customer message. Review to avoid losing a hot lead.`,
-        evidence,
-        deepLink: `/stores/${storeId}/conversations/${signal.subjectId}`,
-        generatedAt: now,
-        dismissedAt: null,
-        snoozedUntil: null,
-      });
+  async function emitConversationInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectConversationInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
     }
   }
 
@@ -304,7 +258,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
 
       await emitCommerceInsights(organizationId, storeId);
       await emitCrmInsights(organizationId, storeId);
-      await detectHighIntentConversation(organizationId, storeId);
+      await emitConversationInsights(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },

@@ -399,9 +399,11 @@ All notable changes to **OmniConnect AI** are documented here.
     - `CommerceInsightGenerated` and `CommerceRecommendationGenerated` domain events added to `ecommerce`.
     - `crm/application/detect-insights.ts` created with `detectCrmInsights` that owns stale-follower detection.
     - `CrmInsightGenerated` and `CrmRecommendationGenerated` domain events added to `crm`.
-    - `intelligence/application/detection.ts` removed `detectNoOrders`, `detectRevenueDecline`, and `detectStaleFollowers`; it now delegates to `ecommerce` and `crm` detect services and maps results into `BusinessInsight` records.
+    - `conversations/application/detect-insights.ts` created with `detectConversationInsights` that owns high-intent conversation detection.
+    - `ConversationInsightGenerated` and `ConversationRecommendationGenerated` domain events added to `conversations`.
+    - `intelligence/application/detection.ts` removed `detectNoOrders`, `detectRevenueDecline`, `detectStaleFollowers`, and `detectHighIntentConversation`; it now delegates to `ecommerce`, `crm`, and `conversations` detect services and maps results into `BusinessInsight` records.
     - `intelligence/application/diagnosis.ts` now maps `CommerceInsight` results into `BusinessInsight` records instead of computing revenue itself.
-    - Remaining modules: conversations, growth, branddeals.
+    - Remaining modules: growth, branddeals.
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.

@@ -38,3 +38,50 @@ export interface AIResumedPayload {
 export class AIResumed extends BaseDomainEvent<AIResumedPayload> {
   readonly name = "AIResumed";
 }
+
+export interface ConversationInsight {
+  organizationId: string;
+  storeId: string;
+  conversationId: string;
+  type: "RISK" | "OPPORTUNITY" | "ANOMALY";
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  status: "OPEN" | "DISMISSED" | "SNOOZED";
+  title: string;
+  description: string;
+  deepLink: string;
+  generatedAt: Date;
+}
+
+export interface ConversationRecommendation {
+  organizationId: string;
+  storeId: string;
+  conversationId: string;
+  type: "ACTION" | "INVESTIGATE" | "WAIT";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  title: string;
+  description: string;
+  deepLink: string;
+  generatedAt: Date;
+}
+
+export interface ConversationInsightGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  conversationId: string;
+  insight: ConversationInsight;
+}
+
+export class ConversationInsightGenerated extends BaseDomainEvent<ConversationInsightGeneratedPayload> {
+  readonly name = "ConversationInsightGenerated";
+}
+
+export interface ConversationRecommendationGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  conversationId: string;
+  recommendation: ConversationRecommendation;
+}
+
+export class ConversationRecommendationGenerated extends BaseDomainEvent<ConversationRecommendationGeneratedPayload> {
+  readonly name = "ConversationRecommendationGenerated";
+}

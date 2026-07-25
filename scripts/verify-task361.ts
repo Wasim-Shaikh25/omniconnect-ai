@@ -11,7 +11,8 @@ import {
 } from "@/modules/intelligence/infrastructure/repositories";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import { makeDetectCommerceInsights } from "@/modules/ecommerce/application/detect-insights";
-import type { ConversationQueries } from "@/modules/conversations";
+import type { ConversationQueries, DetectConversationInsights } from "@/modules/conversations";
+import { makeDetectConversationInsights } from "@/modules/conversations/application/detect-insights";
 import type { CrmQueries, DetectCrmInsights } from "@/modules/crm";
 import { makeDetectCrmInsights } from "@/modules/crm/application/detect-insights";
 
@@ -76,8 +77,10 @@ async function main() {
 
   const ecommerce = fakeEcommerce();
   const crm = fakeCrm();
+  const conversations = fakeConversations();
   const detectCommerceInsights = makeDetectCommerceInsights({ ecommerce, now });
   const detectCrmInsights = makeDetectCrmInsights({ crm, now });
+  const detectConversationInsights = makeDetectConversationInsights({ conversations, now });
   const detectionService = makeDetectionService({
     signals: new PrismaSignalRepository(),
     insights: new PrismaBusinessInsightRepository(),
@@ -85,8 +88,9 @@ async function main() {
     links: new PrismaEntityLinkRepository(),
     detectCommerceInsights,
     detectCrmInsights,
+    detectConversationInsights,
     ecommerce,
-    conversations: fakeConversations(),
+    conversations,
     crm,
     now,
   });

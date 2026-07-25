@@ -10,7 +10,7 @@ import {
   dataQualityGateService,
 } from "./container";
 import { ecommerceQueries, detectCommerceInsights } from "@/modules/ecommerce";
-import { conversationQueries } from "@/modules/conversations";
+import { conversationQueries, detectConversationInsights } from "@/modules/conversations";
 import { crmQueries, detectCrmInsights } from "@/modules/crm";
 import { makeDetectionService } from "../application/detection";
 
@@ -71,6 +71,7 @@ export async function runWeek4ThinSlice(input: {
     links,
     detectCommerceInsights,
     detectCrmInsights,
+    detectConversationInsights,
     ecommerce: ecommerceQueries,
     conversations: conversationQueries,
     crm: crmQueries,

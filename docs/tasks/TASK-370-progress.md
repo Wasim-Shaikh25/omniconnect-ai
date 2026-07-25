@@ -17,7 +17,7 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 
 ### 2. Domain knowledge is leaking
 - [~] Product availability/demand detection moved to `ecommerce` (order/revenue detection extracted; product-mention/demand cross-domain logic still in intelligence).
-- [ ] Conversation intent/support detection moved to `conversations` or `ai`.
+- [~] Conversation intent/support detection moved to `conversations` (high-intent conversation detection extracted; intent-keyword deduplication pending).
 - [~] Customer churn/follower-growth detection moved to `crm` (stale-follower detection extracted; churn detection pending).
 - [ ] Campaign/UGC/affiliate detection moved to `growth`.
 - [ ] Brand-deal pipeline detection moved to `branddeals`.

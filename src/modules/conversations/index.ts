@@ -9,11 +9,15 @@
 export const MODULE_NAME = "conversations" as const;
 
 // Domain events
-export { NewMessage, ConversationTakenOver, AIResumed } from "./domain/events";
+export { NewMessage, ConversationTakenOver, AIResumed, ConversationInsightGenerated, ConversationRecommendationGenerated } from "./domain/events";
 export type {
   NewMessagePayload,
   ConversationTakenOverPayload,
   AIResumedPayload,
+  ConversationInsight,
+  ConversationRecommendation,
+  ConversationInsightGeneratedPayload,
+  ConversationRecommendationGeneratedPayload,
 } from "./domain/events";
 
 // Application record types
@@ -25,6 +29,7 @@ export type {
 } from "./application/ports";
 export type { ConversationCommands } from "./application/commands";
 export type { ConversationDetail, ConversationQueries } from "./application/queries";
+export type { DetectConversationInsights } from "./application/detect-insights";
 export type {
   InboxItem,
   UnifiedInboxFilter,
@@ -36,6 +41,7 @@ export {
   conversationCommands,
   conversationQueries,
   unifiedInboxQueries,
+  detectConversationInsights,
 } from "./infrastructure/container";
 
 // Presentation
