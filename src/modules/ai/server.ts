@@ -9,6 +9,7 @@ export {
   generateCaptions,
   generateTrends,
   generatePostIdeas,
+  analyzeCompetitor,
   generateReply,
   generateWelcome,
   updateAIConfiguration,

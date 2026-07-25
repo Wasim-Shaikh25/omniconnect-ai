@@ -37,6 +37,11 @@ export type {
   GeneratePostIdeasInput,
   GeneratePostIdeas,
 } from "./application/generate-post-ideas";
+export type {
+  AnalyzeCompetitorInput,
+  CompetitorAnalysis,
+  AnalyzeCompetitor,
+} from "./application/analyze-competitor";
 export { updateAIConfigSchema } from "./application/update-config";
 export type { UpdateAIConfigInput } from "./application/update-config";
 

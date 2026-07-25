@@ -12,6 +12,7 @@ import { makeUpdateAIConfiguration } from "../application/update-config";
 import { makeGenerateCaptions } from "../application/generate-captions";
 import { makeGenerateTrends } from "../application/generate-trends";
 import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
+import { makeAnalyzeCompetitor } from "../application/analyze-competitor";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { OpenAIProvider } from "./openai.provider";
 
@@ -55,6 +56,11 @@ export const generateTrends = makeGenerateTrends({
 });
 
 export const generatePostIdeas = makeGeneratePostIdeas({
+  aiProvider,
+  aiConfigurationRepository,
+});
+
+export const analyzeCompetitor = makeAnalyzeCompetitor({
   aiProvider,
   aiConfigurationRepository,
 });

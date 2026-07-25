@@ -59,6 +59,10 @@ export interface HashtagMediaOptions {
   limit?: number;
 }
 
+export interface CompetitorMediaOptions {
+  limit?: number;
+}
+
 /** Outbound Graph API port (send replies, etc.). */
 export interface MetaService {
   sendMessage(input: {
@@ -84,5 +88,12 @@ export interface MetaService {
   getAccountMedia(
     storeId: string,
     limit?: number,
+  ): Promise<MetaMediaItem[]>;
+
+  /** Fetch public media for a competitor/creator handle. */
+  getCompetitorMedia(
+    storeId: string,
+    handle: string,
+    options?: CompetitorMediaOptions,
   ): Promise<MetaMediaItem[]>;
 }
