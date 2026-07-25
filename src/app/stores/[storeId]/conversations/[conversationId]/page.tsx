@@ -8,6 +8,7 @@ import {
   resumeAIConversationAction,
 } from "@/modules/conversations";
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
+import { ConversationContext } from "@/components/conversation-context";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,7 +55,7 @@ export default async function ConversationDetailPage({
         </Button>
       </header>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
+      <div className="mt-8 grid gap-6 md:grid-cols-4">
         <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle>Status</CardTitle>
@@ -87,6 +88,10 @@ export default async function ConversationDetailPage({
             />
           </CardContent>
         </Card>
+
+        {detail.conversation.customerId && (
+          <ConversationContext customerId={detail.conversation.customerId} />
+        )}
 
         <Card className="md:col-span-2">
           <CardHeader>

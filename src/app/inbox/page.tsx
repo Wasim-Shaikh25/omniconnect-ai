@@ -226,6 +226,11 @@ export default async function InboxPage({
                         View
                       </Link>
                     </Button>
+                    {item.customerId && (
+                      <Button asChild variant="ghost" size="sm">
+                        <Link href={`/customers/${item.customerId}`}>Profile</Link>
+                      </Button>
+                    )}
                     <ConversationTakeoverButton
                       action={
                         item.status === "HUMAN_ACTIVE"

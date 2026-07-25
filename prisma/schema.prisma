@@ -33,10 +33,10 @@ model User {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  notifications  Notification[]
-  accounts       Account[]
-  sessions       Session[]
-  auditLogs      AuditLog[]
+  notifications Notification[]
+  accounts      Account[]
+  sessions      Session[]
+  auditLogs     AuditLog[]
 }
 
 // NextAuth (Auth.js) adapter models.
@@ -76,14 +76,14 @@ model VerificationToken {
 
 // ── organizations ───────────────────────────────────────────────────────────
 model Organization {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  users      User[]
-  stores     Store[]
-  auditLogs  AuditLog[]
+  users     User[]
+  stores    Store[]
+  auditLogs AuditLog[]
 }
 
 // ── ecommerce ───────────────────────────────────────────────────────────────
@@ -106,28 +106,28 @@ model Store {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  integrations   Integration[]
-  products       Product[]
-  coupons        Coupon[]
-  customers      Customer[]
-  conversations  Conversation[]
-  followers      Follower[]
-  campaigns      Campaign[]
-  aiConfig       AIConfiguration?
-  staff          User[]
-  catalogSyncs   MetaCatalogSync[]
-  productMappings MetaProductMapping[]
-  shoppableMedia ShoppableMedia[]
-  socialComments SocialComment[]
-  socialMentions SocialMention[]
-  socialLeads    SocialLead[]
-  ugcAssets      UgcAsset[]
-  ambassadors    Ambassador[]
-  referralOrders ReferralOrder[]
-  dmCampaigns    DmCampaign[]
+  integrations             Integration[]
+  products                 Product[]
+  coupons                  Coupon[]
+  customers                Customer[]
+  conversations            Conversation[]
+  followers                Follower[]
+  campaigns                Campaign[]
+  aiConfig                 AIConfiguration?
+  staff                    User[]
+  catalogSyncs             MetaCatalogSync[]
+  productMappings          MetaProductMapping[]
+  shoppableMedia           ShoppableMedia[]
+  socialComments           SocialComment[]
+  socialMentions           SocialMention[]
+  socialLeads              SocialLead[]
+  ugcAssets                UgcAsset[]
+  ambassadors              Ambassador[]
+  referralOrders           ReferralOrder[]
+  dmCampaigns              DmCampaign[]
   backInStockSubscriptions BackInStockSubscription[]
-  commentUnlockCampaigns CommentUnlockCampaign[]
-  brandDeals     BrandDeal[]
+  commentUnlockCampaigns   CommentUnlockCampaign[]
+  brandDeals               BrandDeal[]
 }
 
 enum IntegrationType {
@@ -164,7 +164,7 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  metaProductMappings MetaProductMapping[]
+  metaProductMappings      MetaProductMapping[]
   backInStockSubscriptions BackInStockSubscription[]
 
   @@unique([storeId, externalId])
@@ -178,30 +178,30 @@ enum CouponStatus {
 }
 
 model Coupon {
-  id            String        @id @default(cuid())
-  code          String
-  discountPct   Int
-  status        CouponStatus  @default(ACTIVE)
-  expiresAt     DateTime?
-  storeId       String
-  store         Store         @relation(fields: [storeId], references: [id])
-  customerId    String?
-  customer      Customer?     @relation(fields: [customerId], references: [id])
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id          String       @id @default(cuid())
+  code        String
+  discountPct Int
+  status      CouponStatus @default(ACTIVE)
+  expiresAt   DateTime?
+  storeId     String
+  store       Store        @relation(fields: [storeId], references: [id])
+  customerId  String?
+  customer    Customer?    @relation(fields: [customerId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  usages        CouponUsage[]
+  usages CouponUsage[]
 
   @@unique([storeId, code])
 }
 
 model CouponUsage {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   couponId   String
-  coupon     Coupon   @relation(fields: [couponId], references: [id])
+  coupon     Coupon    @relation(fields: [couponId], references: [id])
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id])
-  usedAt     DateTime @default(now())
+  usedAt     DateTime  @default(now())
   orderRef   String?
 }
 
@@ -220,28 +220,28 @@ enum CustomerConsent {
 }
 
 model Customer {
-  id              String                @id @default(cuid())
-  storeId         String
-  store           Store                 @relation(fields: [storeId], references: [id])
-  igUserId        String?
-  fbUserId        String?
-  username        String?
-  interests       String[]
-  tags            String[]
-  lifecycleStage  CustomerLifecycleStage @default(LEAD)
-  consent         CustomerConsent       @default(PENDING)
+  id               String                 @id @default(cuid())
+  storeId          String
+  store            Store                  @relation(fields: [storeId], references: [id])
+  igUserId         String?
+  fbUserId         String?
+  username         String?
+  interests        String[]
+  tags             String[]
+  lifecycleStage   CustomerLifecycleStage @default(LEAD)
+  consent          CustomerConsent        @default(PENDING)
   consentUpdatedAt DateTime?
-  lastActivityAt  DateTime?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  lastActivityAt   DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
 
-  conversations Conversation[]
-  coupons       Coupon[]
-  couponUsages  CouponUsage[]
-  followers     Follower[]
-  socialLeads   SocialLead[]
-  ugcAssets     UgcAsset[]
-  ambassadors   Ambassador[]
+  conversations            Conversation[]
+  coupons                  Coupon[]
+  couponUsages             CouponUsage[]
+  followers                Follower[]
+  socialLeads              SocialLead[]
+  ugcAssets                UgcAsset[]
+  ambassadors              Ambassador[]
   backInStockSubscriptions BackInStockSubscription[]
 }
 
@@ -257,19 +257,19 @@ enum ConversationStatus {
 }
 
 model Conversation {
-  id            String              @id @default(cuid())
-  channel       ConversationChannel
-  status        ConversationStatus  @default(AI_ACTIVE)
-  externalId    String?
-  storeId       String
-  store         Store               @relation(fields: [storeId], references: [id])
-  customerId    String?
-  customer      Customer?           @relation(fields: [customerId], references: [id])
+  id              String              @id @default(cuid())
+  channel         ConversationChannel
+  status          ConversationStatus  @default(AI_ACTIVE)
+  externalId      String?
+  storeId         String
+  store           Store               @relation(fields: [storeId], references: [id])
+  customerId      String?
+  customer        Customer?           @relation(fields: [customerId], references: [id])
   assignedHumanId String?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
-  messages      Message[]
+  messages Message[]
 }
 
 enum MessageSender {
@@ -288,35 +288,35 @@ model Message {
 }
 
 model Follower {
-  id                  String    @id @default(cuid())
-  storeId             String
-  store               Store     @relation(fields: [storeId], references: [id])
-  customerId          String?
-  customer            Customer? @relation(fields: [customerId], references: [id])
-  igUserId            String?
-  username            String?
-  followedAt          DateTime  @default(now())
-  couponId            String?
-  campaignEnrolledAt  DateTime?
-  welcomeMessageText  String?
+  id                 String    @id @default(cuid())
+  storeId            String
+  store              Store     @relation(fields: [storeId], references: [id])
+  customerId         String?
+  customer           Customer? @relation(fields: [customerId], references: [id])
+  igUserId           String?
+  username           String?
+  followedAt         DateTime  @default(now())
+  couponId           String?
+  campaignEnrolledAt DateTime?
+  welcomeMessageText String?
 
   @@unique([storeId, igUserId])
 }
 
 // ── ai ──────────────────────────────────────────────────────────────────────
 model AIConfiguration {
-  id             String   @id @default(cuid())
-  storeId        String   @unique
-  store          Store    @relation(fields: [storeId], references: [id])
-  systemPrompt   String
-  tone           String?
+  id              String   @id @default(cuid())
+  storeId         String   @unique
+  store           Store    @relation(fields: [storeId], references: [id])
+  systemPrompt    String
+  tone            String?
   welcomeStrategy String?
-  couponStrategy String?
-  salesStrategy  String?
+  couponStrategy  String?
+  salesStrategy   String?
   escalationRules String?
-  model          String   @default("gpt-4o-mini")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  model           String   @default("gpt-4o-mini")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ── campaigns (first-time follower) ─────────────────────────────────────────
@@ -356,17 +356,17 @@ model Report {
 
 // ── analytics / competitor intelligence ─────────────────────────────────────
 model TrackedAccount {
-  id            String    @id @default(cuid())
-  storeId       String
-  platform      String    @default("INSTAGRAM")
-  handle        String
-  niche         String?
-  note          String?
-  lastMedia     Json?
-  lastAnalysis  Json?
-  lastSyncedAt  DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  storeId      String
+  platform     String    @default("INSTAGRAM")
+  handle       String
+  niche        String?
+  note         String?
+  lastMedia    Json?
+  lastAnalysis Json?
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([storeId, handle])
 }
@@ -413,15 +413,15 @@ enum CatalogSyncStatus {
 }
 
 model MetaCatalogSync {
-  id              String            @id @default(cuid())
-  storeId         String
-  store           Store             @relation(fields: [storeId], references: [id])
+  id                String            @id @default(cuid())
+  storeId           String
+  store             Store             @relation(fields: [storeId], references: [id])
   externalCatalogId String?
-  status          CatalogSyncStatus @default(PENDING)
-  lastSyncedAt    DateTime?
-  errorLog        String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  status            CatalogSyncStatus @default(PENDING)
+  lastSyncedAt      DateTime?
+  errorLog          String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@index([storeId, status])
 }
@@ -451,17 +451,17 @@ enum ShoppableMediaStatus {
 }
 
 model ShoppableMedia {
-  id              String                 @id @default(cuid())
+  id              String               @id @default(cuid())
   storeId         String
-  store           Store                  @relation(fields: [storeId], references: [id])
+  store           Store                @relation(fields: [storeId], references: [id])
   externalMediaId String?
   mediaType       String
   caption         String?
   permalink       String?
   productTags     Json?
-  status          ShoppableMediaStatus   @default(DRAFT)
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
+  status          ShoppableMediaStatus @default(DRAFT)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@index([storeId, status])
 }
@@ -482,23 +482,23 @@ enum CommentSentiment {
 }
 
 model SocialComment {
-  id                String            @id @default(cuid())
+  id                String           @id @default(cuid())
   storeId           String
-  store             Store             @relation(fields: [storeId], references: [id])
+  store             Store            @relation(fields: [storeId], references: [id])
   externalMediaId   String?
   externalCommentId String?
   parentId          String?
   externalUserId    String?
   username          String?
   text              String
-  intent            CommentIntent     @default(OTHER)
-  sentiment         CommentSentiment  @default(NEUTRAL)
+  intent            CommentIntent    @default(OTHER)
+  sentiment         CommentSentiment @default(NEUTRAL)
   autoReplyText     String?
   repliedAt         DateTime?
-  hidden            Boolean           @default(false)
-  deleted           Boolean           @default(false)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  hidden            Boolean          @default(false)
+  deleted           Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@unique([storeId, externalCommentId])
   @@index([storeId, hidden, createdAt])
@@ -511,9 +511,9 @@ enum MentionSource {
 }
 
 model SocialMention {
-  id             String        @id @default(cuid())
-  storeId        String
-  store          Store         @relation(fields: [storeId], references: [id])
+  id              String        @id @default(cuid())
+  storeId         String
+  store           Store         @relation(fields: [storeId], references: [id])
   externalMediaId String?
   externalUserId  String?
   handle          String?
@@ -542,22 +542,22 @@ enum LeadStatus {
 }
 
 model SocialLead {
-  id              String    @id @default(cuid())
-  storeId         String
-  store           Store     @relation(fields: [storeId], references: [id])
-  source          LeadSource
-  externalFormId  String?
-  externalLeadId  String?
-  payload         Json?
-  mappedFields    Json?
-  status          LeadStatus @default(NEW)
-  score           Int       @default(0)
-  customerId      String?
-  customer        Customer? @relation(fields: [customerId], references: [id])
-  assignedTo      String?
-  nurturedAt      DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String     @id @default(cuid())
+  storeId        String
+  store          Store      @relation(fields: [storeId], references: [id])
+  source         LeadSource
+  externalFormId String?
+  externalLeadId String?
+  payload        Json?
+  mappedFields   Json?
+  status         LeadStatus @default(NEW)
+  score          Int        @default(0)
+  customerId     String?
+  customer       Customer?  @relation(fields: [customerId], references: [id])
+  assignedTo     String?
+  nurturedAt     DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([storeId, status, score])
 }
@@ -570,12 +570,12 @@ enum UgcRightsStatus {
 }
 
 model UgcAsset {
-  id              String        @id @default(cuid())
+  id              String          @id @default(cuid())
   storeId         String
-  store           Store         @relation(fields: [storeId], references: [id])
+  store           Store           @relation(fields: [storeId], references: [id])
   socialMentionId String?
   customerId      String?
-  customer        Customer?     @relation(fields: [customerId], references: [id])
+  customer        Customer?       @relation(fields: [customerId], references: [id])
   creatorHandle   String?
   mediaUrl        String?
   mediaType       String?
@@ -584,8 +584,8 @@ model UgcAsset {
   rightsStatus    UgcRightsStatus @default(PENDING)
   approvedBy      String?
   approvedAt      DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([storeId, rightsStatus])
 }
@@ -597,21 +597,21 @@ enum AmbassadorStatus {
 }
 
 model Ambassador {
-  id              String          @id @default(cuid())
-  storeId         String
-  store           Store           @relation(fields: [storeId], references: [id])
-  customerId      String?
-  customer        Customer?       @relation(fields: [customerId], references: [id])
-  code            String
-  discountPct     Int             @default(10)
-  commissionPct   Int             @default(5)
-  status          AmbassadorStatus @default(PENDING)
-  totalReferrals  Int             @default(0)
-  totalEarnings   Decimal         @default(0) @db.Decimal(12, 2)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id             String           @id @default(cuid())
+  storeId        String
+  store          Store            @relation(fields: [storeId], references: [id])
+  customerId     String?
+  customer       Customer?        @relation(fields: [customerId], references: [id])
+  code           String
+  discountPct    Int              @default(10)
+  commissionPct  Int              @default(5)
+  status         AmbassadorStatus @default(PENDING)
+  totalReferrals Int              @default(0)
+  totalEarnings  Decimal          @default(0) @db.Decimal(12, 2)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  referralOrders  ReferralOrder[]
+  referralOrders ReferralOrder[]
 
   @@unique([storeId, code])
   @@index([storeId, status])
@@ -656,17 +656,17 @@ enum DmCampaignStatus {
 }
 
 model DmCampaign {
-  id              String           @id @default(cuid())
-  storeId         String
-  store           Store            @relation(fields: [storeId], references: [id])
-  campaignType    DmCampaignType
+  id               String           @id @default(cuid())
+  storeId          String
+  store            Store            @relation(fields: [storeId], references: [id])
+  campaignType     DmCampaignType
   audienceCriteria Json?
-  status          DmCampaignStatus @default(DRAFT)
-  scheduledAt     DateTime?
-  sentAt          DateTime?
-  metrics         Json?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  status           DmCampaignStatus @default(DRAFT)
+  scheduledAt      DateTime?
+  sentAt           DateTime?
+  metrics          Json?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@index([storeId, campaignType, status])
 }
@@ -695,18 +695,18 @@ enum CommentUnlockRewardType {
 }
 
 model CommentUnlockCampaign {
-  id            String                  @id @default(cuid())
-  storeId       String
-  store         Store                   @relation(fields: [storeId], references: [id])
-  keyword       String
-  rewardType    CommentUnlockRewardType @default(MESSAGE)
-  rewardValue   String?
-  message       String
-  referralAsk   String?
-  active        Boolean                 @default(true)
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
-  redemptions   CommentUnlockRedemption[]
+  id          String                    @id @default(cuid())
+  storeId     String
+  store       Store                     @relation(fields: [storeId], references: [id])
+  keyword     String
+  rewardType  CommentUnlockRewardType   @default(MESSAGE)
+  rewardValue String?
+  message     String
+  referralAsk String?
+  active      Boolean                   @default(true)
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  redemptions CommentUnlockRedemption[]
 
   @@unique([storeId, keyword])
   @@index([storeId, active])
@@ -719,16 +719,16 @@ enum CommentUnlockStatus {
 }
 
 model CommentUnlockRedemption {
-  id            String                @id @default(cuid())
-  campaignId    String
-  campaign      CommentUnlockCampaign @relation(fields: [campaignId], references: [id])
-  storeId       String
+  id             String                @id @default(cuid())
+  campaignId     String
+  campaign       CommentUnlockCampaign @relation(fields: [campaignId], references: [id])
+  storeId        String
   externalUserId String
-  username      String?
-  commentId     String?
-  status        CommentUnlockStatus   @default(PENDING)
-  createdAt     DateTime              @default(now())
-  sentAt        DateTime?
+  username       String?
+  commentId      String?
+  status         CommentUnlockStatus   @default(PENDING)
+  createdAt      DateTime              @default(now())
+  sentAt         DateTime?
 
   @@index([campaignId, status])
   @@index([storeId, externalUserId])
@@ -744,23 +744,23 @@ enum BrandDealStatus {
 }
 
 model BrandDeal {
-  id            String          @id @default(cuid())
-  storeId       String
-  store         Store           @relation(fields: [storeId], references: [id])
-  brandName     String
-  contactEmail  String?
-  value         Float?
-  status        BrandDealStatus @default(LEAD)
-  notes         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id           String          @id @default(cuid())
+  storeId      String
+  store        Store           @relation(fields: [storeId], references: [id])
+  brandName    String
+  contactEmail String?
+  value        Float?
+  status       BrandDealStatus @default(LEAD)
+  notes        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   @@index([storeId, status])
   @@index([storeId, createdAt])
 }
 
 model AuditLog {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
   actorId        String?
   actorEmail     String?
@@ -768,11 +768,148 @@ model AuditLog {
   resource       String
   resourceId     String?
   details        String?
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
 
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actor          User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, createdAt])
   @@index([organizationId, action])
+}
+
+// ── intelligence (Unified Intelligence Layer) ────────────────────────────────
+
+enum ConfidenceLevel {
+  VERIFIED
+  PROBABLE
+  POSSIBLE
+  REJECTED
+}
+
+enum LinkStatus {
+  ACTIVE
+  PENDING
+  REVOKED
+}
+
+enum DataQualitySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DataQualityStatus {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+
+enum MetricSnapshotStatus {
+  FRESH
+  STALE
+  MISSING
+}
+
+model Signal {
+  id               String   @id @default(cuid())
+  organizationId   String
+  storeId          String
+  eventType        String
+  schemaVersion    Int      @default(1)
+  subjectType      String
+  subjectId        String
+  stage            String?
+  relatedEntities  Json?
+  data             Json?
+  lineage          Json?
+  source           String
+  occurredAt       DateTime
+  ingestedAt       DateTime @default(now())
+  freshnessMs      Int?
+  qualityStatus    String?
+  quarantineReason String?
+  traceId          String?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, storeId, subjectType, subjectId])
+  @@index([storeId, eventType, ingestedAt])
+  @@index([organizationId, ingestedAt])
+}
+
+model EntityLink {
+  id               String          @id @default(cuid())
+  organizationId   String
+  storeId          String?
+  sourceType       String
+  sourceId         String
+  targetType       String
+  targetId         String
+  linkType         String
+  confidence       ConfidenceLevel
+  resolutionMethod String?
+  status           LinkStatus      @default(ACTIVE)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([organizationId, sourceType, sourceId])
+  @@index([organizationId, targetType, targetId])
+  @@index([storeId, confidence])
+}
+
+model DataQualityIssue {
+  id             String              @id @default(cuid())
+  organizationId String
+  storeId        String?
+  source         String
+  entityType     String?
+  entityId       String?
+  metricName     String?
+  severity       DataQualitySeverity
+  impact         String?
+  status         DataQualityStatus   @default(OPEN)
+  detectedAt     DateTime            @default(now())
+  resolvedAt     DateTime?
+
+  @@index([organizationId, status])
+  @@index([storeId, severity])
+}
+
+model MetricDefinition {
+  id             String   @id @default(cuid())
+  organizationId String?
+  name           String
+  displayName    String
+  description    String?
+  formula        String?
+  grain          String?
+  dimensions     String[]
+  source         String
+  freshnessSlaMs Int      @default(3600000)
+  owner          String?
+  version        Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  snapshots MetricSnapshot[]
+
+  @@unique([organizationId, name])
+}
+
+model MetricSnapshot {
+  id             String               @id @default(cuid())
+  definitionId   String
+  definition     MetricDefinition     @relation(fields: [definitionId], references: [id])
+  organizationId String
+  storeId        String?
+  value          Decimal?             @db.Decimal(12, 4)
+  dimensions     Json?
+  periodStart    DateTime
+  periodEnd      DateTime
+  status         MetricSnapshotStatus @default(MISSING)
+  sourceIds      String[]
+  computedAt     DateTime             @default(now())
+
+  @@index([organizationId, storeId, definitionId, computedAt])
+  @@index([definitionId, periodStart])
 }

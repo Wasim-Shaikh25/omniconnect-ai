@@ -237,14 +237,20 @@ All notable changes to **OmniConnect AI** are documented here.
   - New `/manifest.webmanifest` generated from `src/app/manifest.ts`.
   - Added `MobileNav` hamburger menu for small screens; desktop nav remains horizontal.
   - `AppHeader` updated to hide horizontal links on mobile and show the mobile menu toggle.
+- **TASK-351 — Unified Intelligence Layer Phase 1: Shared Context MVP** (spec `0033`):
+  - New Prisma models `Signal`, `EntityLink`, `DataQualityIssue`, `MetricDefinition`, `MetricSnapshot` + migration.
+  - New `intelligence` module with DDD layers: domain events (`SignalIngested`, `DataQualityIssueDetected`, `EntityLinked`), value types, repository ports.
+  - Signal ingestion subscribes to `MetaMessageReceived`, `MetaFollowReceived` (via `FirstTimeFollowerDetected`/`CustomerProfileUpdated`), `CouponGenerated`, `CouponDisabled`, `ProductsSynced`, `NewMessage`, `ConversationTakenOver`, `AIResumed`.
+  - Entity resolution with `VERIFIED`/`PROBABLE`/`POSSIBLE`/`REJECTED` confidence and manual `merge`/`split` workflows.
+  - Unified customer timeline grouped by journey stage; shared semantic metric service with freshness/SLA status; data-quality service for freshness/quality issues.
+  - Customer intelligence summary (next best action, risks, opportunities, preferred channel, linked entities) and cross-module deep links.
+  - UI widgets: `CustomerIntelligence` on `/customers/[customerId]`, `ConversationContext` on conversation detail, `DataQualityAlerts` + deep-link cards on `/dashboard`, profile link in `/inbox`.
+  - Validated end-to-end: signal/entity-link creation from events, summary/timeline/metrics/quality in a single Node script; `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### 🔨 In Progress
 
-- **TASK-350 — Unified Intelligence Layer (OmniConnect 2.0)** (spec `0033`):
-  - Added Spec 0033 and task file `TASK-350` covering the full strategy: signal/identity foundation,
-    semantic metrics, Today feed, Intelligence Panel, recommendations, action plans, goals,
-    predictions, learning, cross-module contracts, AI governance, testing, rollout, and risk mitigations.
-  - Backlog and validation-driven additions included; phased build order aligned with strategy.
+- **TASK-352 — Unified Intelligence Layer Phase 2: Intelligence Feed / Recommendations** (spec `0033`):
+  - Build on Phase 1 signals to add workspace "Today" feed, anomaly detection, predictive scoring, and actionable recommendations.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
 - Next: stabilize, harden, and address feedback from merged PRs.
 
