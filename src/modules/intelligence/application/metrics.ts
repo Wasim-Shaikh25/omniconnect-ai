@@ -209,6 +209,26 @@ export function makeMetricService(repo: MetricRepository, provider: MetricSource
         definitions.map((d) => this.getMetric(d.name, organizationId, null)),
       ).then((results) => results.filter((s): s is MetricSnapshotRecord => s !== null));
     },
+
+    async refreshMetric(name: string, organizationId: string, storeId: string | null = null): Promise<MetricSnapshotRecord | null> {
+      const definitions = await ensureDefinitions(repo);
+      const definition = definitions.find((d) => d.name === name);
+      if (!definition) return null;
+
+      const computed = await computeValue(name, provider, organizationId, storeId);
+      const status = snapshotStatus(new Date(), definition.freshnessSlaMs);
+      return repo.saveSnapshot({
+        definitionId: definition.id,
+        organizationId,
+        storeId,
+        value: computed.value,
+        dimensions: storeId ? { storeId } : null,
+        periodStart: computed.periodStart,
+        periodEnd: computed.periodEnd,
+        status,
+        sourceIds: computed.sourceIds,
+      });
+    },
   };
 }
 

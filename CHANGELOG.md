@@ -253,11 +253,18 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions `getIntelligenceFeedAction` and `dismissInsightAction`.
   - UI components `TodayFeed` + `IntelligencePanel` embedded on `/dashboard` and `/stores/[storeId]`, with severity badges, evidence drawer, and cross-module deep links.
   - Validated end-to-end with seeded signals; `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-353 — Unified Intelligence Layer Phase 3: Next Best Action & goals** (spec `0033`):
+  - Prisma models + migration for `Recommendation`, `ActionPlan`, `Decision`, `Outcome`, `Goal` with enums.
+  - Domain types/events and Prisma repositories for the new aggregates.
+  - `RecommendationService` maps open `BusinessInsight` records to ranked recommendations with risk tiers and action parameters.
+  - `DecisionPolicyService` (risk tier + role), `ActionPlanService`, `OutcomeService`, and `GoalService` (pacing against metric snapshots).
+  - `WorkspaceActionExecutor` adapter that invokes public services from `ecommerce`, `conversations`, and `growth` without cross-module internal imports.
+  - Server actions: `getRecommendationsAction`, `approveRecommendationAction`, `dismissRecommendationAction`, `executeActionPlanAction`, `getGoalsAction`, `createGoalAction`.
+  - UI components `RecommendationsPanel` + `GoalsPanel` wired into `/dashboard` and `/stores/[storeId]`.
+  - End-to-end validation: insight → recommendation → approved plan → executed action → outcome; `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### 🔨 In Progress
 
-- **TASK-353 — Unified Intelligence Layer Phase 3: Next Best Action & goals** (spec `0033`):
-  - Recommendations, action plans, decision policy, goal pacing, automation wizard, outcome tracking.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
 - Next: stabilize, harden, and address feedback from merged PRs.
 

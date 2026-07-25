@@ -1,5 +1,14 @@
 import { BaseDomainEvent } from "@/shared/kernel";
-import type { SignalRecord, DataQualityIssueRecord, BusinessInsightRecord } from "./types";
+import type {
+  SignalRecord,
+  DataQualityIssueRecord,
+  BusinessInsightRecord,
+  RecommendationRecord,
+  ActionPlanRecord,
+  DecisionRecord,
+  OutcomeRecord,
+  GoalRecord,
+} from "./types";
 
 export interface SignalIngestedPayload {
   signal: SignalRecord;
@@ -36,4 +45,63 @@ export interface BusinessInsightGeneratedPayload {
 
 export class BusinessInsightGenerated extends BaseDomainEvent<BusinessInsightGeneratedPayload> {
   readonly name = "BusinessInsightGenerated";
+}
+
+export interface RecommendationGeneratedPayload {
+  recommendation: RecommendationRecord;
+}
+
+export class RecommendationGenerated extends BaseDomainEvent<RecommendationGeneratedPayload> {
+  readonly name = "RecommendationGenerated";
+}
+
+export interface RecommendationAcceptedPayload {
+  recommendation: RecommendationRecord;
+  actionPlan: ActionPlanRecord;
+}
+
+export class RecommendationAccepted extends BaseDomainEvent<RecommendationAcceptedPayload> {
+  readonly name = "RecommendationAccepted";
+}
+
+export interface RecommendationDismissedPayload {
+  recommendationId: string;
+}
+
+export class RecommendationDismissed extends BaseDomainEvent<RecommendationDismissedPayload> {
+  readonly name = "RecommendationDismissed";
+}
+
+export interface ActionPlanApprovedPayload {
+  actionPlan: ActionPlanRecord;
+  decision: DecisionRecord;
+}
+
+export class ActionPlanApproved extends BaseDomainEvent<ActionPlanApprovedPayload> {
+  readonly name = "ActionPlanApproved";
+}
+
+export interface ActionPlanExecutedPayload {
+  actionPlan: ActionPlanRecord;
+  outcome: OutcomeRecord;
+}
+
+export class ActionPlanExecuted extends BaseDomainEvent<ActionPlanExecutedPayload> {
+  readonly name = "ActionPlanExecuted";
+}
+
+export interface OutcomeMeasuredPayload {
+  outcome: OutcomeRecord;
+}
+
+export class OutcomeMeasured extends BaseDomainEvent<OutcomeMeasuredPayload> {
+  readonly name = "OutcomeMeasured";
+}
+
+export interface GoalPacingChangedPayload {
+  goal: GoalRecord;
+}
+
+export class GoalPacingChanged extends BaseDomainEvent<GoalPacingChangedPayload> {
+  readonly name = "GoalPacingChanged";
 }

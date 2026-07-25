@@ -955,3 +955,156 @@ model BusinessInsight {
   @@index([organizationId, status, generatedAt])
   @@index([organizationId, storeId, type, status])
 }
+
+// ── intelligence: recommendations, action plans, decisions, outcomes, goals ──
+
+enum RecommendationStatus {
+  PROPOSED
+  ACCEPTED
+  EDITED
+  DISMISSED
+  SNOOZED
+  EXPIRED
+}
+
+enum RiskTier {
+  TIER_1
+  TIER_2
+  TIER_3
+  TIER_4
+}
+
+enum ActionPlanStatus {
+  DRAFT
+  APPROVED
+  EXECUTED
+  FAILED
+  STOPPED
+}
+
+enum DecisionType {
+  APPROVED
+  EDITED
+  ASSIGNED
+  SNOOZED
+  REJECTED
+  EXPIRED
+}
+
+enum OutcomeStatus {
+  PENDING
+  SUCCESS
+  PARTIAL
+  FAILURE
+  ABORTED
+}
+
+enum GoalStatus {
+  ACTIVE
+  PAUSED
+  ACHIEVED
+  MISSED
+  ABANDONED
+}
+
+model Recommendation {
+  id              String               @id @default(cuid())
+  organizationId  String
+  storeId         String?
+  insightId       String?
+  title           String
+  description     String
+  objective       String?
+  reasonCodes     String[]
+  impactRange     Json?
+  confidence      Float?
+  effort          String?
+  urgency         String?
+  riskTier        RiskTier
+  eligibility     Json?
+  status          RecommendationStatus @default(PROPOSED)
+  actionType      String
+  actionParams    Json?
+  deepLink        String?
+  generatedAt     DateTime             @default(now())
+  dismissedAt     DateTime?
+  snoozedUntil    DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([organizationId, status, generatedAt])
+  @@index([organizationId, storeId, status, riskTier])
+}
+
+model ActionPlan {
+  id               String            @id @default(cuid())
+  organizationId   String
+  storeId          String?
+  recommendationId String?
+  title            String
+  steps            Json?
+  targetMetric     String?
+  expectedImpact   Json?
+  status           ActionPlanStatus  @default(DRAFT)
+  approvedBy       String?
+  executedAt       DateTime?
+  stoppedAt        DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([organizationId, storeId, status, createdAt])
+}
+
+model Decision {
+  id               String       @id @default(cuid())
+  organizationId   String
+  actionPlanId     String
+  recommendationId String?
+  decisionType     DecisionType
+  reason           String?
+  decidedBy        String
+  decidedAt        DateTime     @default(now())
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([organizationId, actionPlanId])
+}
+
+model Outcome {
+  id                    String        @id @default(cuid())
+  organizationId        String
+  storeId               String?
+  actionPlanId          String
+  metricName            String?
+  beforeValue           Float?
+  afterValue            Float?
+  observationWindowDays Int           @default(7)
+  measuredAt            DateTime?
+  status                OutcomeStatus @default(PENDING)
+  attribution           String?
+  confidence            Float?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([organizationId, storeId, actionPlanId])
+}
+
+model Goal {
+  id            String     @id @default(cuid())
+  organizationId String
+  storeId       String?
+  name          String
+  targetMetric  String
+  baseline      Float?
+  target        Float?
+  startDate     DateTime
+  endDate       DateTime?
+  ownerUserId   String?
+  pacing        Json?
+  status        GoalStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([organizationId, status, endDate])
+  @@index([organizationId, storeId, targetMetric, status])
+}

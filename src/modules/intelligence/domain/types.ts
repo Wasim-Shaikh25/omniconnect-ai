@@ -159,3 +159,117 @@ export interface BusinessInsightRecord {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type RecommendationStatus = "PROPOSED" | "ACCEPTED" | "EDITED" | "DISMISSED" | "SNOOZED" | "EXPIRED";
+
+export type RiskTier = "TIER_1" | "TIER_2" | "TIER_3" | "TIER_4";
+
+export type ActionPlanStatus = "DRAFT" | "APPROVED" | "EXECUTED" | "FAILED" | "STOPPED";
+
+export type DecisionType = "APPROVED" | "EDITED" | "ASSIGNED" | "SNOOZED" | "REJECTED" | "EXPIRED";
+
+export type OutcomeStatus = "PENDING" | "SUCCESS" | "PARTIAL" | "FAILURE" | "ABORTED";
+
+export type GoalStatus = "ACTIVE" | "PAUSED" | "ACHIEVED" | "MISSED" | "ABANDONED";
+
+export interface RecommendationImpactRange {
+  min: number;
+  max: number;
+  unit?: string;
+}
+
+export interface RecommendationRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  insightId: string | null;
+  title: string;
+  description: string;
+  objective: string | null;
+  reasonCodes: string[];
+  impactRange: RecommendationImpactRange | null;
+  confidence: number | null;
+  effort: string | null;
+  urgency: string | null;
+  riskTier: RiskTier;
+  eligibility: unknown;
+  status: RecommendationStatus;
+  actionType: string;
+  actionParams: unknown;
+  deepLink: string | null;
+  generatedAt: Date;
+  dismissedAt: Date | null;
+  snoozedUntil: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ActionPlanRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  recommendationId: string | null;
+  title: string;
+  steps: unknown;
+  targetMetric: string | null;
+  expectedImpact: RecommendationImpactRange | null;
+  status: ActionPlanStatus;
+  approvedBy: string | null;
+  executedAt: Date | null;
+  stoppedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DecisionRecord {
+  id: string;
+  organizationId: string;
+  actionPlanId: string;
+  recommendationId: string | null;
+  decisionType: DecisionType;
+  reason: string | null;
+  decidedBy: string;
+  decidedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OutcomeRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  actionPlanId: string;
+  metricName: string | null;
+  beforeValue: number | null;
+  afterValue: number | null;
+  observationWindowDays: number;
+  measuredAt: Date | null;
+  status: OutcomeStatus;
+  attribution: string | null;
+  confidence: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GoalPacing {
+  current: number;
+  projected: number;
+  onTrack: boolean;
+}
+
+export interface GoalRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  name: string;
+  targetMetric: string;
+  baseline: number | null;
+  target: number | null;
+  startDate: Date;
+  endDate: Date | null;
+  ownerUserId: string | null;
+  pacing: GoalPacing | null;
+  status: GoalStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}

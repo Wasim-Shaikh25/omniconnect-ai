@@ -1,7 +1,8 @@
 import { organizationQueries } from "@/modules/organizations";
-import { ecommerceQueries } from "@/modules/ecommerce";
-import { conversationQueries } from "@/modules/conversations";
+import { ecommerceQueries, generateCoupon } from "@/modules/ecommerce";
+import { conversationQueries, conversationCommands } from "@/modules/conversations";
 import { crmQueries } from "@/modules/crm";
+import { growthService } from "@/modules/growth";
 import { makeSignalIngestionService } from "../application/signal-ingestion";
 import { makeEntityResolutionService } from "../application/entity-resolution";
 import { makeTimelineService } from "../application/timeline";
@@ -11,12 +12,23 @@ import { makeCustomerSummaryService } from "../application/customer-summary";
 import type { MetricSourceProvider } from "../application/metrics";
 import { makeDetectionService } from "../application/detection";
 import { makeIntelligenceFeed } from "../application/intelligence-feed";
+import { makeRecommendationService } from "../application/recommendation";
+import { makeActionPlanService } from "../application/action-plan";
+import { makeDecisionPolicyService } from "../application/decision-policy";
+import { makeOutcomeService } from "../application/outcome";
+import { makeGoalService } from "../application/goal";
+import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
   PrismaEntityLinkRepository,
   PrismaDataQualityRepository,
   PrismaMetricRepository,
   PrismaBusinessInsightRepository,
+  PrismaRecommendationRepository,
+  PrismaActionPlanRepository,
+  PrismaDecisionRepository,
+  PrismaOutcomeRepository,
+  PrismaGoalRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -24,6 +36,11 @@ const links = new PrismaEntityLinkRepository();
 const issues = new PrismaDataQualityRepository();
 const metrics = new PrismaMetricRepository();
 const insights = new PrismaBusinessInsightRepository();
+const recommendations = new PrismaRecommendationRepository();
+const actionPlans = new PrismaActionPlanRepository();
+const decisions = new PrismaDecisionRepository();
+const outcomes = new PrismaOutcomeRepository();
+const goals = new PrismaGoalRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
@@ -77,4 +94,24 @@ export const detectionService = makeDetectionService({
 });
 export const intelligenceFeedService = makeIntelligenceFeed({ insights });
 
-export { signals, links, issues, metrics, insights };
+const actionExecutor = makeWorkspaceActionExecutor({
+  generateCoupon,
+  takeOverConversation: conversationCommands.takeOver,
+  createDmCampaign: growthService.createDmCampaign,
+});
+
+export const recommendationService = makeRecommendationService({ insights, recommendations });
+export const decisionPolicyService = makeDecisionPolicyService({ executor: actionExecutor });
+export const outcomeService = makeOutcomeService({ outcomes });
+export const actionPlanService = makeActionPlanService({
+  actionPlans,
+  recommendations,
+  decisions,
+  outcomeService,
+  executor: actionExecutor,
+  policy: decisionPolicyService,
+  metrics: metricService,
+});
+export const goalService = makeGoalService({ goals, metrics: metricService });
+
+export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals };

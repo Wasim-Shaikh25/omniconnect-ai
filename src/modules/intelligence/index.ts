@@ -17,6 +17,10 @@ export type {
   CustomerIntelligenceSummary,
   BusinessInsightRecord,
   BusinessInsightEvidence,
+  RecommendationRecord,
+  ActionPlanRecord,
+  OutcomeRecord,
+  GoalRecord,
   JourneyStage,
   ConfidenceLevel,
   LinkStatus,
@@ -26,6 +30,11 @@ export type {
   InsightType,
   InsightSeverity,
   InsightStatus,
+  RecommendationStatus,
+  ActionPlanStatus,
+  OutcomeStatus,
+  GoalStatus,
+  RiskTier,
 } from "./domain/types";
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
@@ -40,6 +49,11 @@ export {
   customerSummaryService,
   detectionService,
   intelligenceFeedService,
+  recommendationService,
+  actionPlanService,
+  decisionPolicyService,
+  outcomeService,
+  goalService,
 } from "./infrastructure/container";
 
 export {
@@ -49,6 +63,12 @@ export {
   getMetricAction,
   getIntelligenceFeedAction,
   dismissInsightAction,
+  getRecommendationsAction,
+  approveRecommendationAction,
+  executeActionPlanAction,
+  dismissRecommendationAction,
+  getGoalsAction,
+  createGoalAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";
