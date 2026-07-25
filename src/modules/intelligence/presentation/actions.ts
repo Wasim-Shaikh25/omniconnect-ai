@@ -11,6 +11,8 @@ import {
   entityResolutionService,
   dataQualityService,
   metricService,
+  detectionService,
+  intelligenceFeedService,
 } from "../infrastructure/container";
 
 export interface IntelligenceActionState {
@@ -114,6 +116,40 @@ export async function getMetricAction(formData: FormData) {
 
   const snapshot = await metricService.getMetric(name, organizationId, storeId ?? null);
   return { snapshot };
+}
+
+export async function getIntelligenceFeedAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { insights: [] };
+  const organizationId = user.organizationId;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { insights: [] };
+  }
+
+  const storeIds = storeId
+    ? [storeId]
+    : (await organizationQueries.getOrganizationOverview(organizationId))?.stores.map((s) => s.id) ?? [];
+
+  await Promise.all(storeIds.map((id) => detectionService.analyzeStore(organizationId, id)));
+
+  const insights = await intelligenceFeedService.getFeed(organizationId, storeId, 20);
+  return { insights };
+}
+
+export async function dismissInsightAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const parsed = z.object({ insightId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  const insight = await intelligenceFeedService.dismiss(parsed.data.insightId);
+  if (!insight || insight.organizationId !== user.organizationId) return;
+
+  revalidatePath("/dashboard");
+  if (insight.storeId) revalidatePath(`/stores/${insight.storeId}`);
 }
 
 export async function mergeEntityAction(formData: FormData): Promise<void> {

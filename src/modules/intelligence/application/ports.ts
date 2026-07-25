@@ -4,11 +4,15 @@ import type {
   DataQualityIssueRecord,
   MetricDefinitionRecord,
   MetricSnapshotRecord,
+  BusinessInsightRecord,
   ConfidenceLevel,
   LinkStatus,
   DataQualityStatus,
   DataQualitySeverity,
   MetricSnapshotStatus,
+  InsightType,
+  InsightSeverity,
+  InsightStatus,
 } from "../domain/types";
 
 export interface SignalRepository {
@@ -77,4 +81,11 @@ export interface MetricRepository {
   ): Promise<MetricSnapshotRecord | null>;
 }
 
-export type { SignalRecord, EntityLinkRecord, DataQualityIssueRecord, MetricDefinitionRecord, MetricSnapshotRecord, ConfidenceLevel, LinkStatus, DataQualityStatus, DataQualitySeverity, MetricSnapshotStatus };
+export interface BusinessInsightRepository {
+  save(insight: Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt">): Promise<BusinessInsightRecord>;
+  listOpen(organizationId: string, storeId?: string, limit?: number): Promise<BusinessInsightRecord[]>;
+  findById(id: string): Promise<BusinessInsightRecord | null>;
+  updateStatus(id: string, status: InsightStatus): Promise<BusinessInsightRecord>;
+}
+
+export type { SignalRecord, EntityLinkRecord, DataQualityIssueRecord, MetricDefinitionRecord, MetricSnapshotRecord, BusinessInsightRecord, ConfidenceLevel, LinkStatus, DataQualityStatus, DataQualitySeverity, MetricSnapshotStatus, InsightType, InsightSeverity, InsightStatus };

@@ -4,6 +4,7 @@ import type { ElementType } from "react";
 import { getCurrentUser } from "@/modules/auth";
 import { analyticsQueries } from "@/modules/analytics";
 import { DataQualityAlerts } from "@/components/data-quality-alerts";
+import { IntelligencePanel } from "@/components/intelligence-panel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -106,6 +107,10 @@ export default async function DashboardPage() {
           href="/business-brain"
         />
       </div>
+
+      <section className="mb-8">
+        <IntelligencePanel />
+      </section>
 
       <section className="mb-8 grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2">

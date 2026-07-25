@@ -5,6 +5,7 @@ import type {
   EntityLinkRepository,
   DataQualityRepository,
   MetricRepository,
+  BusinessInsightRepository,
 } from "../application/ports";
 import type {
   SignalRecord,
@@ -12,6 +13,7 @@ import type {
   DataQualityIssueRecord,
   MetricDefinitionRecord,
   MetricSnapshotRecord,
+  BusinessInsightRecord,
 } from "../domain/types";
 
 type StoredSignal = {
@@ -357,5 +359,66 @@ export class PrismaMetricRepository implements MetricRepository {
       orderBy: { computedAt: "desc" },
     });
     return row ? toMetricSnapshotRecord(row as StoredMetricSnapshot) : null;
+  }
+}
+
+type StoredBusinessInsight = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  type: BusinessInsightRecord["type"];
+  severity: BusinessInsightRecord["severity"];
+  status: BusinessInsightRecord["status"];
+  title: string;
+  description: string;
+  evidence: unknown;
+  deepLink: string | null;
+  generatedAt: Date;
+  dismissedAt: Date | null;
+  snoozedUntil: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toInsightRecord(row: StoredBusinessInsight): BusinessInsightRecord {
+  const evidence =
+    typeof row.evidence === "object" && row.evidence !== null
+      ? (row.evidence as BusinessInsightRecord["evidence"])
+      : null;
+  return { ...row, evidence };
+}
+
+export class PrismaBusinessInsightRepository implements BusinessInsightRepository {
+  async save(insight: Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt">): Promise<BusinessInsightRecord> {
+    const created = await prisma.businessInsight.create({
+      data: insight as unknown as Prisma.BusinessInsightCreateInput,
+    });
+    return toInsightRecord(created as StoredBusinessInsight);
+  }
+
+  async listOpen(organizationId: string, storeId?: string, limit = 50): Promise<BusinessInsightRecord[]> {
+    const rows = await prisma.businessInsight.findMany({
+      where: {
+        organizationId,
+        status: "OPEN",
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: [{ severity: "desc" }, { generatedAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => toInsightRecord(r as StoredBusinessInsight));
+  }
+
+  async findById(id: string): Promise<BusinessInsightRecord | null> {
+    const row = await prisma.businessInsight.findUnique({ where: { id } });
+    return row ? toInsightRecord(row as StoredBusinessInsight) : null;
+  }
+
+  async updateStatus(id: string, status: BusinessInsightRecord["status"]): Promise<BusinessInsightRecord> {
+    const data: Prisma.BusinessInsightUpdateInput = { status };
+    if (status === "DISMISSED") data.dismissedAt = new Date();
+    if (status !== "SNOOZED") data.snoozedUntil = null;
+    const updated = await prisma.businessInsight.update({ where: { id }, data });
+    return toInsightRecord(updated as StoredBusinessInsight);
   }
 }

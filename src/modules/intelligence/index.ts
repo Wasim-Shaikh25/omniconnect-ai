@@ -15,12 +15,17 @@ export type {
   MetricSnapshotRecord,
   TimelineEvent,
   CustomerIntelligenceSummary,
+  BusinessInsightRecord,
+  BusinessInsightEvidence,
   JourneyStage,
   ConfidenceLevel,
   LinkStatus,
   DataQualitySeverity,
   DataQualityStatus,
   MetricSnapshotStatus,
+  InsightType,
+  InsightSeverity,
+  InsightStatus,
 } from "./domain/types";
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
@@ -33,6 +38,8 @@ export {
   metricService,
   dataQualityService,
   customerSummaryService,
+  detectionService,
+  intelligenceFeedService,
 } from "./infrastructure/container";
 
 export {
@@ -40,6 +47,8 @@ export {
   getCustomerIntelligenceAction,
   getDataQualityIssuesAction,
   getMetricAction,
+  getIntelligenceFeedAction,
+  dismissInsightAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";

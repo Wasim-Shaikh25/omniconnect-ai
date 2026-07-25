@@ -913,3 +913,45 @@ model MetricSnapshot {
   @@index([organizationId, storeId, definitionId, computedAt])
   @@index([definitionId, periodStart])
 }
+
+enum InsightType {
+  ANOMALY
+  OPPORTUNITY
+  RISK
+  INFO
+}
+
+enum InsightSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum InsightStatus {
+  OPEN
+  DISMISSED
+  SNOOZED
+  RESOLVED
+}
+
+model BusinessInsight {
+  id             String          @id @default(cuid())
+  organizationId String
+  storeId        String?
+  type           InsightType
+  severity       InsightSeverity
+  status         InsightStatus   @default(OPEN)
+  title          String
+  description    String
+  evidence       Json?
+  deepLink       String?
+  generatedAt    DateTime        @default(now())
+  dismissedAt    DateTime?
+  snoozedUntil   DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([organizationId, status, generatedAt])
+  @@index([organizationId, storeId, type, status])
+}
