@@ -10,6 +10,9 @@ export interface MetricSourceProvider {
   getCouponCount(storeId: string): Promise<number>;
   getProductCount(storeId: string): Promise<number>;
   getLastMessageAt(storeId: string): Promise<Date | null>;
+  getRevenue(storeId: string, days: number): Promise<number>;
+  getOrderCount(storeId: string, days: number): Promise<number>;
+  getAverageOrderValue(storeId: string, days: number): Promise<number>;
 }
 
 const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt" | "updatedAt">> = [
@@ -75,6 +78,45 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     dimensions: ["store"],
     source: "conversations",
     freshnessSlaMs: 600_000,
+    owner: "intelligence",
+    version: 1,
+  },
+  {
+    organizationId: null,
+    name: "revenue_7d",
+    displayName: "Revenue (7d)",
+    description: "Trailing 7-day revenue from completed orders.",
+    formula: "sum(Order.total where createdAt within 7 days)",
+    grain: "daily",
+    dimensions: ["store"],
+    source: "ecommerce",
+    freshnessSlaMs: 300_000,
+    owner: "intelligence",
+    version: 1,
+  },
+  {
+    organizationId: null,
+    name: "order_count_7d",
+    displayName: "Orders (7d)",
+    description: "Trailing 7-day order count.",
+    formula: "count(Order where createdAt within 7 days)",
+    grain: "daily",
+    dimensions: ["store"],
+    source: "ecommerce",
+    freshnessSlaMs: 300_000,
+    owner: "intelligence",
+    version: 1,
+  },
+  {
+    organizationId: null,
+    name: "aov_7d",
+    displayName: "AOV (7d)",
+    description: "Trailing 7-day average order value.",
+    formula: "revenue_7d / order_count_7d",
+    grain: "daily",
+    dimensions: ["store"],
+    source: "ecommerce",
+    freshnessSlaMs: 300_000,
     owner: "intelligence",
     version: 1,
   },
@@ -161,6 +203,47 @@ async function computeValue(
       sourceIds: stores.map((s) => s.id),
       periodStart: valid[0],
       periodEnd: valid[valid.length - 1],
+    };
+  }
+
+  if (name === "revenue_7d") {
+    const values = await Promise.all(stores.map((s) => provider.getRevenue(s.id, 7)));
+    const periodStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const periodEnd = new Date();
+    return {
+      value: values.reduce((a, b) => a + b, 0),
+      sourceIds: stores.map((s) => s.id),
+      periodStart,
+      periodEnd,
+    };
+  }
+
+  if (name === "order_count_7d") {
+    const values = await Promise.all(stores.map((s) => provider.getOrderCount(s.id, 7)));
+    const periodStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const periodEnd = new Date();
+    return {
+      value: values.reduce((a, b) => a + b, 0),
+      sourceIds: stores.map((s) => s.id),
+      periodStart,
+      periodEnd,
+    };
+  }
+
+  if (name === "aov_7d") {
+    const [revenues, counts] = await Promise.all([
+      Promise.all(stores.map((s) => provider.getRevenue(s.id, 7))),
+      Promise.all(stores.map((s) => provider.getOrderCount(s.id, 7))),
+    ]);
+    const totalRevenue = revenues.reduce((a, b) => a + b, 0);
+    const totalOrders = counts.reduce((a, b) => a + b, 0);
+    const periodStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const periodEnd = new Date();
+    return {
+      value: totalOrders > 0 ? Math.round((totalRevenue / totalOrders) * 100) / 100 : 0,
+      sourceIds: stores.map((s) => s.id),
+      periodStart,
+      periodEnd,
     };
   }
 

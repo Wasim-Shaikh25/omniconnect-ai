@@ -5,6 +5,7 @@ import type { CrmQueries } from "@/modules/crm";
 import type { SignalRepository, MetricRepository, BusinessInsightRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
+import { makeDiagnosisService } from "./diagnosis";
 
 interface SignalSummary {
   id: string;
@@ -28,6 +29,7 @@ export interface DetectionServiceInput {
 
 export function makeDetectionService(input: DetectionServiceInput) {
   const now = input.now ?? new Date();
+  const diagnosisService = makeDiagnosisService({ ecommerce: input.ecommerce, now });
 
   async function recentSignals(
     organizationId: string,
@@ -249,6 +251,20 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
+  async function detectRevenueDecline(organizationId: string, storeId: string) {
+    const insight = await diagnosisService.diagnoseRevenue(organizationId, storeId);
+    if (!insight) return;
+
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    const alreadyExists = openInsights.some((i) =>
+      i.title.toLowerCase().includes("revenue declined") ||
+      i.title.toLowerCase().includes("revenue recovered"),
+    );
+    if (alreadyExists) return;
+
+    await emit(insight);
+  }
+
   async function detectStaleMetrics(organizationId: string, storeId: string) {
     const definitions = await input.metrics.listDefinitions(organizationId);
     for (const definition of definitions) {
@@ -284,6 +300,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
         await detectNoOrders(organizationId, storeId);
         await detectHighIntentConversation(organizationId, storeId);
         await detectProductAvailabilityAndDemand(organizationId, storeId);
+        await detectRevenueDecline(organizationId, storeId);
         await detectStaleFollowers(organizationId, storeId);
         await detectStaleMetrics(organizationId, storeId);
       }
@@ -293,6 +310,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
       await detectNoOrders(organizationId, storeId);
       await detectHighIntentConversation(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);
+      await detectRevenueDecline(organizationId, storeId);
       await detectStaleFollowers(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },

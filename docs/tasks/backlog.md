@@ -65,3 +65,5 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 
 - [x] **TASK-360** Product Availability & Demand Mismatch — spec: `0036`
   - Detect out-of-stock/low-stock products mentioned in conversations and recommend an alternative-product DM campaign; `ProductInventory` signals, `ALTERNATIVE_PRODUCT` `DmCampaign` type, end-to-end validation.
+- [x] **TASK-361** Revenue Decline & Funnel Diagnosis — spec: `0037`
+  - Trailing-7-day revenue metrics, orders × AOV decomposition, new/repeat mix, product-availability driver, and insight-driven recommendations; end-to-end validation.

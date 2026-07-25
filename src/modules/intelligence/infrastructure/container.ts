@@ -94,6 +94,25 @@ const metricProvider: MetricSourceProvider = {
     }
     return latest;
   },
+  getRevenue: async (storeId: string, days: number) => {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const orders = await ecommerceQueries.listOrders(storeId, 500);
+    return orders
+      .filter((o) => new Date(o.createdAt) >= cutoff)
+      .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  },
+  getOrderCount: async (storeId: string, days: number) => {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const orders = await ecommerceQueries.listOrders(storeId, 500);
+    return orders.filter((o) => new Date(o.createdAt) >= cutoff).length;
+  },
+  getAverageOrderValue: async (storeId: string, days: number) => {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const orders = await ecommerceQueries.listOrders(storeId, 500);
+    const recent = orders.filter((o) => new Date(o.createdAt) >= cutoff);
+    if (recent.length === 0) return 0;
+    return recent.reduce((sum, o) => sum + (Number(o.total) || 0), 0) / recent.length;
+  },
 };
 
 export const signalIngestionService = makeSignalIngestionService(signals);
