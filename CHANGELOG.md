@@ -347,6 +347,20 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions `formatAiResponseAction`, `validateToolCallAction`, `validateWorkflowAction`.
   - End-to-end validation (`scripts/verify-task366.ts`) covers response contract, trust language, tool allowlist, risk tiers, sanitization, and workflow acceptance.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-367 — Testing, Rollout, and Risk Mitigations** (spec `0043`):
+  - Added `QualityAssuranceService` with `runAll` / `runCategory` covering data, intelligence, AI, action, and UAT checks.
+  - Data checks cover schema compatibility, freshness/staleness, event lineage, and entity resolution merge/split.
+  - Intelligence checks cover known-scenario detection, revenue driver decomposition, recommendation deduplication, and ranking stability.
+  - AI checks cover uncertainty language, prompt-injection resistance, tool allowlist, permission boundaries, and trust language.
+  - Action checks cover approval rules, idempotent execution, and outcome linkage.
+  - UAT scenarios cover data-failure handling, campaign risk gates, and high-value customer entity linkage.
+  - Added `RolloutService` with SHADOW/INTERNAL/PILOT/BETA/GA gates, environment/risk-tier checks, and rollback controls.
+  - Added `RiskMitigationRegistry` with tracked failure modes, mitigations, owners, and status.
+  - UI pages `/settings/quality` and `/settings/rollout` plus links on `/settings`.
+  - Client-safe barrel `src/modules/intelligence/client.ts` re-exports the new actions and types without pulling server-only dependencies into the browser bundle.
+  - Server actions `runQualityChecksAction`, `getRolloutGatesAction`, `setRolloutGateAction`, `getRiskMitigationsAction`.
+  - End-to-end validation (`scripts/verify-task367.ts`) confirmed `QualityAssuranceService` PASS, default rollout gates disabled, and risk mitigations present.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -359,10 +373,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-364 (Goal-based Automation Templates and Guardrails) completed.
 - TASK-365 (KPIs and Operating Rhythm) completed.
 - TASK-366 (AI Governance, Trust, and Workflow Acceptance) completed.
+- TASK-367 (Testing, Rollout, and Risk Mitigations) completed.
 
 ### 🔨 In Progress
 
-- Remaining TASK-350 subtasks: testing/rollout/risk mitigations (110–116) and operating model/30-day plan items (117–125).
+- Remaining TASK-350 subtasks: operating model/30-day plan items (117–125) and validation-driven additions (126–139).
 
 ### ⏭️ Next (proposed build order)
 

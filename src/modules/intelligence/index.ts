@@ -83,6 +83,9 @@ export {
   goalAutomationService,
   kpiService,
   aiGovernanceService,
+  qualityAssuranceService,
+  rolloutService,
+  riskMitigationRegistry,
 } from "./infrastructure/container";
 
 export {
@@ -118,8 +121,15 @@ export {
   formatAiResponseAction,
   validateToolCallAction,
   validateWorkflowAction,
+  runQualityChecksAction,
+  getRolloutGatesAction,
+  setRolloutGateAction,
+  getRiskMitigationsAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";
 
 export type { IntelligenceActionState } from "./presentation/actions";
+export type { QualityReport, QualityCheck } from "./application/quality-assurance";
+export type { RolloutGate, RolloutMode } from "./application/rollout";
+export type { RiskMitigation } from "./application/risk-mitigations";

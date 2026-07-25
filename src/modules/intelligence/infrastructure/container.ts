@@ -13,6 +13,7 @@ import { makeDataQualityService } from "../application/data-quality";
 import { makeCustomerSummaryService } from "../application/customer-summary";
 import type { MetricSourceProvider } from "../application/metrics";
 import { makeDetectionService } from "../application/detection";
+import { makeDiagnosisService } from "../application/diagnosis";
 import { makeIntelligenceFeed } from "../application/intelligence-feed";
 import { makeRecommendationService } from "../application/recommendation";
 import { makeActionPlanService } from "../application/action-plan";
@@ -30,6 +31,9 @@ import { makeProactiveNotificationService } from "../application/proactive-notif
 import { makeGoalAutomationService } from "../application/goal-automation";
 import { makeKpiService } from "../application/kpi";
 import { makeAiGovernanceService } from "../application/ai-governance";
+import { makeQualityAssuranceService } from "../application/quality-assurance";
+import { makeRolloutService } from "../application/rollout";
+import { makeRiskMitigationRegistry } from "../application/risk-mitigations";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -130,6 +134,7 @@ export const timelineService = makeTimelineService(signals, links);
 export const metricService = makeMetricService(metrics, metricProvider);
 export const dataQualityService = makeDataQualityService(issues, metrics);
 export const customerSummaryService = makeCustomerSummaryService();
+export const diagnosisService = makeDiagnosisService({ ecommerce: ecommerceQueries });
 export const detectionService = makeDetectionService({
   signals,
   insights,
@@ -207,5 +212,23 @@ export const proactiveNotificationService = makeProactiveNotificationService({
 });
 export const kpiService = makeKpiService({ kpis });
 export const aiGovernanceService = makeAiGovernanceService();
+export const qualityAssuranceService = makeQualityAssuranceService({
+  signals,
+  signalIngestion: signalIngestionService,
+  links,
+  entityResolution: entityResolutionService,
+  metrics: metricService,
+  detection: detectionService,
+  diagnosis: diagnosisService,
+  insights,
+  recommendations: recommendationService,
+  recommendationRepo: recommendations,
+  actionExecutor,
+  aiGovernance: aiGovernanceService,
+  outcomes: outcomeService,
+  outcomeRepo: outcomes,
+});
+export const rolloutService = makeRolloutService();
+export const riskMitigationRegistry = makeRiskMitigationRegistry();
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };
