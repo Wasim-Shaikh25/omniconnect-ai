@@ -418,7 +418,9 @@ All notable changes to **OmniConnect AI** are documented here.
     - Competitor benchmark (`getCompetitorBenchmark`) computes post frequency, Reel ratio, hook/caption length, engagement, top hashtags, and consistency, and produces actionable adaptation suggestions.
     - `CompetitorChangeDetected` and `CompetitorBenchmarkReady` domain events published from `analytics`.
     - Competitor page displays benchmark panel with recommendations.
-  - Remaining: reusable workflow cards, `verify-task371.ts`.
+    - Reusable workflow cards extracted: `WorkflowCard`, `BriefSectionCard`, `ProductPromotionCard`, `DmOpportunityCard`, `CommentInsightCard`, `CompetitorAlertCard`, `TrendingHashtagCard`, `BestTimeCard`, `FollowerLinkCard`.
+    - Daily Marketing, Engagement, Growth, and Revenue pages refactored to use shared card components.
+  - Remaining: `verify-task371.ts` end-to-end validation.
 
 ### ⏭️ Next (proposed build order)
 

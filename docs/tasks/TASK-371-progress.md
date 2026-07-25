@@ -67,6 +67,7 @@ Status legend:
 - [x] Navigation reorganized around Daily Marketing, Engagement, Growth, Revenue (route + tabs added).
 - [x] `/business-brain` rebranded as Marketing Brain.
 - [x] Daily Marketing dashboard surfaces all brief sections.
+- [x] Reusable workflow cards extracted (`WorkflowCard`, `BriefSectionCard`, `ProductPromotionCard`, `DmOpportunityCard`, `CommentInsightCard`, `CompetitorAlertCard`, `TrendingHashtagCard`, `BestTimeCard`, `FollowerLinkCard`).
 - [x] Existing module pages reachable via workflow entry pages (aliases/redirects can be added later).
 
 ---

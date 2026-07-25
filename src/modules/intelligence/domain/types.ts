@@ -386,6 +386,25 @@ export interface ProductScoreRecord {
   evidence: string;
 }
 
+export interface ConversationPattern {
+  category: string;
+  frequency: number;
+  samplePhrases: string[];
+}
+
+export interface TrendingHashtag {
+  tag: string;
+  postCount: number;
+  engagement: number;
+}
+
+export interface CompetitorChange {
+  trackedAccountId: string;
+  handle: string;
+  changeType: string;
+  detectedAt: Date;
+}
+
 export interface MarketingMemoryRecord {
   organizationId: string;
   storeId: string;
@@ -393,12 +412,12 @@ export interface MarketingMemoryRecord {
   followerCount: number;
   productScores: ProductScoreRecord[];
   topPerformingPosts: { id: string; title: string; engagement: number }[];
-  dmPatterns: { category: string; frequency: number; samplePhrases: string[] }[];
-  commentPatterns: { category: string; frequency: number; samplePhrases: string[] }[];
-  trendingHashtags: { tag: string; postCount: number; engagement: number }[];
+  dmPatterns: ConversationPattern[];
+  commentPatterns: ConversationPattern[];
+  trendingHashtags: TrendingHashtag[];
   winningPostingTimes: { dayOfWeek: string; hour: number; engagementScore: number }[];
   customerObjections: { phrase: string; frequency: number }[];
-  competitorChanges: { trackedAccountId: string; handle: string; changeType: string; detectedAt: Date }[];
+  competitorChanges: CompetitorChange[];
   campaignHistory: { campaignId: string; name: string; outcome: string }[];
 }
 

@@ -54,7 +54,7 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 - [x] 23. Build Daily Marketing dashboard with Today’s Brief, Products To Push, DM Insights, Comment Insights, Followers, Best Time To Post, Competitor Changes, Trending Hashtags, Content Next Best Action.
 - [x] 24. Create `/engagement`, `/growth`, `/revenue` workflow entry pages linking existing module pages.
 - [x] 25. Rebrand `/business-brain` as Marketing Brain.
-- [ ] 26. Add reusable cards (`ProductPromotionCard`, `CompetitorAlertCard`, `DmOpportunityCard`, `BriefSection`) — current dashboard uses inline cards; extract later as data matures.
+- [x] 26. Add reusable cards (`WorkflowCard`, `BriefSectionCard`, `ProductPromotionCard`, `CompetitorAlertCard`, `DmOpportunityCard`, `CommentInsightCard`, `TrendingHashtagCard`, `BestTimeCard`, `FollowerLinkCard`).
 
 ### Cleanup / Verification
 - [x] 27. Update `intelligence/index.ts` and `ai/index.ts` public barrels to expose new contracts.

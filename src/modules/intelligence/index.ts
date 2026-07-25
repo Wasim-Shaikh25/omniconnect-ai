@@ -48,6 +48,9 @@ export type {
   MarketingMemoryRecord,
   DailyBriefRecord,
   DailyBriefSection,
+  ConversationPattern,
+  TrendingHashtag,
+  CompetitorChange,
 } from "./domain/types";
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
