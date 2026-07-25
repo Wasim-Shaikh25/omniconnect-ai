@@ -80,6 +80,18 @@ export class PrismaConversationRepository implements ConversationRepository {
     return rows.map(toRecord);
   }
 
+  async listByStoreIds(
+    storeIds: string[],
+    limit = 100,
+  ): Promise<ConversationRecord[]> {
+    const rows = await prisma.conversation.findMany({
+      where: { storeId: { in: storeIds } },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+    });
+    return rows.map(toRecord);
+  }
+
   async findById(id: string): Promise<ConversationRecord | null> {
     const found = await prisma.conversation.findUnique({ where: { id } });
     return found ? toRecord(found) : null;

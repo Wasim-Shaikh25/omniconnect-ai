@@ -25,16 +25,23 @@ export type {
 } from "./application/ports";
 export type { ConversationCommands } from "./application/commands";
 export type { ConversationDetail, ConversationQueries } from "./application/queries";
+export type {
+  InboxItem,
+  UnifiedInboxFilter,
+  GetUnifiedInbox,
+} from "./application/unified-inbox";
 
 // Queries + commands (composed)
 export {
   conversationCommands,
   conversationQueries,
+  unifiedInboxQueries,
 } from "./infrastructure/container";
 
 // Presentation
 export {
   takeOverConversationAction,
   resumeAIConversationAction,
+  getUnifiedInboxAction,
 } from "./presentation/actions";
 export type { ConversationActionState } from "./presentation/actions";

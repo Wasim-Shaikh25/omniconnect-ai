@@ -57,6 +57,23 @@ export class PrismaMessageRepository implements MessageRepository {
     return rows.map(toRecord);
   }
 
+  async listLatestByConversationIds(
+    conversationIds: string[],
+  ): Promise<Record<string, MessageRecord>> {
+    if (conversationIds.length === 0) return {};
+    const rows = await prisma.message.findMany({
+      where: { conversationId: { in: conversationIds } },
+      orderBy: { createdAt: "desc" },
+    });
+    const latest: Record<string, MessageRecord> = {};
+    for (const row of rows) {
+      if (!latest[row.conversationId]) {
+        latest[row.conversationId] = toRecord(row);
+      }
+    }
+    return latest;
+  }
+
   countByConversation(conversationId: string): Promise<number> {
     return prisma.message.count({ where: { conversationId } });
   }

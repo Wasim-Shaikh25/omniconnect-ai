@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/modules/auth";
+import { getCurrentUser, requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
-import { conversationCommands } from "../infrastructure/container";
+import { conversationCommands, unifiedInboxQueries } from "../infrastructure/container";
+import type { UnifiedInboxFilter } from "../application/unified-inbox";
 
 export interface ConversationActionState {
   error?: string;
@@ -21,6 +22,13 @@ async function assertStoreInOrg(
     organizationId,
   );
   return overview?.stores.some((s) => s.id === storeId) ?? false;
+}
+
+export async function getUnifiedInboxAction(filter?: UnifiedInboxFilter) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { items: [] };
+  const items = await unifiedInboxQueries(user.organizationId, filter);
+  return { items };
 }
 
 const takeoverSchema = z.object({
@@ -50,6 +58,7 @@ export async function takeOverConversationAction(
     humanUserId: user.id,
   });
 
+  revalidatePath("/inbox");
   revalidatePath(`/stores/${storeId}/conversations`);
   revalidatePath(`/stores/${storeId}/conversations/${conversationId}`);
   return { ok: true, message: "Conversation taken over." };
@@ -74,6 +83,7 @@ export async function resumeAIConversationAction(
 
   await conversationCommands.resumeAI(conversationId);
 
+  revalidatePath("/inbox");
   revalidatePath(`/stores/${storeId}/conversations`);
   revalidatePath(`/stores/${storeId}/conversations/${conversationId}`);
   return { ok: true, message: "AI resumed." };
