@@ -13,9 +13,9 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 ## Subtasks
 
 ### Content Intelligence
-- [~] 1. `ai.generatePostIdeas` consumes Marketing Memory (products, DM/comment themes, trending hashtags, daily brief). Still need competitor posts, own best posts, and analytics integration.
+- [~] 1. `ai.generatePostIdeas` consumes Marketing Memory (products, DM/comment themes, trending hashtags, daily brief) and returns grounding evidence. Still need competitor posts, own best posts, and analytics integration.
 - [ ] 2. `content` exposes `generateContentIdeas(input)` and publishes `ContentIdeasGenerated`.
-- [ ] 3. Every content idea includes grounding evidence (data source + why it was recommended).
+- [x] 3. Every content idea result includes grounding evidence (signals that influenced the recommendation).
 
 ### Analytics Loop
 - [ ] 4. Reorganize analytics around marketing: Content, Audience, Product, Campaign.

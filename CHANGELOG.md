@@ -410,9 +410,10 @@ All notable changes to **OmniConnect AI** are documented here.
     - New `generateDailyBrief()` builds a daily marketing brief with sections, content idea, recommended product, best posting time, trending hashtags, and priorities.
     - `ai.askBusinessBrain` now consumes `MarketingMemory` and `DailyBriefRecord` when a store is selected; prompt persona rebranded to Marketing Brain and includes top products, DM/comment patterns, and today's brief.
     - PII redaction for pattern samples.
-    - `ai.generatePostIdeas` now consumes `MarketingMemory` and the daily brief to ground content ideas in top products, DM/comment themes, and trending hashtags.
+    - `ai.generatePostIdeas` now consumes `MarketingMemory` and the daily brief to ground content ideas in top products, DM/comment themes, and trending hashtags, and returns an `evidence` string.
+    - `ContentStudioForms` displays a "Why these ideas" panel with the memory signals that influenced the suggestions.
     - Product promotion scores are now displayed in `/stores/[storeId]/commerce/catalog` via `listCommerceCatalogAction`, which consumes `updateMarketingMemory()`.
-  - Remaining: Content Studio UI evidence panel, analytics loop, full competitor benchmarking, reusable workflow cards, `verify-task371.ts`.
+  - Remaining: analytics loop, full competitor benchmarking, reusable workflow cards, `verify-task371.ts`.
 
 ### ⏭️ Next (proposed build order)
 

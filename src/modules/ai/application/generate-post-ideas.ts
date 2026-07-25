@@ -20,8 +20,13 @@ export interface GeneratePostIdeasInput {
   organizationId?: string;
 }
 
+export interface GeneratePostIdeasResult {
+  ideas: TrendIdea[];
+  evidence: string;
+}
+
 export interface GeneratePostIdeas {
-  (input: GeneratePostIdeasInput): Promise<TrendIdea[]>;
+  (input: GeneratePostIdeasInput): Promise<GeneratePostIdeasResult>;
 }
 
 export interface MarketingMemoryPort {
@@ -36,7 +41,7 @@ export function makeGeneratePostIdeas(deps: {
   aiConfigurationRepository: AIConfigurationRepository;
   marketingMemory?: MarketingMemoryPort;
 }): GeneratePostIdeas {
-  return async function generatePostIdeas(input): Promise<TrendIdea[]> {
+  return async function generatePostIdeas(input): Promise<GeneratePostIdeasResult> {
     const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const count = Math.min(Math.max(input.count ?? 3, 1), 10);
@@ -98,6 +103,8 @@ Trending hashtags from mentions: ${trendingHashtags}
 ${brief ? `Today's brief: ${brief.priorities.join("; ")}. Content idea: ${brief.contentIdea ?? "none"}` : ""}
 Generate content ideas that follow the same vibe, tie to the brand's current marketing priorities, and are original for our brand.`;
 
+    const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
+
     const raw = await deps.aiProvider.complete(
       [
         { role: "system", content: system },
@@ -109,14 +116,15 @@ Generate content ideas that follow the same vibe, tie to the brand's current mar
     try {
       const parsed = JSON.parse(raw) as unknown;
       if (!Array.isArray(parsed)) {
-        return [parseSingleIdea(raw, input.mediaType)];
+        return { ideas: [parseSingleIdea(raw, input.mediaType)], evidence };
       }
-      return parsed
+      const ideas = parsed
         .map((item) => parseIdea(item, input.mediaType))
         .filter((t): t is TrendIdea => t !== null)
         .slice(0, count);
+      return { ideas, evidence };
     } catch {
-      return [parseSingleIdea(raw, input.mediaType)];
+      return { ideas: [parseSingleIdea(raw, input.mediaType)], evidence };
     }
   };
 }

@@ -30,6 +30,7 @@ export interface GenerateTrendsState {
 export interface GeneratePostIdeasState {
   error?: string;
   trends?: TrendIdea[];
+  evidence?: string;
 }
 
 /** Ensures the current user's organization owns the target store. */
@@ -203,7 +204,7 @@ export async function generatePostIdeasAction(
     : [];
 
   try {
-    const trends = await generatePostIdeas({
+    const { ideas, evidence } = await generatePostIdeas({
       storeId: parsed.data.storeId,
       organizationId: user.organizationId ?? undefined,
       caption: parsed.data.caption ?? null,
@@ -218,7 +219,7 @@ export async function generatePostIdeasAction(
       ownerUsername: parsed.data.ownerUsername ?? null,
       count: parsed.data.count,
     });
-    return { trends };
+    return { trends: ideas, evidence };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not generate ideas" };
   }

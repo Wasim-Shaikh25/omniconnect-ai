@@ -24,34 +24,41 @@ function IdeaResults({ state }: { state: GeneratePostIdeasState }) {
   if (!state.trends || state.trends.length === 0) return null;
 
   return (
-    <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {state.trends.map((idea, i) => (
-        <Card key={i}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">{idea.title}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              <span className="font-medium">Format:</span> {idea.format}
-            </p>
-            <p>
-              <span className="font-medium">Hook:</span> {idea.hook}
-            </p>
-            <p className="text-muted-foreground">{idea.description}</p>
-            <p className="text-muted-foreground">
-              <span className="font-medium">Why it works:</span> {idea.whyItWorks}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {idea.hashtags.slice(0, 8).join(" ")}
-            </p>
-            <div className="flex justify-between text-xs">
-              <span>Score: {formatScore(idea.predictedEngagementScore)}</span>
-              <span>{idea.bestTimeToPost}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">CTA: {idea.cta}</p>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="mt-4 space-y-4">
+      {state.evidence && (
+        <div className="rounded-md border bg-muted/50 p-3 text-xs text-muted-foreground">
+          <span className="font-medium">Why these ideas:</span> {state.evidence}
+        </div>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {state.trends.map((idea, i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">{idea.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p>
+                <span className="font-medium">Format:</span> {idea.format}
+              </p>
+              <p>
+                <span className="font-medium">Hook:</span> {idea.hook}
+              </p>
+              <p className="text-muted-foreground">{idea.description}</p>
+              <p className="text-muted-foreground">
+                <span className="font-medium">Why it works:</span> {idea.whyItWorks}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {idea.hashtags.slice(0, 8).join(" ")}
+              </p>
+              <div className="flex justify-between text-xs">
+                <span>Score: {formatScore(idea.predictedEngagementScore)}</span>
+                <span>{idea.bestTimeToPost}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">CTA: {idea.cta}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
