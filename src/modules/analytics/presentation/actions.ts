@@ -10,9 +10,15 @@ import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
 import { getMarketingPerformance, getCompetitorBenchmark } from "../infrastructure/container";
+import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
 
 const trackedAccountRepository = new PrismaTrackedAccountRepository();
+
+const getWorkspaceCompetitorComparison = makeGetWorkspaceCompetitorComparison({
+  trackedAccounts: trackedAccountRepository,
+  getAccountMedia: metaService.getAccountMedia.bind(metaService),
+});
 
 export interface TrackCompetitorState {
   error?: string;
@@ -364,5 +370,39 @@ export async function getCompetitorBenchmarkAction(
     return { benchmark };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not load competitor benchmark" };
+  }
+}
+
+export interface WorkspaceCompetitorComparisonState {
+  error?: string;
+  comparison?: Awaited<ReturnType<typeof getWorkspaceCompetitorComparison>>;
+}
+
+export async function getWorkspaceCompetitorComparisonAction(
+  _prev: WorkspaceCompetitorComparisonState,
+  formData: FormData,
+): Promise<WorkspaceCompetitorComparisonState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = competitorBenchmarkSchema.safeParse({
+    storeId: formData.get("storeId"),
+    accountId: formData.get("accountId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+  if (!user.organizationId) return { error: "Organization not found." };
+
+  try {
+    const comparison = await getWorkspaceCompetitorComparison({
+      organizationId: user.organizationId,
+      storeId: parsed.data.storeId,
+      accountId: parsed.data.accountId,
+    });
+    if (!comparison) return { error: "Competitor not found or no media available." };
+    return { comparison };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load workspace comparison" };
   }
 }

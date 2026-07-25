@@ -194,6 +194,7 @@ New fields proposed:
 - [~] Content Studio generates ideas with grounding evidence (DM, comment, product, trend, and daily brief via `content.generateContentIdeasAction`); competitor/own posts and campaign analytics integration remain.
 - [~] Analytics has Content / Audience / Product / Campaign marketing dimensions (`getMarketingPerformance` + `/analytics` dashboard); full attribution/post-to-order loop remains.
 - [x] Competitor Analysis detects changes and produces benchmark gaps with actionable suggestions.
+- [x] Workspace vs competitor side-by-side comparison (`getWorkspaceCompetitorComparison` + UI).
 - [x] Repeated DM questions produce a `DmPatternDetected` insight and at least one campaign recommendation.
 - [x] Repeated comment objections produce a `CommentPatternDetected` insight and update product/campaign strategy.
 - [x] Each product has promotion scores and an explanation.

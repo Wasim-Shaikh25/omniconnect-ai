@@ -48,12 +48,12 @@ Status legend:
 
 ### 9. Inbox should generate insights automatically
 - [x] One DM theme creates product insight, marketing insight, content idea, and surfaces on Daily Marketing dashboard.
-- [ ] Auto-generate campaign suggestions / business alerts from patterns.
+- [x] Auto-generate campaign suggestions / business alerts from patterns (DM/comment patterns generate `CREATE_DM_CAMPAIGN` recommendations and `DmPatternDetected`/`CommentPatternDetected` events).
 
 ### 10. Competitor Intelligence should benchmark
 - [x] Competitor posting frequency, Reel frequency, hook/caption length, engagement, top hashtags, and consistency computed in `getCompetitorBenchmark`.
 - [x] Gap → recommendation mapping implemented (posting frequency, Reel ratio, hook length, engagement, top hashtags).
-- [ ] Workspace vs competitor side-by-side comparison needs workspace media metrics.
+- [x] Workspace vs competitor side-by-side comparison implemented (`getWorkspaceCompetitorComparison` + `ComparisonPanel` UI).
 
 ### 11. AI should explain marketing
 - [~] AI prompt now includes top products, DM/comment patterns, and today's brief. Full post-performance explanation (hook retention, caption length, etc.) needs media metrics.

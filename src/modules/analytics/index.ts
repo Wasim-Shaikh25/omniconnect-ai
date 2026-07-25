@@ -18,7 +18,8 @@ export type {
 } from "./application/queries";
 export type { MarketingPerformanceView } from "./domain/types";
 export type { GetMarketingPerformance } from "./application/marketing-analytics";
-export type { CompetitorBenchmark, GetCompetitorBenchmark } from "./application/competitor-benchmark";
+export type { CompetitorBenchmark, GetCompetitorBenchmark, WorkspaceCompetitorComparison, GetWorkspaceCompetitorComparison } from "./application/competitor-benchmark";
+
 export {
   MarketingPerformanceUpdated,
   CompetitorChangeDetected,
@@ -36,6 +37,7 @@ export {
   discoverCompetitorsAction,
   getMarketingPerformanceAction,
   getCompetitorBenchmarkAction,
+  getWorkspaceCompetitorComparisonAction,
 } from "./presentation/actions";
 export type {
   TrackCompetitorState,
@@ -45,4 +47,5 @@ export type {
   DiscoverCompetitorsState,
   MarketingPerformanceState,
   CompetitorBenchmarkState,
+  WorkspaceCompetitorComparisonState,
 } from "./presentation/actions";

@@ -21,6 +21,30 @@ export interface CompetitorBenchmark {
   suggestions: string[];
 }
 
+export interface WorkspaceCompetitorComparison {
+  accountId: string;
+  handle: string;
+  workspace: {
+    postCount: number;
+    postsPerWeek: number;
+    reelRatio: number;
+    avgHookLength: number;
+    avgCaptionLength: number;
+    avgEngagement: number;
+    topHashtags: string[];
+  };
+  competitor: {
+    postCount: number;
+    postsPerWeek: number;
+    reelRatio: number;
+    avgHookLength: number;
+    avgCaptionLength: number;
+    avgEngagement: number;
+    topHashtags: string[];
+  };
+  gaps: string[];
+}
+
 function daysBetween(a: Date, b: Date): number {
   const ms = Math.abs(a.getTime() - b.getTime());
   return ms / (1000 * 60 * 60 * 24);
@@ -172,3 +196,107 @@ export function makeGetCompetitorBenchmark(deps: {
 }
 
 export type GetCompetitorBenchmark = ReturnType<typeof makeGetCompetitorBenchmark>;
+
+function workspaceMetricsFromMedia(posts: MetaMediaItem[]): WorkspaceCompetitorComparison["workspace"] {
+  const withDate = posts
+    .filter((p): p is MetaMediaItem & { publishedAt: Date } => p.publishedAt !== null)
+    .sort((a, b) => a.publishedAt.getTime() - b.publishedAt.getTime());
+
+  const postCount = posts.length;
+  const daysSpan =
+    withDate.length >= 2 ? daysBetween(withDate[0].publishedAt, withDate[withDate.length - 1].publishedAt) : 0;
+  const postsPerWeek = daysSpan > 0 ? (postCount / daysSpan) * 7 : 0;
+
+  const reelCount = posts.filter((p) => p.mediaType === "REEL").length;
+  const reelRatio = postCount > 0 ? reelCount / postCount : 0;
+
+  const hooks = posts.map((p) => firstLine(p.caption));
+  const avgHookLength = postCount > 0 ? hooks.reduce((sum, h) => sum + h.length, 0) / postCount : 0;
+  const avgCaptionLength =
+    postCount > 0 ? posts.reduce((sum, p) => sum + (p.caption?.length ?? 0), 0) / postCount : 0;
+
+  const totalLikes = posts.reduce((sum, p) => sum + (p.metrics.likes ?? 0), 0);
+  const totalComments = posts.reduce((sum, p) => sum + (p.metrics.comments ?? 0), 0);
+  const avgEngagement = postCount > 0 ? (totalLikes + totalComments) / postCount : 0;
+
+  const hashtagCounts: Record<string, number> = {};
+  for (const p of posts) {
+    for (const h of p.hashtags) {
+      hashtagCounts[h] = (hashtagCounts[h] ?? 0) + 1;
+    }
+  }
+  const topHashtags = Object.entries(hashtagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([tag]) => tag);
+
+  return {
+    postCount,
+    postsPerWeek: Math.round(postsPerWeek * 10) / 10,
+    reelRatio: Math.round(reelRatio * 100),
+    avgHookLength: Math.round(avgHookLength),
+    avgCaptionLength: Math.round(avgCaptionLength),
+    avgEngagement: Math.round(avgEngagement),
+    topHashtags,
+  };
+}
+
+function comparisonGaps(workspace: WorkspaceCompetitorComparison["workspace"], competitor: WorkspaceCompetitorComparison["competitor"]): string[] {
+  const gaps: string[] = [];
+  if (workspace.postsPerWeek < competitor.postsPerWeek * 0.8) {
+    gaps.push(`You post ${workspace.postsPerWeek}/week vs competitor ${competitor.postsPerWeek}/week — increase frequency.`);
+  }
+  if (workspace.reelRatio < competitor.reelRatio * 0.8) {
+    gaps.push(`Your Reel ratio is ${workspace.reelRatio}% vs competitor ${competitor.reelRatio}% — add more Reels.`);
+  }
+  if (workspace.avgHookLength > competitor.avgHookLength * 1.5) {
+    gaps.push(`Your hooks average ${workspace.avgHookLength} chars vs competitor ${competitor.avgHookLength} — try shorter openers.`);
+  }
+  if (workspace.avgEngagement < competitor.avgEngagement * 0.8) {
+    gaps.push(`Your engagement per post is ${workspace.avgEngagement} vs competitor ${competitor.avgEngagement} — test stronger CTAs and replies.`);
+  }
+  if (workspace.topHashtags.length === 0 && competitor.topHashtags.length > 0) {
+    gaps.push(`Competitor is using ${competitor.topHashtags.slice(0, 5).map((h) => `#${h}`).join(", ")}; review your hashtag strategy.`);
+  }
+  if (gaps.length === 0) {
+    gaps.push("Your page is competitive on these metrics. Keep testing new content formats to stay ahead.");
+  }
+  return gaps;
+}
+
+export interface GetWorkspaceCompetitorComparisonInput {
+  organizationId: string;
+  storeId: string;
+  accountId: string;
+}
+
+export function makeGetWorkspaceCompetitorComparison(deps: {
+  trackedAccounts: TrackedAccountRepository;
+  getAccountMedia: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
+}) {
+  return async function getWorkspaceCompetitorComparison(
+    input: GetWorkspaceCompetitorComparisonInput,
+  ): Promise<WorkspaceCompetitorComparison | null> {
+    const account = await deps.trackedAccounts.findById(input.accountId);
+    if (!account || account.storeId !== input.storeId) return null;
+
+    const [workspacePosts, competitorPosts] = await Promise.all([
+      deps.getAccountMedia(input.storeId, 25),
+      Promise.resolve((account.lastMedia as MetaMediaItem[] | null) ?? []),
+    ]);
+
+    const workspace = workspaceMetricsFromMedia(workspacePosts);
+    const competitor = workspaceMetricsFromMedia(competitorPosts);
+    const gaps = comparisonGaps(workspace, competitor);
+
+    return {
+      accountId: account.id,
+      handle: account.handle,
+      workspace,
+      competitor,
+      gaps,
+    };
+  };
+}
+
+export type GetWorkspaceCompetitorComparison = ReturnType<typeof makeGetWorkspaceCompetitorComparison>;
