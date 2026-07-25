@@ -9,7 +9,10 @@ import { generateReply } from "./container";
 const onNewMessage: EventHandler = async (event) => {
   const p = event.payload as NewMessagePayload;
   try {
-    await generateReply(p.conversationId);
+    await generateReply({
+      conversationId: p.conversationId,
+      externalUserId: p.externalUserId,
+    });
   } catch (error) {
     logger.error("ai.generateReply.failed", {
       conversationId: p.conversationId,

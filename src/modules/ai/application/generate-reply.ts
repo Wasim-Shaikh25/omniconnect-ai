@@ -1,7 +1,12 @@
 import type { EventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import type { CrmQueries, CustomerProfile } from "@/modules/crm";
-import type { ConversationCommands, ConversationQueries, MessageRecord, MessageSender } from "@/modules/conversations";
+import type {
+  ConversationCommands,
+  ConversationQueries,
+  MessageRecord,
+  MessageSender,
+} from "@/modules/conversations";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { MetaService } from "@/modules/meta";
 import { EscalationRequested, ReplyGenerated } from "../domain/events";
@@ -26,16 +31,39 @@ export interface GenerateReplyDeps {
   eventBus: EventBus;
 }
 
+export interface GenerateReplyInput {
+  conversationId: string;
+  externalUserId: string;
+}
+
 function toMessageRole(sender: MessageSender): "user" | "assistant" {
   return sender === "AI" ? "assistant" : "user";
 }
 
-function formatCoupons(profile: CustomerProfile | null, storeCoupons: { code: string; discountPct: number; status: string; expiresAt: Date | null }[]): string {
+function isCouponActive(coupon: {
+  status: string;
+  expiresAt: Date | null;
+}): boolean {
+  if (coupon.status !== "ACTIVE") return false;
+  if (!coupon.expiresAt) return true;
+  return coupon.expiresAt.getTime() > Date.now();
+}
+
+function formatCoupons(
+  profile: CustomerProfile | null,
+  storeCoupons: {
+    code: string;
+    discountPct: number;
+    status: string;
+    expiresAt: Date | null;
+  }[],
+): string {
+  const activeStoreCoupons = storeCoupons.filter(isCouponActive);
   const sent = profile?.coupons ?? [];
   const lines: string[] = [];
-  if (storeCoupons.length) {
+  if (activeStoreCoupons.length) {
     lines.push("Active store coupons:");
-    for (const c of storeCoupons) {
+    for (const c of activeStoreCoupons) {
       lines.push(`- ${c.code}: ${c.discountPct}% off`);
     }
   }
@@ -48,11 +76,19 @@ function formatCoupons(profile: CustomerProfile | null, storeCoupons: { code: st
   return lines.join("\n") || "No coupons available.";
 }
 
-function formatProducts(products: { title: string; price: number | null; currency: string | null; inventory: number | null }[]): string {
+function formatProducts(
+  products: {
+    title: string;
+    price: number | null;
+    currency: string | null;
+    inventory: number | null;
+  }[],
+): string {
   if (!products.length) return "No products in catalog.";
   return products
     .map((p) => {
-      const price = p.price !== null ? `${p.currency ?? "$"}${p.price.toFixed(2)}` : "—";
+      const price =
+        p.price !== null ? `${p.currency ?? "$"}${p.price.toFixed(2)}` : "—";
       const stock = p.inventory !== null ? ` (${p.inventory} in stock)` : "";
       return `- ${p.title}: ${price}${stock}`;
     })
@@ -62,19 +98,33 @@ function formatProducts(products: { title: string; price: number | null; currenc
 function formatMemory(profile: CustomerProfile | null): string {
   if (!profile) return "No prior customer memory.";
   const lines = ["Customer profile:"];
-  if (profile.customer.username) lines.push(`- username: ${profile.customer.username}`);
-  if (profile.customer.tags.length) lines.push(`- tags: ${profile.customer.tags.join(", ")}`);
-  if (profile.customer.interests.length) lines.push(`- interests: ${profile.customer.interests.join(", ")}`);
+  if (profile.customer.username)
+    lines.push(`- username: ${profile.customer.username}`);
+  if (profile.customer.tags.length)
+    lines.push(`- tags: ${profile.customer.tags.join(", ")}`);
+  if (profile.customer.interests.length)
+    lines.push(`- interests: ${profile.customer.interests.join(", ")}`);
   const usedCoupons = profile.usages.map((u) => u.couponId);
-  if (usedCoupons.length) lines.push(`- coupons used: ${usedCoupons.join(", ")}`);
+  if (usedCoupons.length)
+    lines.push(`- coupons used: ${usedCoupons.join(", ")}`);
   return lines.join("\n");
 }
 
 function buildSystemPrompt(
   config: AIConfigurationRecord,
   profile: CustomerProfile | null,
-  products: { title: string; price: number | null; currency: string | null; inventory: number | null }[],
-  coupons: { code: string; discountPct: number; status: string; expiresAt: Date | null }[],
+  products: {
+    title: string;
+    price: number | null;
+    currency: string | null;
+    inventory: number | null;
+  }[],
+  coupons: {
+    code: string;
+    discountPct: number;
+    status: string;
+    expiresAt: Date | null;
+  }[],
 ): string {
   const sections = [
     config.systemPrompt,
@@ -96,10 +146,66 @@ function buildSystemPrompt(
   return sections.filter(Boolean).join("\n");
 }
 
+async function sendReply(
+  deps: GenerateReplyDeps,
+  input: {
+    conversationId: string;
+    storeId: string;
+    externalUserId: string;
+    text: string;
+    escalate: boolean;
+  },
+): Promise<void> {
+  if (input.escalate) {
+    await deps.conversationCommands.setHumanActive(input.conversationId);
+  } else {
+    await deps.conversationCommands.appendMessage(
+      input.conversationId,
+      "AI",
+      input.text,
+    );
+  }
+
+  try {
+    await deps.metaService.sendMessage({
+      storeId: input.storeId,
+      recipientId: input.externalUserId,
+      text: input.text,
+    });
+  } catch (error) {
+    logger.warn("ai.generateReply.sendMessageFailed", {
+      conversationId: input.conversationId,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+  }
+
+  if (input.escalate) {
+    await deps.eventBus.publish(
+      new EscalationRequested(input.conversationId, {
+        conversationId: input.conversationId,
+        storeId: input.storeId,
+        externalUserId: input.externalUserId,
+        reason: "AI escalation marker triggered",
+      }),
+    );
+  } else {
+    await deps.eventBus.publish(
+      new ReplyGenerated(input.conversationId, {
+        conversationId: input.conversationId,
+        storeId: input.storeId,
+        externalUserId: input.externalUserId,
+        text: input.text,
+      }),
+    );
+  }
+}
+
 export function makeGenerateReply(deps: GenerateReplyDeps) {
   return async function generateReply(
-    conversationId: string,
+    input: GenerateReplyInput,
   ): Promise<{ text: string; escalate: boolean }> {
+    const { conversationId, externalUserId } = input;
+
     const conversation = await deps.conversationQueries.getConversation(
       conversationId,
     );
@@ -114,11 +220,6 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
     }
 
     const storeId = meta.storeId;
-    const externalUserId = meta.externalId;
-    if (!externalUserId) {
-      logger.warn("ai.generateReply.noExternalId", { conversationId });
-      return { text: "", escalate: false };
-    }
 
     const [config, profile, products, coupons] = await Promise.all([
       deps.aiConfigurationRepository.getOrCreateDefault(storeId),
@@ -161,47 +262,9 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         ? "I'm connecting you with a human agent who will help you shortly."
         : "Thanks for your message!");
 
-    if (escalate) {
-      await deps.conversationCommands.setHumanActive(conversationId);
-      await deps.eventBus.publish(
-        new EscalationRequested(conversationId, {
-          conversationId,
-          storeId,
-          externalUserId,
-          reason: "AI escalation marker triggered",
-        }),
-      );
-      return { text, escalate: true };
-    }
+    await sendReply(deps, { conversationId, storeId, externalUserId, text, escalate });
 
-    await deps.conversationCommands.appendMessage(
-      conversationId,
-      "AI",
-      text,
-    );
-    await deps.eventBus.publish(
-      new ReplyGenerated(conversationId, {
-        conversationId,
-        storeId,
-        externalUserId,
-        text,
-      }),
-    );
-
-    try {
-      await deps.metaService.sendMessage({
-        storeId,
-        recipientId: externalUserId,
-        text,
-      });
-    } catch (error) {
-      logger.warn("ai.generateReply.sendMessageFailed", {
-        conversationId,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-    }
-
-    return { text, escalate: false };
+    return { text, escalate };
   };
 }
 
