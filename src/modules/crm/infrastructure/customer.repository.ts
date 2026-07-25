@@ -65,8 +65,8 @@ function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
 
-function emitProfileUpdated(record: CustomerRecord): void {
-  void eventBus.publish(
+async function emitProfileUpdated(record: CustomerRecord): Promise<void> {
+  await eventBus.publish(
     new CustomerProfileUpdated(record.id, {
       storeId: record.storeId,
       customerId: record.id,
@@ -160,7 +160,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
     });
 
     const record = toRecord(updated);
-    emitProfileUpdated(record);
+    await emitProfileUpdated(record);
     return record;
   }
 
@@ -181,7 +181,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
     });
 
     const record = toRecord(updated);
-    emitProfileUpdated(record);
+    await emitProfileUpdated(record);
     return record;
   }
 
@@ -211,7 +211,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
     });
 
     const record = toRecord(updated);
-    emitProfileUpdated(record);
+    await emitProfileUpdated(record);
     return record;
   }
 }

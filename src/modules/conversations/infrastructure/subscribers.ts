@@ -13,10 +13,13 @@ const messages = new PrismaMessageRepository();
 // barrel (erased at build time) — never meta internals.
 const onMetaMessageReceived: EventHandler = async (event) => {
   const p = event.payload as MetaMessageReceivedPayload;
+  // Key the conversation by the sender's external user id so the thread is
+  // stable across messages. The message id (externalConversationId) is not
+  // a stable thread key for live Meta messages.
   const conversation = await conversations.upsert({
     storeId: p.storeId,
     channel: p.channel,
-    externalId: p.externalConversationId ?? p.externalUserId,
+    externalId: p.externalUserId,
   });
   const message = await messages.append({
     conversationId: conversation.id,

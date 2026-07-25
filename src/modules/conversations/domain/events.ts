@@ -5,7 +5,7 @@ export interface NewMessagePayload {
   conversationId: string;
   storeId: string;
   channel: ConversationChannel;
-  externalUserId: string | null;
+  externalUserId: string;
   customerId: string | null;
   content: string;
 }

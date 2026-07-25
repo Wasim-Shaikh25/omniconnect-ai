@@ -28,7 +28,10 @@ export interface AIProvider {
 }
 
 export interface AssistantService {
-  generateReply(conversationId: string): Promise<{
+  generateReply(input: {
+    conversationId: string;
+    externalUserId: string;
+  }): Promise<{
     text: string;
     escalate: boolean;
   }>;

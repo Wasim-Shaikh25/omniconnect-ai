@@ -53,15 +53,12 @@ export class PrismaAIConfigurationRepository
   async getOrCreateDefault(
     storeId: string,
   ): Promise<AIConfigurationRecord> {
-    const existing = await prisma.aIConfiguration.findUnique({
+    const row = await prisma.aIConfiguration.upsert({
       where: { storeId },
+      update: {},
+      create: { storeId, ...DEFAULT_CONFIG },
     });
-    if (existing) return toRecord(existing);
-
-    const created = await prisma.aIConfiguration.create({
-      data: { storeId, ...DEFAULT_CONFIG },
-    });
-    return toRecord(created);
+    return toRecord(row);
   }
 
   async update(
