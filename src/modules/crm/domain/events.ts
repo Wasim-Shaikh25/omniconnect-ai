@@ -3,6 +3,7 @@ import { BaseDomainEvent } from "@/shared/kernel";
 export interface FirstTimeFollowerDetectedPayload {
   storeId: string;
   customerId: string;
+  followerId: string;
   channel: string;
   externalUserId: string;
   username: string | null;

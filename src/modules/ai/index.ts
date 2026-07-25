@@ -25,11 +25,17 @@ export type {
   AIProvider,
   AssistantService,
 } from "./application/ports";
+export type { GenerateWelcome } from "./application/generate-welcome";
 export { updateAIConfigSchema } from "./application/update-config";
 export type { UpdateAIConfigInput } from "./application/update-config";
 
 // Composition root
-export { aiQueries, generateReply, updateAIConfiguration } from "./infrastructure/container";
+export {
+  aiQueries,
+  generateReply,
+  generateWelcome,
+  updateAIConfiguration,
+} from "./infrastructure/container";
 
 // Presentation
 export { updateAIConfigurationAction } from "./presentation/actions";

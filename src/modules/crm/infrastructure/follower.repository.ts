@@ -11,6 +11,9 @@ type PrismaFollower = {
   igUserId: string | null;
   username: string | null;
   followedAt: Date;
+  couponId: string | null;
+  campaignEnrolledAt: Date | null;
+  welcomeMessageText: string | null;
 };
 
 function toRecord(f: PrismaFollower): FollowerRecord {
@@ -21,6 +24,9 @@ function toRecord(f: PrismaFollower): FollowerRecord {
     igUserId: f.igUserId,
     username: f.username,
     followedAt: f.followedAt,
+    couponId: f.couponId,
+    campaignEnrolledAt: f.campaignEnrolledAt,
+    welcomeMessageText: f.welcomeMessageText,
   };
 }
 
@@ -59,5 +65,21 @@ export class PrismaFollowerRepository implements FollowerRepository {
       take: limit,
     });
     return rows.map(toRecord);
+  }
+
+  async recordCampaignEnrollment(input: {
+    followerId: string;
+    couponId: string;
+    welcomeMessageText: string;
+  }): Promise<FollowerRecord> {
+    const updated = await prisma.follower.update({
+      where: { id: input.followerId },
+      data: {
+        couponId: input.couponId,
+        campaignEnrolledAt: new Date(),
+        welcomeMessageText: input.welcomeMessageText,
+      },
+    });
+    return toRecord(updated);
   }
 }

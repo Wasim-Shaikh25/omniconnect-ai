@@ -220,6 +220,22 @@ export default async function StoreDetailPage({
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>First-time follower campaign</CardTitle>
+            <CardDescription>
+              Auto-send a welcome coupon to new Instagram/Facebook followers.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/campaigns/first-follower`}>
+                Configure campaign
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         {isDev && canManage && (
           <Card>
             <CardHeader>

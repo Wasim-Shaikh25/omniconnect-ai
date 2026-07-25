@@ -28,6 +28,8 @@ export type {
 } from "./application/ports";
 
 export type { CrmQueries } from "./application/queries";
+export type { CrmCommands } from "./application/commands";
 
-// Queries (composed)
+// Commands + Queries (composed)
+export { crmCommands } from "./infrastructure/container";
 export { crmQueries } from "./infrastructure/container";

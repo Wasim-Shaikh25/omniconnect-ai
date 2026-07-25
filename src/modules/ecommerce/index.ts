@@ -17,7 +17,6 @@ export type {
   ConnectorCustomer,
   ConnectorDiscount,
   ConnectorCoupon,
-  GenerateCouponInput,
   StoreInfo,
 } from "./domain/connector";
 export {
@@ -44,7 +43,7 @@ export type {
 export { connectStoreSchema } from "./application/connect-store";
 export type { ConnectStoreInput } from "./application/connect-store";
 export { generateCouponSchema } from "./application/generate-coupon";
-export type { GenerateCouponInput as GenerateCouponCommand } from "./application/generate-coupon";
+export type { GenerateCouponInput } from "./application/generate-coupon";
 export type {
   IntegrationRecord,
   ProductRecord,

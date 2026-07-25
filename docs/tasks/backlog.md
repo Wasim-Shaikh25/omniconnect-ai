@@ -15,7 +15,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-050** Module 3 — Meta integration (webhooks, FB Pages + IG Business; crm + conversations consumers) — spec: `0003`
 - [x] **TASK-060** Module 6 — Customer Memory (CRM) — spec: `0006`
 - [x] **TASK-070** Module 4 — AI Customer Assistant (per-page prompts, provider interface) — spec: `0004`
-- [ ] **TASK-080** Module 5 — First-time follower campaign (event-driven) — spec: `0005`
+- [x] **TASK-080** Module 5 — First-time follower campaign (event-driven) — spec: `0005`
 - [ ] **TASK-090** Module 8 — Human takeover — spec: `0008`
 - [ ] **TASK-100** Module 9 — Notifications (in-app + email) — spec: `0009`
 - [ ] **TASK-110** Module 7 — Meta content intelligence, analytics dashboard + reports — spec: `0007`

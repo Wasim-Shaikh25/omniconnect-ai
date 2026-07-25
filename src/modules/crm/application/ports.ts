@@ -16,6 +16,9 @@ export interface FollowerRecord {
   igUserId: string | null;
   username: string | null;
   followedAt: Date;
+  couponId: string | null;
+  campaignEnrolledAt: Date | null;
+  welcomeMessageText: string | null;
 }
 
 export interface CustomerCouponRecord {
@@ -90,6 +93,12 @@ export interface FollowerRepository {
   }): Promise<{ record: FollowerRecord; isNew: boolean }>;
 
   listByStore(storeId: string, limit?: number): Promise<FollowerRecord[]>;
+
+  recordCampaignEnrollment(input: {
+    followerId: string;
+    couponId: string;
+    welcomeMessageText: string;
+  }): Promise<FollowerRecord>;
 }
 
 /** Public memory port consumed by the AI assistant. */

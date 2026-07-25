@@ -2,6 +2,7 @@ import { eventBus } from "@/shared/events";
 import { registerOrganizationSubscribers } from "@/modules/organizations/bootstrap";
 import { registerUsersSubscribers } from "@/modules/users/bootstrap";
 import { registerCrmSubscribers } from "@/modules/crm/bootstrap";
+import { registerCouponsBootstrap } from "@/modules/coupons/bootstrap";
 import { registerAiSubscribers } from "@/modules/ai/bootstrap";
 import { registerConversationsSubscribers } from "@/modules/conversations/bootstrap";
 
@@ -20,6 +21,7 @@ export function ensureSubscribers(): void {
   registerOrganizationSubscribers(eventBus);
   registerUsersSubscribers(eventBus);
   registerCrmSubscribers(eventBus);
+  registerCouponsBootstrap(eventBus);
   registerConversationsSubscribers(eventBus);
   registerAiSubscribers(eventBus);
 }

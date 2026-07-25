@@ -20,6 +20,7 @@ export const generateCouponSchema = z.object({
   discountPct: z.coerce.number().int().min(1).max(100),
   expiresAt: z.coerce.date().optional(),
   customerId: z.string().optional(),
+  pushToProvider: z.coerce.boolean().optional().default(true),
 });
 
 export type GenerateCouponInput = z.infer<typeof generateCouponSchema>;
@@ -33,21 +34,26 @@ export function makeGenerateCoupon(deps: {
   ): Promise<Result<CouponRecord, StoreNotConnectedError | ConnectorError>> {
     const input = generateCouponSchema.parse(raw);
 
-    let connector;
-    try {
-      connector = await deps.connectors.forStore(input.storeId);
-    } catch {
-      return err(new StoreNotConnectedError(input.storeId));
-    }
+    let provider: string | null = null;
+    if (input.pushToProvider) {
+      let connector;
+      try {
+        connector = await deps.connectors.forStore(input.storeId);
+      } catch {
+        return err(new StoreNotConnectedError(input.storeId));
+      }
 
-    try {
-      await connector.generateCoupon({
-        code: input.code,
-        discountPct: input.discountPct,
-        expiresAt: input.expiresAt ?? null,
-      });
-    } catch {
-      return err(new ConnectorError(connector.provider, "generateCoupon"));
+      provider = connector.provider;
+
+      try {
+        await connector.generateCoupon({
+          code: input.code,
+          discountPct: input.discountPct,
+          expiresAt: input.expiresAt ?? null,
+        });
+      } catch {
+        return err(new ConnectorError(provider, "generateCoupon"));
+      }
     }
 
     const coupon = await deps.coupons.create({
@@ -70,7 +76,7 @@ export function makeGenerateCoupon(deps: {
 
     logger.info("ecommerce.couponGenerated", {
       storeId: input.storeId,
-      provider: connector.provider,
+      provider,
       code: coupon.code,
     });
 

@@ -10,6 +10,15 @@ export function makeConversationCommands(deps: {
   messages: MessageRepository;
 }) {
   return {
+    async createConversation(input: {
+      storeId: string;
+      channel: "INSTAGRAM" | "FACEBOOK";
+      externalId: string;
+      customerId?: string;
+    }) {
+      return deps.conversations.upsert(input);
+    },
+
     async appendMessage(
       conversationId: string,
       sender: MessageSender,
