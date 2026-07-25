@@ -16,8 +16,8 @@ Status legend:
 - [x] Generated ideas include grounding evidence panel in `ContentStudioForms` showing which memory signals influenced the ideas.
 
 ### 2. Analytics doesn't close the loop
-- [ ] Analytics reorganized around Content / Audience / Product / Campaign.
-- [ ] Post performance drives "why" explanation, competitor comparison, and next content recommendation.
+- [x] Marketing analytics reorganized around Content / Audience / Product / Campaign sections in `getMarketingPerformance` and `/stores/[storeId]/analytics`.
+- [~] Post performance drives summary and content engagement section; full "why" explanation + competitor comparison + next recommendation needs media metrics and post-to-order attribution.
 
 ### 3. Competitor Analysis is passive
 - [ ] Competitor change detection implemented.

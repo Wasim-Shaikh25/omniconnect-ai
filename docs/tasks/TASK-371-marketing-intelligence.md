@@ -18,9 +18,9 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 - [x] 3. Every content idea result includes grounding evidence (signals that influenced the recommendation).
 
 ### Analytics Loop
-- [ ] 4. Reorganize analytics around marketing: Content, Audience, Product, Campaign.
-- [ ] 5. Post performance → `why` explanation → competitor comparison → audience reaction → next recommendation.
-- [ ] 6. `analytics` publishes `MarketingPerformanceUpdated`.
+- [x] 4. Reorganize analytics around marketing: Content, Audience, Product, Campaign (`getMarketingPerformance` + `/stores/[storeId]/analytics` dashboard).
+- [~] 5. Post performance → `why` explanation → competitor comparison → audience reaction → next recommendation (partial: summary + content engagement; full loop needs media metrics and post-to-order attribution).
+- [x] 6. `analytics` publishes `MarketingPerformanceUpdated` from `getMarketingPerformance`.
 
 ### Competitor Intelligence
 - [ ] 7. `competitors` detects competitor changes and publishes `CompetitorChangeDetected`.

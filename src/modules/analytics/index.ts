@@ -16,8 +16,11 @@ export type {
   WorkspaceKpiSnapshot,
   AnalyticsQueries,
 } from "./application/queries";
+export type { MarketingPerformanceView } from "./domain/types";
+export type { GetMarketingPerformance } from "./application/marketing-analytics";
+export { MarketingPerformanceUpdated } from "./domain/events";
 
-export { analyticsQueries } from "./infrastructure/container";
+export { analyticsQueries, getMarketingPerformance } from "./infrastructure/container";
 
 export {
   trackCompetitorAction,
@@ -26,6 +29,7 @@ export {
   analyzeCompetitorAction,
   deleteTrackedCompetitorAction,
   discoverCompetitorsAction,
+  getMarketingPerformanceAction,
 } from "./presentation/actions";
 export type {
   TrackCompetitorState,
@@ -33,4 +37,5 @@ export type {
   CompetitorMediaState,
   CompetitorAnalysisState,
   DiscoverCompetitorsState,
+  MarketingPerformanceState,
 } from "./presentation/actions";

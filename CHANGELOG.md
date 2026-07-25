@@ -413,7 +413,9 @@ All notable changes to **OmniConnect AI** are documented here.
     - `ai.generatePostIdeas` now consumes `MarketingMemory` and the daily brief to ground content ideas in top products, DM/comment themes, and trending hashtags, and returns an `evidence` string.
     - `ContentStudioForms` displays a "Why these ideas" panel with the memory signals that influenced the suggestions.
     - Product promotion scores are now displayed in `/stores/[storeId]/commerce/catalog` via `listCommerceCatalogAction`, which consumes `updateMarketingMemory()`.
-  - Remaining: analytics loop, full competitor benchmarking, reusable workflow cards, `verify-task371.ts`.
+    - Marketing analytics view (`getMarketingPerformance`) reorganizes metrics around Content, Audience, Product, and Campaign and publishes `MarketingPerformanceUpdated`.
+    - `/stores/[storeId]/analytics` dashboard renders the marketing performance sections.
+  - Remaining: full competitor benchmarking, reusable workflow cards, `verify-task371.ts`.
 
 ### ⏭️ Next (proposed build order)
 

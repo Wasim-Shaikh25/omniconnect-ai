@@ -9,6 +9,7 @@ import { analyzeCompetitor } from "@/modules/ai/server";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
+import { getMarketingPerformance } from "../infrastructure/container";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
 
 const trackedAccountRepository = new PrismaTrackedAccountRepository();
@@ -289,5 +290,40 @@ export async function deleteTrackedCompetitorAction(
     return { ok: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not remove competitor" };
+  }
+}
+
+export interface MarketingPerformanceState {
+  error?: string;
+  view?: Awaited<ReturnType<typeof getMarketingPerformance>>;
+}
+
+const marketingPerformanceSchema = z.object({
+  storeId: z.string().min(1),
+});
+
+export async function getMarketingPerformanceAction(
+  _prev: MarketingPerformanceState,
+  formData: FormData,
+): Promise<MarketingPerformanceState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = marketingPerformanceSchema.safeParse({
+    storeId: formData.get("storeId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+  if (!user.organizationId) return { error: "Organization not found." };
+
+  try {
+    const view = await getMarketingPerformance({
+      organizationId: user.organizationId,
+      storeId: parsed.data.storeId,
+    });
+    return { view };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load marketing performance" };
   }
 }
