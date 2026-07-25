@@ -30,6 +30,7 @@ import { RecommendationsPanel } from "@/components/recommendations-panel";
 import { GoalsPanel } from "@/components/goals-panel";
 import { PredictionsPanel } from "@/components/predictions-panel";
 import { LearningPanel } from "@/components/learning-panel";
+import { CompetitorIntelligencePanel } from "@/components/competitor-intelligence-panel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -103,6 +104,10 @@ export default async function StoreDetailPage({
       <section className="mt-8 grid gap-6 md:grid-cols-2">
         <PredictionsPanel storeId={storeId} />
         <LearningPanel storeId={storeId} />
+      </section>
+
+      <section className="mt-8 grid gap-6 md:grid-cols-2">
+        <CompetitorIntelligencePanel storeId={storeId} />
       </section>
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">

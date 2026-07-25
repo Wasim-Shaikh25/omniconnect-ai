@@ -13,6 +13,9 @@ import type {
   PredictionRecord,
   HypothesisRecord,
   BusinessLearningRecord,
+  CompetitorInsightRecord,
+  PortfolioSnapshotRecord,
+  SystemMetricRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,
@@ -157,6 +160,24 @@ export interface BusinessLearningRepository {
   updateOutcome(id: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord>;
 }
 
+export interface CompetitorInsightRepository {
+  save(insight: Omit<CompetitorInsightRecord, "id" | "createdAt" | "updatedAt">): Promise<CompetitorInsightRecord>;
+  list(organizationId: string, storeId?: string, limit?: number): Promise<CompetitorInsightRecord[]>;
+  findById(id: string): Promise<CompetitorInsightRecord | null>;
+}
+
+export interface PortfolioSnapshotRepository {
+  save(snapshot: Omit<PortfolioSnapshotRecord, "id" | "createdAt" | "updatedAt">): Promise<PortfolioSnapshotRecord>;
+  findLatest(organizationId: string): Promise<PortfolioSnapshotRecord | null>;
+  list(organizationId: string, limit?: number): Promise<PortfolioSnapshotRecord[]>;
+}
+
+export interface SystemMetricRepository {
+  save(metric: Omit<SystemMetricRecord, "id" | "createdAt" | "updatedAt">): Promise<SystemMetricRecord>;
+  list(organizationId: string, operation?: string, limit?: number): Promise<SystemMetricRecord[]>;
+  summary(organizationId: string): Promise<{ avgLatencyMs: number | null; totalCostCents: number | null; operationCount: number; slowestOperation: string | null }>;
+}
+
 export interface ActionExecutor {
   canExecute(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean };
   execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;
@@ -177,6 +198,9 @@ export type {
   PredictionRecord,
   HypothesisRecord,
   BusinessLearningRecord,
+  CompetitorInsightRecord,
+  PortfolioSnapshotRecord,
+  SystemMetricRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,

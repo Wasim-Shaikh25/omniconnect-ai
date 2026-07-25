@@ -1189,3 +1189,55 @@ model BusinessLearning {
   @@index([organizationId, ruleName])
   @@index([organizationId, storeId, ruleName])
 }
+
+model CompetitorInsight {
+  id              String   @id @default(cuid())
+  organizationId  String
+  storeId         String?
+  competitorHandle String
+  metricName      String
+  value           Float
+  benchmarkDelta  Float?
+  features        Json?
+  source          String?
+  capturedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId, storeId, metricName])
+  @@index([organizationId, capturedAt])
+}
+
+model PortfolioSnapshot {
+  id                    String   @id @default(cuid())
+  organizationId        String
+  storeCount            Int
+  totalRevenueEstimate  Float?
+  totalChurnRisk        Float?
+  topRecommendationType String?
+  topRiskStoreId        String?
+  features              Json?
+  generatedAt           DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([organizationId, generatedAt])
+}
+
+model SystemMetric {
+  id            String   @id @default(cuid())
+  organizationId String
+  operation     String
+  module        String
+  latencyMs     Float?
+  costCents     Float?
+  status        String   @default("OK")
+  traceId       String?
+  metadata      Json?
+  recordedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([organizationId, operation, recordedAt])
+  @@index([organizationId, module, recordedAt])
+}

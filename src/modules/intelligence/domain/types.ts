@@ -328,3 +328,47 @@ export interface BusinessLearningRecord {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface CompetitorInsightRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  competitorHandle: string;
+  metricName: string;
+  value: number;
+  benchmarkDelta: number | null;
+  features: unknown;
+  source: string | null;
+  capturedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PortfolioSnapshotRecord {
+  id: string;
+  organizationId: string;
+  storeCount: number;
+  totalRevenueEstimate: number | null;
+  totalChurnRisk: number | null;
+  topRecommendationType: string | null;
+  topRiskStoreId: string | null;
+  features: unknown;
+  generatedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SystemMetricRecord {
+  id: string;
+  organizationId: string;
+  operation: string;
+  module: string;
+  latencyMs: number | null;
+  costCents: number | null;
+  status: string;
+  traceId: string | null;
+  metadata: unknown;
+  recordedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
