@@ -125,6 +125,7 @@ model Store {
   dmCampaigns    DmCampaign[]
   backInStockSubscriptions BackInStockSubscription[]
   commentUnlockCampaigns CommentUnlockCampaign[]
+  brandDeals     BrandDeal[]
 }
 
 enum IntegrationType {
@@ -729,4 +730,29 @@ model CommentUnlockRedemption {
 
   @@index([campaignId, status])
   @@index([storeId, externalUserId])
+}
+
+enum BrandDealStatus {
+  LEAD
+  NEGOTIATING
+  CONTRACTED
+  DELIVERED
+  PAID
+  CLOSED
+}
+
+model BrandDeal {
+  id            String          @id @default(cuid())
+  storeId       String
+  store         Store           @relation(fields: [storeId], references: [id])
+  brandName     String
+  contactEmail  String?
+  value         Float?
+  status        BrandDealStatus @default(LEAD)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([storeId, status])
+  @@index([storeId, createdAt])
 }

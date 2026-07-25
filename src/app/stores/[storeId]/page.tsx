@@ -473,6 +473,22 @@ export default async function StoreDetailPage({
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Brand Deals</CardTitle>
+            <CardDescription>
+              Track sponsor leads and deal pipeline.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/brand-deals`}>
+                View brand deals
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

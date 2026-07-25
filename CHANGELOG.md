@@ -209,10 +209,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - `/stores/[storeId]/automations` gives a single view of welcome, DM, back-in-stock, comment-to-DM unlock, and AI automations with links to their configuration pages.
   - Placeholder card for the future visual workflow builder.
   - Store detail page links to Automations.
+- **TASK-290 — Brand Deals** (spec `0027`):
+  - New `BrandDeal` Prisma model + `branddeals` module with list/create use-cases, repository, and server actions.
+  - `/stores/[storeId]/brand-deals` page with a multi-column status pipeline (Lead, Negotiating, Contracted, Delivered, Paid, Closed) and an add-deal form.
+  - Store detail page links to Brand Deals.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Brand Deals (TASK-290)**, then Affiliate Center, Media Kit, Integrations catalog, Settings/Admin, and Mobile/PWA polish.
+- Next: **Affiliate Center (TASK-300)**, then Media Kit, Integrations catalog, Settings/Admin, and Mobile/PWA polish.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
