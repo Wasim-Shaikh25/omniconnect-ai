@@ -16,9 +16,9 @@ being created or updated first.
 | 0001 | [Authentication](./0001-auth.md)       | auth, users      | Draft  |
 | 0002 | [eCommerce Connector Framework](./0002-ecommerce-connector.md) | ecommerce | Draft |
 | 0003 | [Meta Integration](./0003-meta-integration.md) | meta      | Draft  |
-| 0004 | [AI Customer Assistant](./0004-ai-assistant.md) | ai       | Draft  |
+| 0004 | [AI Customer Assistant](./0004-ai-assistant.md) | ai       | Implemented  |
 | 0005 | [First-Time Follower Campaign](./0005-first-time-follower-campaign.md) | crm, coupons, ai, notifications | Draft |
-| 0006 | [Customer Memory System](./0006-customer-memory.md) | crm    | Draft  |
-| 0007 | [Marketing Insights Dashboard](./0007-marketing-insights.md) | analytics, reports | Draft |
+| 0006 | [Customer Memory System](./0006-customer-memory.md) | crm    | Implemented  |
+| 0007 | [Meta Content Intelligence & Marketing Insights](./0007-marketing-insights.md) | analytics, reports, meta | Draft |
 | 0008 | [Human Takeover](./0008-human-takeover.md) | conversations | Draft |
 | 0009 | [Notifications](./0009-notifications.md) | notifications  | Draft  |
