@@ -354,6 +354,12 @@ export default async function StoreDetailPage({
           >
             Orders
           </Link>
+          <Link
+            href={`/stores/${storeId}/analytics`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Analytics
+          </Link>
         </CardContent>
       </Card>
 

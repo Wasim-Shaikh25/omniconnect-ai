@@ -28,3 +28,4 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-130** Meta commerce & engagement automation (Instagram Shop sync, comment/mention automation, Lead Ads, UGC, ambassador referrals, conversational commerce) — spec: `0012` — Phase 2A/2B/2C/2D/2E implemented
 - [~] **TASK-210** Content Studio (MVP idea + caption generation) — spec: `0018`
 - [~] **TASK-220** Orders view (read-only connector orders) — spec: `0019`
+- [~] **TASK-230** Store Analytics page — spec: `0020`

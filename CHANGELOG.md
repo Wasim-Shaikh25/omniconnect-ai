@@ -184,6 +184,9 @@ All notable changes to **OmniConnect AI** are documented here.
   - `ecommerceQueries.listOrders(storeId)` resolves the connector and returns `ConnectorOrder[]` live from the provider or mock fallback.
   - New `/stores/[storeId]/orders` page lists recent orders with total, currency, customer reference, and date.
   - Store detail page links to **Orders**.
+- **TASK-230 — Store Analytics** (spec `0020`):
+  - New `/stores/[storeId]/analytics` page composes existing ecommerce, CRM, and conversations queries into KPI cards (products, orders, revenue, customers, followers, conversations) plus recent order and conversation lists.
+  - Store detail page links to **Analytics**.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
