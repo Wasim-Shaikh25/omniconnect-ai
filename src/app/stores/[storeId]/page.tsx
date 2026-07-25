@@ -321,6 +321,12 @@ export default async function StoreDetailPage({
           >
             Leads
           </Link>
+          <Link
+            href={`/stores/${storeId}/commerce/growth`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Growth
+          </Link>
         </CardContent>
       </Card>
 
