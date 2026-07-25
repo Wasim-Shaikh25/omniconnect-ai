@@ -1,12 +1,9 @@
 /**
  * Ai module — public barrel.
  *
- * This is the ONLY file other modules may import from `@/modules/ai`.
- * It exposes application services / ports and domain event types — never
- * domain entities, repositories, or infrastructure. See
- * docs/architecture/module-boundaries.md.
- *
- * Responsibility: Configurable, multi-model-ready AI customer assistant.
+ * Client-safe entry point: domain events, DTOs, action types, and server
+ * actions. Wired application services are exported from `@/modules/ai/server`
+ * for use by other server-side modules.
  */
 export const MODULE_NAME = "ai" as const;
 
@@ -26,17 +23,23 @@ export type {
   AssistantService,
 } from "./application/ports";
 export type { GenerateWelcome } from "./application/generate-welcome";
+export type {
+  GeneratedCaption,
+  GenerateCaptionsInput,
+  GenerateCaptions,
+} from "./application/generate-captions";
+export type {
+  TrendIdea,
+  GenerateTrendsInput,
+  GenerateTrends,
+} from "./application/generate-trends";
 export { updateAIConfigSchema } from "./application/update-config";
 export type { UpdateAIConfigInput } from "./application/update-config";
 
-// Composition root
-export {
-  aiQueries,
-  generateReply,
-  generateWelcome,
-  updateAIConfiguration,
-} from "./infrastructure/container";
-
 // Presentation
-export { updateAIConfigurationAction } from "./presentation/actions";
-export type { AIActionState } from "./presentation/actions";
+export {
+  updateAIConfigurationAction,
+  generateCaptionsAction,
+  generateTrendsAction,
+} from "./presentation/actions";
+export type { AIActionState, GenerateCaptionsState, GenerateTrendsState } from "./presentation/actions";

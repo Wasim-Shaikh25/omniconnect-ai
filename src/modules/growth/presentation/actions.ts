@@ -6,6 +6,11 @@ import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { growthService, growthQueries } from "../infrastructure/container";
 
+export interface GrowthActionState {
+  error?: string;
+  ok?: boolean;
+}
+
 function parseForm(formData: FormData): Record<string, unknown> {
   const entries = Array.from(formData.entries()) as [string, string][];
   const obj: Record<string, unknown> = {};
@@ -68,6 +73,15 @@ const subscriptionIdSchema = z.object({
   subscriptionId: z.string().min(1),
 });
 
+const commentUnlockSchema = z.object({
+  storeId: z.string().min(1),
+  keyword: z.string().min(1).max(120),
+  rewardType: z.enum(["LINK", "COUPON", "MESSAGE"]),
+  rewardValue: z.string().max(1000).optional(),
+  message: z.string().min(1).max(2000),
+  referralAsk: z.string().max(500).optional(),
+});
+
 async function requireStoreAccess(storeId: string) {
   const user = await getCurrentUser();
   if (!user) return false;
@@ -79,16 +93,17 @@ async function requireStoreAccess(storeId: string) {
 
 export async function listGrowthAction(storeId: string) {
   if (!(await requireStoreAccess(storeId))) {
-    return { ugc: [], ambassadors: [], referrals: [], campaigns: [], backInStock: [] };
+    return { ugc: [], ambassadors: [], referrals: [], campaigns: [], backInStock: [], commentUnlocks: [] };
   }
-  const [ugc, ambassadors, referrals, campaigns, backInStock] = await Promise.all([
+  const [ugc, ambassadors, referrals, campaigns, backInStock, commentUnlocks] = await Promise.all([
     growthQueries.listUgc(storeId),
     growthQueries.listAmbassadors(storeId),
     growthQueries.listReferrals(storeId),
     growthQueries.listCampaigns(storeId),
     growthQueries.listBackInStock(storeId),
+    growthQueries.listCommentUnlockCampaigns(storeId),
   ]);
-  return { ugc, ambassadors, referrals, campaigns, backInStock };
+  return { ugc, ambassadors, referrals, campaigns, backInStock, commentUnlocks };
 }
 
 export async function collectUgcAction(formData: FormData): Promise<void> {
@@ -171,5 +186,15 @@ export async function notifyBackInStockAction(formData: FormData): Promise<void>
   if (!parsed.success) return;
   if (!(await requireStoreAccess(parsed.data.storeId))) return;
   await growthService.notifyBackInStock(parsed.data.subscriptionId, parsed.data.storeId);
+  revalidatePath(`/stores/${parsed.data.storeId}/commerce/growth`);
+}
+
+export async function createCommentUnlockCampaignAction(
+  formData: FormData,
+): Promise<void> {
+  const parsed = commentUnlockSchema.safeParse(parseForm(formData));
+  if (!parsed.success) return;
+  if (!(await requireStoreAccess(parsed.data.storeId))) return;
+  await growthService.createCommentUnlockCampaign(parsed.data);
   revalidatePath(`/stores/${parsed.data.storeId}/commerce/growth`);
 }

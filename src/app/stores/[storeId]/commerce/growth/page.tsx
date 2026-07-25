@@ -17,6 +17,7 @@ import {
   sendDmCampaignAction,
   subscribeBackInStockAction,
   notifyBackInStockAction,
+  createCommentUnlockCampaignAction,
 } from "@/modules/growth";
 
 export default async function GrowthPage({
@@ -181,6 +182,41 @@ export default async function GrowthPage({
                       <Button type="submit" variant="outline" size="sm">Send now</Button>
                     </form>
                   )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Comment-to-DM unlocks ({data.commentUnlocks.length})</CardTitle>
+          <CardDescription>Fans comment a keyword and automatically receive a reward in their DMs.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={createCommentUnlockCampaignAction} className="grid gap-4 md:grid-cols-6 mb-4">
+            <input type="hidden" name="storeId" value={storeId} />
+            <Input name="keyword" placeholder="Keyword e.g. GUIDE" className="md:col-span-1" required />
+            <select name="rewardType" className="w-full rounded-md border bg-background px-3 py-2 text-sm" required>
+              <option value="MESSAGE">Message only</option>
+              <option value="LINK">Link reward</option>
+              <option value="COUPON">Coupon reward</option>
+            </select>
+            <Input name="rewardValue" placeholder="Link or coupon code" className="md:col-span-1" />
+            <Input name="message" placeholder="DM message" className="md:col-span-2" required />
+            <Input name="referralAsk" placeholder="Referral ask (optional)" />
+            <Button type="submit">Create unlock</Button>
+          </form>
+
+          {data.commentUnlocks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No unlock campaigns yet.</p>
+          ) : (
+            <ul className="divide-y">
+              {data.commentUnlocks.map((c) => (
+                <li key={c.id} className="py-2 text-sm">
+                  <span className="font-medium">#{c.keyword}</span> · {c.rewardType} · {c.active ? "Active" : "Paused"}
+                  {c.rewardValue && <span> · Reward: {c.rewardValue}</span>}
                 </li>
               ))}
             </ul>

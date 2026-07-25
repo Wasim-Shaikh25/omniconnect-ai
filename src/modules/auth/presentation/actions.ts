@@ -45,8 +45,10 @@ export async function signOutAction(): Promise<void> {
   await signOut({ redirectTo: "/login" });
 }
 
-export async function googleSignInAction(): Promise<void> {
-  await signIn("google", { redirectTo: "/dashboard" });
+export async function oauthSignInAction(formData: FormData): Promise<void> {
+  const provider = formData.get("provider");
+  if (typeof provider !== "string") return;
+  await signIn(provider, { redirectTo: "/dashboard" });
 }
 
 const loginSchema = z.object({

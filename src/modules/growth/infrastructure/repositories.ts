@@ -7,6 +7,8 @@ import {
   DmCampaignStatus,
   MentionSource,
   DmCampaignType,
+  CommentUnlockRewardType,
+  CommentUnlockStatus,
 } from "@prisma/client";
 import type {
   UgcAssetRecord,
@@ -19,6 +21,9 @@ import type {
   DmCampaignRepository,
   BackInStockSubscriptionRecord,
   BackInStockRepository,
+  CommentUnlockCampaignRecord,
+  CommentUnlockRedemptionRecord,
+  CommentUnlockRepository,
 } from "../application/ports";
 
 export class PrismaUgcRepository implements UgcRepository {
@@ -329,4 +334,144 @@ function toBackInStockRecord(row: {
   createdAt: Date;
 }): BackInStockSubscriptionRecord {
   return { ...row };
+}
+
+export class PrismaCommentUnlockRepository
+  implements CommentUnlockRepository
+{
+  async createCampaign(input: {
+    storeId: string;
+    keyword: string;
+    rewardType: "LINK" | "COUPON" | "MESSAGE";
+    rewardValue?: string | null;
+    message: string;
+    referralAsk?: string | null;
+  }): Promise<CommentUnlockCampaignRecord> {
+    const created = await prisma.commentUnlockCampaign.create({
+      data: {
+        storeId: input.storeId,
+        keyword: input.keyword.toLowerCase().trim(),
+        rewardType: input.rewardType as CommentUnlockRewardType,
+        rewardValue: input.rewardValue ?? null,
+        message: input.message,
+        referralAsk: input.referralAsk ?? null,
+      },
+    });
+    return toCommentUnlockCampaignRecord(created);
+  }
+
+  async listCampaignsByStore(
+    storeId: string,
+  ): Promise<CommentUnlockCampaignRecord[]> {
+    const rows = await prisma.commentUnlockCampaign.findMany({
+      where: { storeId },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map(toCommentUnlockCampaignRecord);
+  }
+
+  async findActiveCampaignByKeyword(
+    storeId: string,
+    keyword: string,
+  ): Promise<CommentUnlockCampaignRecord | null> {
+    const row = await prisma.commentUnlockCampaign.findFirst({
+      where: {
+        storeId,
+        active: true,
+        keyword: keyword.toLowerCase().trim(),
+      },
+    });
+    return row ? toCommentUnlockCampaignRecord(row) : null;
+  }
+
+  async createRedemption(input: {
+    campaignId: string;
+    storeId: string;
+    externalUserId: string;
+    username?: string | null;
+    commentId?: string | null;
+  }): Promise<CommentUnlockRedemptionRecord> {
+    const created = await prisma.commentUnlockRedemption.create({
+      data: {
+        campaignId: input.campaignId,
+        storeId: input.storeId,
+        externalUserId: input.externalUserId,
+        username: input.username ?? null,
+        commentId: input.commentId ?? null,
+        status: CommentUnlockStatus.PENDING,
+      },
+    });
+    return toCommentUnlockRedemptionRecord(created);
+  }
+
+  async listRedemptionsByCampaign(
+    campaignId: string,
+  ): Promise<CommentUnlockRedemptionRecord[]> {
+    const rows = await prisma.commentUnlockRedemption.findMany({
+      where: { campaignId },
+      orderBy: { createdAt: "desc" },
+    });
+    return rows.map(toCommentUnlockRedemptionRecord);
+  }
+
+  async markSent(id: string): Promise<CommentUnlockRedemptionRecord> {
+    const updated = await prisma.commentUnlockRedemption.update({
+      where: { id },
+      data: { status: CommentUnlockStatus.SENT, sentAt: new Date() },
+    });
+    return toCommentUnlockRedemptionRecord(updated);
+  }
+
+  async markReferred(id: string): Promise<CommentUnlockRedemptionRecord> {
+    const updated = await prisma.commentUnlockRedemption.update({
+      where: { id },
+      data: { status: CommentUnlockStatus.REFERRED },
+    });
+    return toCommentUnlockRedemptionRecord(updated);
+  }
+
+  async findExistingRedemption(
+    campaignId: string,
+    externalUserId: string,
+  ): Promise<CommentUnlockRedemptionRecord | null> {
+    const row = await prisma.commentUnlockRedemption.findFirst({
+      where: { campaignId, externalUserId },
+    });
+    return row ? toCommentUnlockRedemptionRecord(row) : null;
+  }
+}
+
+function toCommentUnlockCampaignRecord(row: {
+  id: string;
+  storeId: string;
+  keyword: string;
+  rewardType: string;
+  rewardValue: string | null;
+  message: string;
+  referralAsk: string | null;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}): CommentUnlockCampaignRecord {
+  return {
+    ...row,
+    rewardType: row.rewardType as "LINK" | "COUPON" | "MESSAGE",
+  };
+}
+
+function toCommentUnlockRedemptionRecord(row: {
+  id: string;
+  campaignId: string;
+  storeId: string;
+  externalUserId: string;
+  username: string | null;
+  commentId: string | null;
+  status: string;
+  createdAt: Date;
+  sentAt: Date | null;
+}): CommentUnlockRedemptionRecord {
+  return {
+    ...row,
+    status: row.status as "PENDING" | "SENT" | "REFERRED",
+  };
 }

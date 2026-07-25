@@ -1,8 +1,9 @@
 /**
  * Growth module — public barrel.
  *
- * Exports UGC, ambassador/referral, and conversational commerce (DM campaign,
- * back-in-stock) services and actions. Other modules may only import from here.
+ * Exports UGC, ambassador/referral, conversational commerce (DM campaign,
+ * back-in-stock), and viral growth (comment-to-DM unlock) services and
+ * actions. Other modules may only import from here.
  */
 export const MODULE_NAME = "growth" as const;
 
@@ -12,6 +13,8 @@ export type {
   ReferralOrderRecord,
   DmCampaignRecord,
   BackInStockSubscriptionRecord,
+  CommentUnlockCampaignRecord,
+  CommentUnlockRedemptionRecord,
 } from "./application/ports";
 
 export { growthService, growthQueries } from "./infrastructure/container";
@@ -27,4 +30,7 @@ export {
   sendDmCampaignAction,
   subscribeBackInStockAction,
   notifyBackInStockAction,
+  createCommentUnlockCampaignAction,
 } from "./presentation/actions";
+
+export type { GrowthActionState } from "./presentation/actions";

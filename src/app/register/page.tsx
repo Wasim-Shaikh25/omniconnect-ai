@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   getCurrentUser,
-  googleAuthEnabled,
-  googleSignInAction,
+  oauthProviders,
+  oauthSignInAction,
   registerAction,
 } from "@/modules/auth";
 import { AuthForm } from "@/components/auth-form";
@@ -33,8 +33,8 @@ export default async function RegisterPage() {
           <AuthForm
             mode="register"
             action={registerAction}
-            googleEnabled={googleAuthEnabled}
-            googleAction={googleSignInAction}
+            oauthProviders={oauthProviders}
+            oauthAction={oauthSignInAction}
           />
         </CardContent>
       </Card>
