@@ -35,6 +35,19 @@ import { makeQualityAssuranceService } from "../application/quality-assurance";
 import { makeRolloutService } from "../application/rollout";
 import { makeRiskMitigationRegistry } from "../application/risk-mitigations";
 import { makeOperatingModelService } from "../application/operating-model";
+import {
+  makeUnifiedContextService,
+  makeKnowledgeGraphService,
+  makeFeatureService,
+  makeGoalPlanGenerationService,
+  makeLearningEvidenceService,
+  makeModelOpsService,
+  makePredictionPrioritizationService,
+  makeIntelligenceFeedbackService,
+  makeIntelligenceFeedInteractionService,
+  makeChartAcceptanceService,
+  makeDataQualityGateService,
+} from "../application/validation-driven";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -134,15 +147,18 @@ export const entityResolutionService = makeEntityResolutionService(links);
 export const timelineService = makeTimelineService(signals, links);
 export const metricService = makeMetricService(metrics, metricProvider);
 export const dataQualityService = makeDataQualityService(issues, metrics);
+export const dataQualityGateService = makeDataQualityGateService({ signals, metrics, links });
 export const customerSummaryService = makeCustomerSummaryService();
 export const diagnosisService = makeDiagnosisService({ ecommerce: ecommerceQueries });
 export const detectionService = makeDetectionService({
   signals,
   insights,
   metrics,
+  links,
   ecommerce: ecommerceQueries,
   conversations: conversationQueries,
   crm: crmQueries,
+  dataQualityGate: dataQualityGateService,
 });
 export const intelligenceFeedService = makeIntelligenceFeed({ insights });
 
@@ -232,5 +248,16 @@ export const qualityAssuranceService = makeQualityAssuranceService({
 export const rolloutService = makeRolloutService();
 export const riskMitigationRegistry = makeRiskMitigationRegistry();
 export const operatingModelService = makeOperatingModelService();
+
+export const unifiedContextService = makeUnifiedContextService({ signals, insights, links, metrics });
+export const knowledgeGraphService = makeKnowledgeGraphService({ signals, ecommerce: ecommerceQueries });
+export const featureService = makeFeatureService({ ecommerce: ecommerceQueries });
+export const goalPlanGenerationService = makeGoalPlanGenerationService();
+export const learningEvidenceService = makeLearningEvidenceService();
+export const modelOpsService = makeModelOpsService();
+export const predictionPrioritizationService = makePredictionPrioritizationService();
+export const intelligenceFeedbackService = makeIntelligenceFeedbackService();
+export const intelligenceFeedInteractionService = makeIntelligenceFeedInteractionService({ insights });
+export const chartAcceptanceService = makeChartAcceptanceService();
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };

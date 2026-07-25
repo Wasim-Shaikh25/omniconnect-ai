@@ -31,6 +31,16 @@ import {
   rolloutService,
   riskMitigationRegistry,
   operatingModelService,
+  unifiedContextService,
+  knowledgeGraphService,
+  featureService,
+  goalPlanGenerationService,
+  learningEvidenceService,
+  modelOpsService,
+  predictionPrioritizationService,
+  intelligenceFeedbackService,
+  intelligenceFeedInteractionService,
+  chartAcceptanceService,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -653,4 +663,104 @@ export async function getRiskMatrixAction() {
   const user = await getCurrentUser();
   if (!user) return null;
   return operatingModelService.getRiskMatrix();
+}
+
+export async function getUnifiedContextAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return null;
+  return unifiedContextService.getContext({ organizationId: user.organizationId, storeId });
+}
+
+export async function getKnowledgeGraphAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return null;
+  return knowledgeGraphService.query({ organizationId: user.organizationId, storeId });
+}
+
+export async function getFeatureProfileAction(type: "customer" | "product" | "content" | "campaign" | "business", id: string, storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return null;
+  if (type === "customer") return featureService.getCustomerFeatures(user.organizationId, storeId ?? "", id);
+  if (type === "product") return featureService.getProductFeatures(user.organizationId, storeId ?? "", id);
+  if (type === "content") return featureService.getContentFeatures();
+  if (type === "campaign") return featureService.getCampaignFeatures();
+  return featureService.getBusinessFeatures(user.organizationId, storeId ?? "");
+}
+
+export async function createGoalPlanWorkflowAction(goalId: string) {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return null;
+  const plan = goalPlanGenerationService.createVersionedWorkflow(goalId);
+  return plan;
+}
+
+export async function testGoalPlanWorkflowAction(workflowId: string) {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return null;
+  return goalPlanGenerationService.testRun(workflowId);
+}
+
+export async function launchGoalPlanWorkflowAction(workflowId: string, holdoutPct: number) {
+  const user = await requireRole("ADMIN");
+  if (!user.organizationId) return null;
+  return goalPlanGenerationService.launchWithHoldout(workflowId, holdoutPct);
+}
+
+export async function getLearningEvidenceAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return learningEvidenceService.getHierarchy();
+}
+
+export async function getModelOpsAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return modelOpsService.getModelOps();
+}
+
+export async function evaluatePredictionPriorityAction(input: { eventMatterScore: number; interventionPossible: boolean; resultMeasurable: boolean; dataSufficient: boolean; errorCostManageable: boolean }) {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return predictionPrioritizationService.scorePrediction(input);
+}
+
+export async function submitIntelligenceFeedbackAction(formData: FormData) {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+  const insightId = String(formData.get("insightId") ?? "");
+  const understood = formData.get("understood") === "true";
+  const hoursSaved = Number(formData.get("hoursSaved") ?? 0);
+  const falsePositive = formData.get("falsePositive") === "true";
+  const falseNegative = formData.get("falseNegative") === "true";
+  if (!insightId) return;
+  intelligenceFeedbackService.submitRating({ insightId, userId: user.id, understood, hoursSaved, falsePositive, falseNegative });
+  revalidatePath("/business-brain");
+}
+
+export async function getIntelligenceFeedbackKpisAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return intelligenceFeedbackService.getKpis();
+}
+
+export async function getInsightDrillDownAction(insightId: string) {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return intelligenceFeedInteractionService.getDrillDown(insightId);
+}
+
+export async function dismissInsightWithReasonAction(formData: FormData) {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+  const id = String(formData.get("id") ?? "");
+  const reason = String(formData.get("reason") ?? "");
+  if (!id) return;
+  await intelligenceFeedInteractionService.dismissWithReason({ id, reason, userId: user.id });
+  revalidatePath("/dashboard");
+}
+
+export async function evaluateChartAcceptanceAction(title: string, decisionStatement?: string) {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return chartAcceptanceService.evaluate({ id: `chart-${Date.now()}`, title, decisionStatement, supportsDecision: decisionStatement });
 }

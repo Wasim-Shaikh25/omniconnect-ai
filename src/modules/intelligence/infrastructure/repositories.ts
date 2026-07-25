@@ -186,6 +186,14 @@ export class PrismaEntityLinkRepository implements EntityLinkRepository {
     return created as StoredLink;
   }
 
+  async listForOrganization(organizationId: string, limit = 100): Promise<EntityLinkRecord[]> {
+    const rows = await prisma.entityLink.findMany({
+      where: { organizationId },
+      take: limit,
+    });
+    return rows.map((r) => r as StoredLink);
+  }
+
   async findByEntity(
     organizationId: string,
     entityType: string,

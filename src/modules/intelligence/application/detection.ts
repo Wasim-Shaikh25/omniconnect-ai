@@ -2,10 +2,11 @@ import { eventBus } from "@/shared/events";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";
-import type { SignalRepository, MetricRepository, BusinessInsightRepository } from "./ports";
+import type { SignalRepository, MetricRepository, BusinessInsightRepository, EntityLinkRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
 import { makeDiagnosisService } from "./diagnosis";
+import type { DataQualityGateService } from "./validation-driven";
 
 interface SignalSummary {
   id: string;
@@ -21,9 +22,11 @@ export interface DetectionServiceInput {
   signals: SignalRepository;
   insights: BusinessInsightRepository;
   metrics: MetricRepository;
+  links: EntityLinkRepository;
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
+  dataQualityGate?: DataQualityGateService;
   now?: Date;
 }
 
@@ -297,16 +300,32 @@ export function makeDetectionService(input: DetectionServiceInput) {
   return {
     async analyzeOrganization(organizationId: string, storeIds: string[]) {
       for (const storeId of storeIds) {
-        await detectNoOrders(organizationId, storeId);
-        await detectHighIntentConversation(organizationId, storeId);
-        await detectProductAvailabilityAndDemand(organizationId, storeId);
-        await detectRevenueDecline(organizationId, storeId);
-        await detectStaleFollowers(organizationId, storeId);
-        await detectStaleMetrics(organizationId, storeId);
+        await this.analyzeStore(organizationId, storeId);
       }
     },
 
     async analyzeStore(organizationId: string, storeId: string) {
+      if (input.dataQualityGate) {
+        const gate = await input.dataQualityGate.check({ organizationId, storeId, priority: "high" });
+        if (!gate.ok) {
+          await emit({
+            organizationId,
+            storeId,
+            type: "RISK" as InsightType,
+            severity: "MEDIUM" as InsightSeverity,
+            status: "OPEN",
+            title: "Data quality gate blocked high-priority insight generation",
+            description: `Data quality issues: ${gate.issues.join("; ")}`,
+            evidence: { signalIds: [], metricIds: [], summary: gate.issues.join("; ") },
+            deepLink: `/stores/${storeId}/integrations`,
+            generatedAt: now,
+            dismissedAt: null,
+            snoozedUntil: null,
+          });
+          return;
+        }
+      }
+
       await detectNoOrders(organizationId, storeId);
       await detectHighIntentConversation(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);

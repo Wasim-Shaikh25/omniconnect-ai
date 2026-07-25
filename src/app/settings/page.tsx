@@ -154,6 +154,20 @@ export default async function SettingsPage() {
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Unified context</CardTitle>
+                  <CardDescription>
+                    Knowledge graph, feature profiles, and validation-driven context.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/unified-context">Open unified context</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </>
         )}

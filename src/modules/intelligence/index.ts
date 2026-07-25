@@ -127,6 +127,20 @@ export {
   getRiskMitigationsAction,
   getOperatingModelAction,
   getRiskMatrixAction,
+  getUnifiedContextAction,
+  getKnowledgeGraphAction,
+  getFeatureProfileAction,
+  createGoalPlanWorkflowAction,
+  testGoalPlanWorkflowAction,
+  launchGoalPlanWorkflowAction,
+  getLearningEvidenceAction,
+  getModelOpsAction,
+  evaluatePredictionPriorityAction,
+  submitIntelligenceFeedbackAction,
+  getIntelligenceFeedbackKpisAction,
+  getInsightDrillDownAction,
+  dismissInsightWithReasonAction,
+  evaluateChartAcceptanceAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";
@@ -135,7 +149,38 @@ export type { IntelligenceActionState } from "./presentation/actions";
 export type { QualityReport, QualityCheck } from "./application/quality-assurance";
 export type { RolloutGate, RolloutMode } from "./application/rollout";
 export type { RiskMitigation } from "./application/risk-mitigations";
-export { operatingModelService } from "./infrastructure/container";
+export {
+  operatingModelService,
+  unifiedContextService,
+  knowledgeGraphService,
+  featureService,
+  goalPlanGenerationService,
+  learningEvidenceService,
+  modelOpsService,
+  predictionPrioritizationService,
+  intelligenceFeedbackService,
+  intelligenceFeedInteractionService,
+  chartAcceptanceService,
+  dataQualityGateService,
+} from "./infrastructure/container";
 export { runWeek4ThinSlice } from "./infrastructure/thin-slice";
 export type { OperatingModel, OperatingModelService, Story, RiskTierRow, SuccessCriterion, Squad, Milestone, IntegrationHealth, EvaluationCase, ThinSliceReview } from "./application/operating-model";
 export type { ThinSliceResult } from "./infrastructure/thin-slice";
+export type {
+  UnifiedContext,
+  KnowledgeGraphResult,
+  CustomerFeatures,
+  ProductFeatures,
+  ContentFeatures,
+  CampaignFeatures,
+  BusinessFeatures,
+  GoalPlan,
+  LearningEvidence,
+  ModelOpsState,
+  ModelVersion,
+  FeedbackRating,
+  PredictionPrioritizationInput,
+  Chart,
+  DataQualityGateResult,
+  DrillDown,
+} from "./application/validation-driven";
