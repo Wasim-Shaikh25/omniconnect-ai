@@ -1,4 +1,5 @@
 import { prisma } from "@/shared/database";
+import { encryptString, decryptString } from "@/shared/security/encryption";
 import type { EcommerceProvider } from "@/modules/organizations";
 import type {
   IntegrationRecord,
@@ -41,7 +42,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       type: "ECOMMERCE" as const,
       provider: input.provider,
       externalId: input.shopDomain,
-      accessToken: input.accessToken,
+      accessToken: await encryptString(input.accessToken),
       scopes: input.scopes,
       storeId: input.storeId,
     };
@@ -78,7 +79,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     return {
       provider: found.provider,
       shopDomain: found.externalId,
-      accessToken: found.accessToken,
+      accessToken: await decryptString(found.accessToken),
     };
   }
 }

@@ -388,7 +388,13 @@ All notable changes to **OmniConnect AI** are documented here.
 - **TASK-370 — Intelligence Domain Ownership Refactor** (spec `0046`):
   - Architecture review identified `intelligence` becoming a decision monolith.
   - Plan: move domain-specific detection/recommendation into `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`; reframe `intelligence` as cross-domain prioritizer/scorer/conflict resolver; add recommendation lifecycle and expiration; connect `Business Brain` to intelligence outputs; harden security (token encryption, AI data consent, webhook rate limiting, production env validation).
-  - Spec, task tracker, and progress tracker written. Implementation not started.
+  - **Phase 0 (security hardening) implemented:**
+    - `Integration.accessToken` / `refreshToken` encrypted at rest with `src/shared/security/encryption.ts` (Web Crypto AES-256-GCM), backward-compatible with legacy plaintext tokens.
+    - `generate-reply` respects `Customer.consent` and excludes profile data when consent is `DECLINED`.
+    - `generate-reply` writes an `AuditLog` entry with prompt metadata and no PII.
+    - `/api/meta/webhook` gets in-memory rate limiting and payload idempotency via `webhookGuard`.
+    - `env.ts` exposes `validateProductionSecrets()`; `src/instrumentation.ts` calls it at runtime startup so missing production secrets fail fast without breaking `next build`.
+  - Next: Phase 1 (move detection/recommendation ownership to domain modules).
 
 ### ⏭️ Next (proposed build order)
 

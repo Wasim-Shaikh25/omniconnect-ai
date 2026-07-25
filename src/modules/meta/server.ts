@@ -14,3 +14,4 @@ export {
   verifyWebhookChallenge,
   verifyWebhookSignature,
 } from "./application/verify-webhook";
+export { webhookGuard } from "./infrastructure/webhook-guard";

@@ -30,6 +30,16 @@ export interface GenerateReplyDeps {
   ecommerceQueries: EcommerceQueries;
   metaService: MetaService;
   eventBus: EventBus;
+  getOrganizationIdByStoreId: (storeId: string) => Promise<string | null>;
+  auditLogCommands: {
+    create(input: {
+      organizationId: string;
+      action: string;
+      resource: string;
+      resourceId?: string;
+      details?: string;
+    }): Promise<unknown>;
+  };
 }
 
 export interface GenerateReplyInput {
@@ -221,16 +231,28 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
 
     const storeId = meta.storeId;
 
-    const [config, profile, products, coupons] = await Promise.all([
-      deps.aiConfigurationRepository.getOrCreateDefault(storeId),
-      deps.crmQueries.getCustomerProfile({
-        storeId,
+    const [config, rawProfile, products, coupons, organizationId] =
+      await Promise.all([
+        deps.aiConfigurationRepository.getOrCreateDefault(storeId),
+        deps.crmQueries.getCustomerProfile({
+          storeId,
+          externalUserId,
+          channel: meta.channel,
+        }),
+        deps.ecommerceQueries.listProducts(storeId, MAX_PRODUCTS),
+        deps.ecommerceQueries.listCoupons(storeId, MAX_COUPONS),
+        deps.getOrganizationIdByStoreId(storeId),
+      ]);
+
+    // Privacy: do not send customer memory/profile to the AI if consent was declined.
+    let profile: CustomerProfile | null = rawProfile;
+    if (profile?.customer.consent === "DECLINED") {
+      logger.info("ai.generateReply.consentDeclined", {
+        conversationId,
         externalUserId,
-        channel: meta.channel,
-      }),
-      deps.ecommerceQueries.listProducts(storeId, MAX_PRODUCTS),
-      deps.ecommerceQueries.listCoupons(storeId, MAX_COUPONS),
-    ]);
+      });
+      profile = null;
+    }
 
     const recentMessages = messages.slice(-MAX_CONTEXT_MESSAGES);
     const systemPrompt = buildSystemPrompt(config, profile, products, coupons);
@@ -241,6 +263,30 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         content: m.content,
       })),
     ];
+
+    // Audit prompt metadata without PII.
+    if (organizationId) {
+      try {
+        await deps.auditLogCommands.create({
+          organizationId,
+          action: "ai.promptSent",
+          resource: "conversation",
+          resourceId: conversationId,
+          details: JSON.stringify({
+            model: config.model,
+            messageCount: aiMessages.length,
+            consent: rawProfile?.customer.consent ?? null,
+            hasProducts: products.length > 0,
+            hasCoupons: coupons.length > 0,
+          }),
+        });
+      } catch (error) {
+        logger.warn("ai.generateReply.auditFailed", {
+          conversationId,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+      }
+    }
 
     let rawReply: string;
     try {

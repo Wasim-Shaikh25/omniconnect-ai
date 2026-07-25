@@ -1,4 +1,5 @@
 import { prisma } from "@/shared/database";
+import { encryptString, decryptString } from "@/shared/security/encryption";
 import type { MetaChannel } from "../domain/types";
 import type {
   MetaIntegrationRecord,
@@ -49,7 +50,7 @@ export class PrismaMetaIntegrationRepository
       type: "META" as const,
       provider: input.channel,
       externalId: input.accountId,
-      accessToken: input.accessToken,
+      accessToken: await encryptString(input.accessToken),
       storeId: input.storeId,
     };
 
@@ -89,6 +90,6 @@ export class PrismaMetaIntegrationRepository
       orderBy: { createdAt: "desc" },
       select: { accessToken: true },
     });
-    return found?.accessToken ?? null;
+    return await decryptString(found?.accessToken ?? null);
   }
 }

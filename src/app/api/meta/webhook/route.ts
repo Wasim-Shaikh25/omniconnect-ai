@@ -4,6 +4,7 @@ import {
   processMetaWebhook,
   verifyWebhookChallenge,
   verifyWebhookSignature,
+  webhookGuard,
 } from "@/modules/meta/server";
 import { ensureSubscribers } from "@/server/subscribers";
 
@@ -31,12 +32,22 @@ export async function GET(request: Request): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   ensureSubscribers();
 
+  if (await webhookGuard.isRateLimited(request)) {
+    logger.warn("meta.webhook.rateLimited", { ip: request.headers.get("x-forwarded-for") });
+    return new NextResponse("Rate limited", { status: 429 });
+  }
+
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
 
   if (!verifyWebhookSignature(rawBody, signature)) {
     logger.warn("meta.webhook.invalidSignature", {});
     return new NextResponse("Invalid signature", { status: 401 });
+  }
+
+  if (await webhookGuard.isDuplicate(rawBody)) {
+    logger.info("meta.webhook.duplicate", {});
+    return new NextResponse("EVENT_RECEIVED", { status: 200 });
   }
 
   let payload: unknown;
