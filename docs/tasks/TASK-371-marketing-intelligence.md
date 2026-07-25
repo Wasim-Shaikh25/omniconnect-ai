@@ -1,7 +1,7 @@
 # TASK-371: Marketing Intelligence Connectivity
 
-- **Status:** Todo
-- **Spec:** `docs/specs/0047-marketing-intelligence-connectivity.md`
+- **Status:** In Progress
+- **Spec:** `docs/specs/0047-marketing-intelligence-connectivity.md`, `docs/specs/0048-marketing-workflows-ui.md`
 - **Module(s):** `content`, `analytics`, `competitors`, `conversations`, `social`, `ecommerce`, `intelligence`, `ai`
 - **Owner:** wasim
 - **Changelog entry:** `TASK-371 — Repositioned OmniConnect as the AI Marketing & Commerce Platform for Instagram and Facebook; connected content, analytics, competitors, conversations, products, and Business Brain into a unified Marketing Intelligence loop.`
@@ -49,11 +49,18 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 - [ ] 20. Daily marketing brief: follower growth, content opportunity, competitor alert, products to promote, DM/comment insights, campaign performance, best posting time, recommended Reel, trending audio, hashtags, expected reach/sales, priorities.
 - [ ] 21. `ai.askMarketingBrain()` consumes `MarketingMemory` and `DailyMarketingBriefGenerated`.
 
+### Marketing Workflows UI
+- [ ] 22. Create `WorkflowLayout` with Daily Marketing, Engagement, Growth, Revenue navigation.
+- [ ] 23. Build `DailyMarketingDashboard` with Today’s Brief, Today’s Content, Trending Topics, Competitor Changes, Products To Push, Best Time To Post, DM Opportunities.
+- [ ] 24. Reorganize existing pages into `/engagement/*`, `/growth/*`, `/revenue/*` workflows (aliases or redirects).
+- [ ] 25. Rebrand `/business-brain` as Marketing Brain and surface the daily brief.
+- [ ] 26. Add shared components: `WorkflowSummaryCard`, `ProductPromotionCard`, `CompetitorAlertCard`, `DmOpportunityCard`, `BriefSection`, `MarketingBrainChat`.
+
 ### Cleanup / Verification
-- [ ] 22. Update `intelligence/index.ts` and `ai/index.ts` public barrels to expose new contracts.
-- [ ] 23. Run `npm run lint`, `npm run typecheck`, `npm run build`.
-- [ ] 24. Write `scripts/verify-task371.ts` end-to-end validation.
-- [ ] 25. Update `docs/tasks/TASK-371-progress.md` and `CHANGELOG.md`.
+- [ ] 27. Update `intelligence/index.ts` and `ai/index.ts` public barrels to expose new contracts.
+- [ ] 28. Run `npm run lint`, `npm run typecheck`, `npm run build`.
+- [ ] 29. Write `scripts/verify-task371.ts` end-to-end validation.
+- [ ] 30. Update `docs/tasks/TASK-371-progress.md` and `CHANGELOG.md`.
 
 ## Acceptance Criteria
 

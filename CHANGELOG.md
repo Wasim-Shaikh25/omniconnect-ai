@@ -396,9 +396,10 @@ All notable changes to **OmniConnect AI** are documented here.
     - `env.ts` exposes `validateProductionSecrets()`; `src/instrumentation.ts` calls it at runtime startup so missing production secrets fail fast without breaking `next build`.
   - Phase 1 (domain detection/recommendation ownership) paused while product positioning is finalized.
 
-- **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`):
+- **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
   - Defined the 12 product gaps and the connecting architecture: Content Intelligence, Analytics loop, active Competitor Analysis, DM → marketing, comments as research, marketing analytics, product promotion scores, Marketing Memory, inbox multi-insight, competitor benchmarking, AI explanation, Business Brain → Marketing Brain daily brief.
+  - Added UI workflow spec `0048` reorganizing the product around four workflows: Daily Marketing, Engagement, Growth, Revenue.
   - Spec, task tracker, and progress tracker written. Implementation not started.
 
 ### ⏭️ Next (proposed build order)

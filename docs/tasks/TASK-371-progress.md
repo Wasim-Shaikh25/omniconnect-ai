@@ -59,6 +59,12 @@ Status legend:
 - [ ] Daily marketing brief generated each morning.
 - [ ] Brief includes follower growth, content opportunity, competitor alert, products to promote, DM/comment insights, campaign performance, best posting time, recommended Reel, trending audio, recommended hashtags, expected reach, expected sales, today's priorities.
 
+### 13. UI Workflows (from spec 0048)
+- [ ] Navigation reorganized around Daily Marketing, Engagement, Growth, Revenue.
+- [ ] `/business-brain` rebranded as Marketing Brain.
+- [ ] Daily Marketing dashboard surfaces all brief sections.
+- [ ] Existing module pages reachable via workflow aliases/redirects.
+
 ---
 
 ## Quality gates
