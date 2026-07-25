@@ -295,6 +295,22 @@ export default async function StoreDetailPage({
         </Card>
       </div>
 
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Conversations</CardTitle>
+          <CardDescription>
+            View all customer conversations and take over or resume AI for each.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/conversations`}>
+              View conversations
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>

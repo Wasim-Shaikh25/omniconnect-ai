@@ -119,11 +119,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - `generateCoupon` extended with `pushToProvider` flag so welcome coupons can be created locally without a live Shopify connection.
   - `AIProvider.complete` accepts an optional `fallback` for deterministic offline welcome copy.
   - Verified end-to-end in the dev simulator (screenshots captured); lint + typecheck + build pass.
+- **TASK-090 — Human Takeover** (spec `0008`):
+  - Expanded spec with `ConversationService` port, `ConversationTakenOver` / `AIResumed` events, and RBAC rules.
+  - `Conversation` record now exposes `customerId` and `assignedHumanId`; repository adds `takeOver` and `resumeAI`.
+  - `ConversationCommands.takeOver` and `resumeAI` append audit `HUMAN` messages and publish domain events.
+  - AI `generateReply` already checks `conversation.status`; verified that new customer messages in `HUMAN_ACTIVE` conversations do not trigger AI replies.
+  - New `/stores/[storeId]/conversations` list page and `/stores/[storeId]/conversations/[conversationId]` detail page with "Take over" / "Resume AI" controls.
+  - Store detail page links to the conversations list.
+  - Verified end-to-end (screenshots captured): take over → simulate message → no AI reply; resume AI → simulate message → AI dev reply.
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-090 — Human takeover** + **TASK-100 — Notifications** (or move to Phase 2/TASK-130 per backlog).
+- Next: **TASK-100 — Notifications** (in-app + email) or move to Phase 2/TASK-130 per backlog.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

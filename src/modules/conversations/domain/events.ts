@@ -17,3 +17,22 @@ export interface NewMessagePayload {
 export class NewMessage extends BaseDomainEvent<NewMessagePayload> {
   readonly name = "NewMessage";
 }
+
+export interface ConversationTakenOverPayload {
+  conversationId: string;
+  storeId: string;
+  humanUserId: string;
+}
+
+export class ConversationTakenOver extends BaseDomainEvent<ConversationTakenOverPayload> {
+  readonly name = "ConversationTakenOver";
+}
+
+export interface AIResumedPayload {
+  conversationId: string;
+  storeId: string;
+}
+
+export class AIResumed extends BaseDomainEvent<AIResumedPayload> {
+  readonly name = "AIResumed";
+}

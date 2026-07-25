@@ -9,8 +9,12 @@
 export const MODULE_NAME = "conversations" as const;
 
 // Domain events
-export { NewMessage } from "./domain/events";
-export type { NewMessagePayload } from "./domain/events";
+export { NewMessage, ConversationTakenOver, AIResumed } from "./domain/events";
+export type {
+  NewMessagePayload,
+  ConversationTakenOverPayload,
+  AIResumedPayload,
+} from "./domain/events";
 
 // Application record types
 export type {
@@ -27,3 +31,10 @@ export {
   conversationCommands,
   conversationQueries,
 } from "./infrastructure/container";
+
+// Presentation
+export {
+  takeOverConversationAction,
+  resumeAIConversationAction,
+} from "./presentation/actions";
+export type { ConversationActionState } from "./presentation/actions";
