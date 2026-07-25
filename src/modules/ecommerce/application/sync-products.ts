@@ -49,6 +49,11 @@ export function makeSyncProducts(deps: {
         storeId,
         provider: connector.provider,
         count,
+        products: normalized.map((p) => ({
+          externalId: p.externalId,
+          title: p.title,
+          inventory: p.inventory ?? null,
+        })),
       }),
     );
 

@@ -1,9 +1,11 @@
+import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { BusinessInsightRepository, RecommendationRepository } from "./ports";
 import type { BusinessInsightRecord, RecommendationRecord, RiskTier } from "../domain/types";
 
 export interface RecommendationServiceInput {
   insights: BusinessInsightRepository;
   recommendations: RecommendationRepository;
+  ecommerce: EcommerceQueries;
 }
 
 function riskFromSeverity(severity: BusinessInsightRecord["severity"]): RiskTier {
@@ -19,7 +21,10 @@ function riskFromSeverity(severity: BusinessInsightRecord["severity"]): RiskTier
   }
 }
 
-function recommendationFromInsight(insight: BusinessInsightRecord): Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt"> {
+async function recommendationFromInsight(
+  insight: BusinessInsightRecord,
+  ecommerce: EcommerceQueries,
+): Promise<Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt"> | null> {
   const base = {
     organizationId: insight.organizationId,
     storeId: insight.storeId,
@@ -88,6 +93,46 @@ function recommendationFromInsight(insight: BusinessInsightRecord): Omit<Recomme
     };
   }
 
+  if (
+    (insight.title.toLowerCase().includes("out of stock") ||
+      insight.title.toLowerCase().includes("low stock")) &&
+    insight.storeId
+  ) {
+    const titleMatch = insight.title.match(/^"([^"]+)"/);
+    const productTitle = titleMatch?.[1] ?? "";
+    if (productTitle) {
+      const products = await ecommerce.listProducts(insight.storeId, 100);
+      const outOfStockProduct = products.find((p) => p.title.toLowerCase() === productTitle.toLowerCase());
+      const alternative = products
+        .filter((p) => p.externalId !== outOfStockProduct?.externalId && typeof p.inventory === "number" && p.inventory > 0)
+        .sort((a, b) => (b.inventory ?? 0) - (a.inventory ?? 0))[0];
+
+      if (alternative) {
+        return {
+          ...base,
+          title: `Offer "${alternative.title}" to customers asking about "${productTitle}"`,
+          description: insight.description,
+          objective: "Recover lost demand",
+          reasonCodes: ["out_of_stock", "demand_mismatch", "alternative_product"],
+          impactRange: { min: 1, max: 10, unit: "conversions" },
+          confidence: 0.6,
+          effort: "LOW",
+          urgency: insight.severity === "HIGH" ? "HIGH" : "MEDIUM",
+          riskTier: riskFromSeverity(insight.severity),
+          eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+          actionType: "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN",
+          actionParams: {
+            storeId: insight.storeId,
+            outOfStockProductTitle: productTitle,
+            alternativeProductTitle: alternative.title,
+            audienceCriteria: { conversationMentions: productTitle },
+          },
+          deepLink: `/stores/${insight.storeId}/commerce/growth`,
+        };
+      }
+    }
+  }
+
   return {
     ...base,
     title: "Refresh integrations and recompute metrics",
@@ -116,7 +161,8 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
       const generated: RecommendationRecord[] = [];
       for (const insight of insights) {
         if (seenInsightIds.has(insight.id)) continue;
-        const draft = recommendationFromInsight(insight);
+        const draft = await recommendationFromInsight(insight, input.ecommerce);
+        if (!draft) continue;
         const saved = await input.recommendations.save(draft);
         generated.push(saved);
       }

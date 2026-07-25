@@ -99,6 +99,26 @@ export function makeWorkspaceActionExecutor(deps: WorkspaceActionExecutorDeps): 
             return { ok: true, message: "DM campaign created" };
           }
 
+          case "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN": {
+            const storeId = String(typed.storeId ?? "");
+            const outOfStockProductTitle = String(typed.outOfStockProductTitle ?? "");
+            const alternativeProductTitle = String(typed.alternativeProductTitle ?? "");
+            if (!storeId || !outOfStockProductTitle || !alternativeProductTitle) {
+              return { ok: false, message: "Missing store or product titles" };
+            }
+
+            await deps.createDmCampaign({
+              storeId,
+              campaignType: "ALTERNATIVE_PRODUCT",
+              audienceCriteria: {
+                outOfStockProductTitle,
+                alternativeProductTitle,
+                ...(typed.audienceCriteria as Record<string, unknown> ?? {}),
+              },
+            });
+            return { ok: true, message: `Alternative-product campaign for ${alternativeProductTitle} created` };
+          }
+
           case "REFRESH_INTEGRATION":
             return { ok: true, message: "Integration refresh requested" };
 

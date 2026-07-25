@@ -285,11 +285,21 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `Reports` and `Settings` links to desktop and mobile navigation.
   - Verified `ThemeProvider`/`ThemeToggle` wiring and no hard-coded light-mode colors.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-360 — Product Availability & Demand Mismatch** (spec `0036`):
+  - Extended `ProductsSynced` event to carry per-product inventory snapshots.
+  - `intelligence` subscribers now ingest `ProductInventory` signals per product.
+  - `DetectionService` detects out-of-stock/low-stock products that are mentioned in recent `NewMessage` signals.
+  - `RecommendationService` maps the insight to a `CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN` recommendation, picking the in-stock product with the highest inventory as the alternative.
+  - `WorkspaceActionExecutor` and `ActionPlanService` support the new action type and create a `DmCampaign` of type `ALTERNATIVE_PRODUCT` through the public `growth` service.
+  - Added `DmCampaignType.ALTERNATIVE_PRODUCT` enum and migration.
+  - End-to-end validation (`scripts/verify-task360.ts`) confirms product sync → message mention → insight → recommendation → executed campaign.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
 - All Unified Intelligence Layer phases (TASK-350/351/352/353/354/355) implemented and merged.
 - TASK-120 (UI pages + dark/light mode) completed.
+- TASK-360 (Product availability & demand mismatch) completed.
 
 ### 🔨 In Progress
 

@@ -118,7 +118,7 @@ const actionExecutor = makeWorkspaceActionExecutor({
   createDmCampaign: growthService.createDmCampaign,
 });
 
-export const recommendationService = makeRecommendationService({ insights, recommendations });
+export const recommendationService = makeRecommendationService({ insights, recommendations, ecommerce: ecommerceQueries });
 export const decisionPolicyService = makeDecisionPolicyService({ executor: actionExecutor });
 export const outcomeService = makeOutcomeService({ outcomes });
 export const businessLearningService = makeBusinessLearningService({ learning: learnings });

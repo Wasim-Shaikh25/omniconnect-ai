@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "DmCampaignType" ADD VALUE 'ALTERNATIVE_PRODUCT';

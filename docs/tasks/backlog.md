@@ -60,3 +60,8 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
   - `Prediction`/`Hypothesis`/`BusinessLearning` models, repositories, services, server actions, UI `PredictionsPanel`/`LearningPanel`, closed learning loop, end-to-end validation.
 - [x] **TASK-355** Phase 5 — Scale & optimization (Brand Deals, Affiliates, Media Kit, Competitor Intelligence, agency portfolio, cost/latency) — spec: `0034`
   - `CompetitorInsight`/`PortfolioSnapshot`/`SystemMetric` models, repositories, services, server actions, UI `AgencyPortfolioPanel`/`CompetitorIntelligencePanel`/`SystemHealthPanel`, end-to-end validation.
+
+## Post-UIL product tasks
+
+- [x] **TASK-360** Product Availability & Demand Mismatch — spec: `0036`
+  - Detect out-of-stock/low-stock products mentioned in conversations and recommend an alternative-product DM campaign; `ProductInventory` signals, `ALTERNATIVE_PRODUCT` `DmCampaign` type, end-to-end validation.
