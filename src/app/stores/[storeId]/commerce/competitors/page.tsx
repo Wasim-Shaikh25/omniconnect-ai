@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { PrismaTrackedAccountRepository } from "@/modules/analytics/server";
+import { CompetitorNextBestAction } from "@/components/competitor-next-best-action";
 import CompetitorsPageClient from "./competitors-client";
 
 export default async function CompetitorsPage({
@@ -22,5 +23,10 @@ export default async function CompetitorsPage({
   const repository = new PrismaTrackedAccountRepository();
   const accounts = await repository.listByStore(storeId);
 
-  return <CompetitorsPageClient storeId={storeId} initialAccounts={accounts} />;
+  return (
+    <>
+      <CompetitorNextBestAction storeId={storeId} />
+      <CompetitorsPageClient storeId={storeId} initialAccounts={accounts} />
+    </>
+  );
 }

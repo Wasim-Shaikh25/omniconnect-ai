@@ -312,6 +312,13 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `crmCommands.upsertByExternalId` so Inbox participants can resolve to CRM contacts through the public `crm` contract.
   - End-to-end validation (`scripts/verify-task362.ts`) confirms Inbox, Orders, and CRM NBA plus proactive notifications.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-363 — Next Best Action for Content, Campaigns, Brand Deals, and Competitor Intelligence** (spec `0039`):
+  - Extended `NextBestActionService` with `forContent`, `forCampaigns`, `forBrandDeals`, and `forCompetitorIntelligence`.
+  - Added server actions and UI panels on `/stores/[storeId]/content`, `/stores/[storeId]/campaigns`, `/stores/[storeId]/brand-deals`, and `/stores/[storeId]/commerce/competitors`.
+  - Ingested cross-module signals for `DmCampaignCreated`, `DmCampaignSent`, `UgcAssetCollected`, `AmbassadorEnrolled`, `ReferralConverted`, `BrandDealCreated`, and `CompetitorInsightGenerated`.
+  - `BrandDealCreated` event is now published from the `branddeals` application command.
+  - End-to-end validation (`scripts/verify-task363.ts`) confirmed all four NBA outputs and 13+ cross-module signals.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -320,10 +327,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-360 (Product availability & demand mismatch) completed.
 - TASK-361 (Revenue decline & funnel diagnosis) completed.
 - TASK-362 (Next Best Action for Inbox, Orders, and CRM) completed.
+- TASK-363 (Next Best Action for Content, Campaigns, Brand Deals, and Competitor Intelligence) completed.
 
 ### 🔨 In Progress
 
-- TASK-363 and remaining TASK-350 subtasks (Content/Campaigns/Brand Deals/Competitor Intelligence NBA, cross-module contracts, goal-based automation guardrails, AI governance).
+- Remaining TASK-350 subtasks: goal-based automation templates/guardrails (93–96), AI behavior/governance/trust (97–101), KPIs and operating rhythm (107–109), testing/rollout/risk mitigations (110–116), and operating model/30-day plan items (117–125).
 
 ### ⏭️ Next (proposed build order)
 

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { Button } from "@/components/ui/button";
+import { ContentNextBestAction } from "@/components/content-next-best-action";
 import { ContentStudioForms } from "@/components/content-studio-forms";
 
 export default async function ContentStudioPage({
@@ -37,6 +38,8 @@ export default async function ContentStudioPage({
           <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
+
+      <ContentNextBestAction storeId={storeId} />
 
       <ContentStudioForms
         storeId={storeId}

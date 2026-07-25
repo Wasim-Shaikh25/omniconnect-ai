@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { couponsQueries } from "@/modules/coupons";
+import { CampaignsNextBestAction } from "@/components/campaigns-next-best-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,6 +44,8 @@ export default async function CampaignsHubPage({
           <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
+
+      <CampaignsNextBestAction storeId={storeId} />
 
       <div className="space-y-4">
         <Card>

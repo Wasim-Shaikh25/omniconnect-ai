@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { brandDealQueries } from "@/modules/branddeals";
+import { BrandDealsNextBestAction } from "@/components/brand-deals-next-best-action";
 import { formatCurrency } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,6 +73,8 @@ export default async function BrandDealsPage({
           <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
+
+      <BrandDealsNextBestAction storeId={storeId} />
 
       <Card className="mb-8">
         <CardHeader>

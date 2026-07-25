@@ -1,8 +1,11 @@
 import type { EcommerceQueries, ProductRecord } from "@/modules/ecommerce";
 import type { CrmQueries, CustomerListView, customerDirectory } from "@/modules/crm";
 import type { ConversationQueries } from "@/modules/conversations";
+import { growthQueries } from "@/modules/growth";
+import { brandDealQueries } from "@/modules/branddeals";
 import type { SignalRepository } from "./ports";
 import type { SignalRecord } from "../domain/types";
+import type { CompetitorIntelligenceService } from "./competitor-intelligence";
 
 export type CustomerDirectory = typeof customerDirectory;
 
@@ -64,6 +67,33 @@ export interface CustomerNextBestAction {
   reasons: string[];
 }
 
+export interface ContentNextBestAction {
+  repeatFormats: { format: string; evidence: string }[];
+  contentGaps: { topic: string; suggestedProductTitle: string | null }[];
+  timing: string;
+  suppressed: boolean;
+  reasons: string[];
+}
+
+export interface CampaignsNextBestAction {
+  underperforming: { campaignId: string; campaignType: string; sentCount: number; reason: string }[];
+  highPerforming: { campaignId: string; campaignType: string; sentCount: number; reason: string }[];
+  recommendedAction: string;
+  suppressed: boolean;
+  reasons: string[];
+}
+
+export interface BrandDealNextBestAction {
+  followUps: { dealId: string; brandName: string; daysStuck: number; reason: string }[];
+  deliverableRisks: { dealId: string; brandName: string; risk: string }[];
+  recommendedAction: string;
+}
+
+export interface CompetitorNextBestAction {
+  experiments: { pattern: string; suggestedAngle: string; guardrail: string }[];
+  warnings: string[];
+}
+
 const SUPPORT_KEYWORDS = ["return", "refund", "broken", "issue", "complaint", "support", "wrong", "missing", "damaged", "angry"];
 const INTENT_KEYWORDS = ["buy", "order", "purchase", "price", "discount", "interested", "how much", "available", "ship", "checkout"];
 
@@ -100,6 +130,9 @@ export interface NextBestActionServiceInput {
   customerDirectory: CustomerDirectory;
   conversations: ConversationQueries;
   signals: SignalRepository;
+  growth: typeof growthQueries;
+  brandDeals: typeof brandDealQueries;
+  competitorIntelligence: CompetitorIntelligenceService;
 }
 
 export function makeNextBestActionService(input: NextBestActionServiceInput) {
@@ -294,7 +327,152 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     };
   }
 
-  return { forConversation, forStoreOrders, forCrm };
+  async function forContent(storeId: string): Promise<ContentNextBestAction> {
+    const [ugc, products] = await Promise.all([
+      input.growth.listUgc(storeId, 50),
+      input.ecommerce.listProducts(storeId, 100),
+    ]);
+
+    const formatCounts = new Map<string, number>();
+    const featuredProducts = new Set<string>();
+    for (const asset of ugc) {
+      const fmt = asset.mediaType ?? "post";
+      formatCounts.set(fmt, (formatCounts.get(fmt) ?? 0) + 1);
+      if (asset.caption) {
+        for (const p of products) {
+          if (asset.caption.toLowerCase().includes(p.title.toLowerCase())) {
+            featuredProducts.add(p.id);
+          }
+        }
+      }
+    }
+
+    const repeatFormats = [...formatCounts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([format, count]) => ({ format, evidence: `${count} collected asset(s)` }));
+
+    const gaps = products
+      .filter((p) => (p.inventory ?? 0) > 0 && !featuredProducts.has(p.id))
+      .slice(0, 3)
+      .map((p) => ({ topic: p.title, suggestedProductTitle: p.title }));
+
+    const timing = "Post between 6 PM and 9 PM based on typical engagement; test Stories/Reels for discovery.";
+    const reasons: string[] = [];
+    if (repeatFormats.length > 0) reasons.push("UGC performance signals");
+    if (gaps.length > 0) reasons.push("Products without recent UGC coverage");
+
+    return {
+      repeatFormats,
+      contentGaps: gaps,
+      timing,
+      suppressed: false,
+      reasons,
+    };
+  }
+
+  async function forCampaigns(storeId: string): Promise<CampaignsNextBestAction> {
+    const campaigns = await input.growth.listCampaigns(storeId, 50);
+
+    const now = Date.now();
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+    const underperforming: CampaignsNextBestAction["underperforming"] = [];
+    const highPerforming: CampaignsNextBestAction["highPerforming"] = [];
+
+    for (const c of campaigns) {
+      const sentCount = typeof c.metrics === "object" && c.metrics !== null && "sentCount" in c.metrics
+        ? Number((c.metrics as Record<string, unknown>).sentCount) || 0
+        : 0;
+      const sentAt = c.sentAt ? new Date(c.sentAt).getTime() : null;
+      const scheduledAt = c.scheduledAt ? new Date(c.scheduledAt).getTime() : null;
+
+      if (c.status === "SCHEDULED" && scheduledAt && now > scheduledAt + sevenDays) {
+        underperforming.push({ campaignId: c.id, campaignType: c.campaignType, sentCount, reason: "Scheduled campaign is over a week overdue" });
+      } else if (sentAt && now - sentAt <= sevenDays && sentCount > 0) {
+        highPerforming.push({ campaignId: c.id, campaignType: c.campaignType, sentCount, reason: "Recently sent and active" });
+      } else if (c.status === "DRAFT") {
+        underperforming.push({ campaignId: c.id, campaignType: c.campaignType, sentCount, reason: "Still in draft; review audience and offer" });
+      }
+    }
+
+    const reasons: string[] = [];
+    if (underperforming.length > 0) reasons.push("Campaigns stuck or underperforming");
+    if (highPerforming.length > 0) reasons.push("Recent high-performing campaigns");
+
+    let recommendedAction = "Create your first DM or comment-unlock campaign.";
+    if (underperforming.length > 0) recommendedAction = "Pause or revise underperforming campaigns before re-running.";
+    else if (highPerforming.length > 0) recommendedAction = "Replicate the top-performing campaign as a controlled experiment.";
+
+    return {
+      underperforming: underperforming.slice(0, 10),
+      highPerforming: highPerforming.slice(0, 10),
+      recommendedAction,
+      suppressed: false,
+      reasons,
+    };
+  }
+
+  async function forBrandDeals(storeId: string): Promise<BrandDealNextBestAction> {
+    const deals = await input.brandDeals.listByStore(storeId, 100);
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    const followUps: BrandDealNextBestAction["followUps"] = [];
+    const deliverableRisks: BrandDealNextBestAction["deliverableRisks"] = [];
+
+    for (const d of deals) {
+      const updatedAt = new Date(d.updatedAt).getTime();
+      const daysStuck = Math.floor((now - updatedAt) / oneDay);
+
+      if (d.status === "NEGOTIATING" && daysStuck >= 7) {
+        followUps.push({ dealId: d.id, brandName: d.brandName, daysStuck, reason: `Negotiating for ${daysStuck} day(s); follow up on terms` });
+      } else if (d.status === "DELIVERED" && daysStuck >= 7) {
+        deliverableRisks.push({ dealId: d.id, brandName: d.brandName, risk: "Deliverable completed but not yet paid; send invoice/close loop" });
+      } else if (d.status === "CONTRACTED" && daysStuck >= 14) {
+        deliverableRisks.push({ dealId: d.id, brandName: d.brandName, risk: "Contracted over 14 days without delivery; confirm timeline" });
+      }
+    }
+
+    let recommendedAction = "No brand-deal actions needed.";
+    if (followUps.length > 0) recommendedAction = `Follow up on ${followUps.length} deal(s) stuck in negotiation.`;
+    else if (deliverableRisks.length > 0) recommendedAction = `Resolve payment/delivery risk on ${deliverableRisks.length} deal(s).`;
+
+    return { followUps, deliverableRisks, recommendedAction };
+  }
+
+  async function forCompetitorIntelligence(organizationId: string, storeId: string): Promise<CompetitorNextBestAction> {
+    const insights = await input.competitorIntelligence.list(organizationId, storeId, 50);
+    const experiments: CompetitorNextBestAction["experiments"] = [];
+    const warnings: string[] = [];
+
+    const byMetric = new Map<string, { total: number; count: number; competitors: Set<string> }>();
+    for (const i of insights) {
+      const entry = byMetric.get(i.metricName) ?? { total: 0, count: 0, competitors: new Set<string>() };
+      entry.total += i.value;
+      entry.count += 1;
+      entry.competitors.add(i.competitorHandle);
+      byMetric.set(i.metricName, entry);
+    }
+
+    for (const [metric, { total, count, competitors }] of byMetric) {
+      const avg = count ? total / count : 0;
+      if (avg > 5) {
+        experiments.push({
+          pattern: metric,
+          suggestedAngle: `Test a content experiment around ${metric} with your own brand voice.`,
+          guardrail: "Do not copy competitor assets or unsupported claims; run a controlled test.",
+        });
+      }
+      if (competitors.size > 2) {
+        warnings.push(`${metric} appears across ${competitors.size} competitors — trend may be broad, not unique.`);
+      }
+    }
+
+    return { experiments, warnings };
+  }
+
+  return { forConversation, forStoreOrders, forCrm, forContent, forCampaigns, forBrandDeals, forCompetitorIntelligence };
 }
 
 export type NextBestActionService = ReturnType<typeof makeNextBestActionService>;

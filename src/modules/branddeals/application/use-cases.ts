@@ -1,3 +1,5 @@
+import { eventBus } from "@/shared/events";
+import { BrandDealCreated } from "../domain/events";
 import type {
   BrandDealCommands,
   BrandDealQueries,
@@ -16,9 +18,18 @@ export function makeCreateBrandDeal(deps: {
   brandDeals: BrandDealRepository;
 }): BrandDealCommands["create"] {
   return async (input: CreateBrandDealInput): Promise<BrandDealRecord> => {
-    return deps.brandDeals.create({
+    const deal = await deps.brandDeals.create({
       status: "LEAD",
       ...input,
     });
+    await eventBus.publish(
+      new BrandDealCreated(deal.storeId, {
+        storeId: deal.storeId,
+        dealId: deal.id,
+        brandName: deal.brandName,
+        value: deal.value,
+      }),
+    );
+    return deal;
   };
 }
