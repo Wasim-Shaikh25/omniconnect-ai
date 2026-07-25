@@ -14,7 +14,7 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 
 ### Phase 0 — Security hardening (do first)
 - [x] 1. Encrypt `Integration.accessToken` and `refreshToken` at rest (`src/shared/security/encryption.ts`, ecommerce + meta integration repositories).
-- [ ] 2. Encrypt or avoid persisting NextAuth `Account.access_token` / `refresh_token` at rest. (Deferred: requires a custom NextAuth adapter wrapper; track in a follow-up security task.)
+- [x] 2. Encrypt or avoid persisting NextAuth `Account.access_token` / `refresh_token` at rest. (Implemented via `EncryptedPrismaAdapter` wrapping `@auth/prisma-adapter` and encrypting `access_token`, `refresh_token`, `id_token` on write, decrypting on read; backwards-compatible with legacy plaintext.)
 - [x] 3. Enforce `Customer.consent` in `generate-reply` (declined consent excludes profile from the AI prompt).
 - [x] 4. Log AI prompt metadata without PII via existing `AuditLog`.
 - [x] 5. Add rate limiting and replay idempotency to `/api/meta/webhook` (`src/modules/meta/infrastructure/webhook-guard.ts`).

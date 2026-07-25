@@ -63,8 +63,8 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [~] `ReadModelRefresher` recomputes read models from canonical signals; full replacement of operational scans requires dedicated read-model tables/caching in a future iteration.
 
 ### 12. AI architecture is not unified
-- [ ] Shared `AIContext` builder used by reply, Brain, captions, trends, competitor analysis.
-- [ ] Prompt templates, memory, retrieval, confidence, and model routing centralized behind `ai` module contracts.
+- [x] Shared `AIContext` builder (`AIContextBuilder`) and `selectModel` router used by reply, Brain, captions, trends, competitor analysis, and welcome message.
+- [~] Prompt templates, memory, retrieval, confidence, and model routing centralized behind `ai` module contracts; retrieval/confidence scaffolding can be added later.
 
 ### 13. Application layer is enormous
 - [ ] `intelligence/application` services refactored into smaller, focused services (scoring, lifecycle, conflict, learning).
@@ -82,7 +82,7 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 ## Security gaps (from review)
 
 - [x] `Integration.accessToken` / `refreshToken` encrypted at rest.
-- [ ] NextAuth `Account.access_token` / `refresh_token` encrypted or stored only as JWT (deferred to follow-up).
+- [x] NextAuth `Account.access_token` / `refresh_token` encrypted at rest via `EncryptedPrismaAdapter` (wraps `@auth/prisma-adapter` and encrypts/decrypts `access_token`, `refresh_token`, `id_token` on `linkAccount` and `getAccount`).
 - [x] `Customer.consent` enforced in `generate-reply`.
 - [x] AI prompt audit log without PII.
 - [x] `/api/meta/webhook` rate limiting and replay idempotency.

@@ -52,6 +52,10 @@ export type {
   BusinessBrainAnswer,
   AskBusinessBrainInput,
 } from "./application/ask-business-brain";
+export { AIContextBuilder } from "./application/ai-context";
+export type { AIContext } from "./application/ai-context";
+export { selectModel } from "./application/model-router";
+export type { AIOperation, ModelSelection } from "./application/model-router";
 
 // Presentation
 export {

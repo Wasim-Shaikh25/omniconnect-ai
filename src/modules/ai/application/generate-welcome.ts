@@ -1,4 +1,6 @@
 import type { AIConfigurationRecord, AIProvider } from "./ports";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface GenerateWelcomeInput {
   username: string | null;
@@ -43,13 +45,21 @@ Personalize this welcome message for a new follower named "${username}". Include
       ? fallback
       : `${fallback} Use code ${input.couponCode} for ${input.discountPct}% off!`;
 
+    const context = new AIContextBuilder()
+      .withSystem(prompt)
+      .withModel(selectModel("welcome-message", config.model).model)
+      .withFallback(safeFallback)
+      .withOperation("welcome-message")
+      .withMetadata({ username, discountPct: input.discountPct })
+      .build();
+
     try {
-      return await deps.aiProvider.complete(
-        [{ role: "system" as const, content: prompt }],
-        { model: config.model, fallback: safeFallback },
-      );
+      return await deps.aiProvider.complete(context.messages, {
+        model: context.model,
+        fallback: context.fallback,
+      });
     } catch {
-      return safeFallback;
+      return context.fallback;
     }
   };
 }

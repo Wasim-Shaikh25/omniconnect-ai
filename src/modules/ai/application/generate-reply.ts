@@ -16,6 +16,8 @@ import type {
   AIConfigurationRepository,
   AIProvider,
 } from "./ports";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 const MAX_CONTEXT_MESSAGES = 10;
 const MAX_PRODUCTS = 10;
@@ -256,13 +258,19 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
 
     const recentMessages = messages.slice(-MAX_CONTEXT_MESSAGES);
     const systemPrompt = buildSystemPrompt(config, profile, products, coupons);
-    const aiMessages = [
-      { role: "system" as const, content: systemPrompt },
-      ...recentMessages.map((m: MessageRecord) => ({
-        role: toMessageRole(m.sender),
-        content: m.content,
-      })),
-    ];
+    const context = new AIContextBuilder()
+      .withSystem(systemPrompt)
+      .withHistory(
+        recentMessages.map((m: MessageRecord) => ({
+          role: toMessageRole(m.sender),
+          content: m.content,
+        })),
+      )
+      .withModel(selectModel("reply", config.model).model)
+      .withOperation("reply")
+      .withMetadata({ conversationId, storeId, externalUserId, hasProfile: Boolean(profile) })
+      .build();
+    const aiMessages = context.messages;
 
     // Audit prompt metadata without PII.
     if (organizationId) {
@@ -291,7 +299,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
     let rawReply: string;
     try {
       rawReply = await deps.aiProvider.complete(aiMessages, {
-        model: config.model,
+        model: context.model,
       });
     } catch (error) {
       logger.error("ai.generateReply.providerFailed", {

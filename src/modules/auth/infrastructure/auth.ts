@@ -1,11 +1,11 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
 import Apple from "next-auth/providers/apple";
 import GitHub from "next-auth/providers/github";
 import { prisma } from "@/shared/database";
+import { EncryptedPrismaAdapter } from "./encrypted-prisma-adapter";
 import { env } from "@/shared/config";
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
@@ -96,7 +96,7 @@ if (env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET) {
 export { oauthProviders };
 
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+  adapter: EncryptedPrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers,

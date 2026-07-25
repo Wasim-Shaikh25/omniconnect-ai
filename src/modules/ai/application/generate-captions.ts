@@ -1,4 +1,6 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface GenerateCaptionsInput {
   storeId: string;
@@ -51,13 +53,19 @@ For each caption return a JSON object with:
 Return only a JSON array of 3 objects. Do not wrap in markdown.`;
 
     const user = `Media type: ${input.mediaType}. Tagged products: ${productList}.`;
-    const raw = await deps.aiProvider.complete(
-      [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      { model: config?.model ?? "gpt-4o-mini", fallback: DEFAULT_DEV_OUTPUT },
-    );
+    const context = new AIContextBuilder()
+      .withSystem(system)
+      .withUser(user)
+      .withModel(selectModel("captions", config?.model).model)
+      .withFallback(DEFAULT_DEV_OUTPUT)
+      .withOperation("captions")
+      .withMetadata({ storeId: input.storeId, mediaType: input.mediaType, productCount: input.productNames.length })
+      .build();
+
+    const raw = await deps.aiProvider.complete(context.messages, {
+      model: context.model,
+      fallback: context.fallback,
+    });
 
     try {
       const parsed = JSON.parse(raw) as unknown;

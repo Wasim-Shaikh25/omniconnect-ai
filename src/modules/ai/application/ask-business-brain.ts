@@ -1,6 +1,8 @@
-import type { AIMessage, AIProvider, AIConfigurationRepository, BrainConversationMemoryRecord } from "./ports";
+import type { AIProvider, AIConfigurationRepository, BrainConversationMemoryRecord } from "./ports";
 import type { BrainMemoryService } from "./brain-memory";
 import type { MarketingMemoryRecord, DailyBriefRecord, BusinessBrainContext } from "@/modules/intelligence";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface BusinessBrainAnswer {
   answer: string;
@@ -85,7 +87,7 @@ function buildPrompt(
   brief?: DailyBriefRecord,
   brainContext?: BusinessBrainContext,
   recentMemory?: BrainConversationMemoryRecord[],
-): AIMessage[] {
+): AIContextBuilder {
   const topProducts = memory?.productScores
     .slice(0, 3)
     .map((p) => `${p.productTitle} (${Math.round(p.compositeScore * 100)} pts)`)
@@ -157,13 +159,10 @@ DM patterns: ${dmPatterns}
 Comment patterns: ${commentPatterns}${dailyBrief}${intelligenceContext}${memoryContext}
 `;
 
-  return [
-    {
-      role: "system",
-      content: `You are OmniConnect AI Marketing Brain, an evidence-backed assistant for Instagram and Facebook businesses. Answer concisely using only the workspace context below. If data is missing, say so. Recommend one concrete next action when possible.\n\nContext:${context}`,
-    },
-    { role: "user", content: question },
-  ];
+  return new AIContextBuilder()
+    .withSystem(`You are OmniConnect AI Marketing Brain, an evidence-backed assistant for Instagram and Facebook businesses. Answer concisely using only the workspace context below. If data is missing, say so. Recommend one concrete next action when possible.\n\nContext:${context}`)
+    .withUser(question)
+    .withOperation("brain");
 }
 
 export interface AskBusinessBrainDeps {
@@ -216,14 +215,21 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
     }
 
     const fallback = buildFallbackAnswer(input.question, ctx, brief, brainContext);
-    const messages = buildPrompt(input.question, ctx, memory, brief, brainContext, recentMemory);
+    const promptBuilder = buildPrompt(input.question, ctx, memory, brief, brainContext, recentMemory);
 
     const configStoreId = storeId ?? "";
     const config = await deps.aiConfigurationRepository.getByStore(configStoreId);
+    const model = selectModel("brain", config?.model).model;
 
-    const answer = await deps.aiProvider.complete(messages, {
-      model: config?.model ?? "gpt-4o-mini",
-      fallback,
+    const context = promptBuilder
+      .withModel(model)
+      .withFallback(fallback)
+      .withMetadata({ organizationId: input.organizationId, userId: input.userId, storeId })
+      .build();
+
+    const answer = await deps.aiProvider.complete(context.messages, {
+      model: context.model,
+      fallback: context.fallback,
     });
 
     let memoryId: string | undefined;

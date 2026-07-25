@@ -1,4 +1,6 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface GenerateTrendsInput {
   storeId: string;
@@ -54,13 +56,19 @@ For each idea return:
 Return only a JSON array. Do not wrap in markdown.`;
 
     const user = `Niche: ${niche}. Format: ${format}.`;
-    const raw = await deps.aiProvider.complete(
-      [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      { model: config?.model ?? "gpt-4o-mini", fallback: DEFAULT_DEV_OUTPUT },
-    );
+    const context = new AIContextBuilder()
+      .withSystem(system)
+      .withUser(user)
+      .withModel(selectModel("trends", config?.model).model)
+      .withFallback(DEFAULT_DEV_OUTPUT)
+      .withOperation("trends")
+      .withMetadata({ storeId: input.storeId, niche, format })
+      .build();
+
+    const raw = await deps.aiProvider.complete(context.messages, {
+      model: context.model,
+      fallback: context.fallback,
+    });
 
     try {
       const parsed = JSON.parse(raw) as unknown;

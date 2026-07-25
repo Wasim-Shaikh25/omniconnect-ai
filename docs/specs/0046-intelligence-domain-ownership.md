@@ -126,6 +126,7 @@ Stop `intelligence` from becoming a decision monolith. Move domain-specific dete
 - [x] Action plan execution dispatches through domain handlers (`executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`).
 - [x] Cross-domain read models (`MetricSnapshot`, `BusinessInsight`, `Recommendation`) are recomputed asynchronously from canonical signals via `ReadModelRefresher`.
 - [x] `Integration.accessToken` / `refreshToken` are encrypted at rest; connector decrypts at use time.
+- [x] NextAuth `Account.access_token` / `refresh_token` / `id_token` are encrypted at rest via `EncryptedPrismaAdapter`; reads decrypt transparently and remain backwards-compatible with legacy plaintext.
 - [x] `env.ts` rejects startup in production if any required secret is missing.
 - [x] `npm run lint`, `npm run typecheck`, `npm run build` pass.
 - [x] `CHANGELOG.md` and task tracker updated.

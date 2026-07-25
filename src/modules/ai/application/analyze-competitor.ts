@@ -1,5 +1,7 @@
 import type { MetaMediaItem } from "@/modules/meta";
 import type { AIConfigurationRepository, AIProvider } from "./ports";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface AnalyzeCompetitorInput {
   storeId: string;
@@ -61,13 +63,19 @@ Be concise and strategic. Do not mention that you are an AI.`;
 Niche: ${niche}
 Posts:\n${postsSummary}\n\nAnalyze the content strategy and suggest how to outperform them.`;
 
-    const raw = await deps.aiProvider.complete(
-      [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      { model: config?.model ?? "gpt-4o-mini", fallback: DEFAULT_DEV_OUTPUT },
-    );
+    const context = new AIContextBuilder()
+      .withSystem(system)
+      .withUser(user)
+      .withModel(selectModel("competitor-analysis", config?.model).model)
+      .withFallback(DEFAULT_DEV_OUTPUT)
+      .withOperation("competitor-analysis")
+      .withMetadata({ storeId: input.storeId, handle: input.handle, postCount: input.posts.length })
+      .build();
+
+    const raw = await deps.aiProvider.complete(context.messages, {
+      model: context.model,
+      fallback: context.fallback,
+    });
 
     try {
       const parsed = JSON.parse(raw) as unknown;

@@ -1,6 +1,8 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
 import type { TrendIdea } from "./generate-trends";
 import type { MarketingMemoryRecord, DailyBriefRecord } from "@/modules/intelligence";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface GeneratePostIdeasInput {
   storeId: string;
@@ -105,13 +107,19 @@ Generate content ideas that follow the same vibe, tie to the brand's current mar
 
     const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
 
-    const raw = await deps.aiProvider.complete(
-      [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      { model: config?.model ?? "gpt-4o-mini", fallback: DEFAULT_DEV_OUTPUT },
-    );
+    const context = new AIContextBuilder()
+      .withSystem(system)
+      .withUser(user)
+      .withModel(selectModel("post-ideas", config?.model).model)
+      .withFallback(DEFAULT_DEV_OUTPUT)
+      .withOperation("post-ideas")
+      .withMetadata({ storeId: input.storeId, mediaType: input.mediaType, grounded: Boolean(memory) })
+      .build();
+
+    const raw = await deps.aiProvider.complete(context.messages, {
+      model: context.model,
+      fallback: context.fallback,
+    });
 
     try {
       const parsed = JSON.parse(raw) as unknown;
