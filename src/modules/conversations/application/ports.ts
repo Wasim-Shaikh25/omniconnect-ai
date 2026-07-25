@@ -7,6 +7,8 @@ export interface ConversationRecord {
   channel: ConversationChannel;
   status: string;
   externalId: string | null;
+  customerId: string | null;
+  assignedHumanId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +37,13 @@ export interface ConversationRepository {
     id: string,
     status: "AI_ACTIVE" | "HUMAN_ACTIVE",
   ): Promise<ConversationRecord>;
+
+  takeOver(input: {
+    id: string;
+    humanUserId: string;
+  }): Promise<ConversationRecord>;
+
+  resumeAI(id: string): Promise<ConversationRecord>;
 }
 
 export interface MessageRepository {

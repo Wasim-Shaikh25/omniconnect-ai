@@ -11,6 +11,8 @@ type PrismaConversation = {
   channel: string;
   status: string;
   externalId: string | null;
+  customerId: string | null;
+  assignedHumanId: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -26,6 +28,8 @@ function toRecord(c: PrismaConversation): ConversationRecord {
     channel: toChannel(c.channel),
     status: c.status,
     externalId: c.externalId,
+    customerId: c.customerId,
+    assignedHumanId: c.assignedHumanId,
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
   };
@@ -36,6 +40,7 @@ export class PrismaConversationRepository implements ConversationRepository {
     storeId: string;
     channel: ConversationChannel;
     externalId: string | null;
+    customerId?: string;
   }): Promise<ConversationRecord> {
     const existing = input.externalId
       ? await prisma.conversation.findFirst({
@@ -60,6 +65,7 @@ export class PrismaConversationRepository implements ConversationRepository {
         storeId: input.storeId,
         channel: input.channel,
         externalId: input.externalId,
+        customerId: input.customerId ?? null,
       },
     });
     return toRecord(created);
@@ -86,6 +92,31 @@ export class PrismaConversationRepository implements ConversationRepository {
     const updated = await prisma.conversation.update({
       where: { id },
       data: { status },
+    });
+    return toRecord(updated);
+  }
+
+  async takeOver(input: {
+    id: string;
+    humanUserId: string;
+  }): Promise<ConversationRecord> {
+    const updated = await prisma.conversation.update({
+      where: { id: input.id },
+      data: {
+        status: "HUMAN_ACTIVE",
+        assignedHumanId: input.humanUserId,
+      },
+    });
+    return toRecord(updated);
+  }
+
+  async resumeAI(id: string): Promise<ConversationRecord> {
+    const updated = await prisma.conversation.update({
+      where: { id },
+      data: {
+        status: "AI_ACTIVE",
+        assignedHumanId: null,
+      },
     });
     return toRecord(updated);
   }
