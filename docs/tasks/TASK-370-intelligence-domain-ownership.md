@@ -21,12 +21,12 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 6. Make required production secrets non-optional via `validateProductionSecrets()` + `src/instrumentation.ts`.
 
 ### Phase 1 — Move detection/recommendation into owning domains
-- [ ] 7. `ecommerce`: create `detectCommerceInsights` + publish `CommerceInsightGenerated` / `CommerceRecommendationGenerated`.
+- [x] 7. `ecommerce`: create `detectCommerceInsights` + publish `CommerceInsightGenerated` / `CommerceRecommendationGenerated`.
 - [ ] 8. `crm`: create `detectCrmInsights` + publish `CrmInsightGenerated` / `CrmRecommendationGenerated`.
 - [ ] 9. `conversations`: create `detectConversationInsights` + publish `ConversationInsightGenerated` / `ConversationRecommendationGenerated`.
 - [ ] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
 - [ ] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
-- [ ] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts`.
+- [~] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce order/revenue rules removed; high-intent conversation, stale followers, product availability/demand, stale metrics remain).
 - [ ] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
 
 ### Phase 2 — Reframe intelligence as a cross-domain prioritizer

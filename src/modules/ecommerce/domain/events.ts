@@ -47,3 +47,46 @@ export interface CouponDisabledPayload {
 export class CouponDisabled extends BaseDomainEvent<CouponDisabledPayload> {
   readonly name = "CouponDisabled";
 }
+
+export interface CommerceInsight {
+  organizationId: string;
+  storeId: string;
+  type: "RISK" | "OPPORTUNITY" | "ANOMALY";
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  status: "OPEN" | "DISMISSED" | "SNOOZED";
+  title: string;
+  description: string;
+  deepLink: string;
+  generatedAt: Date;
+}
+
+export interface CommerceRecommendation {
+  organizationId: string;
+  storeId: string;
+  type: "ACTION" | "INVESTIGATE" | "WAIT";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  title: string;
+  description: string;
+  deepLink: string;
+  generatedAt: Date;
+}
+
+export interface CommerceInsightGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  insight: CommerceInsight;
+}
+
+export class CommerceInsightGenerated extends BaseDomainEvent<CommerceInsightGeneratedPayload> {
+  readonly name = "CommerceInsightGenerated";
+}
+
+export interface CommerceRecommendationGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  recommendation: CommerceRecommendation;
+}
+
+export class CommerceRecommendationGenerated extends BaseDomainEvent<CommerceRecommendationGeneratedPayload> {
+  readonly name = "CommerceRecommendationGenerated";
+}

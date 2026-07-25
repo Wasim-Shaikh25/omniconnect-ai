@@ -31,6 +31,8 @@ export {
   ProductsSynced,
   CouponGenerated,
   CouponDisabled,
+  CommerceInsightGenerated,
+  CommerceRecommendationGenerated,
 } from "./domain/events";
 export type {
   StoreConnectedPayload,
@@ -38,6 +40,10 @@ export type {
   ProductsSyncedPayload,
   CouponGeneratedPayload,
   CouponDisabledPayload,
+  CommerceInsight,
+  CommerceRecommendation,
+  CommerceInsightGeneratedPayload,
+  CommerceRecommendationGeneratedPayload,
 } from "./domain/events";
 
 // Application — schemas + record types
@@ -51,6 +57,7 @@ export type {
   CouponRecord,
 } from "./application/ports";
 export type { EcommerceQueries, StoreConnectionView } from "./application/queries";
+export type { DetectCommerceInsights } from "./application/detect-insights";
 
 // Provider registry (implement-and-register to add providers)
 export { getConnector } from "./infrastructure/provider-registry";
@@ -61,6 +68,7 @@ export {
   syncProducts,
   generateCoupon,
   ecommerceQueries,
+  detectCommerceInsights,
 } from "./infrastructure/container";
 
 // Presentation

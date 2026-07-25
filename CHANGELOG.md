@@ -394,7 +394,12 @@ All notable changes to **OmniConnect AI** are documented here.
     - `generate-reply` writes an `AuditLog` entry with prompt metadata and no PII.
     - `/api/meta/webhook` gets in-memory rate limiting and payload idempotency via `webhookGuard`.
     - `env.ts` exposes `validateProductionSecrets()`; `src/instrumentation.ts` calls it at runtime startup so missing production secrets fail fast without breaking `next build`.
-  - Phase 1 (domain detection/recommendation ownership) paused while product positioning is finalized.
+  - **Phase 1 (domain detection/recommendation ownership) started:**
+    - `ecommerce/application/detect-insights.ts` created with `detectCommerceInsights` that owns no-orders and revenue decline detection.
+    - `CommerceInsightGenerated` and `CommerceRecommendationGenerated` domain events added to `ecommerce`.
+    - `intelligence/application/detection.ts` removed `detectNoOrders` and `detectRevenueDecline` and now delegates commerce insights to `ecommerce` via `detectCommerceInsights`.
+    - `intelligence/application/diagnosis.ts` now maps `CommerceInsight` results into `BusinessInsight` records instead of computing revenue itself.
+    - Remaining modules: CRM, conversations, growth, branddeals.
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.

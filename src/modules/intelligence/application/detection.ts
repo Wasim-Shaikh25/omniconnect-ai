@@ -1,11 +1,10 @@
 import { eventBus } from "@/shared/events";
-import type { EcommerceQueries } from "@/modules/ecommerce";
+import type { DetectCommerceInsights, CommerceInsight, EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";
 import type { SignalRepository, MetricRepository, BusinessInsightRepository, EntityLinkRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
-import { makeDiagnosisService } from "./diagnosis";
 import type { DataQualityGateService } from "./validation-driven";
 
 interface SignalSummary {
@@ -23,6 +22,7 @@ export interface DetectionServiceInput {
   insights: BusinessInsightRepository;
   metrics: MetricRepository;
   links: EntityLinkRepository;
+  detectCommerceInsights: DetectCommerceInsights;
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
@@ -32,7 +32,6 @@ export interface DetectionServiceInput {
 
 export function makeDetectionService(input: DetectionServiceInput) {
   const now = input.now ?? new Date();
-  const diagnosisService = makeDiagnosisService({ ecommerce: input.ecommerce, now });
 
   async function recentSignals(
     organizationId: string,
@@ -60,38 +59,36 @@ export function makeDetectionService(input: DetectionServiceInput) {
     return saved;
   }
 
-  async function detectNoOrders(organizationId: string, storeId: string) {
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    let orders: Awaited<ReturnType<typeof input.ecommerce.listOrders>> = [];
-    try {
-      orders = await input.ecommerce.listOrders(storeId, 50);
-    } catch {
-      // Treat a disconnected store as having no orders for detection purposes.
-    }
-    const recentOrders = orders.filter((o) => new Date(o.createdAt) >= oneDayAgo);
-    if (recentOrders.length > 0) return;
-
-    const signals = await recentSignals(organizationId, storeId, oneDayAgo, "NewMessage");
+  function mapCommerceInsight(insight: CommerceInsight): Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt"> {
     const evidence: BusinessInsightEvidence = {
-      signalIds: signals.map((s) => s.subjectId),
+      signalIds: [],
       metricIds: [],
-      summary: "No completed orders in the last 24 hours despite existing conversation activity.",
+      summary: insight.description,
     };
-
-    await emit({
-      organizationId,
-      storeId,
-      type: "RISK" as InsightType,
-      severity: "HIGH" as InsightSeverity,
-      status: "OPEN",
-      title: "No orders in the last 24 hours",
-      description: "There are active conversations but no recorded orders. Consider following up with high-intent customers or checking store integration health.",
+    return {
+      organizationId: insight.organizationId,
+      storeId: insight.storeId,
+      type: insight.type as InsightType,
+      severity: insight.severity as InsightSeverity,
+      status: insight.status as BusinessInsightRecord["status"],
+      title: insight.title,
+      description: insight.description,
       evidence,
-      deepLink: `/stores/${storeId}/orders`,
-      generatedAt: now,
+      deepLink: insight.deepLink,
+      generatedAt: insight.generatedAt,
       dismissedAt: null,
       snoozedUntil: null,
-    });
+    };
+  }
+
+  async function emitCommerceInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectCommerceInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapCommerceInsight(insight));
+    }
   }
 
   async function detectHighIntentConversation(organizationId: string, storeId: string) {
@@ -254,20 +251,6 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function detectRevenueDecline(organizationId: string, storeId: string) {
-    const insight = await diagnosisService.diagnoseRevenue(organizationId, storeId);
-    if (!insight) return;
-
-    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
-    const alreadyExists = openInsights.some((i) =>
-      i.title.toLowerCase().includes("revenue declined") ||
-      i.title.toLowerCase().includes("revenue recovered"),
-    );
-    if (alreadyExists) return;
-
-    await emit(insight);
-  }
-
   async function detectStaleMetrics(organizationId: string, storeId: string) {
     const definitions = await input.metrics.listDefinitions(organizationId);
     for (const definition of definitions) {
@@ -326,10 +309,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
         }
       }
 
-      await detectNoOrders(organizationId, storeId);
+      await emitCommerceInsights(organizationId, storeId);
       await detectHighIntentConversation(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);
-      await detectRevenueDecline(organizationId, storeId);
       await detectStaleFollowers(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },

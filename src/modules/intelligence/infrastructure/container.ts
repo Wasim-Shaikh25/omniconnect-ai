@@ -1,6 +1,6 @@
 import { organizationQueries } from "@/modules/organizations";
 import { eventBus } from "@/shared/events";
-import { ecommerceQueries, generateCoupon } from "@/modules/ecommerce";
+import { ecommerceQueries, generateCoupon, detectCommerceInsights } from "@/modules/ecommerce";
 import { conversationQueries, conversationCommands } from "@/modules/conversations";
 import { crmQueries, customerDirectory } from "@/modules/crm";
 import { analyticsQueries } from "@/modules/analytics";
@@ -154,12 +154,13 @@ export const metricService = makeMetricService(metrics, metricProvider);
 export const dataQualityService = makeDataQualityService(issues, metrics);
 export const dataQualityGateService = makeDataQualityGateService({ signals, metrics, links });
 export const customerSummaryService = makeCustomerSummaryService();
-export const diagnosisService = makeDiagnosisService({ ecommerce: ecommerceQueries });
+export const diagnosisService = makeDiagnosisService({ detectCommerceInsights });
 export const detectionService = makeDetectionService({
   signals,
   insights,
   metrics,
   links,
+  detectCommerceInsights,
   ecommerce: ecommerceQueries,
   conversations: conversationQueries,
   crm: crmQueries,

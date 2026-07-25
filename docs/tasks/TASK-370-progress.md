@@ -11,12 +11,12 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 ## Architecture gaps (from review)
 
 ### 1. Intelligence is not an orchestrator anymore
-- [ ] Domain modules publish their own `*InsightGenerated` / `*RecommendationGenerated` events.
-- [ ] `intelligence` stops owning commerce/crm/conversation/growth/brand-deal detection rules.
+- [~] Domain modules publish their own `*InsightGenerated` / `*RecommendationGenerated` events (ecommerce events added; CRM/conversations/growth/branddeals pending).
+- [~] `intelligence` stops owning commerce/crm/conversation/growth/brand-deal detection rules (ecommerce order/revenue detection extracted; remaining modules pending).
 - [ ] `intelligence` becomes a prioritizer/scorer/conflict resolver.
 
 ### 2. Domain knowledge is leaking
-- [ ] Product availability/demand detection moved to `ecommerce`.
+- [~] Product availability/demand detection moved to `ecommerce` (order/revenue detection extracted; product-mention/demand cross-domain logic still in intelligence).
 - [ ] Conversation intent/support detection moved to `conversations` or `ai`.
 - [ ] Customer churn detection moved to `crm`.
 - [ ] Campaign/UGC/affiliate detection moved to `growth`.
