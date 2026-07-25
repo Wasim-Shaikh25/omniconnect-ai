@@ -22,4 +22,4 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [ ] **TASK-120** UI pages + dark/light mode (Login, Dashboard, connections, AI settings, conversations, customers, coupons, reports, analytics, notifications, account) — spec: `0000`
 
 ## Phase 2 build order
-- [ ] **TASK-130** Meta commerce & engagement automation (Instagram Shop sync, comment/mention automation, Lead Ads, UGC, ambassador referrals, conversational commerce) — spec: `0012`
+- [~] **TASK-130** Meta commerce & engagement automation (Instagram Shop sync, comment/mention automation, Lead Ads, UGC, ambassador referrals, conversational commerce) — spec: `0012` — Phase 2A/2B/2C implemented; 2D/2E UGC, ambassadors, and DM campaigns pending

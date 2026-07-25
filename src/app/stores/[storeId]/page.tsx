@@ -297,6 +297,35 @@ export default async function StoreDetailPage({
 
       <Card className="mt-6">
         <CardHeader>
+          <CardTitle>Commerce</CardTitle>
+          <CardDescription>
+            Instagram Shop sync, shoppable media, and product tags.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link
+            href={`/stores/${storeId}/commerce/catalog`}
+            className="text-sm text-primary underline"
+          >
+            Open commerce catalog
+          </Link>
+          <Link
+            href={`/stores/${storeId}/commerce/comments`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Comments & mentions
+          </Link>
+          <Link
+            href={`/stores/${storeId}/commerce/leads`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Leads
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
           <CardTitle>Conversations</CardTitle>
           <CardDescription>
             View all customer conversations and take over or resume AI for each.

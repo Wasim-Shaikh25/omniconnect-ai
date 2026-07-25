@@ -113,6 +113,17 @@ model Store {
   campaigns      Campaign[]
   aiConfig       AIConfiguration?
   staff          User[]
+  catalogSyncs   MetaCatalogSync[]
+  productMappings MetaProductMapping[]
+  shoppableMedia ShoppableMedia[]
+  socialComments SocialComment[]
+  socialMentions SocialMention[]
+  socialLeads    SocialLead[]
+  ugcAssets      UgcAsset[]
+  ambassadors    Ambassador[]
+  referralOrders ReferralOrder[]
+  dmCampaigns    DmCampaign[]
+  backInStockSubscriptions BackInStockSubscription[]
 }
 
 enum IntegrationType {
@@ -148,6 +159,9 @@ model Product {
   store       Store    @relation(fields: [storeId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  metaProductMappings MetaProductMapping[]
+  backInStockSubscriptions BackInStockSubscription[]
 
   @@unique([storeId, externalId])
 }
@@ -204,6 +218,10 @@ model Customer {
   coupons       Coupon[]
   couponUsages  CouponUsage[]
   followers     Follower[]
+  socialLeads   SocialLead[]
+  ugcAssets     UgcAsset[]
+  ambassadors   Ambassador[]
+  backInStockSubscriptions BackInStockSubscription[]
 }
 
 // ── meta / conversations ────────────────────────────────────────────────────
@@ -346,4 +364,287 @@ model Notification {
   createdAt DateTime            @default(now())
 
   @@index([userId, read, createdAt])
+}
+
+// ── commerce (Phase 2) ──────────────────────────────────────────────────────
+enum CatalogSyncStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+}
+
+model MetaCatalogSync {
+  id              String            @id @default(cuid())
+  storeId         String
+  store           Store             @relation(fields: [storeId], references: [id])
+  externalCatalogId String?
+  status          CatalogSyncStatus @default(PENDING)
+  lastSyncedAt    DateTime?
+  errorLog        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([storeId, status])
+}
+
+model MetaProductMapping {
+  id                String    @id @default(cuid())
+  storeId           String
+  store             Store     @relation(fields: [storeId], references: [id])
+  productId         String
+  product           Product   @relation(fields: [productId], references: [id])
+  externalProductId String?
+  externalCatalogId String?
+  status            String    @default("PENDING")
+  lastPushedAt      DateTime?
+  errorMessage      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([storeId, productId])
+  @@index([storeId, status])
+}
+
+enum ShoppableMediaStatus {
+  DRAFT
+  PUBLISHED
+  FAILED
+}
+
+model ShoppableMedia {
+  id              String                 @id @default(cuid())
+  storeId         String
+  store           Store                  @relation(fields: [storeId], references: [id])
+  externalMediaId String?
+  mediaType       String
+  caption         String?
+  permalink       String?
+  productTags     Json?
+  status          ShoppableMediaStatus   @default(DRAFT)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([storeId, status])
+}
+
+enum CommentIntent {
+  QUESTION
+  COMPLAINT
+  COMPLIMENT
+  SPAM
+  PURCHASE_INTENT
+  OTHER
+}
+
+enum CommentSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+model SocialComment {
+  id                String            @id @default(cuid())
+  storeId           String
+  store             Store             @relation(fields: [storeId], references: [id])
+  externalMediaId   String?
+  externalCommentId String?
+  parentId          String?
+  externalUserId    String?
+  username          String?
+  text              String
+  intent            CommentIntent     @default(OTHER)
+  sentiment         CommentSentiment  @default(NEUTRAL)
+  autoReplyText     String?
+  repliedAt         DateTime?
+  hidden            Boolean           @default(false)
+  deleted           Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@unique([storeId, externalCommentId])
+  @@index([storeId, hidden, createdAt])
+}
+
+enum MentionSource {
+  MENTION
+  TAG
+  HASHTAG
+}
+
+model SocialMention {
+  id             String        @id @default(cuid())
+  storeId        String
+  store          Store         @relation(fields: [storeId], references: [id])
+  externalMediaId String?
+  externalUserId  String?
+  handle          String?
+  mediaUrl        String?
+  source          MentionSource
+  caption         String?
+  hashtags        String[]
+  createdAt       DateTime      @default(now())
+
+  @@index([storeId, source])
+}
+
+enum LeadSource {
+  LEAD_ADS
+  DM
+  COMMENT
+  FOLLOW
+}
+
+enum LeadStatus {
+  NEW
+  SCORED
+  NURTURED
+  CONVERTED
+  DISQUALIFIED
+}
+
+model SocialLead {
+  id              String    @id @default(cuid())
+  storeId         String
+  store           Store     @relation(fields: [storeId], references: [id])
+  source          LeadSource
+  externalFormId  String?
+  externalLeadId  String?
+  payload         Json?
+  mappedFields    Json?
+  status          LeadStatus @default(NEW)
+  score           Int       @default(0)
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  assignedTo      String?
+  nurturedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([storeId, status, score])
+}
+
+enum UgcRightsStatus {
+  PENDING
+  REQUESTED
+  APPROVED
+  DECLINED
+}
+
+model UgcAsset {
+  id              String        @id @default(cuid())
+  storeId         String
+  store           Store         @relation(fields: [storeId], references: [id])
+  socialMentionId String?
+  customerId      String?
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+  creatorHandle   String?
+  mediaUrl        String?
+  mediaType       String?
+  source          MentionSource
+  caption         String?
+  rightsStatus    UgcRightsStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([storeId, rightsStatus])
+}
+
+enum AmbassadorStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+model Ambassador {
+  id              String          @id @default(cuid())
+  storeId         String
+  store           Store           @relation(fields: [storeId], references: [id])
+  customerId      String?
+  customer        Customer?       @relation(fields: [customerId], references: [id])
+  code            String
+  discountPct     Int             @default(10)
+  commissionPct   Int             @default(5)
+  status          AmbassadorStatus @default(PENDING)
+  totalReferrals  Int             @default(0)
+  totalEarnings   Decimal         @default(0) @db.Decimal(12, 2)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  referralOrders  ReferralOrder[]
+
+  @@unique([storeId, code])
+  @@index([storeId, status])
+}
+
+enum ReferralOrderStatus {
+  PENDING
+  APPROVED
+  PAID
+}
+
+model ReferralOrder {
+  id               String              @id @default(cuid())
+  storeId          String
+  store            Store               @relation(fields: [storeId], references: [id])
+  ambassadorId     String
+  ambassador       Ambassador          @relation(fields: [ambassadorId], references: [id])
+  orderId          String
+  orderAmount      Decimal             @db.Decimal(12, 2)
+  commissionAmount Decimal             @db.Decimal(12, 2)
+  status           ReferralOrderStatus @default(PENDING)
+  paidAt           DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@unique([storeId, orderId])
+  @@index([storeId, status])
+}
+
+enum DmCampaignType {
+  WELCOME
+  ABANDONED_CART
+  BACK_IN_STOCK
+  REVIEW
+  RE_ENGAGE
+}
+
+enum DmCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+}
+
+model DmCampaign {
+  id              String           @id @default(cuid())
+  storeId         String
+  store           Store            @relation(fields: [storeId], references: [id])
+  campaignType    DmCampaignType
+  audienceCriteria Json?
+  status          DmCampaignStatus @default(DRAFT)
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  metrics         Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([storeId, campaignType, status])
+}
+
+model BackInStockSubscription {
+  id             String    @id @default(cuid())
+  storeId        String
+  store          Store     @relation(fields: [storeId], references: [id])
+  productId      String
+  product        Product   @relation(fields: [productId], references: [id])
+  externalUserId String?
+  customerId     String?
+  customer       Customer? @relation(fields: [customerId], references: [id])
+  createdAt      DateTime  @default(now())
+  notifiedAt     DateTime?
+
+  @@unique([storeId, productId, externalUserId])
+  @@index([storeId, productId])
 }
