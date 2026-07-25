@@ -385,7 +385,10 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🔨 In Progress
 
-- All `TASK-350` subtasks completed during the first completeness pass. Next: verify full `TASK-350` checklist and close the umbrella task, then continue backlog (billing page, real email channel, live connectors, or next strategic priority).
+- **TASK-370 — Intelligence Domain Ownership Refactor** (spec `0046`):
+  - Architecture review identified `intelligence` becoming a decision monolith.
+  - Plan: move domain-specific detection/recommendation into `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`; reframe `intelligence` as cross-domain prioritizer/scorer/conflict resolver; add recommendation lifecycle and expiration; connect `Business Brain` to intelligence outputs; harden security (token encryption, AI data consent, webhook rate limiting, production env validation).
+  - Spec, task tracker, and progress tracker written. Implementation not started.
 
 ### ⏭️ Next (proposed build order)
 
