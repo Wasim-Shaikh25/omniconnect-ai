@@ -118,6 +118,13 @@ export default async function AutomationsHubPage({
           href={`/stores/${storeId}`}
           cta="Configure AI"
         />
+        <AutomationCard
+          title="Goal-based automations"
+          description="Outcome-first templates: repeat purchases, abandoned carts, re-engagement, reviews, and more."
+          status="Create from template"
+          href={`/stores/${storeId}/automations/goals`}
+          cta="New goal automation"
+        />
         <Card className="flex flex-col border-dashed">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Custom workflows</CardTitle>

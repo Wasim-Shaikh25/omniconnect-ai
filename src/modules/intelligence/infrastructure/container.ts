@@ -27,6 +27,7 @@ import { makeCompetitorIntelligenceService } from "../application/competitor-int
 import { makeCostLatencyMonitor } from "../application/system-health";
 import { makeNextBestActionService } from "../application/next-best-action";
 import { makeProactiveNotificationService } from "../application/proactive-notifications";
+import { makeGoalAutomationService } from "../application/goal-automation";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -156,6 +157,12 @@ export const actionPlanService = makeActionPlanService({
   metrics: metricService,
 });
 export const goalService = makeGoalService({ goals, metrics: metricService });
+export const goalAutomationService = makeGoalAutomationService({
+  goalService,
+  recommendations,
+  actionPlans,
+  goals,
+});
 export const predictionService = makePredictionService({
   predictions,
   signals,
