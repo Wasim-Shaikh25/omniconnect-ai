@@ -178,6 +178,27 @@ export interface SystemMetricRepository {
   summary(organizationId: string): Promise<{ avgLatencyMs: number | null; totalCostCents: number | null; operationCount: number; slowestOperation: string | null }>;
 }
 
+export interface KpiSnapshot {
+  organizationId: string;
+  storeId?: string;
+  period: "24h" | "7d" | "30d";
+  iava: number;
+  insightsGenerated: number;
+  insightsActed: number;
+  recommendationsAccepted: number;
+  recommendationsDismissed: number;
+  actionPlansExecuted: number;
+  actionPlansSuccess: number;
+  outcomesLinked: number;
+  signalFreshnessPct: number;
+  identityConfidenceAvg: number | null;
+  highConfidenceEntityLinks: number;
+}
+
+export interface KpiRepository {
+  getWorkspaceSnapshot(organizationId: string, storeId: string | null, period: KpiSnapshot["period"], now?: Date): Promise<KpiSnapshot>;
+}
+
 export interface ActionExecutor {
   canExecute(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean };
   execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;

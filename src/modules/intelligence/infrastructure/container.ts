@@ -28,6 +28,7 @@ import { makeCostLatencyMonitor } from "../application/system-health";
 import { makeNextBestActionService } from "../application/next-best-action";
 import { makeProactiveNotificationService } from "../application/proactive-notifications";
 import { makeGoalAutomationService } from "../application/goal-automation";
+import { makeKpiService } from "../application/kpi";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -46,6 +47,7 @@ import {
   PrismaCompetitorInsightRepository,
   PrismaPortfolioSnapshotRepository,
   PrismaSystemMetricRepository,
+  PrismaKpiRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -64,6 +66,7 @@ const learnings = new PrismaBusinessLearningRepository();
 const competitorInsights = new PrismaCompetitorInsightRepository();
 const portfolioSnapshots = new PrismaPortfolioSnapshotRepository();
 const systemMetrics = new PrismaSystemMetricRepository();
+const kpis = new PrismaKpiRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
@@ -201,5 +204,6 @@ export const proactiveNotificationService = makeProactiveNotificationService({
   notifications: notificationService,
   notificationQueries,
 });
+export const kpiService = makeKpiService({ kpis });
 
-export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics };
+export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };

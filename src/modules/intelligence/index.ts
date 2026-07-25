@@ -81,6 +81,7 @@ export {
   nextBestActionService,
   proactiveNotificationService,
   goalAutomationService,
+  kpiService,
 } from "./infrastructure/container";
 
 export {
@@ -112,6 +113,7 @@ export {
   getStoreMetricsAction,
   getAutomationTemplatesAction,
   createGoalAutomationAction,
+  getWorkspaceKpisAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";

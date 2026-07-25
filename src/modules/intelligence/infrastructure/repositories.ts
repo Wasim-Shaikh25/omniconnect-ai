@@ -17,7 +17,9 @@ import type {
   CompetitorInsightRepository,
   PortfolioSnapshotRepository,
   SystemMetricRepository,
+  KpiRepository,
 } from "../application/ports";
+import type { KpiSnapshot } from "../application/ports";
 import type {
   SignalRecord,
   EntityLinkRecord,
@@ -1050,6 +1052,119 @@ export class PrismaSystemMetricRepository implements SystemMetricRepository {
       totalCostCents,
       operationCount: rows.length,
       slowestOperation: slowest?.operation ?? null,
+    };
+  }
+}
+
+const PERIOD_MS: Record<KpiSnapshot["period"], number> = {
+  "24h": 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000,
+};
+
+export class PrismaKpiRepository implements KpiRepository {
+  async getWorkspaceSnapshot(
+    organizationId: string,
+    storeId: string | null,
+    period: KpiSnapshot["period"],
+    now: Date = new Date(),
+  ): Promise<KpiSnapshot> {
+    const since = new Date(now.getTime() - PERIOD_MS[period]);
+
+    const storeFilter = storeId ? { storeId } : {};
+
+    const [
+      signals,
+      insights,
+      recommendations,
+      actionPlans,
+      outcomes,
+      links,
+    ] = await Promise.all([
+      prisma.signal.findMany({
+        where: { organizationId, ...storeFilter, occurredAt: { gte: since } },
+        orderBy: { occurredAt: "desc" },
+        take: 10000,
+      }),
+      prisma.businessInsight.findMany({
+        where: { organizationId, ...storeFilter, generatedAt: { gte: since } },
+        take: 10000,
+      }),
+      prisma.recommendation.findMany({
+        where: { organizationId, ...storeFilter, generatedAt: { gte: since } },
+        take: 10000,
+      }),
+      prisma.actionPlan.findMany({
+        where: { organizationId, ...storeFilter, createdAt: { gte: since } },
+        take: 10000,
+      }),
+      prisma.outcome.findMany({
+        where: { organizationId, ...storeFilter, createdAt: { gte: since } },
+        take: 10000,
+      }),
+      prisma.entityLink.findMany({
+        where: { organizationId, ...(storeId ? { storeId } : {}) },
+        take: 10000,
+      }),
+    ]);
+
+    const insightsActed = insights.filter((i) => i.status === "RESOLVED").length;
+
+    const recommendationsAccepted = recommendations.filter(
+      (r) => r.status === "ACCEPTED" || r.status === "EDITED",
+    ).length;
+    const recommendationsDismissed = recommendations.filter((r) => r.status === "DISMISSED").length;
+
+    const actionPlansExecuted = actionPlans.filter((p) => p.status === "EXECUTED" || p.executedAt !== null).length;
+    const actionPlansSuccess = outcomes.filter((o) => o.status === "SUCCESS").length;
+    const outcomesLinked = outcomes.filter((o) => o.actionPlanId !== null).length;
+
+    const freshSignals = signals.filter(
+      (s) =>
+        s.freshnessMs !== null &&
+        typeof s.freshnessMs === "number" &&
+        s.freshnessMs <= 300_000,
+    ).length;
+    const signalFreshnessPct = signals.length ? Math.round((freshSignals / signals.length) * 100) : 100;
+
+    const confidenceScores = links
+      .map((l) => {
+        switch (l.confidence) {
+          case "VERIFIED":
+            return 1;
+          case "PROBABLE":
+            return 0.75;
+          case "POSSIBLE":
+            return 0.5;
+          case "REJECTED":
+            return 0;
+          default:
+            return 0.5;
+        }
+      });
+    const identityConfidenceAvg = confidenceScores.length
+      ? confidenceScores.reduce((a, b) => (a as number) + (b as number), 0 as number) / confidenceScores.length
+      : null;
+    const highConfidenceEntityLinks = links.filter((l) => l.confidence === "VERIFIED" || l.confidence === "PROBABLE").length;
+
+    // IAVA = successful outcomes + accepted recommendations + executed action plans within the period.
+    const iava = actionPlansSuccess + recommendationsAccepted + actionPlansExecuted;
+
+    return {
+      organizationId,
+      storeId: storeId ?? undefined,
+      period,
+      iava,
+      insightsGenerated: insights.length,
+      insightsActed,
+      recommendationsAccepted,
+      recommendationsDismissed,
+      actionPlansExecuted,
+      actionPlansSuccess,
+      outcomesLinked,
+      signalFreshnessPct,
+      identityConfidenceAvg,
+      highConfidenceEntityLinks,
     };
   }
 }
