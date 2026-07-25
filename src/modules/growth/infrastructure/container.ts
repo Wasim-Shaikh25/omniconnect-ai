@@ -9,6 +9,7 @@ import {
 } from "./repositories";
 import { makeGrowthService } from "../application/service";
 import { makeGrowthQueries } from "../application/queries";
+import { makeDetectGrowthInsights } from "../application/detect-insights";
 
 const ugc = new PrismaUgcRepository();
 const ambassadors = new PrismaAmbassadorRepository();
@@ -35,3 +36,4 @@ export const growthQueries = makeGrowthQueries({
   backInStock,
   commentUnlocks,
 });
+export const detectGrowthInsights = makeDetectGrowthInsights({ growth: growthQueries });

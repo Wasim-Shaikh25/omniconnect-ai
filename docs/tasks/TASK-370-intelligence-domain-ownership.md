@@ -24,9 +24,9 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 7. `ecommerce`: create `detectCommerceInsights` + publish `CommerceInsightGenerated` / `CommerceRecommendationGenerated`.
 - [x] 8. `crm`: create `detectCrmInsights` + publish `CrmInsightGenerated` / `CrmRecommendationGenerated` (stale-follower detection extracted).
 - [x] 9. `conversations`: create `detectConversationInsights` + publish `ConversationInsightGenerated` / `ConversationRecommendationGenerated` (high-intent conversation detection extracted).
-- [ ] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
-- [ ] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
-- [~] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce, CRM, and conversation rules removed; product availability/demand and stale metrics remain).
+- [x] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
+- [x] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
+- [~] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce, CRM, conversation, growth, and brand-deal rules removed; product availability/demand and stale metrics remain).
 - [ ] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
 
 ### Phase 2 — Reframe intelligence as a cross-domain prioritizer

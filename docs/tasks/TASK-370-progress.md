@@ -11,16 +11,16 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 ## Architecture gaps (from review)
 
 ### 1. Intelligence is not an orchestrator anymore
-- [~] Domain modules publish their own `*InsightGenerated` / `*RecommendationGenerated` events (ecommerce events added; CRM/conversations/growth/branddeals pending).
-- [~] `intelligence` stops owning commerce/crm/conversation/growth/brand-deal detection rules (ecommerce order/revenue detection extracted; remaining modules pending).
+- [x] Domain modules publish their own `*InsightGenerated` / `*RecommendationGenerated` events (ecommerce, CRM, conversations, growth, branddeals).
+- [x] `intelligence` stops owning commerce/crm/conversation/growth/brand-deal detection rules (all primary modules now have `detect*Insights`).
 - [ ] `intelligence` becomes a prioritizer/scorer/conflict resolver.
 
 ### 2. Domain knowledge is leaking
 - [~] Product availability/demand detection moved to `ecommerce` (order/revenue detection extracted; product-mention/demand cross-domain logic still in intelligence).
 - [~] Conversation intent/support detection moved to `conversations` (high-intent conversation detection extracted; intent-keyword deduplication pending).
 - [~] Customer churn/follower-growth detection moved to `crm` (stale-follower detection extracted; churn detection pending).
-- [ ] Campaign/UGC/affiliate detection moved to `growth`.
-- [ ] Brand-deal pipeline detection moved to `branddeals`.
+- [~] Campaign/UGC/affiliate detection moved to `growth` (DM campaign staleness and UGC presence extracted).
+- [~] Brand-deal pipeline detection moved to `branddeals` (stuck-negotiation detection extracted).
 
 ### 3. Recommendation lifecycle is incomplete
 - [ ] `Recommendation` has `validFrom`, `validUntil`, `invalidatedAt`, `invalidatedByEvent`.

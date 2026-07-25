@@ -5,8 +5,8 @@ import { conversationQueries, conversationCommands, detectConversationInsights }
 import { crmQueries, customerDirectory, detectCrmInsights } from "@/modules/crm";
 import { analyticsQueries } from "@/modules/analytics";
 import { socialQueries } from "@/modules/social";
-import { growthService, growthQueries } from "@/modules/growth";
-import { brandDealQueries } from "@/modules/branddeals";
+import { growthService, growthQueries, detectGrowthInsights } from "@/modules/growth";
+import { brandDealQueries, detectBrandDealInsights } from "@/modules/branddeals";
 import { notificationService, notificationQueries } from "@/modules/notifications";
 import { makeSignalIngestionService } from "../application/signal-ingestion";
 import { makeEntityResolutionService } from "../application/entity-resolution";
@@ -163,6 +163,8 @@ export const detectionService = makeDetectionService({
   detectCommerceInsights,
   detectCrmInsights,
   detectConversationInsights,
+  detectGrowthInsights,
+  detectBrandDealInsights,
   ecommerce: ecommerceQueries,
   conversations: conversationQueries,
   crm: crmQueries,

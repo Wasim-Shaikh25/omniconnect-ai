@@ -2,6 +2,8 @@ import { eventBus } from "@/shared/events";
 import type { DetectCommerceInsights, EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries, DetectConversationInsights } from "@/modules/conversations";
 import type { DetectCrmInsights, CrmQueries } from "@/modules/crm";
+import type { DetectGrowthInsights } from "@/modules/growth";
+import type { DetectBrandDealInsights } from "@/modules/branddeals";
 import type { SignalRepository, MetricRepository, BusinessInsightRepository, EntityLinkRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
@@ -25,6 +27,8 @@ export interface DetectionServiceInput {
   detectCommerceInsights: DetectCommerceInsights;
   detectCrmInsights: DetectCrmInsights;
   detectConversationInsights: DetectConversationInsights;
+  detectGrowthInsights: DetectGrowthInsights;
+  detectBrandDealInsights: DetectBrandDealInsights;
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
@@ -97,6 +101,26 @@ export function makeDetectionService(input: DetectionServiceInput) {
 
   async function emitConversationInsights(organizationId: string, storeId: string) {
     const { insights } = await input.detectConversationInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
+  }
+
+  async function emitGrowthInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectGrowthInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
+  }
+
+  async function emitBrandDealInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectBrandDealInsights(organizationId, storeId);
     const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
@@ -259,6 +283,8 @@ export function makeDetectionService(input: DetectionServiceInput) {
       await emitCommerceInsights(organizationId, storeId);
       await emitCrmInsights(organizationId, storeId);
       await emitConversationInsights(organizationId, storeId);
+      await emitGrowthInsights(organizationId, storeId);
+      await emitBrandDealInsights(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },
