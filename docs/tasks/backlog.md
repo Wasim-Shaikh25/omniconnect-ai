@@ -35,7 +35,7 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [x] **TASK-260** Store Coupons page — spec: `0023`
 - [x] **TASK-270** Store Followers page — spec: `0024`
 - [x] **TASK-271** Workspace Reports page — spec: `0025`
-- [ ] **TASK-280** Automation module (workflow builder, triggers, actions, run history) — spec: `0000`
+- [~] **TASK-280** Automation hub — spec: `0026`
 - [ ] **TASK-290** Brand Deals (pipeline, deliverables, reporting) — spec: `0000`
 - [ ] **TASK-300** Affiliate Center (enrollment, codes, commissions, payouts) — spec: `0000`
 - [ ] **TASK-310** Media Kit (shareable creator portfolio) — spec: `0000`

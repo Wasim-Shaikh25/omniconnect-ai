@@ -457,6 +457,22 @@ export default async function StoreDetailPage({
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Automations</CardTitle>
+            <CardDescription>
+              Manage welcome, DM, back-in-stock, and AI automations.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/automations`}>
+                View automations
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

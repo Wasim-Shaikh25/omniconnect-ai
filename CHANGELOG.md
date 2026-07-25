@@ -205,10 +205,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - `/stores/[storeId]/followers` lists Meta followers.
   - `/reports` gives a workspace-wide KPI and per-store breakdown view.
   - Store detail page links to all of the above plus Content, Orders, and Analytics.
+- **TASK-280 — Automation Hub** (spec `0026`):
+  - `/stores/[storeId]/automations` gives a single view of welcome, DM, back-in-stock, comment-to-DM unlock, and AI automations with links to their configuration pages.
+  - Placeholder card for the future visual workflow builder.
+  - Store detail page links to Automations.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Automation module (TASK-280)**, then Brand Deals, Affiliate Center, Media Kit, Integrations catalog, Settings/Admin, and Mobile/PWA polish.
+- Next: **Brand Deals (TASK-290)**, then Affiliate Center, Media Kit, Integrations catalog, Settings/Admin, and Mobile/PWA polish.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
