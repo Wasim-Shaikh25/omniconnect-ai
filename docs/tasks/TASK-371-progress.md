@@ -60,10 +60,10 @@ Status legend:
 - [ ] Brief includes follower growth, content opportunity, competitor alert, products to promote, DM/comment insights, campaign performance, best posting time, recommended Reel, trending audio, recommended hashtags, expected reach, expected sales, today's priorities.
 
 ### 13. UI Workflows (from spec 0048)
-- [ ] Navigation reorganized around Daily Marketing, Engagement, Growth, Revenue.
-- [ ] `/business-brain` rebranded as Marketing Brain.
-- [ ] Daily Marketing dashboard surfaces all brief sections.
-- [ ] Existing module pages reachable via workflow aliases/redirects.
+- [x] Navigation reorganized around Daily Marketing, Engagement, Growth, Revenue (route + tabs added).
+- [x] `/business-brain` rebranded as Marketing Brain.
+- [x] Daily Marketing dashboard surfaces all brief sections (Today’s Brief, Products To Push, DM Opportunities, Followers, Best Time To Post, Competitor Changes, Content Next Best Action).
+- [x] Existing module pages reachable via workflow entry pages (aliases/redirects can be added later).
 
 ---
 

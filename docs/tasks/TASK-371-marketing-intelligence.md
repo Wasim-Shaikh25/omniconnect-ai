@@ -50,11 +50,11 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 - [ ] 21. `ai.askMarketingBrain()` consumes `MarketingMemory` and `DailyMarketingBriefGenerated`.
 
 ### Marketing Workflows UI
-- [ ] 22. Create `WorkflowLayout` with Daily Marketing, Engagement, Growth, Revenue navigation.
-- [ ] 23. Build `DailyMarketingDashboard` with Today’s Brief, Today’s Content, Trending Topics, Competitor Changes, Products To Push, Best Time To Post, DM Opportunities.
-- [ ] 24. Reorganize existing pages into `/engagement/*`, `/growth/*`, `/revenue/*` workflows (aliases or redirects).
-- [ ] 25. Rebrand `/business-brain` as Marketing Brain and surface the daily brief.
-- [ ] 26. Add shared components: `WorkflowSummaryCard`, `ProductPromotionCard`, `CompetitorAlertCard`, `DmOpportunityCard`, `BriefSection`, `MarketingBrainChat`.
+- [x] 22. Create workflow navigation (`StoreWorkflowNav`) for Daily Marketing, Engagement, Growth, Revenue.
+- [x] 23. Build Daily Marketing dashboard with Today’s Brief, Products To Push, DM Opportunities, Followers, Best Time To Post, Competitor Changes, Content Next Best Action.
+- [x] 24. Create `/engagement`, `/growth`, `/revenue` workflow entry pages linking existing module pages.
+- [x] 25. Rebrand `/business-brain` as Marketing Brain.
+- [ ] 26. Add reusable cards (`ProductPromotionCard`, `CompetitorAlertCard`, `DmOpportunityCard`, `BriefSection`) — current dashboard uses inline cards; extract later as data matures.
 
 ### Cleanup / Verification
 - [ ] 27. Update `intelligence/index.ts` and `ai/index.ts` public barrels to expose new contracts.

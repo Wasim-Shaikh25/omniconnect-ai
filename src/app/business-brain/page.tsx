@@ -24,7 +24,7 @@ export default async function BusinessBrainPage() {
       <section className="mb-8">
         <h1 className="text-2xl font-semibold flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" />
-          AI Business Brain
+          Marketing Brain
         </h1>
         <p className="text-sm text-muted-foreground">
           Ask OmniConnect anything about your workspace. Answers are grounded in

@@ -400,7 +400,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
   - Defined the 12 product gaps and the connecting architecture: Content Intelligence, Analytics loop, active Competitor Analysis, DM → marketing, comments as research, marketing analytics, product promotion scores, Marketing Memory, inbox multi-insight, competitor benchmarking, AI explanation, Business Brain → Marketing Brain daily brief.
   - Added UI workflow spec `0048` reorganizing the product around four workflows: Daily Marketing, Engagement, Growth, Revenue.
-  - Spec, task tracker, and progress tracker written. Implementation not started.
+  - **UI shell implemented:**
+    - `StoreWorkflowNav` tabs for Daily Marketing, Engagement, Growth, Revenue.
+    - `/stores/[storeId]/daily-marketing` dashboard with Today’s Brief, Products To Push, DM Opportunities, Followers, Best Time To Post, Competitor Changes, and Content Next Best Action.
+    - `/stores/[storeId]/engagement`, `/growth`, `/revenue` workflow entry pages.
+    - Rebranded `/business-brain` to Marketing Brain and updated `AppHeader`.
+  - Backend data (Marketing Memory, ProductScore, DM/comment insights, competitor benchmarking) still to wire.
 
 ### ⏭️ Next (proposed build order)
 
