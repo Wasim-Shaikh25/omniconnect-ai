@@ -22,3 +22,4 @@ being created or updated first.
 | 0007 | [Meta Content Intelligence & Marketing Insights](./0007-marketing-insights.md) | analytics, reports, meta | Draft |
 | 0008 | [Human Takeover](./0008-human-takeover.md) | conversations | Draft |
 | 0009 | [Notifications](./0009-notifications.md) | notifications  | Draft  |
+| 0012 | [Meta Commerce & Engagement Automation](./0012-meta-commerce-engagement-automation.md) | ecommerce, meta, crm, ai, notifications | Draft |
