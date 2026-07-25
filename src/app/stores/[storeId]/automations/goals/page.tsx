@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
-import { getAutomationTemplatesAction, createGoalAutomationAction } from "@/modules/intelligence";
+import { getAutomationTemplatesAction, createGoalAutomationAction, goalAutomationService } from "@/modules/intelligence";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,26 @@ export default async function GoalAutomationsPage({
 
   const { templates } = await getAutomationTemplatesAction();
 
+  const acceptanceReports = templates.map((t) => ({
+    templateId: t.id,
+    report: goalAutomationService.validateWorkflow({
+      name: t.name,
+      nodes: [
+        {
+          id: `${t.id}-node`,
+          actionType: t.actionType,
+          goalEvent: t.objective,
+          entry: ["goal-selected"],
+          exit: t.stopConditions,
+          suppressesDuplicates: true,
+          suppressesAtSend: true,
+        },
+      ],
+      estimatedAudience: t.guardrails.maxAudience,
+      assumptions: [t.objective, ...t.stopConditions],
+    }),
+  }));
+
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -44,7 +64,10 @@ export default async function GoalAutomationsPage({
         {templates.map((t) => (
           <Card key={t.id}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">{t.name}</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">{t.name}</CardTitle>
+                <span className="inline-flex rounded px-2 py-0.5 text-xs font-medium bg-muted">{t.riskTier.replace("TIER_", "Tier ")}</span>
+              </div>
               <CardDescription>{t.objective}</CardDescription>
             </CardHeader>
             <CardContent>
@@ -93,6 +116,31 @@ export default async function GoalAutomationsPage({
                   Draft goal automation
                 </Button>
               </form>
+              {(() => {
+                const report = acceptanceReports.find((r) => r.templateId === t.id)?.report;
+                if (!report) return null;
+                return (
+                  <div className="mt-4 rounded border p-3 text-sm">
+                    <p className="font-medium">
+                      Acceptance: {report.valid ? (
+                        <span className="text-green-600">Valid</span>
+                      ) : (
+                        <span className="text-red-600">Needs edit</span>
+                      )}
+                    </p>
+                    {report.warnings.length > 0 && (
+                      <ul className="mt-1 list-inside list-disc text-amber-600">
+                        {report.warnings.map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {report.assumptions.length > 0 && (
+                      <p className="mt-1 text-muted-foreground">Assumptions: {report.assumptions.join("; ")}</p>
+                    )}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         ))}

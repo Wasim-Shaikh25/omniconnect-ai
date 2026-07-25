@@ -133,15 +133,15 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 - [x] 93. Implement outcome-first automation templates: increase repeat purchases, recover abandoned carts/conversations, improve response time, re-engage inactive customers, product launch, collect reviews, grow affiliates, improve brand-deal follow-up.
 - [x] 94. Implement goal-plan generation flow: goal selection, data readiness, eligible audience, channels, consent, constraints, AI strategy, rationale, drafts, delays, stop conditions, reach/risk, approval, test run, launch, control/holdout, measurement.
 - [x] 95. Implement automation guardrails: audience preview/count, consent/suppression validation, frequency/fatigue, conflict detection, max spend/discount exposure, stop conditions, test contacts, approval by risk tier, versioning/rollback, live run history, global kill switch, per-workflow pause.
-- [~] 96. Implement AI-generated workflow acceptance criteria: every node maps to supported action, clear goal/success event, explicit entry/exit, no duplicate enrollment, suppression at send time, estimated audience/volume, highlighted assumptions, editable workflow.
+- [x] 96. Implement AI-generated workflow acceptance criteria: every node maps to supported action, clear goal/success event, explicit entry/exit, no duplicate enrollment, suppression at send time, estimated audience/volume, highlighted assumptions, editable workflow.
 
 ## AI behavior, governance & trust
 
-- [ ] 97. Implement AI response contract: direct conclusion, evidence/period, likely drivers, confidence/uncertainty, missing/stale data, recommended action, expected result range, preview/execute link.
-- [ ] 98. Implement allowlisted tool use through the decision policy engine with schema validation, idempotency keys, and audit events.
-- [ ] 99. Implement risk tier enforcement (Tier 0–4) across UI and API.
-- [ ] 100. Implement grounding/prompt-injection resistance: retrieved data cannot override policies, tool permissions independent of model text, server-generated evidence refs, PII redaction in logs.
-- [ ] 101. Enforce trust language: “likely contributed,” “associated with,” or “consistent with” for observational; “caused” only with causal/experimental backing; estimated impact as a range with assumptions.
+- [x] 97. Implement AI response contract: direct conclusion, evidence/period, likely drivers, confidence/uncertainty, missing/stale data, recommended action, expected result range, preview/execute link.
+- [x] 98. Implement allowlisted tool use through the decision policy engine with schema validation, idempotency keys, and audit events.
+- [x] 99. Implement risk tier enforcement (Tier 0–4) across UI and API.
+- [x] 100. Implement grounding/prompt-injection resistance: retrieved data cannot override policies, tool permissions independent of model text, server-generated evidence refs, PII redaction in logs.
+- [x] 101. Enforce trust language: “likely contributed,” “associated with,” or “consistent with” for observational; “caused” only with causal/experimental backing; estimated impact as a range with assumptions.
 
 ## P0–P3 backlog alignment
 
@@ -198,4 +198,4 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 
 ---
 
-Last updated: 2026-07-25 after TASK-365.
+Last updated: 2026-07-25 after TASK-366.

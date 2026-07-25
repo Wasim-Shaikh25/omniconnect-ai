@@ -196,6 +196,39 @@ export interface GoalAutomationPlanResult {
   guard: AutomationGuardResult;
 }
 
+export interface WorkflowNode {
+  id: string;
+  actionType: string;
+  goalEvent: string;
+  entry: string[];
+  exit: string[];
+  suppressesDuplicates: boolean;
+  suppressesAtSend: boolean;
+}
+
+export interface WorkflowTemplate {
+  name: string;
+  nodes: WorkflowNode[];
+  estimatedAudience?: number;
+  assumptions?: string[];
+}
+
+export interface WorkflowAcceptanceReport {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  estimatedAudience: number | null;
+  assumptions: string[];
+}
+
+const SUPPORTED_ACTION_TYPES = new Set([
+  "CREATE_DM_CAMPAIGN",
+  "TAKE_OVER_CONVERSATION",
+  "GENERATE_COUPON",
+  "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN",
+  "REFRESH_INTEGRATION",
+]);
+
 export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
   return {
     listTemplates(): AutomationTemplate[] {
@@ -276,6 +309,69 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
       });
 
       return { goal: updatedGoal, recommendation, actionPlan, guard };
+    },
+
+    validateWorkflow(workflow: WorkflowTemplate): WorkflowAcceptanceReport {
+      const errors: string[] = [];
+      const warnings: string[] = [];
+      const seenActions = new Map<string, number>();
+      const seenIds = new Set<string>();
+
+      if (!workflow.nodes || workflow.nodes.length === 0) {
+        errors.push("Workflow must contain at least one node.");
+      }
+
+      for (const node of workflow.nodes ?? []) {
+        if (!node.id || seenIds.has(node.id)) {
+          errors.push(`Duplicate or missing node id: ${node.id ?? "(empty)"}.`);
+        }
+        seenIds.add(node.id);
+
+        if (!SUPPORTED_ACTION_TYPES.has(node.actionType)) {
+          errors.push(`Node ${node.id} uses unsupported action type "${node.actionType}".`);
+        }
+
+        if (!node.goalEvent || node.goalEvent.trim().length === 0) {
+          errors.push(`Node ${node.id} must define a clear goal/success event.`);
+        }
+
+        if (!node.entry || node.entry.length === 0 || !node.exit || node.exit.length === 0) {
+          errors.push(`Node ${node.id} must define explicit entry and exit conditions.`);
+        }
+
+        if (!node.suppressesAtSend) {
+          warnings.push(`Node ${node.id} should suppress at send time to avoid duplicate outbound messages.`);
+        }
+
+        if (!node.suppressesDuplicates) {
+          warnings.push(`Node ${node.id} should deduplicate enrollment to avoid overlapping journeys.`);
+        }
+
+        seenActions.set(node.actionType, (seenActions.get(node.actionType) ?? 0) + 1);
+      }
+
+      for (const [actionType, count] of seenActions.entries()) {
+        if (count > 1) {
+          warnings.push(`Action type "${actionType}" appears ${count} times — ensure no duplicate enrollment.`);
+        }
+      }
+
+      const estimatedAudience = workflow.estimatedAudience ?? null;
+      if (estimatedAudience === null || estimatedAudience <= 0) {
+        warnings.push("Estimated audience/volume is missing; provide a value before launch.");
+      }
+
+      const assumptions = workflow.assumptions && workflow.assumptions.length > 0
+        ? workflow.assumptions
+        : ["Assumed workflow goals map to supported actions and stop conditions."];
+
+      return {
+        valid: errors.length === 0,
+        errors,
+        warnings,
+        estimatedAudience,
+        assumptions,
+      };
     },
   };
 }

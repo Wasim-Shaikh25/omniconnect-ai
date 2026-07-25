@@ -29,6 +29,7 @@ import { makeNextBestActionService } from "../application/next-best-action";
 import { makeProactiveNotificationService } from "../application/proactive-notifications";
 import { makeGoalAutomationService } from "../application/goal-automation";
 import { makeKpiService } from "../application/kpi";
+import { makeAiGovernanceService } from "../application/ai-governance";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -205,5 +206,6 @@ export const proactiveNotificationService = makeProactiveNotificationService({
   notificationQueries,
 });
 export const kpiService = makeKpiService({ kpis });
+export const aiGovernanceService = makeAiGovernanceService();
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };

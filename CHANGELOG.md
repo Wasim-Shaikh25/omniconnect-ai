@@ -335,6 +335,18 @@ All notable changes to **OmniConnect AI** are documented here.
   - Refactored `/business-brain` to a server page with a client `AskBusinessBrainForm` child so server-only KPI code is not pulled into the client bundle.
   - End-to-end validation (`scripts/verify-task365.ts`) confirmed KPI counts after seeding signals, insights, recommendations, action plans, outcomes, and entity links.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-366 — AI Governance, Trust, and Workflow Acceptance** (spec `0042`):
+  - Added `AiGovernanceService` with `formatResponse`, `validateToolCall`, `enforceRiskTier`, `applyTrustLanguage`, and `sanitizeInput`.
+  - AI response contract now returns conclusion, evidence period, likely drivers, confidence/uncertainty, missing/stale data, recommended action, expected result range, and preview/execute link.
+  - Tool allowlist validates tool name, params object, idempotency key, and caller role.
+  - Risk tier enforcement returns tier, allowed flag, approval requirement, and reason.
+  - Trust-language rewrite converts unsupported causal claims ("caused", "will increase", "guaranteed") into guarded phrasing.
+  - Basic prompt-injection pattern detection and PII redaction in `sanitizeInput`.
+  - Added workflow acceptance validator to `GoalAutomationService` checking supported actions, goal events, entry/exit conditions, duplicate suppression, send-time suppression, estimated audience, and assumptions.
+  - `/stores/[storeId]/automations/goals` displays risk tier badge and workflow acceptance report per template.
+  - Server actions `formatAiResponseAction`, `validateToolCallAction`, `validateWorkflowAction`.
+  - End-to-end validation (`scripts/verify-task366.ts`) covers response contract, trust language, tool allowlist, risk tiers, sanitization, and workflow acceptance.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
@@ -346,10 +358,11 @@ All notable changes to **OmniConnect AI** are documented here.
 - TASK-363 (Next Best Action for Content, Campaigns, Brand Deals, and Competitor Intelligence) completed.
 - TASK-364 (Goal-based Automation Templates and Guardrails) completed.
 - TASK-365 (KPIs and Operating Rhythm) completed.
+- TASK-366 (AI Governance, Trust, and Workflow Acceptance) completed.
 
 ### 🔨 In Progress
 
-- Remaining TASK-350 subtasks: AI-generated workflow acceptance (96), AI behavior/governance/trust (97–101), testing/rollout/risk mitigations (110–116), and operating model/30-day plan items (117–125).
+- Remaining TASK-350 subtasks: testing/rollout/risk mitigations (110–116) and operating model/30-day plan items (117–125).
 
 ### ⏭️ Next (proposed build order)
 
