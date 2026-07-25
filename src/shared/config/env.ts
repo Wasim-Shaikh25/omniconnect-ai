@@ -42,6 +42,8 @@ const envSchema = z.object({
 
   SENTRY_DSN: z.string().optional(),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
+
+  ENCRYPTION_KEY: z.string().min(32).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -57,3 +59,35 @@ if (!parsed.success) {
 }
 
 export const env: Env = parsed.data;
+
+const PRODUCTION_REQUIRED: Array<keyof Env> = [
+  "DATABASE_URL",
+  "NEXTAUTH_SECRET",
+  "ENCRYPTION_KEY",
+  "META_APP_SECRET",
+  "OPENAI_API_KEY",
+];
+
+/**
+ * Validate required production secrets. Call this once at runtime startup
+ * (instrumentation.ts / root layout), not at module load, so `next build` does
+ * not fail when env is not yet injected.
+ */
+export function validateProductionSecrets(): void {
+  if (env.NODE_ENV !== "production") return;
+  const missing = PRODUCTION_REQUIRED.filter((key) => !env[key]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required production environment variables: ${missing.join(", ")}`,
+    );
+  }
+}
+
+// Top-level validation is skipped during `next build` because env is not
+// injected at compile time. Run `validateProductionSecrets()` at runtime.
+if (
+  env.NODE_ENV === "production" &&
+  process.env.NEXT_PHASE !== "phase-production-build"
+) {
+  validateProductionSecrets();
+}

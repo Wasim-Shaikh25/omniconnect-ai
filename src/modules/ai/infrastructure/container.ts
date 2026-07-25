@@ -7,6 +7,7 @@ import {
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { organizationQueries } from "@/modules/organizations";
 import { notificationQueries } from "@/modules/notifications";
+import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
@@ -43,6 +44,8 @@ export const generateReply = makeGenerateReply({
   ecommerceQueries,
   metaService,
   eventBus,
+  getOrganizationIdByStoreId: organizationQueries.getOrganizationIdByStoreId,
+  auditLogCommands: auditCommands,
 });
 
 export const updateAIConfiguration = makeUpdateAIConfiguration({

@@ -1,6 +1,6 @@
 # TASK-370: Intelligence Domain Ownership Refactor
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Spec:** `docs/specs/0046-intelligence-domain-ownership.md`
 - **Module(s):** `intelligence`, `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`, `ai`, `auth`
 - **Owner:** wasim
@@ -13,12 +13,12 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 ## Subtasks
 
 ### Phase 0 — Security hardening (do first)
-- [ ] 1. Encrypt `Integration.accessToken` and `refreshToken` at rest.
-- [ ] 2. Encrypt or avoid persisting NextAuth `Account.access_token` / `refresh_token` at rest.
-- [ ] 3. Add `Customer.consentForAiProcessing` and enforce it in `generate-reply`.
-- [ ] 4. Log AI prompt metadata without PII (new `AiPromptAudit` table or extend `AuditLog`).
-- [ ] 5. Add rate limiting and replay idempotency to `/api/meta/webhook`.
-- [ ] 6. Make required production secrets non-optional in `env.ts`.
+- [x] 1. Encrypt `Integration.accessToken` and `refreshToken` at rest (`src/shared/security/encryption.ts`, ecommerce + meta integration repositories).
+- [ ] 2. Encrypt or avoid persisting NextAuth `Account.access_token` / `refresh_token` at rest. (Deferred: requires a custom NextAuth adapter wrapper; track in a follow-up security task.)
+- [x] 3. Enforce `Customer.consent` in `generate-reply` (declined consent excludes profile from the AI prompt).
+- [x] 4. Log AI prompt metadata without PII via existing `AuditLog`.
+- [x] 5. Add rate limiting and replay idempotency to `/api/meta/webhook` (`src/modules/meta/infrastructure/webhook-guard.ts`).
+- [x] 6. Make required production secrets non-optional via `validateProductionSecrets()` + `src/instrumentation.ts`.
 
 ### Phase 1 — Move detection/recommendation into owning domains
 - [ ] 7. `ecommerce`: create `detectCommerceInsights` + publish `CommerceInsightGenerated` / `CommerceRecommendationGenerated`.

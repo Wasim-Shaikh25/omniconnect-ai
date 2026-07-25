@@ -1,2 +1,2 @@
-export { env } from "./env";
+export { env, validateProductionSecrets } from "./env";
 export type { Env } from "./env";

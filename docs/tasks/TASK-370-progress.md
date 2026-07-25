@@ -79,21 +79,21 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 
 ## Security gaps (from review)
 
-- [ ] `Integration.accessToken` / `refreshToken` encrypted at rest.
-- [ ] NextAuth `Account.access_token` / `refresh_token` encrypted or stored only as JWT.
-- [ ] `Customer.consentForAiProcessing` added and enforced.
-- [ ] AI prompt audit log without PII.
-- [ ] `/api/meta/webhook` rate limiting and replay idempotency.
-- [ ] `env.ts` rejects startup when required production secrets are missing.
-- [ ] Tenant isolation audit completed for all mutating server actions.
-- [ ] Dev-only simulators cannot be triggered in production.
+- [x] `Integration.accessToken` / `refreshToken` encrypted at rest.
+- [ ] NextAuth `Account.access_token` / `refresh_token` encrypted or stored only as JWT (deferred to follow-up).
+- [x] `Customer.consent` enforced in `generate-reply`.
+- [x] AI prompt audit log without PII.
+- [x] `/api/meta/webhook` rate limiting and replay idempotency.
+- [x] `env.ts` rejects startup via `validateProductionSecrets()` + `instrumentation.ts`.
+- [ ] Tenant isolation audit completed for all mutating server actions (deferred to follow-up).
+- [ ] Dev-only simulators cannot be triggered in production (deferred to follow-up).
 
 ---
 
 ## Quality gates
 
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run build` passes.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run build` passes.
 - [ ] `scripts/verify-task370.ts` end-to-end validation passes.
 - [ ] `CHANGELOG.md` updated.
