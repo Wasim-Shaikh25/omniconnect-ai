@@ -1,6 +1,6 @@
-import type { NotificationType, NotificationChannel } from "@prisma/client";
+import type { NotificationType, NotificationChannel, NotificationDeliveryTier } from "@prisma/client";
 
-export type { NotificationType, NotificationChannel };
+export type { NotificationType, NotificationChannel, NotificationDeliveryTier };
 
 export interface NotificationRecord {
   id: string;
@@ -8,9 +8,11 @@ export interface NotificationRecord {
   storeId: string | null;
   type: NotificationType;
   channel: NotificationChannel;
+  tier: NotificationDeliveryTier;
   title: string;
   body: string;
   payload: unknown | null;
+  dedupKey: string | null;
   read: boolean;
   createdAt: Date;
 }
@@ -20,9 +22,11 @@ export interface CreateNotificationInput {
   storeId?: string;
   type: NotificationType;
   channel?: NotificationChannel;
+  tier?: NotificationDeliveryTier;
   title: string;
   body: string;
   payload?: unknown;
+  dedupKey?: string;
 }
 
 export interface NotificationRepository {
@@ -31,6 +35,7 @@ export interface NotificationRepository {
     userId: string,
     limit?: number,
   ): Promise<NotificationRecord[]>;
+  findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
   countUnreadByUser(userId: string): Promise<number>;
   markAsRead(id: string, userId: string): Promise<void>;
 }
@@ -50,6 +55,8 @@ export interface NotificationService {
     title: string;
     body: string;
     payload?: unknown;
+    tier?: NotificationDeliveryTier;
+    dedupKey?: string;
   }): Promise<void>;
 }
 
@@ -57,4 +64,5 @@ export interface NotificationQueries {
   listForUser(userId: string, limit?: number): Promise<NotificationRecord[]>;
   getUnreadCount(userId: string): Promise<number>;
   markAsRead(userId: string, notificationId: string): Promise<void>;
+  findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
 }

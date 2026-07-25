@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
+import { OrdersNextBestAction } from "@/components/orders-next-best-action";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -61,6 +62,8 @@ export default async function StoreOrdersPage({
           <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
+
+      <OrdersNextBestAction storeId={storeId} />
 
       {error ? (
         <Card>

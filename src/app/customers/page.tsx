@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { customerDirectory } from "@/modules/crm";
+import { CrmNextBestAction } from "@/components/crm-next-best-action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +74,8 @@ export default async function CustomersPage({
           <Link href="/dashboard">Back to dashboard</Link>
         </Button>
       </header>
+
+      <CrmNextBestAction />
 
       <Card className="mb-6">
         <CardHeader>

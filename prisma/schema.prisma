@@ -24,14 +24,15 @@ model User {
   emailVerified  DateTime?
   name           String?
   passwordHash   String?
-  image          String?
-  role           Role          @default(STORE_OWNER)
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  storeId        String?
-  store          Store?        @relation(fields: [storeId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  image                   String?
+  role                  Role            @default(STORE_OWNER)
+  organizationId        String?
+  organization          Organization?   @relation(fields: [organizationId], references: [id])
+  storeId               String?
+  store                 Store?          @relation(fields: [storeId], references: [id])
+  notificationPreferences Json?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
   notifications Notification[]
   accounts      Account[]
@@ -381,6 +382,7 @@ enum NotificationType {
   CONVERSATION_TAKEN_OVER
   AI_RESUMED
   SYSTEM_ERROR
+  INTELLIGENCE
 }
 
 enum NotificationChannel {
@@ -388,20 +390,31 @@ enum NotificationChannel {
   EMAIL
 }
 
+enum NotificationDeliveryTier {
+  CRITICAL_INTERRUPT
+  ACTION_REQUIRED
+  TODAY_FEED
+  DIGEST
+  ON_DEMAND
+}
+
 model Notification {
-  id        String              @id @default(cuid())
+  id        String                   @id @default(cuid())
   userId    String
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   storeId   String?
   type      NotificationType
-  channel   NotificationChannel @default(IN_APP)
+  channel   NotificationChannel      @default(IN_APP)
+  tier      NotificationDeliveryTier @default(TODAY_FEED)
   title     String
   body      String
   payload   Json?
-  read      Boolean             @default(false)
-  createdAt DateTime            @default(now())
+  dedupKey  String?
+  read      Boolean                  @default(false)
+  createdAt DateTime                 @default(now())
 
   @@index([userId, read, createdAt])
+  @@index([dedupKey, createdAt])
 }
 
 // ── commerce (Phase 2) ──────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getCustomerIntelligenceAction } from "@/modules/intelligence";
+import { getCustomerIntelligenceAction, getInboxNextBestActionAction } from "@/modules/intelligence";
 import type { CustomerIntelligenceSummary } from "@/modules/intelligence";
 
 function confidenceClass(confidence: string): string {
@@ -22,6 +22,47 @@ export async function ConversationContext({ customerId }: { customerId: string }
   if (!summary) return null;
 
   return <ContextCard summary={summary} />;
+}
+
+export async function ConversationNextBestAction({ conversationId }: { conversationId: string }) {
+  const { action } = await getInboxNextBestActionAction(conversationId);
+  if (!action) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Next best action</CardTitle>
+        <CardDescription>Priority: {action.priority} · Score: {action.priorityScore}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm">{action.reason}</p>
+        <div className="rounded-md bg-primary/10 p-2 text-sm">
+          <span className="font-medium">Suggested reply:</span> {action.suggestedReply}
+        </div>
+        {action.risks.length > 0 && (
+          <ul className="space-y-1 text-xs text-destructive">
+            {action.risks.map((r, i) => <li key={i}>{r}</li>)}
+          </ul>
+        )}
+        {action.relevantProducts.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">Relevant products</p>
+            <ul className="space-y-1 text-sm">
+              {action.relevantProducts.map((p) => (
+                <li key={p.id} className="flex items-center justify-between">
+                  <span>{p.title}</span>
+                  <span className="text-xs text-muted-foreground">{p.inStock ? "in stock" : "out of stock"}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {action.suppressSales && (
+          <p className="text-xs font-medium text-destructive">Sales outreach suppressed for this conversation.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function ContextCard({ summary }: { summary: CustomerIntelligenceSummary }) {

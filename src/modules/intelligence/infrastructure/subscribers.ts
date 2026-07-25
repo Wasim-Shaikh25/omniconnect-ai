@@ -2,10 +2,12 @@ import type { EventBus, EventHandler } from "@/shared/events";
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import { organizationQueries } from "@/modules/organizations";
+import { crmCommands } from "@/modules/crm";
 import type {
   FirstTimeFollowerDetectedPayload,
   CustomerProfileUpdatedPayload,
 } from "@/modules/crm";
+import { ecommerceQueries } from "@/modules/ecommerce";
 import type {
   CouponGeneratedPayload,
   CouponDisabledPayload,
@@ -19,7 +21,12 @@ import type {
 import {
   signalIngestionService,
   entityResolutionService,
+  proactiveNotificationService,
 } from "./container";
+import type {
+  BusinessInsightGeneratedPayload,
+  RecommendationGeneratedPayload,
+} from "../domain/events";
 
 async function orgForStore(storeId: string): Promise<string | null> {
   return organizationQueries.getOrganizationIdByStoreId(storeId);
@@ -176,13 +183,36 @@ const onProductsSynced: EventHandler = async (event) => {
   }
 };
 
+const SUPPORT_KEYWORDS = ["return", "refund", "broken", "issue", "complaint", "support", "wrong", "missing", "damaged", "angry"];
+const INTENT_KEYWORDS = ["buy", "order", "purchase", "price", "discount", "interested", "how much", "available", "ship", "checkout"];
+
+function containsKeyword(text: string, keywords: string[]): boolean {
+  const lowered = text.toLowerCase();
+  return keywords.some((k) => lowered.includes(k));
+}
+
 const onNewMessage: EventHandler = async (event) => {
   const p = event.payload as NewMessagePayload;
   const organizationId = await orgForStore(p.storeId);
   if (!organizationId) return;
 
+  let customerId = p.customerId;
+  if (!customerId && p.externalUserId) {
+    try {
+      const customer = await crmCommands.upsertByExternalId({
+        storeId: p.storeId,
+        channel: p.channel,
+        externalUserId: p.externalUserId,
+        username: null,
+      });
+      customerId = customer.id;
+    } catch (err) {
+      logger.warn("intelligence.onNewMessage.upsertCustomerFailed", { storeId: p.storeId, externalUserId: p.externalUserId, error: err instanceof Error ? err.message : "unknown" });
+    }
+  }
+
   const related: Array<{ type: string; id: string }> = [];
-  if (p.customerId) related.push({ type: "customer", id: p.customerId });
+  if (customerId) related.push({ type: "customer", id: customerId });
 
   await signalIngestionService.ingest({
     organizationId,
@@ -197,17 +227,69 @@ const onNewMessage: EventHandler = async (event) => {
     occurredAt: new Date(),
   });
 
-  if (p.customerId) {
+  if (customerId) {
     await entityResolutionService.resolve({
       organizationId,
       storeId: p.storeId,
       sourceType: "conversation",
       sourceId: p.conversationId,
       targetType: "customer",
-      targetId: p.customerId,
+      targetId: customerId,
       linkType: "involves",
       confidence: "PROBABLE",
       resolutionMethod: "conversation-association",
+    });
+  }
+
+  // Inbox ↔ Orders/Products: detect product mentions and write them to the timeline.
+  const products = await ecommerceQueries.listProducts(p.storeId, 100);
+  const mentioned = products.filter((prod) => p.content.toLowerCase().includes(prod.title.toLowerCase()));
+  for (const product of mentioned) {
+    await signalIngestionService.ingest({
+      organizationId,
+      storeId: p.storeId,
+      eventType: "ProductMentioned",
+      subjectType: "conversation",
+      subjectId: p.conversationId,
+      stage: "Consideration",
+      relatedEntities: [
+        ...(customerId ? [{ type: "customer" as const, id: customerId }] : []),
+        { type: "product", id: product.id },
+      ],
+      data: { productTitle: product.title, productId: product.id, externalUserId: p.externalUserId },
+      source: "conversations",
+      occurredAt: new Date(),
+    });
+  }
+
+  // Inbox ↔ CRM: write intent and support flags to the timeline.
+  if (containsKeyword(p.content, SUPPORT_KEYWORDS)) {
+    await signalIngestionService.ingest({
+      organizationId,
+      storeId: p.storeId,
+      eventType: "SupportIssueRaised",
+      subjectType: "conversation",
+      subjectId: p.conversationId,
+      stage: "Retention",
+      relatedEntities: customerId ? [{ type: "customer", id: customerId }] : [],
+      data: { externalUserId: p.externalUserId, channel: p.channel, reason: "support keywords detected" },
+      source: "conversations",
+      occurredAt: new Date(),
+    });
+  }
+
+  if (containsKeyword(p.content, INTENT_KEYWORDS)) {
+    await signalIngestionService.ingest({
+      organizationId,
+      storeId: p.storeId,
+      eventType: "HighIntentConversation",
+      subjectType: "conversation",
+      subjectId: p.conversationId,
+      stage: "Consideration",
+      relatedEntities: customerId ? [{ type: "customer", id: customerId }] : [],
+      data: { externalUserId: p.externalUserId, channel: p.channel, reason: "intent keywords detected" },
+      source: "conversations",
+      occurredAt: new Date(),
     });
   }
 };
@@ -284,6 +366,24 @@ const onAIResumed: EventHandler = async (event) => {
   }
 };
 
+const onBusinessInsightGenerated: EventHandler = async (event) => {
+  const p = event.payload as BusinessInsightGeneratedPayload;
+  try {
+    await proactiveNotificationService.notifyInsight(p.insight);
+  } catch (err) {
+    logger.warn("intelligence.onBusinessInsightGenerated.notifyFailed", { insightId: p.insight.id, error: err instanceof Error ? err.message : "unknown" });
+  }
+};
+
+const onRecommendationGenerated: EventHandler = async (event) => {
+  const p = event.payload as RecommendationGeneratedPayload;
+  try {
+    await proactiveNotificationService.notifyRecommendation(p.recommendation);
+  } catch (err) {
+    logger.warn("intelligence.onRecommendationGenerated.notifyFailed", { recommendationId: p.recommendation.id, error: err instanceof Error ? err.message : "unknown" });
+  }
+};
+
 export function registerIntelligenceSubscribers(bus: EventBus = eventBus): void {
   bus.subscribe("FirstTimeFollowerDetected", onFirstTimeFollowerDetected);
   bus.subscribe("CustomerProfileUpdated", onCustomerProfileUpdated);
@@ -293,4 +393,6 @@ export function registerIntelligenceSubscribers(bus: EventBus = eventBus): void 
   bus.subscribe("NewMessage", onNewMessage);
   bus.subscribe("ConversationTakenOver", onConversationTakenOver);
   bus.subscribe("AIResumed", onAIResumed);
+  bus.subscribe("BusinessInsightGenerated", onBusinessInsightGenerated);
+  bus.subscribe("RecommendationGenerated", onRecommendationGenerated);
 }

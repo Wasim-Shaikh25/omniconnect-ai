@@ -14,11 +14,13 @@ export class PrismaNotificationRepository implements NotificationRepository {
         storeId: input.storeId ?? null,
         type: input.type,
         channel: input.channel ?? "IN_APP",
+        tier: input.tier ?? "TODAY_FEED",
         title: input.title,
         body: input.body,
         payload: input.payload
           ? (input.payload as Prisma.InputJsonValue)
           : undefined,
+        dedupKey: input.dedupKey ?? null,
       },
     });
     return toRecord(created);
@@ -32,6 +34,14 @@ export class PrismaNotificationRepository implements NotificationRepository {
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: limit,
+    });
+    return rows.map(toRecord);
+  }
+
+  async findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]> {
+    const rows = await prisma.notification.findMany({
+      where: { dedupKey, createdAt: { gte: since } },
+      orderBy: { createdAt: "desc" },
     });
     return rows.map(toRecord);
   }
@@ -56,9 +66,11 @@ function toRecord(row: {
   storeId: string | null;
   type: string;
   channel: string;
+  tier: string;
   title: string;
   body: string;
   payload: unknown;
+  dedupKey: string | null;
   read: boolean;
   createdAt: Date;
 }): NotificationRecord {
@@ -68,9 +80,11 @@ function toRecord(row: {
     storeId: row.storeId,
     type: row.type as NotificationRecord["type"],
     channel: row.channel as NotificationRecord["channel"],
+    tier: row.tier as NotificationRecord["tier"],
     title: row.title,
     body: row.body,
     payload: row.payload as unknown | null,
+    dedupKey: row.dedupKey,
     read: row.read,
     createdAt: row.createdAt,
   };

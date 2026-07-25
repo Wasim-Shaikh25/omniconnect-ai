@@ -8,7 +8,7 @@ import {
   resumeAIConversationAction,
 } from "@/modules/conversations";
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
-import { ConversationContext } from "@/components/conversation-context";
+import { ConversationContext, ConversationNextBestAction } from "@/components/conversation-context";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -92,6 +92,8 @@ export default async function ConversationDetailPage({
         {detail.conversation.customerId && (
           <ConversationContext customerId={detail.conversation.customerId} />
         )}
+
+        <ConversationNextBestAction conversationId={conversationId} />
 
         <Card className="md:col-span-2">
           <CardHeader>
