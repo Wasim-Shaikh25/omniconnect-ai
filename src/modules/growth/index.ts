@@ -19,6 +19,8 @@ export type {
 } from "./application/ports";
 
 export { growthService, growthQueries, detectGrowthInsights } from "./infrastructure/container";
+export type { ActionResult } from "./application/action-handlers";
+export { executeGrowthAction } from "./application/action-handlers";
 
 export {
   listGrowthAction,

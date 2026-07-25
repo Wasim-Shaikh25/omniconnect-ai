@@ -58,6 +58,8 @@ export type {
 } from "./application/ports";
 export type { EcommerceQueries, StoreConnectionView } from "./application/queries";
 export type { DetectCommerceInsights } from "./application/detect-insights";
+export type { ActionResult } from "./application/action-handlers";
+export { executeEcommerceAction } from "./application/action-handlers";
 
 // Provider registry (implement-and-register to add providers)
 export { getConnector } from "./infrastructure/provider-registry";

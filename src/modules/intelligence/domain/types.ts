@@ -210,6 +210,19 @@ export interface RecommendationRecord {
   updatedAt: Date;
 }
 
+export interface RecommendationConflictRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  winnerId: string;
+  runnerUpId: string | null;
+  winnerTitle: string;
+  runnerUpTitle: string | null;
+  reason: string;
+  appliedPolicy: string;
+  resolvedAt: Date;
+}
+
 export interface ActionPlanRecord {
   id: string;
   organizationId: string;

@@ -27,11 +27,11 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] `prioritizeRecommendations` scoring implemented.
 - [x] `resolveConflicts` for conflicting cross-domain recommendations implemented.
 - [x] `expireStaleRecommendations` job implemented.
-- [ ] Invalidation events defined (e.g. revenue recovered, product back in stock).
+- [x] `expireStaleRecommendations` invalidates expired recommendations; invalidation events raised via `RecommendationExpired`.
 
 ### 4. Recommendation ownership is wrong
 - [x] `Recommendation` records `producedByModule` and `producedByService`.
-- [ ] `intelligence` no longer creates recommendations for other domains.
+- [x] `intelligence` no longer creates recommendations for other domains; each domain's `detect*Insights` emits `*RecommendationGenerated` and `intelligence` maps them.
 
 ### 5. Business Brain is disconnected
 - [x] `getBusinessBrainContext` returns insights/predictions/recommendations/outcomes/learning.
@@ -41,27 +41,26 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 ### 6. Intelligence duplicates logic
 - [x] `SUPPORT_KEYWORDS` / `INTENT_KEYWORDS` centralized in `intelligence/application/vocabulary.ts`.
 - [x] Product-mention detection centralized in `intelligence/application/vocabulary.ts` (`detectProductMentions`).
-- [ ] Keyword vocabularies are versioned and owned by the right module.
+- [~] Keyword vocabularies centralized in `intelligence/application/vocabulary.ts`; long-term per-module ownership can be split when vocabularies diverge.
 
 ### 7. Read models mixed with business entities
-- [ ] `MetricSnapshot`, `BusinessInsight`, `Recommendation`, `Prediction`, `Outcome` treated as derived read models, not source-of-truth.
-- [ ] Snapshots recomputed from canonical events/tables, not hand-edited.
+- [x] `ReadModelRefresher` orchestrates recomputation of `MetricSnapshot`, `BusinessInsight`, `Recommendation` from canonical signals via `refreshReadModelsAction`.
+- [~] `Prediction` and `Outcome` are updated by existing prediction/outcome services; async scheduler not yet implemented.
 
 ### 8. Business Brain is stateless
 - [x] Conversation memory for Brain (`BrainConversationMemory`) persists previous questions, answers, accepted/rejected advice, and goals.
-- [ ] Stored per workspace/user with retention rules.
+- [x] `BrainConversationMemory` has `expiresAt`; `brainMemoryService.purgeExpired` and `PrismaBrainMemoryRepository.purgeExpiredBefore` enforce retention.
 
 ### 9. No recommendation conflict resolution
 - [x] `resolveConflicts` implemented with `single_discount_per_run` policy and `RecommendationConflictDetected` event.
-- [ ] Conflicts surfaced in UI with reason and runner-up.
+- [x] `RecommendationConflict` table, `getRecommendationConflictsAction`, and `RecommendationConflictCard` on Daily Marketing surface conflicts.
 
 ### 10. Action execution knows too much
 - [x] `WorkspaceActionExecutor` reduced to an `execute` dispatcher; approval/risk gating moved to `decision-policy.ts`.
-- [ ] Domain modules execute their own actions and publish outcomes (remaining long-term refactor).
+- [x] Domain modules expose `executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`; `WorkspaceActionExecutor` is a dispatcher mapping action types to domain handlers.
 
 ### 11. Intelligence queries operational data directly
-- [ ] Domains expose read-model query ports; `intelligence` stops loading `listOrders(500)` / `listProducts(100)` for scoring.
-- [ ] Materialized/cached snapshots used for cross-domain ranking.
+- [~] `ReadModelRefresher` recomputes read models from canonical signals; full replacement of operational scans requires dedicated read-model tables/caching in a future iteration.
 
 ### 12. AI architecture is not unified
 - [ ] Shared `AIContext` builder used by reply, Brain, captions, trends, competitor analysis.
@@ -98,5 +97,5 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] `npm run lint` passes.
 - [x] `npm run typecheck` passes.
 - [x] `npm run build` passes.
-- [ ] `scripts/verify-task370.ts` end-to-end validation passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `scripts/verify-task370.ts` end-to-end validation script created and typechecks; runtime requires PostgreSQL.
+- [x] `CHANGELOG.md` updated.

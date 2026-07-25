@@ -16,6 +16,7 @@ import type {
   CompetitorInsightRecord,
   PortfolioSnapshotRecord,
   SystemMetricRecord,
+  RecommendationConflictRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,
@@ -207,6 +208,11 @@ export interface ActionExecutor {
   execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;
 }
 
+export interface RecommendationConflictRepository {
+  save(conflict: Omit<RecommendationConflictRecord, "id" | "resolvedAt">): Promise<RecommendationConflictRecord>;
+  listRecent(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationConflictRecord[]>;
+}
+
 export type {
   SignalRecord,
   EntityLinkRecord,
@@ -225,6 +231,7 @@ export type {
   CompetitorInsightRecord,
   PortfolioSnapshotRecord,
   SystemMetricRecord,
+  RecommendationConflictRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,

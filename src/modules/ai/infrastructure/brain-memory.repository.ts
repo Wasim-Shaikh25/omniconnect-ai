@@ -11,6 +11,7 @@ function toRecord(row: {
   acceptedAdviceIds: string[];
   rejectedAdviceIds: string[];
   goals: string[];
+  expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }): BrainConversationMemoryRecord {
@@ -24,6 +25,7 @@ function toRecord(row: {
     acceptedAdviceIds: row.acceptedAdviceIds,
     rejectedAdviceIds: row.rejectedAdviceIds,
     goals: row.goals,
+    expiresAt: row.expiresAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -46,6 +48,7 @@ export class PrismaBrainMemoryRepository implements BrainMemoryRepository {
         userId,
         organizationId,
         ...(storeId ? { storeId } : {}),
+        expiresAt: { gt: new Date() },
       },
       orderBy: { createdAt: "desc" },
       take: limit,
@@ -64,5 +67,12 @@ export class PrismaBrainMemoryRepository implements BrainMemoryRepository {
       data: { acceptedAdviceIds, rejectedAdviceIds, goals },
     });
     return toRecord(updated);
+  }
+
+  async purgeExpiredBefore(before: Date): Promise<number> {
+    const result = await prisma.brainConversationMemory.deleteMany({
+      where: { expiresAt: { lt: before } },
+    });
+    return result.count;
   }
 }

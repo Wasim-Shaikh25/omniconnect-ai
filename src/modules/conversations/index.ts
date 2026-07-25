@@ -35,6 +35,8 @@ export type {
   UnifiedInboxFilter,
   GetUnifiedInbox,
 } from "./application/unified-inbox";
+export type { ActionResult } from "./application/action-handlers";
+export { executeConversationAction } from "./application/action-handlers";
 
 // Queries + commands (composed)
 export {

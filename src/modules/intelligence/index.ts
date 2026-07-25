@@ -155,7 +155,11 @@ export {
   mergeEntityAction,
   splitEntityAction,
   getMarketingMemoryAction,
+  getRecommendationConflictsAction,
+  refreshReadModelsAction,
 } from "./presentation/actions";
+
+export { RecommendationConflictCard } from "./presentation/components/recommendation-conflict-card";
 
 export type { IntelligenceActionState, MarketingMemoryState } from "./presentation/actions";
 export type { QualityReport, QualityCheck } from "./application/quality-assurance";

@@ -15,6 +15,8 @@ import {
   detectionService,
   intelligenceFeedService,
   recommendationService,
+  recommendationLifecycleService,
+  readModelRefresher,
   actionPlanService,
   goalService,
   predictionService,
@@ -210,6 +212,49 @@ export async function getRecommendationsAction(storeId?: string) {
   await recommendationService.generateFromOpenInsights(organizationId, storeId);
   const recommendations = await recommendationService.listOpen(organizationId, storeId, 20);
   return { recommendations };
+}
+
+export async function getRecommendationConflictsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { conflicts: [] };
+  const organizationId = user.organizationId;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { conflicts: [] };
+  }
+
+  const conflicts = await recommendationLifecycleService.getRecentConflicts(organizationId, storeId, 5);
+  return { conflicts };
+}
+
+export async function refreshReadModelsAction(storeId?: string): Promise<{
+  ok: boolean;
+  result?: { insightsGenerated: number; recommendationsGenerated: number; ranked: number; expired: string[]; metricsRefreshed: number };
+  error?: string;
+}> {
+  const user = await requireRole("ADMIN");
+  if (!user.organizationId) return { ok: false, error: "Unauthorized" };
+  const organizationId = user.organizationId;
+
+  const overview = await organizationQueries.getOrganizationOverview(organizationId);
+  const storeIds = storeId ? [storeId] : overview?.stores.map((s) => s.id) ?? [];
+  if (storeId && !overview?.stores.some((s) => s.id === storeId)) return { ok: false, error: "Store not found" };
+
+  try {
+    const aggregate = { insightsGenerated: 0, recommendationsGenerated: 0, ranked: 0, expired: [] as string[], metricsRefreshed: 0 };
+    for (const id of storeIds) {
+      const result = await readModelRefresher.refreshStore(organizationId, id);
+      aggregate.recommendationsGenerated += result.recommendationsGenerated;
+      aggregate.ranked += result.ranked;
+      aggregate.expired.push(...result.expired);
+      aggregate.metricsRefreshed = Math.max(aggregate.metricsRefreshed, result.metricsRefreshed);
+    }
+    return { ok: true, result: aggregate };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Refresh failed";
+    return { ok: false, error: message };
+  }
 }
 
 export async function approveRecommendationAction(formData: FormData): Promise<void> {

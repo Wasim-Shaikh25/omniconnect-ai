@@ -2,9 +2,16 @@ import type { BrainMemoryRepository, BrainConversationMemoryRecord } from "./por
 
 export interface BrainMemoryServiceInput {
   repository: BrainMemoryRepository;
+  retentionDays?: number;
 }
 
 export function makeBrainMemoryService(input: BrainMemoryServiceInput) {
+  const retentionDays = input.retentionDays ?? 90;
+
+  function expirationDate(now = new Date()): Date {
+    return new Date(now.getTime() + retentionDays * 24 * 60 * 60 * 1000);
+  }
+
   return {
     async rememberQuestion(
       userId: string,
@@ -22,6 +29,7 @@ export function makeBrainMemoryService(input: BrainMemoryServiceInput) {
         acceptedAdviceIds: [],
         rejectedAdviceIds: [],
         goals: [],
+        expiresAt: expirationDate(),
       });
     },
 
@@ -41,6 +49,14 @@ export function makeBrainMemoryService(input: BrainMemoryServiceInput) {
       goals: string[],
     ): Promise<BrainConversationMemoryRecord> {
       return input.repository.updateFeedback(memoryId, acceptedAdviceIds, rejectedAdviceIds, goals);
+    },
+
+    async purgeExpired(now = new Date()): Promise<number> {
+      return input.repository.purgeExpiredBefore(now);
+    },
+
+    get retentionDays(): number {
+      return retentionDays;
     },
   };
 }

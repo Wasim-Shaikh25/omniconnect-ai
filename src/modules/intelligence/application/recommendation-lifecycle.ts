@@ -1,6 +1,6 @@
 import { eventBus } from "@/shared/events";
-import type { RecommendationRepository } from "./ports";
-import type { RecommendationRecord } from "../domain/types";
+import type { RecommendationRepository, RecommendationConflictRepository } from "./ports";
+import type { RecommendationRecord, RecommendationConflictRecord } from "../domain/types";
 import { RecommendationExpired, RecommendationConflictDetected } from "../domain/events";
 
 export interface Conflict {
@@ -19,6 +19,7 @@ export interface ConflictResolution {
 
 export interface RecommendationLifecycleServiceInput {
   recommendations: RecommendationRepository;
+  conflicts?: RecommendationConflictRepository;
   now?: Date;
 }
 
@@ -94,12 +95,29 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
       const sorted = discountConflicts.sort((a, b) => b.priority - a.priority);
       const winner = sorted[0];
       const runnerUp = sorted[1];
+      const winnerRec = recommendations.find((r) => r.id === winner.recommendationId);
+      const runnerUpRec = recommendations.find((r) => r.id === runnerUp?.recommendationId);
+      const reason = `Selected highest-priority discount recommendation from ${winner.module} to avoid conflicting pricing actions.`;
       resolutions.push({
         winnerId: winner.recommendationId,
-        reason: `Selected highest-priority discount recommendation from ${winner.module} to avoid conflicting pricing actions.`,
+        reason,
         appliedPolicy: "single_discount_per_run",
         runnerUpId: runnerUp?.recommendationId,
       });
+
+      if (input.conflicts && winnerRec) {
+        await input.conflicts.save({
+          organizationId: winnerRec.organizationId,
+          storeId: winnerRec.storeId,
+          winnerId: winner.recommendationId,
+          runnerUpId: runnerUp?.recommendationId ?? null,
+          winnerTitle: winnerRec.title,
+          runnerUpTitle: runnerUpRec?.title ?? null,
+          reason,
+          appliedPolicy: "single_discount_per_run",
+        });
+      }
+
       await eventBus.publish(
         new RecommendationConflictDetected(winner.recommendationId, {
           winnerId: winner.recommendationId,
@@ -133,10 +151,16 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
     return { expired, skipped };
   }
 
+  async function getRecentConflicts(organizationId: string, storeId?: string, limit = 5): Promise<RecommendationConflictRecord[]> {
+    if (!input.conflicts) return [];
+    return input.conflicts.listRecent(organizationId, storeId, limit);
+  }
+
   return {
     prioritizeRecommendations,
     resolveConflicts,
     expireStaleRecommendations,
+    getRecentConflicts,
   };
 }
 

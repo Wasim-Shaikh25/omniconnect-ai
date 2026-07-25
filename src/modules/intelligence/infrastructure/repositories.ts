@@ -18,6 +18,7 @@ import type {
   PortfolioSnapshotRepository,
   SystemMetricRepository,
   KpiRepository,
+  RecommendationConflictRepository,
 } from "../application/ports";
 import type { KpiSnapshot } from "../application/ports";
 import type {
@@ -38,6 +39,7 @@ import type {
   CompetitorInsightRecord,
   PortfolioSnapshotRecord,
   SystemMetricRecord,
+  RecommendationConflictRecord,
   RecommendationStatus,
   ActionPlanStatus,
   OutcomeStatus,
@@ -1220,5 +1222,49 @@ export class PrismaKpiRepository implements KpiRepository {
       identityConfidenceAvg,
       highConfidenceEntityLinks,
     };
+  }
+}
+
+type StoredRecommendationConflict = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  winnerId: string;
+  runnerUpId: string | null;
+  winnerTitle: string;
+  runnerUpTitle: string | null;
+  reason: string;
+  appliedPolicy: string;
+  resolvedAt: Date;
+};
+
+function toRecommendationConflictRecord(row: StoredRecommendationConflict): RecommendationConflictRecord {
+  return row;
+}
+
+export class PrismaRecommendationConflictRepository implements RecommendationConflictRepository {
+  async save(
+    conflict: Omit<RecommendationConflictRecord, "id" | "resolvedAt">,
+  ): Promise<RecommendationConflictRecord> {
+    const created = await prisma.recommendationConflict.create({
+      data: conflict as unknown as Prisma.RecommendationConflictCreateInput,
+    });
+    return toRecommendationConflictRecord(created as StoredRecommendationConflict);
+  }
+
+  async listRecent(
+    organizationId: string,
+    storeId?: string,
+    limit = 10,
+  ): Promise<RecommendationConflictRecord[]> {
+    const rows = await prisma.recommendationConflict.findMany({
+      where: {
+        organizationId,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: { resolvedAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toRecommendationConflictRecord(r as StoredRecommendationConflict));
   }
 }

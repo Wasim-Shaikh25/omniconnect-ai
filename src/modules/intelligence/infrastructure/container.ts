@@ -1,11 +1,11 @@
 import { organizationQueries } from "@/modules/organizations";
 import { eventBus } from "@/shared/events";
-import { ecommerceQueries, generateCoupon, detectCommerceInsights } from "@/modules/ecommerce";
-import { conversationQueries, conversationCommands, detectConversationInsights } from "@/modules/conversations";
+import { ecommerceQueries, executeEcommerceAction, detectCommerceInsights } from "@/modules/ecommerce";
+import { conversationQueries, executeConversationAction, detectConversationInsights } from "@/modules/conversations";
 import { crmQueries, customerDirectory, detectCrmInsights } from "@/modules/crm";
 import { analyticsQueries } from "@/modules/analytics";
 import { socialQueries } from "@/modules/social";
-import { growthService, growthQueries, detectGrowthInsights } from "@/modules/growth";
+import { growthQueries, executeGrowthAction, detectGrowthInsights } from "@/modules/growth";
 import { brandDealQueries, detectBrandDealInsights } from "@/modules/branddeals";
 import { notificationService, notificationQueries } from "@/modules/notifications";
 import { makeSignalIngestionService } from "../application/signal-ingestion";
@@ -30,6 +30,7 @@ import { makeHypothesisService } from "../application/hypothesis";
 import { makeBusinessLearningService } from "../application/business-learning";
 import { makePortfolioService } from "../application/portfolio";
 import { makeCompetitorIntelligenceService } from "../application/competitor-intelligence";
+import { makeReadModelRefresher } from "../application/read-models";
 import { makeCostLatencyMonitor } from "../application/system-health";
 import { makeNextBestActionService } from "../application/next-best-action";
 import { makeProactiveNotificationService } from "../application/proactive-notifications";
@@ -74,6 +75,7 @@ import {
   PrismaPortfolioSnapshotRepository,
   PrismaSystemMetricRepository,
   PrismaKpiRepository,
+  PrismaRecommendationConflictRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -82,6 +84,7 @@ const issues = new PrismaDataQualityRepository();
 const metrics = new PrismaMetricRepository();
 const insights = new PrismaBusinessInsightRepository();
 const recommendations = new PrismaRecommendationRepository();
+const recommendationConflicts = new PrismaRecommendationConflictRepository();
 const actionPlans = new PrismaActionPlanRepository();
 const decisions = new PrismaDecisionRepository();
 const outcomes = new PrismaOutcomeRepository();
@@ -175,13 +178,19 @@ export const detectionService = makeDetectionService({
 export const intelligenceFeedService = makeIntelligenceFeed({ insights });
 
 const actionExecutor = makeWorkspaceActionExecutor({
-  generateCoupon,
-  takeOverConversation: conversationCommands.takeOver,
-  createDmCampaign: growthService.createDmCampaign,
+  ecommerce: { execute: executeEcommerceAction },
+  conversations: { execute: executeConversationAction },
+  growth: { execute: executeGrowthAction },
 });
 
 export const recommendationService = makeRecommendationService({ insights, recommendations, ecommerce: ecommerceQueries });
-export const recommendationLifecycleService = makeRecommendationLifecycleService({ recommendations });
+export const recommendationLifecycleService = makeRecommendationLifecycleService({ recommendations, conflicts: recommendationConflicts });
+export const readModelRefresher = makeReadModelRefresher({
+  detection: detectionService,
+  recommendations: recommendationService,
+  lifecycle: recommendationLifecycleService,
+  metrics: metricService,
+});
 export const businessBrainContextService = makeBusinessBrainContextService({
   insights,
   recommendations,

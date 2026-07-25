@@ -330,11 +330,29 @@ model BrainConversationMemory {
   acceptedAdviceIds String[]
   rejectedAdviceIds String[]
   goals             String[]
+  expiresAt         DateTime
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   @@index([userId, storeId])
   @@index([organizationId, createdAt])
+  @@index([expiresAt])
+}
+
+model RecommendationConflict {
+  id            String   @id @default(cuid())
+  organizationId String
+  storeId       String?
+  winnerId      String
+  runnerUpId    String?
+  winnerTitle   String
+  runnerUpTitle String?
+  reason        String
+  appliedPolicy String
+  resolvedAt    DateTime @default(now())
+
+  @@index([organizationId, storeId])
+  @@index([resolvedAt])
 }
 
 // ── campaigns (first-time follower) ─────────────────────────────────────────

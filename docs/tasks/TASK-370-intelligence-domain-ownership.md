@@ -47,6 +47,12 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 24. Run `npm run lint`, `npm run typecheck`, `npm run build`.
 - [x] 25. Update `docs/tasks/TASK-370-progress.md` and `CHANGELOG.md`.
 
+### Phase 5 — Remaining architectural long-term items
+- [x] 26. Add `expiresAt` to `BrainConversationMemory` and implement `purgeExpiredBrainMemory` retention routine.
+- [x] 27. Surface recommendation conflicts in UI via `getRecommendationConflictsAction` and a conflict card.
+- [x] 28. Refactor action plan execution so `WorkspaceActionExecutor` dispatches to domain action handlers (`executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`) via public barrels.
+- [x] 29. Materialize cross-domain read models via `ReadModelRefresher` service and `refreshReadModelsAction`.
+
 ## Acceptance Criteria
 
 - [x] Matches the linked spec's acceptance criteria.

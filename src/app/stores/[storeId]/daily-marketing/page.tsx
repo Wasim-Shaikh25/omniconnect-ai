@@ -14,7 +14,7 @@ import {
   BestTimeCard,
   FollowerLinkCard,
 } from "@/components/marketing-brief-cards";
-import { updateMarketingMemory, generateDailyBrief } from "@/modules/intelligence";
+import { updateMarketingMemory, generateDailyBrief, RecommendationConflictCard } from "@/modules/intelligence";
 import { Sparkles, TrendingUp } from "lucide-react";
 
 export default async function DailyMarketingPage({
@@ -67,6 +67,10 @@ export default async function DailyMarketingPage({
         <ProductPromotionCard productScores={memory.productScores.slice(0, 5)} storeId={storeId} />
         <DmOpportunityCard patterns={memory.dmPatterns} storeId={storeId} />
         <CommentInsightCard patterns={memory.commentPatterns} storeId={storeId} />
+      </section>
+
+      <section className="mt-6">
+        <RecommendationConflictCard storeId={storeId} />
       </section>
 
       <section className="mt-6">

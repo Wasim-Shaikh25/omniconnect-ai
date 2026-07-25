@@ -50,6 +50,7 @@ export interface BrainConversationMemoryRecord {
   acceptedAdviceIds: string[];
   rejectedAdviceIds: string[];
   goals: string[];
+  expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,4 +59,5 @@ export interface BrainMemoryRepository {
   save(entry: Omit<BrainConversationMemoryRecord, "id" | "createdAt" | "updatedAt">): Promise<BrainConversationMemoryRecord>;
   listRecent(userId: string, organizationId: string, storeId?: string, limit?: number): Promise<BrainConversationMemoryRecord[]>;
   updateFeedback(id: string, acceptedAdviceIds: string[], rejectedAdviceIds: string[], goals: string[]): Promise<BrainConversationMemoryRecord>;
+  purgeExpiredBefore(before: Date): Promise<number>;
 }
