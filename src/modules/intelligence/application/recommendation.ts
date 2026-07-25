@@ -25,12 +25,19 @@ async function recommendationFromInsight(
   insight: BusinessInsightRecord,
   ecommerce: EcommerceQueries,
 ): Promise<Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt"> | null> {
+  const now = new Date();
   const base = {
     organizationId: insight.organizationId,
     storeId: insight.storeId,
     insightId: insight.id,
+    producedByModule: "intelligence" as const,
+    producedByService: "recommendationFromInsight",
     status: "PROPOSED" as RecommendationRecord["status"],
-    generatedAt: new Date(),
+    generatedAt: now,
+    validFrom: now,
+    validUntil: null,
+    invalidatedAt: null,
+    invalidatedByEvent: null,
     dismissedAt: null,
     snoozedUntil: null,
   };

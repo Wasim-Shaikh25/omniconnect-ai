@@ -78,6 +78,26 @@ export class RecommendationDismissed extends BaseDomainEvent<RecommendationDismi
   readonly name = "RecommendationDismissed";
 }
 
+export interface RecommendationExpiredPayload {
+  recommendationId: string;
+  reason: string;
+}
+
+export class RecommendationExpired extends BaseDomainEvent<RecommendationExpiredPayload> {
+  readonly name = "RecommendationExpired";
+}
+
+export interface RecommendationConflictDetectedPayload {
+  winnerId: string;
+  runnerUpId?: string;
+  reason: string;
+  appliedPolicy: string;
+}
+
+export class RecommendationConflictDetected extends BaseDomainEvent<RecommendationConflictDetectedPayload> {
+  readonly name = "RecommendationConflictDetected";
+}
+
 export interface ActionPlanApprovedPayload {
   actionPlan: ActionPlanRecord;
   decision: DecisionRecord;

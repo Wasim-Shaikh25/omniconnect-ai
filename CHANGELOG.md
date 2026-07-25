@@ -407,7 +407,13 @@ All notable changes to **OmniConnect AI** are documented here.
     - `BrandDealInsightGenerated` and `BrandDealRecommendationGenerated` domain events added to `branddeals`.
     - `intelligence/application/detection.ts` removed all domain-specific detection helpers (no-orders, revenue decline, stale followers, high-intent conversations, stale DM campaigns, no UGC, stuck brand deals) and now delegates to each module's `detect*Insights` service, mapping the results into `BusinessInsight` records.
     - `intelligence/application/diagnosis.ts` now maps `CommerceInsight` results into `BusinessInsight` records instead of computing revenue itself.
-    - Remaining: move product availability/demand logic to `ecommerce` and add recommendation lifecycle (Phase 2).
+  - **Phase 2 (recommendation lifecycle) implemented:**
+    - Added `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to the `Recommendation` Prisma model and `RecommendationRecord` type.
+    - Created `intelligence/application/recommendation-lifecycle.ts` with `prioritizeRecommendations`, `resolveConflicts`, and `expireStaleRecommendations`.
+    - Added `RecommendationExpired` and `RecommendationConflictDetected` domain events.
+    - Updated `PrismaRecommendationRepository` with `listActive` and `invalidate` and wired the lifecycle service through `intelligence/infrastructure/container.ts` and the public barrel.
+    - `recommendationService` now sets `producedByModule`/`producedByService`/`validFrom` when generating recommendations from insights.
+    - Remaining: move product availability/demand logic to `ecommerce`, shrink `WorkspaceActionExecutor`, and connect Business Brain (Phase 3).
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.

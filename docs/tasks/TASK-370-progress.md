@@ -13,7 +13,7 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 ### 1. Intelligence is not an orchestrator anymore
 - [x] Domain modules publish their own `*InsightGenerated` / `*RecommendationGenerated` events (ecommerce, CRM, conversations, growth, branddeals).
 - [x] `intelligence` stops owning commerce/crm/conversation/growth/brand-deal detection rules (all primary modules now have `detect*Insights`).
-- [ ] `intelligence` becomes a prioritizer/scorer/conflict resolver.
+- [x] `intelligence` becomes a prioritizer/scorer/conflict resolver via `recommendationLifecycleService`.
 
 ### 2. Domain knowledge is leaking
 - [~] Product availability/demand detection moved to `ecommerce` (order/revenue detection extracted; product-mention/demand cross-domain logic still in intelligence).
@@ -23,12 +23,14 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [~] Brand-deal pipeline detection moved to `branddeals` (stuck-negotiation detection extracted).
 
 ### 3. Recommendation lifecycle is incomplete
-- [ ] `Recommendation` has `validFrom`, `validUntil`, `invalidatedAt`, `invalidatedByEvent`.
-- [ ] `expireStaleRecommendations` job implemented.
+- [x] `Recommendation` has `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, `invalidatedByEvent`.
+- [x] `prioritizeRecommendations` scoring implemented.
+- [x] `resolveConflicts` for conflicting cross-domain recommendations implemented.
+- [x] `expireStaleRecommendations` job implemented.
 - [ ] Invalidation events defined (e.g. revenue recovered, product back in stock).
 
 ### 4. Recommendation ownership is wrong
-- [ ] `Recommendation` records `producedByModule` and `producedByService`.
+- [x] `Recommendation` records `producedByModule` and `producedByService`.
 - [ ] `intelligence` no longer creates recommendations for other domains.
 
 ### 5. Business Brain is disconnected

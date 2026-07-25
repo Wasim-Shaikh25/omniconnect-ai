@@ -236,10 +236,13 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       return { passed: first.ok && second.ok, reason: `First=${first.ok}, second=${second.ok}` };
     });
 
+    const now = new Date();
     await input.recommendationRepo.save({
       organizationId: ctx.organizationId,
       storeId: ctx.storeId,
       insightId: null,
+      producedByModule: "intelligence",
+      producedByService: "qualityAssurance",
       title: "QA action plan",
       description: "Test",
       objective: "test",
@@ -254,7 +257,11 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       actionType: "REFRESH_INTEGRATION",
       actionParams: {},
       deepLink: "",
-      generatedAt: new Date(),
+      validFrom: now,
+      validUntil: null,
+      invalidatedAt: null,
+      invalidatedByEvent: null,
+      generatedAt: now,
       dismissedAt: null,
       snoozedUntil: null,
     });

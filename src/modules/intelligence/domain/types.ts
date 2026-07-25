@@ -183,6 +183,8 @@ export interface RecommendationRecord {
   organizationId: string;
   storeId: string | null;
   insightId: string | null;
+  producedByModule: string;
+  producedByService: string | null;
   title: string;
   description: string;
   objective: string | null;
@@ -197,6 +199,10 @@ export interface RecommendationRecord {
   actionType: string;
   actionParams: unknown;
   deepLink: string | null;
+  validFrom: Date;
+  validUntil: Date | null;
+  invalidatedAt: Date | null;
+  invalidatedByEvent: string | null;
   generatedAt: Date;
   dismissedAt: Date | null;
   snoozedUntil: Date | null;

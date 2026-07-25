@@ -112,8 +112,10 @@ export interface BusinessInsightRepository {
 export interface RecommendationRepository {
   save(rec: Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt">): Promise<RecommendationRecord>;
   listOpen(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
+  listActive(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
   findById(id: string): Promise<RecommendationRecord | null>;
   updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord>;
+  invalidate(id: string, eventName: string): Promise<RecommendationRecord>;
 }
 
 export interface ActionPlanRepository {

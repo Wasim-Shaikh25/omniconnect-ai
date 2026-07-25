@@ -1022,29 +1022,35 @@ enum GoalStatus {
 }
 
 model Recommendation {
-  id              String               @id @default(cuid())
-  organizationId  String
-  storeId         String?
-  insightId       String?
-  title           String
-  description     String
-  objective       String?
-  reasonCodes     String[]
-  impactRange     Json?
-  confidence      Float?
-  effort          String?
-  urgency         String?
-  riskTier        RiskTier
-  eligibility     Json?
-  status          RecommendationStatus @default(PROPOSED)
-  actionType      String
-  actionParams    Json?
-  deepLink        String?
-  generatedAt     DateTime             @default(now())
-  dismissedAt     DateTime?
-  snoozedUntil    DateTime?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id                String               @id @default(cuid())
+  organizationId    String
+  storeId           String?
+  insightId         String?
+  producedByModule  String
+  producedByService String?
+  title             String
+  description       String
+  objective         String?
+  reasonCodes       String[]
+  impactRange       Json?
+  confidence        Float?
+  effort            String?
+  urgency           String?
+  riskTier          RiskTier
+  eligibility       Json?
+  status            RecommendationStatus @default(PROPOSED)
+  actionType        String
+  actionParams      Json?
+  deepLink          String?
+  validFrom         DateTime             @default(now())
+  validUntil        DateTime?
+  invalidatedAt     DateTime?
+  invalidatedByEvent String?
+  generatedAt       DateTime             @default(now())
+  dismissedAt       DateTime?
+  snoozedUntil      DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 
   @@index([organizationId, status, generatedAt])
   @@index([organizationId, storeId, status, riskTier])

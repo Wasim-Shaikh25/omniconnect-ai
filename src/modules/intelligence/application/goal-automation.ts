@@ -252,10 +252,13 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
         opts.ownerUserId ?? undefined,
       );
 
+      const now = new Date();
       const recommendation = await input.recommendations.save({
         organizationId: opts.organizationId,
         storeId: opts.storeId,
         insightId: null,
+        producedByModule: "intelligence",
+        producedByService: "goalAutomation",
         title: template.name,
         description: template.objective,
         objective: template.objective,
@@ -270,7 +273,11 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
         actionType: template.actionType,
         actionParams: { storeId: opts.storeId, targetMetric: template.targetMetric, channel: template.defaultChannel },
         deepLink: `/stores/${opts.storeId}/automations/goals`,
-        generatedAt: new Date(),
+        validFrom: now,
+        validUntil: null,
+        invalidatedAt: null,
+        invalidatedByEvent: null,
+        generatedAt: now,
         dismissedAt: null,
         snoozedUntil: null,
       });

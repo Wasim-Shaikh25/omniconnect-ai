@@ -465,6 +465,8 @@ type StoredRecommendation = {
   organizationId: string;
   storeId: string | null;
   insightId: string | null;
+  producedByModule: string;
+  producedByService: string | null;
   title: string;
   description: string;
   objective: string | null;
@@ -479,6 +481,10 @@ type StoredRecommendation = {
   actionType: string;
   actionParams: unknown;
   deepLink: string | null;
+  validFrom: Date;
+  validUntil: Date | null;
+  invalidatedAt: Date | null;
+  invalidatedByEvent: string | null;
   generatedAt: Date;
   dismissedAt: Date | null;
   snoozedUntil: Date | null;
@@ -521,6 +527,23 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
     return rows.map((r) => toRecommendationRecord(r as StoredRecommendation));
   }
 
+  async listActive(organizationId: string, storeId?: string, limit = 50): Promise<RecommendationRecord[]> {
+    const now = new Date();
+    const rows = await prisma.recommendation.findMany({
+      where: {
+        organizationId,
+        status: { in: ["PROPOSED", "ACCEPTED", "EDITED"] },
+        validFrom: { lte: now },
+        OR: [{ validUntil: null }, { validUntil: { gte: now } }],
+        invalidatedAt: null,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: [{ generatedAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => toRecommendationRecord(r as StoredRecommendation));
+  }
+
   async findById(id: string): Promise<RecommendationRecord | null> {
     const row = await prisma.recommendation.findUnique({ where: { id } });
     return row ? toRecommendationRecord(row as StoredRecommendation) : null;
@@ -530,6 +553,17 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
     const data: Prisma.RecommendationUpdateInput = { status };
     if (status === "DISMISSED") data.dismissedAt = new Date();
     if (status !== "SNOOZED") data.snoozedUntil = null;
+    if (status === "EXPIRED") data.invalidatedAt = new Date();
+    const updated = await prisma.recommendation.update({ where: { id }, data });
+    return toRecommendationRecord(updated as StoredRecommendation);
+  }
+
+  async invalidate(id: string, eventName: string): Promise<RecommendationRecord> {
+    const data: Prisma.RecommendationUpdateInput = {
+      status: "EXPIRED",
+      invalidatedAt: new Date(),
+      invalidatedByEvent: eventName,
+    };
     const updated = await prisma.recommendation.update({ where: { id }, data });
     return toRecommendationRecord(updated as StoredRecommendation);
   }

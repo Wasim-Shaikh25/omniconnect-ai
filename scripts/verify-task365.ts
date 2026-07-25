@@ -54,6 +54,7 @@ async function main() {
     data: {
       organizationId: org.id,
       storeId: store.id,
+      producedByModule: "intelligence",
       title: "Test recommendation",
       description: "...",
       objective: "test",
@@ -62,6 +63,7 @@ async function main() {
       actionType: "CREATE_DM_CAMPAIGN",
       actionParams: {},
       status: "ACCEPTED",
+      validFrom: now,
       generatedAt: now,
     },
   });

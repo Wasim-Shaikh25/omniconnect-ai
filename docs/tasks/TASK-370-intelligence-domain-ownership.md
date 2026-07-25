@@ -30,10 +30,10 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [ ] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
 
 ### Phase 2 — Reframe intelligence as a cross-domain prioritizer
-- [ ] 14. Add `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to `Recommendation`.
-- [ ] 15. Implement `intelligence.prioritizeRecommendations` scoring.
-- [ ] 16. Implement `intelligence.resolveConflicts` for conflicting cross-domain recommendations.
-- [ ] 17. Implement `intelligence.expireStaleRecommendations` lifecycle job.
+- [x] 14. Add `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to `Recommendation`.
+- [x] 15. Implement `intelligence.prioritizeRecommendations` scoring.
+- [x] 16. Implement `intelligence.resolveConflicts` for conflicting cross-domain recommendations.
+- [x] 17. Implement `intelligence.expireStaleRecommendations` lifecycle job.
 - [ ] 18. Shrink or remove `WorkspaceActionExecutor`; dispatch execution to domain commands through public barrels.
 
 ### Phase 3 — Business Brain consumes Intelligence
