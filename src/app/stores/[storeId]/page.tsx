@@ -152,6 +152,9 @@ export default async function StoreDetailPage({
                 ))}
               </ul>
             )}
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link href={`/stores/${storeId}/coupons`}>View all coupons</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
