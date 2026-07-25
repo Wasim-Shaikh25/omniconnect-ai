@@ -343,6 +343,20 @@ export default async function StoreDetailPage({
 
       <Card className="mt-6">
         <CardHeader>
+          <CardTitle>Campaigns</CardTitle>
+          <CardDescription>
+            Active automations like first-time follower welcome.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/campaigns`}>View campaigns</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
           <CardTitle>Conversations</CardTitle>
           <CardDescription>
             View all customer conversations and take over or resume AI for each.

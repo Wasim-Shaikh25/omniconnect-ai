@@ -182,6 +182,9 @@ All notable changes to **OmniConnect AI** are documented here.
   - Store detail page and AI reply context now use `formatCurrency`.
   - `syncProducts` enriches connector products with the store's currency when the provider omits it (e.g. Shopify variants).
   - Mock connector now returns INR prices and order totals so dev/test data matches the India-first launch market.
+- **TASK-250 — Campaigns Hub** (spec `0022`):
+  - New `/stores/[storeId]/campaigns` page lists active automations for a store, starting with the first-time follower welcome campaign.
+  - Store detail page links to **Campaigns**.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).

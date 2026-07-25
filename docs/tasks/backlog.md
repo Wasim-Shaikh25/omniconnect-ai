@@ -30,3 +30,4 @@ Each links a spec. Keep in sync with `CHANGELOG.md`.
 - [~] **TASK-220** Orders view (read-only connector orders) — spec: `0019`
 - [~] **TASK-230** Store Analytics page — spec: `0020`
 - [~] **TASK-240** INR currency support — spec: `0021`
+- [~] **TASK-250** Campaigns hub — spec: `0022`
