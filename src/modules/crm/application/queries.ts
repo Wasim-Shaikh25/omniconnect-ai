@@ -1,4 +1,5 @@
 import type {
+  CustomerProfile,
   CustomerRecord,
   CustomerRepository,
   FollowerRecord,
@@ -15,6 +16,13 @@ export function makeCrmQueries(deps: {
     },
     listFollowers(storeId: string, limit = 50): Promise<FollowerRecord[]> {
       return deps.followers.listByStore(storeId, limit);
+    },
+    getCustomerProfile(input: {
+      storeId: string;
+      externalUserId: string;
+      channel: "INSTAGRAM" | "FACEBOOK";
+    }): Promise<CustomerProfile | null> {
+      return deps.customers.getProfile(input);
     },
   };
 }

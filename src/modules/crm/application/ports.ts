@@ -4,6 +4,8 @@ export interface CustomerRecord {
   igUserId: string | null;
   fbUserId: string | null;
   username: string | null;
+  interests: string[];
+  tags: string[];
   createdAt: Date;
 }
 
@@ -16,6 +18,26 @@ export interface FollowerRecord {
   followedAt: Date;
 }
 
+export interface CustomerCouponRecord {
+  id: string;
+  code: string;
+  discountPct: number;
+  status: string;
+  expiresAt: Date | null;
+}
+
+export interface CustomerCouponUsageRecord {
+  couponId: string;
+  usedAt: Date;
+  orderRef: string | null;
+}
+
+export interface CustomerProfile {
+  customer: CustomerRecord;
+  coupons: CustomerCouponRecord[];
+  usages: CustomerCouponUsageRecord[];
+}
+
 export interface CustomerRepository {
   /** Upsert a customer by store + external (IG/FB) id. */
   upsertByExternalId(input: {
@@ -26,6 +48,33 @@ export interface CustomerRepository {
   }): Promise<CustomerRecord>;
 
   listByStore(storeId: string, limit?: number): Promise<CustomerRecord[]>;
+
+  /** Load the customer plus sent coupons and usages. */
+  getProfile(input: {
+    storeId: string;
+    channel: "INSTAGRAM" | "FACEBOOK";
+    externalUserId: string;
+  }): Promise<CustomerProfile | null>;
+
+  /** Merge additional tags/interests onto a customer. */
+  tag(input: {
+    customerId: string;
+    tags?: string[];
+    interests?: string[];
+  }): Promise<CustomerRecord>;
+
+  /** Mark a coupon as sent to a customer. */
+  recordCouponSent(input: {
+    customerId: string;
+    couponId: string;
+  }): Promise<CustomerRecord>;
+
+  /** Record that a customer used a coupon. */
+  recordCouponUsed(input: {
+    customerId: string;
+    couponId: string;
+    orderRef?: string;
+  }): Promise<CustomerRecord>;
 }
 
 export interface FollowerRepository {
@@ -41,4 +90,13 @@ export interface FollowerRepository {
   }): Promise<{ record: FollowerRecord; isNew: boolean }>;
 
   listByStore(storeId: string, limit?: number): Promise<FollowerRecord[]>;
+}
+
+/** Public memory port consumed by the AI assistant. */
+export interface CustomerMemory {
+  getProfile(input: {
+    storeId: string;
+    externalUserId: string;
+    channel: "INSTAGRAM" | "FACEBOOK";
+  }): Promise<CustomerProfile | null>;
 }

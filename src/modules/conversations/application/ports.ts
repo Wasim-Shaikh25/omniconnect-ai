@@ -30,6 +30,11 @@ export interface ConversationRepository {
   listByStore(storeId: string, limit?: number): Promise<ConversationRecord[]>;
 
   findById(id: string): Promise<ConversationRecord | null>;
+
+  updateStatus(
+    id: string,
+    status: "AI_ACTIVE" | "HUMAN_ACTIVE",
+  ): Promise<ConversationRecord>;
 }
 
 export interface MessageRepository {

@@ -100,11 +100,22 @@ All notable changes to **OmniConnect AI** are documented here.
     name and import payload **types only**. Subscribers wired at `src/server/subscribers.ts`.
   - Store detail page: Meta connection form, dev inbound simulator, recent conversations +
     followers — RBAC-gated + tenant-checked. Lint + typecheck + build pass.
+- **TASK-060 — Customer Memory (CRM) refinement** (spec `0006`):
+  - `CustomerMemory` port (`getProfile`, `tag`, `recordCouponSent`, `recordCouponUsed`) + `CustomerProfileUpdated` event.
+  - `PrismaCustomerRepository` aggregates coupons/usages by store + external id + channel and merges tags/interests.
+  - CRM subscribes to `CouponGenerated` to tag the customer.
+- **TASK-070 — AI Customer Assistant** (spec `0004`):
+  - `AIConfiguration` repository (Prisma), `AIProvider` interface, `OpenAIProvider` (fetch, dev fallback when no `OPENAI_API_KEY`).
+  - `generateReply` use-case assembles system prompt + CRM memory + recent messages + products/coupons.
+  - `NewMessage` event from `conversations` triggers AI reply; `ReplyGenerated` / `EscalationRequested` events emitted.
+  - AI replies appended to `Conversation`, outbound `metaService.sendMessage` attempted, and status set to `HUMAN_ACTIVE` on `[ESCALATE]`.
+  - Store detail page `/stores/[storeId]`: AI configuration form (RBAC-gated) + `updateAIConfigurationAction`.
+  - Subscribers wired at `src/server/subscribers.ts`; lint + typecheck pass.
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-060/070 — Customer Memory (CRM) refinement + AI Assistant** (per-page prompts).
+- Next: **TASK-080 — First-time follower campaign** (event-driven: follow → coupon → message).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
@@ -112,7 +123,7 @@ All notable changes to **OmniConnect AI** are documented here.
 3. ~~**Users + Organizations + Stores**~~ ✅ done (TASK-030).
 4. ~~**Module 2 — eCommerce connector framework** + Shopify provider~~ ✅ done (TASK-040).
 5. ~~**Module 3 — Meta integration** (webhooks, FB Pages + IG Business, events)~~ ✅ done (TASK-050).
-6. **Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts). ← next
+6. ~~**Module 6 — Customer Memory (CRM)** + **Module 4 — AI Assistant** (per-page system prompts)~~ ✅ done (TASK-060/070).
 7. **Module 5 — First-time follower campaign** (event-driven: follow → coupon → message).
 8. **Module 8 — Human takeover**, **Module 9 — Notifications**.
 9. **Module 7 — Marketing insights dashboard** + **Reports**.

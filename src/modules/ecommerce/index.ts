@@ -50,7 +50,7 @@ export type {
   ProductRecord,
   CouponRecord,
 } from "./application/ports";
-export type { StoreConnectionView } from "./application/queries";
+export type { EcommerceQueries, StoreConnectionView } from "./application/queries";
 
 // Provider registry (implement-and-register to add providers)
 export { getConnector } from "./infrastructure/provider-registry";

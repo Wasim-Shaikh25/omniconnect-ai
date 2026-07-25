@@ -7,6 +7,30 @@
  * docs/architecture/module-boundaries.md.
  *
  * Responsibility: Configurable, multi-model-ready AI customer assistant.
- * Public contract (to implement): AIProvider interface (complete); AssistantService (generateReply); events: ReplyGenerated, EscalationRequested.
  */
 export const MODULE_NAME = "ai" as const;
+
+// Domain events
+export { EscalationRequested, ReplyGenerated } from "./domain/events";
+export type {
+  EscalationRequestedPayload,
+  ReplyGeneratedPayload,
+} from "./domain/events";
+
+// Application ports + record types
+export type {
+  AIConfigurationRecord,
+  AIConfigurationRepository,
+  AIMessage,
+  AIProvider,
+  AssistantService,
+} from "./application/ports";
+export { updateAIConfigSchema } from "./application/update-config";
+export type { UpdateAIConfigInput } from "./application/update-config";
+
+// Composition root
+export { aiQueries, generateReply, updateAIConfiguration } from "./infrastructure/container";
+
+// Presentation
+export { updateAIConfigurationAction } from "./presentation/actions";
+export type { AIActionState } from "./presentation/actions";

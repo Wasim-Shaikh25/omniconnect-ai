@@ -1,45 +1,47 @@
 # Spec 0004: AI Customer Assistant
 
 - **Module(s):** ai
-- **Status:** Draft
+- **Status:** In Progress
 - **Owner:** wasim
-- **Related task(s):** docs/tasks/backlog.md
+- **Related task(s):** docs/tasks/backlog.md (TASK-070)
 - **Related ADR(s):** —
-- **Last updated:** 2026-07-24
+- **Last updated:** 2026-07-25
 
 ## 1. Summary
-Per-page configurable AI assistant. Each connected page has a custom system prompt (tone, brand voice, welcome/coupon/sales strategy, escalation rules). Understands intent, answers FAQs, recommends products, explains discounts, handles objections, and escalates to humans.
+Per-page configurable AI assistant. Each connected store has a custom system prompt (tone, brand voice, welcome/coupon/sales strategy, escalation rules). Understands intent, answers FAQs, recommends products, explains discounts, and escalates to humans.
 
 ## 2. Goals
-- Per-page `AIConfiguration` (system prompt + strategy settings)
-- Intent understanding, FAQ answering, product recommendations, discount explanation
-- Objection handling and human escalation triggers
-- Multi-model-ready provider interface (OpenAI first)
+- Per-store `AIConfiguration` (system prompt + strategy settings).
+- Multi-model-ready provider interface (OpenAI first via `fetch`).
+- Reply generation triggered by `NewMessage` domain event.
+- Context assembly from CRM memory, recent conversation messages, products and coupons.
+- Human escalation via `[ESCALATE]` marker, publishing `EscalationRequested` and pausing AI replies.
+- AI settings UI on the store page, RBAC-gated.
 
 ## 3. Non-Goals
-- Anything listed under Phase 2/3 in the Future Roadmap (see `docs/specs/0000-project-overview.md`).
+- Phase 2/3 roadmap items (see `docs/specs/0000-project-overview.md`).
+- Real-time/long-polling chat UI (replies are appended to `Conversation` and sent via Meta outbound).
 
 ## 4. Public Contract (loose coupling)
 - `AIProvider` interface: `complete(messages, config)` — swap models by implementing it.
 - `AssistantService` port: `generateReply(conversationId)`.
-- Consumes `NewMessage`/`NewFollow` events; may emit `EscalationRequested`, `ReplyGenerated`.
-- Reads product/coupon data via `ecommerce`/`coupons` ports and customer memory via `crm` port.
+- `AIConfigurationRepository` port: `getByStore`, `getOrCreateDefault`, `update`.
+- Consumes `NewMessage` from `conversations`; emits `ReplyGenerated` and `EscalationRequested`.
+- Reads product/coupon data via `ecommerce` queries and customer memory via `crm` queries.
 
-> Other modules interact ONLY through the contract above (application service / port /
-> domain events). No module imports this module's internals. No circular dependencies.
+> Other modules interact ONLY through the contract above (application service / port / domain events). No module imports this module's internals. No circular dependencies.
 
 ## 5. Data / Persistence
-`AIConfigurations` (per store/page: prompt, tone, strategies, escalation rules). Ownership: `ai`.
-All schema changes via Prisma migrations.
+`AIConfiguration` (per store: prompt, tone, strategies, escalation rules, model). All schema changes via Prisma migrations.
 
 ## 6. Notes
-Prompts + retrieved context assembled in Application layer; Domain holds strategy rules, not IO.
+Prompts + retrieved context are assembled in the application layer; the domain owns the `ReplyGenerated`/`EscalationRequested` events. Outbound delivery is delegated to the `meta` module.
 
 ## 7. Acceptance Criteria (Definition of Done)
-- [ ] Domain modeled (entities, events) with pure unit tests.
-- [ ] Application services/ports implemented and exposed via the module's public barrel.
-- [ ] Infrastructure adapters/repositories implemented (Prisma, external APIs).
-- [ ] Presentation (routes/UI) wired where applicable, with RBAC.
-- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` updated.
-
-> This is an initial stub. Expand using `_TEMPLATE.md` before implementation begins.
+- [x] Domain modeled (`ReplyGenerated`, `EscalationRequested`).
+- [x] `AIProvider` and `AssistantService` ports implemented; OpenAI provider shipped.
+- [x] `AIConfigurationRepository` implemented in Prisma.
+- [x] `generateReply` use-case assembles context and calls the provider.
+- [x] AI subscribers wired to `NewMessage`; replies appended and sent outbound.
+- [x] AI settings server action + form on store page.
+- [x] Lint + typecheck pass; `CHANGELOG.md` updated.
