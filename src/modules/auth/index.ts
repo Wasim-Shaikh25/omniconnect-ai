@@ -39,11 +39,11 @@ export type { SessionUser } from "./infrastructure/session";
 
 // Presentation wiring for the app composition root (route handlers + server actions)
 export { handlers } from "./infrastructure/auth";
-export { googleAuthEnabled } from "./infrastructure/auth";
+export { oauthProviders, type OAuthProvider } from "./infrastructure/auth";
 export {
   loginAction,
   registerAction,
   signOutAction,
-  googleSignInAction,
+  oauthSignInAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";

@@ -2,6 +2,9 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import Facebook from "next-auth/providers/facebook";
+import Apple from "next-auth/providers/apple";
+import GitHub from "next-auth/providers/github";
 import { prisma } from "@/shared/database";
 import { env } from "@/shared/config";
 import { eventBus } from "@/shared/events";
@@ -43,18 +46,54 @@ const providers: NextAuthConfig["providers"] = [
   }),
 ];
 
-export const googleAuthEnabled = Boolean(
-  env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET,
-);
+export interface OAuthProvider {
+  id: string;
+  name: string;
+}
 
-if (googleAuthEnabled) {
+const oauthProviders: OAuthProvider[] = [];
+
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     Google({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
   );
+  oauthProviders.push({ id: "google", name: "Google" });
 }
+
+if (env.FACEBOOK_CLIENT_ID && env.FACEBOOK_CLIENT_SECRET) {
+  providers.push(
+    Facebook({
+      clientId: env.FACEBOOK_CLIENT_ID,
+      clientSecret: env.FACEBOOK_CLIENT_SECRET,
+    }),
+  );
+  oauthProviders.push({ id: "facebook", name: "Facebook" });
+}
+
+if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
+  providers.push(
+    GitHub({
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+    }),
+  );
+  oauthProviders.push({ id: "github", name: "GitHub" });
+}
+
+if (env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET) {
+  providers.push(
+    Apple({
+      clientId: env.APPLE_CLIENT_ID,
+      clientSecret: env.APPLE_CLIENT_SECRET,
+    }),
+  );
+  oauthProviders.push({ id: "apple", name: "Apple" });
+}
+
+export { oauthProviders };
 
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),

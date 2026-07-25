@@ -105,6 +105,10 @@ See `.env.example` for a full list. At minimum production needs:
 | `NEXTAUTH_SECRET` | Random secret for JWT signing |
 | `NEXTAUTH_URL` | Public app URL |
 | `OPENAI_API_KEY` | AI replies and content generation |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth sign-up/login |
+| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | Facebook OAuth sign-up/login |
+| `APPLE_CLIENT_ID` / `APPLE_CLIENT_SECRET` | Apple OAuth sign-up/login |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth sign-up/login |
 | `META_APP_SECRET` | Webhook HMAC verification |
 | `META_WEBHOOK_VERIFY_TOKEN` | Meta webhook subscription token |
 

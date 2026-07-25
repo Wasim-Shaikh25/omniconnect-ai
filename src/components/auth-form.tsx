@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import type { ActionState } from "@/modules/auth";
+import type { ActionState, OAuthProvider } from "@/modules/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,18 +12,20 @@ type FormAction = (
   formData: FormData,
 ) => Promise<ActionState>;
 
+type OAuthAction = (formData: FormData) => Promise<void>;
+
 interface AuthFormProps {
   mode: "login" | "register";
   action: FormAction;
-  googleEnabled?: boolean;
-  googleAction?: () => Promise<void>;
+  oauthProviders?: OAuthProvider[];
+  oauthAction?: OAuthAction;
 }
 
 export function AuthForm({
   mode,
   action,
-  googleEnabled,
-  googleAction,
+  oauthProviders,
+  oauthAction,
 }: AuthFormProps) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     action,
@@ -78,12 +80,27 @@ export function AuthForm({
         </Button>
       </form>
 
-      {googleEnabled && googleAction && (
-        <form action={googleAction}>
-          <Button type="submit" variant="outline" className="w-full">
-            Continue with Google
-          </Button>
-        </form>
+      {oauthAction && oauthProviders && oauthProviders.length > 0 && (
+        <div className="space-y-2">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {oauthProviders.map((provider) => (
+              <form key={provider.id} action={oauthAction}>
+                <input type="hidden" name="provider" value={provider.id} />
+                <Button type="submit" variant="outline" className="w-full">
+                  {provider.name}
+                </Button>
+              </form>
+            ))}
+          </div>
+        </div>
       )}
 
       <p className="text-center text-sm text-muted-foreground">

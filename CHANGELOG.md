@@ -150,6 +150,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added a searchable `/help` page with in-depth guides for every app area.
   - Added `Dockerfile`, `fly.toml`, `.dockerignore`, and `deploy.sh` for one-command Vercel/Fly/Docker builds.
   - Added `docs/deployment.md` with SaaS architecture, environment variables, and multi-tenant checklist.
+- **OAuth sign-up / login:**
+  - Added Google, Facebook, Apple, and GitHub providers to NextAuth.
+  - Replaced the single Google button with an "Or continue with" grid that renders all configured OAuth providers.
+  - Updated `.env.example` and `docs/deployment.md` with OAuth client setup instructions.
+- **Viral growth research:**
+  - Added `docs/specs/0013-viral-growth.md` with feature candidates: AI caption/hook generator, optimal posting time, comment-to-DM unlock loop, hashtag suggestions, giveaway campaigns, collab posts, UGC challenges, broadcast channels, creator marketplace, and viral analytics.
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
