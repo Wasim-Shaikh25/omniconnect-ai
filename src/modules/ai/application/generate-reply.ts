@@ -9,6 +9,7 @@ import type {
 } from "@/modules/conversations";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { MetaService } from "@/modules/meta";
+import { formatCurrency } from "@/lib/currency";
 import { EscalationRequested, ReplyGenerated } from "../domain/events";
 import type {
   AIConfigurationRecord,
@@ -87,8 +88,7 @@ function formatProducts(
   if (!products.length) return "No products in catalog.";
   return products
     .map((p) => {
-      const price =
-        p.price !== null ? `${p.currency ?? "$"}${p.price.toFixed(2)}` : "—";
+      const price = formatCurrency(p.price, p.currency);
       const stock = p.inventory !== null ? ` (${p.inventory} in stock)` : "";
       return `- ${p.title}: ${price}${stock}`;
     })

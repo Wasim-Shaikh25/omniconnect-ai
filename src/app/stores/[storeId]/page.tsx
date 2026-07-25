@@ -33,11 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-function formatPrice(price: number | null, currency: string | null): string {
-  if (price === null) return "—";
-  return `${currency ?? "$"}${price.toFixed(2)}`;
-}
+import { formatCurrency } from "@/lib/currency";
 
 export default async function StoreDetailPage({
   params,
@@ -178,7 +174,7 @@ export default async function StoreDetailPage({
                 >
                   <span className="font-medium">{p.title}</span>
                   <span className="text-muted-foreground">
-                    {formatPrice(p.price, p.currency)}
+                    {formatCurrency(p.price, p.currency)}
                     {p.inventory !== null ? ` · ${p.inventory} in stock` : ""}
                   </span>
                 </li>

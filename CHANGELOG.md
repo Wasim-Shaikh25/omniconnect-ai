@@ -176,10 +176,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - Split `meta` module the same way: `@/modules/meta` is client-safe (events, types, schemas, server actions), while `@/modules/meta/server` exports `connectMeta`, `processMetaWebhook`, `metaQueries`, `metaService`, and webhook verification functions.
   - Updated server consumers (`coupons`, `growth`, `ai`, `route.ts`, store detail page) to import wired services from `@/modules/meta/server`.
 
+### ✅ Done (continued)
+- **TASK-240 — INR Currency Support** (spec `0021`):
+  - New shared `formatCurrency` utility defaults to `INR` and uses Indian locale (`en-IN`) for ₹ formatting with lakh/crore grouping.
+  - Store detail page and AI reply context now use `formatCurrency`.
+  - `syncProducts` enriches connector products with the store's currency when the provider omits it (e.g. Shopify variants).
+  - Mock connector now returns INR prices and order totals so dev/test data matches the India-first launch market.
+
 ### 🔨 In Progress
-- Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Meta content intelligence / analytics dashboard (TASK-110)** or **live Meta Graph API adapters** for commerce, comments, and messaging.
+- Next: remaining Phase 2 backlog (Campaigns, Automation, Reports, live Meta Graph API adapters).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
