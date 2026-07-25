@@ -230,10 +230,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - New `/settings/audit` page listing admin/system events, and `/settings/billing` placeholder page.
   - Settings page now links to Audit and Billing for `ADMIN` and `STORE_OWNER` roles.
   - `changeUserRoleAction` now requires `STORE_OWNER` or higher, so store owners can manage their team.
+- **TASK-340 — Mobile/PWA Polish** (spec `0032`):
+  - New `/manifest.webmanifest` generated from `src/app/manifest.ts`.
+  - Added `MobileNav` hamburger menu for small screens; desktop nav remains horizontal.
+  - `AppHeader` updated to hide horizontal links on mobile and show the mobile menu toggle.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Mobile/PWA polish (TASK-340)**.
+- Next: stabilize, harden, and address feedback from merged PRs.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
