@@ -452,6 +452,9 @@ export default async function StoreDetailPage({
                 No followers yet. Simulate a follow event to create one.
               </p>
             )}
+            <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
+              <Link href={`/stores/${storeId}/followers`}>View all followers</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
