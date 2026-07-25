@@ -15,7 +15,9 @@ import {
 } from "@/modules/meta";
 import { conversationQueries } from "@/modules/conversations";
 import { crmQueries } from "@/modules/crm";
+import { aiQueries, updateAIConfigurationAction } from "@/modules/ai";
 import { ConnectStoreForm } from "@/components/connect-store-form";
+import { AISettingsForm } from "@/components/ai-settings-form";
 import { SyncProductsButton } from "@/components/sync-products-button";
 import { GenerateCouponForm } from "@/components/generate-coupon-form";
 import { MetaConnectForm } from "@/components/meta-connect-form";
@@ -59,6 +61,7 @@ export default async function StoreDetailPage({
     metaConnection,
     conversations,
     followers,
+    aiConfig,
   ] = await Promise.all([
     ecommerceQueries.getStoreConnection(storeId),
     ecommerceQueries.listProducts(storeId),
@@ -66,6 +69,7 @@ export default async function StoreDetailPage({
     metaQueries.getMetaConnection(storeId),
     conversationQueries.listConversations(storeId, 10),
     crmQueries.listFollowers(storeId, 10),
+    aiQueries.getConfiguration(storeId),
   ]);
 
   return (
@@ -233,6 +237,46 @@ export default async function StoreDetailPage({
             </CardContent>
           </Card>
         )}
+      </div>
+
+      <h2 className="mt-10 text-lg font-semibold">AI assistant</h2>
+      <p className="text-sm text-muted-foreground">
+        Configure the per-store system prompt and strategy. Replies are
+        generated automatically when new customer messages arrive.
+      </p>
+
+      <div className="mt-4 grid gap-6 md:grid-cols-2">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>AI configuration</CardTitle>
+            <CardDescription>
+              Model: {aiConfig?.model ?? "gpt-4o-mini"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {canManage ? (
+              <AISettingsForm
+                action={updateAIConfigurationAction}
+                storeId={storeId}
+                defaultValues={{
+                  systemPrompt:
+                    aiConfig?.systemPrompt ??
+                    "You are a helpful eCommerce customer assistant.",
+                  tone: aiConfig?.tone ?? "",
+                  welcomeStrategy: aiConfig?.welcomeStrategy ?? "",
+                  couponStrategy: aiConfig?.couponStrategy ?? "",
+                  salesStrategy: aiConfig?.salesStrategy ?? "",
+                  escalationRules: aiConfig?.escalationRules ?? "",
+                  model: aiConfig?.model ?? "gpt-4o-mini",
+                }}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Only owners/admins can configure the AI assistant.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">

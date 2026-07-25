@@ -78,4 +78,15 @@ export class PrismaConversationRepository implements ConversationRepository {
     const found = await prisma.conversation.findUnique({ where: { id } });
     return found ? toRecord(found) : null;
   }
+
+  async updateStatus(
+    id: string,
+    status: "AI_ACTIVE" | "HUMAN_ACTIVE",
+  ): Promise<ConversationRecord> {
+    const updated = await prisma.conversation.update({
+      where: { id },
+      data: { status },
+    });
+    return toRecord(updated);
+  }
 }

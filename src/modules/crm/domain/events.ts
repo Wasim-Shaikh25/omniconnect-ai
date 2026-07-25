@@ -15,3 +15,18 @@ export interface FirstTimeFollowerDetectedPayload {
 export class FirstTimeFollowerDetected extends BaseDomainEvent<FirstTimeFollowerDetectedPayload> {
   readonly name = "FirstTimeFollowerDetected";
 }
+
+export interface CustomerProfileUpdatedPayload {
+  storeId: string;
+  customerId: string;
+  tags: string[];
+  interests: string[];
+}
+
+/**
+ * Emitted whenever a customer's tags or interests change. The AI assistant
+ * and analytics modules may subscribe to refresh personalization context.
+ */
+export class CustomerProfileUpdated extends BaseDomainEvent<CustomerProfileUpdatedPayload> {
+  readonly name = "CustomerProfileUpdated";
+}

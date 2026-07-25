@@ -8,11 +8,26 @@
 export const MODULE_NAME = "crm" as const;
 
 // Domain events
-export { FirstTimeFollowerDetected } from "./domain/events";
-export type { FirstTimeFollowerDetectedPayload } from "./domain/events";
+export {
+  CustomerProfileUpdated,
+  FirstTimeFollowerDetected,
+} from "./domain/events";
+export type {
+  CustomerProfileUpdatedPayload,
+  FirstTimeFollowerDetectedPayload,
+} from "./domain/events";
 
 // Application record types
-export type { CustomerRecord, FollowerRecord } from "./application/ports";
+export type {
+  CustomerCouponRecord,
+  CustomerCouponUsageRecord,
+  CustomerMemory,
+  CustomerProfile,
+  CustomerRecord,
+  FollowerRecord,
+} from "./application/ports";
+
+export type { CrmQueries } from "./application/queries";
 
 // Queries (composed)
 export { crmQueries } from "./infrastructure/container";
