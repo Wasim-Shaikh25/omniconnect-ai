@@ -1,0 +1,197 @@
+import type {
+  CustomerConsent,
+  CustomerLifecycleStage,
+  CustomerRecord,
+  CustomerRepository,
+  FollowerRecord,
+  FollowerRepository,
+} from "./ports";
+
+export interface CustomerActivity {
+  conversationCount: number;
+  messageCount: number;
+  followerCount: number;
+  couponUsageCount: number;
+  lastMessageAt: Date | null;
+}
+
+export interface CustomerListView extends CustomerRecord {
+  storeName: string;
+  engagementScore: number;
+  leadScore: number;
+  segment: string;
+  activity: CustomerActivity;
+}
+
+export interface CustomerDetailView extends CustomerListView {
+  coupons: { id: string; code: string; discountPct: number; status: string; expiresAt: Date | null }[];
+  usages: { couponId: string; usedAt: Date; orderRef: string | null }[];
+  followers: FollowerRecord[];
+}
+
+export interface CustomerDirectoryFilter {
+  search?: string;
+  lifecycleStage?: CustomerLifecycleStage;
+  consent?: CustomerConsent;
+  segment?: string;
+}
+
+function computeScores(activity: CustomerActivity, consent: CustomerConsent): {
+  engagementScore: number;
+  leadScore: number;
+} {
+  const engagement = Math.min(
+    100,
+    activity.conversationCount * 10 +
+      activity.messageCount * 2 +
+      activity.followerCount * 15 +
+      activity.couponUsageCount * 20,
+  );
+
+  const consentBoost = consent === "GRANTED" ? 30 : 0;
+  const lead = Math.min(
+    100,
+    activity.conversationCount * 15 +
+      activity.messageCount * 5 +
+      consentBoost +
+      activity.couponUsageCount * 25,
+  );
+
+  return { engagementScore: engagement, leadScore: lead };
+}
+
+function computeSegment(
+  stage: CustomerLifecycleStage,
+  engagementScore: number,
+  leadScore: number,
+  createdAt: Date,
+): string {
+  if (stage === "CHURNED") return "At-risk";
+  if (stage === "CUSTOMER" && engagementScore >= 70) return "VIP";
+  if (engagementScore >= 50) return "Engaged";
+  if (leadScore >= 60 && (stage === "LEAD" || stage === "PROSPECT")) {
+    return "High intent";
+  }
+  const daysSinceCreation =
+    (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  if (stage === "LEAD" && daysSinceCreation < 7) return "New lead";
+  if (stage === "CUSTOMER") return "Customer";
+  return "Lead";
+}
+
+function matchesFilter(
+  item: CustomerListView,
+  filter?: CustomerDirectoryFilter,
+): boolean {
+  if (!filter) return true;
+
+  if (filter.lifecycleStage && item.lifecycleStage !== filter.lifecycleStage) {
+    return false;
+  }
+  if (filter.consent && item.consent !== filter.consent) return false;
+  if (filter.segment && item.segment !== filter.segment) return false;
+
+  if (filter.search) {
+    const q = filter.search.toLowerCase();
+    const text = `${item.username ?? ""} ${item.igUserId ?? ""} ${item.fbUserId ?? ""} ${item.tags.join(" ")}`.toLowerCase();
+    if (!text.includes(q)) return false;
+  }
+
+  return true;
+}
+
+export function makeCustomerDirectory(deps: {
+  organizations: {
+    getOrganizationOverview(
+      organizationId: string,
+    ): Promise<{ id: string; name: string; stores: { id: string; name: string }[] } | null>;
+  };
+  customers: CustomerRepository;
+  followers: FollowerRepository;
+}) {
+  async function enrich(
+    customer: CustomerRecord,
+    storeNameById: Map<string, string>,
+  ): Promise<CustomerListView> {
+    const activity = await deps.customers.getActivity(customer.id);
+
+    const { engagementScore, leadScore } = computeScores(
+      activity,
+      customer.consent,
+    );
+    const segment = computeSegment(
+      customer.lifecycleStage,
+      engagementScore,
+      leadScore,
+      customer.createdAt,
+    );
+
+    return {
+      ...customer,
+      storeName: storeNameById.get(customer.storeId) ?? "Unknown",
+      engagementScore,
+      leadScore,
+      segment,
+      activity,
+    };
+  }
+
+  return {
+    async listCustomersByOrganization(
+      organizationId: string,
+      filter?: CustomerDirectoryFilter,
+    ): Promise<CustomerListView[]> {
+      const overview = await deps.organizations.getOrganizationOverview(
+        organizationId,
+      );
+      if (!overview) return [];
+
+      const stores = overview.stores;
+      const storeIds = stores.map((s) => s.id);
+      const storeNameById = new Map(stores.map((s) => [s.id, s.name]));
+
+      if (storeIds.length === 0) return [];
+
+      const customers = await deps.customers.listByStoreIds(storeIds, 250);
+      const enriched = await Promise.all(
+        customers.map((c) => enrich(c, storeNameById)),
+      );
+      return enriched.filter((item) => matchesFilter(item, filter));
+    },
+
+    async getCustomerDetail(
+      organizationId: string,
+      customerId: string,
+    ): Promise<CustomerDetailView | null> {
+      const overview = await deps.organizations.getOrganizationOverview(
+        organizationId,
+      );
+      if (!overview) return null;
+
+      const storeIds = overview.stores.map((s) => s.id);
+      const storeNameById = new Map(overview.stores.map((s) => [s.id, s.name]));
+
+      const customer = await deps.customers.findById(customerId);
+      if (!customer || !storeIds.includes(customer.storeId)) return null;
+
+      const profile = await deps.customers.getProfile({
+        storeId: customer.storeId,
+        channel: customer.igUserId ? "INSTAGRAM" : "FACEBOOK",
+        externalUserId: customer.igUserId ?? customer.fbUserId ?? "",
+      });
+
+      const base = await enrich(customer, storeNameById);
+      const followers = await deps.followers.listByStore(customer.storeId, 50);
+
+      return {
+        ...base,
+        storeName: storeNameById.get(customer.storeId) ?? "Unknown",
+        coupons: profile?.coupons ?? [],
+        usages: profile?.usages ?? [],
+        followers: followers.filter((f) => f.customerId === customer.id),
+      };
+    },
+  };
+}
+
+export type CustomerDirectory = ReturnType<typeof makeCustomerDirectory>;

@@ -17,8 +17,26 @@ type PrismaCustomer = {
   username: string | null;
   interests: string[];
   tags: string[];
+  lifecycleStage: string;
+  consent: string;
+  consentUpdatedAt: Date | null;
+  lastActivityAt: Date | null;
   createdAt: Date;
 };
+
+function toLifecycleStage(value: string): CustomerRecord["lifecycleStage"] {
+  if (value === "PROSPECT" || value === "CUSTOMER" || value === "CHURNED") {
+    return value;
+  }
+  return "LEAD";
+}
+
+function toConsent(value: string): CustomerRecord["consent"] {
+  if (value === "GRANTED" || value === "DECLINED") {
+    return value;
+  }
+  return "PENDING";
+}
 
 function toRecord(c: PrismaCustomer): CustomerRecord {
   return {
@@ -29,6 +47,10 @@ function toRecord(c: PrismaCustomer): CustomerRecord {
     username: c.username,
     interests: c.interests ?? [],
     tags: c.tags ?? [],
+    lifecycleStage: toLifecycleStage(c.lifecycleStage),
+    consent: toConsent(c.consent),
+    consentUpdatedAt: c.consentUpdatedAt,
+    lastActivityAt: c.lastActivityAt,
     createdAt: c.createdAt,
   };
 }
@@ -119,6 +141,59 @@ export class PrismaCustomerRepository implements CustomerRepository {
     return rows.map(toRecord);
   }
 
+  async listByStoreIds(
+    storeIds: string[],
+    limit = 250,
+  ): Promise<CustomerRecord[]> {
+    const rows = await prisma.customer.findMany({
+      where: { storeId: { in: storeIds } },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return rows.map(toRecord);
+  }
+
+  async findById(id: string): Promise<CustomerRecord | null> {
+    const found = await prisma.customer.findUnique({ where: { id } });
+    return found ? toRecord(found) : null;
+  }
+
+  async getActivity(customerId: string): Promise<{
+    conversationCount: number;
+    messageCount: number;
+    followerCount: number;
+    couponUsageCount: number;
+    lastMessageAt: Date | null;
+  }> {
+    const [
+      conversationCount,
+      messageCount,
+      followerCount,
+      couponUsageCount,
+      lastMessage,
+    ] = await Promise.all([
+      prisma.conversation.count({ where: { customerId } }),
+      prisma.message.count({
+        where: { conversation: { customerId } },
+      }),
+      prisma.follower.count({ where: { customerId } }),
+      prisma.couponUsage.count({ where: { customerId } }),
+      prisma.message.findFirst({
+        where: { conversation: { customerId } },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    return {
+      conversationCount,
+      messageCount,
+      followerCount,
+      couponUsageCount,
+      lastMessageAt: lastMessage?.createdAt ?? null,
+    };
+  }
+
   async getProfile(input: {
     storeId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
@@ -162,6 +237,28 @@ export class PrismaCustomerRepository implements CustomerRepository {
     const record = toRecord(updated);
     await emitProfileUpdated(record);
     return record;
+  }
+
+  async updateLifecycleStage(
+    customerId: string,
+    stage: CustomerRecord["lifecycleStage"],
+  ): Promise<CustomerRecord> {
+    const updated = await prisma.customer.update({
+      where: { id: customerId },
+      data: { lifecycleStage: stage },
+    });
+    return toRecord(updated);
+  }
+
+  async updateConsent(
+    customerId: string,
+    consent: CustomerRecord["consent"],
+  ): Promise<CustomerRecord> {
+    const updated = await prisma.customer.update({
+      where: { id: customerId },
+      data: { consent, consentUpdatedAt: new Date() },
+    });
+    return toRecord(updated);
   }
 
   async recordCouponSent(input: {

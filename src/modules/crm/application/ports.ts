@@ -1,3 +1,11 @@
+export type CustomerLifecycleStage =
+  | "LEAD"
+  | "PROSPECT"
+  | "CUSTOMER"
+  | "CHURNED";
+
+export type CustomerConsent = "PENDING" | "GRANTED" | "DECLINED";
+
 export interface CustomerRecord {
   id: string;
   storeId: string;
@@ -6,6 +14,10 @@ export interface CustomerRecord {
   username: string | null;
   interests: string[];
   tags: string[];
+  lifecycleStage: CustomerLifecycleStage;
+  consent: CustomerConsent;
+  consentUpdatedAt: Date | null;
+  lastActivityAt: Date | null;
   createdAt: Date;
 }
 
@@ -52,6 +64,18 @@ export interface CustomerRepository {
 
   listByStore(storeId: string, limit?: number): Promise<CustomerRecord[]>;
 
+  listByStoreIds(storeIds: string[], limit?: number): Promise<CustomerRecord[]>;
+
+  findById(id: string): Promise<CustomerRecord | null>;
+
+  getActivity(customerId: string): Promise<{
+    conversationCount: number;
+    messageCount: number;
+    followerCount: number;
+    couponUsageCount: number;
+    lastMessageAt: Date | null;
+  }>;
+
   /** Load the customer plus sent coupons and usages. */
   getProfile(input: {
     storeId: string;
@@ -65,6 +89,16 @@ export interface CustomerRepository {
     tags?: string[];
     interests?: string[];
   }): Promise<CustomerRecord>;
+
+  updateLifecycleStage(
+    customerId: string,
+    stage: CustomerLifecycleStage,
+  ): Promise<CustomerRecord>;
+
+  updateConsent(
+    customerId: string,
+    consent: CustomerConsent,
+  ): Promise<CustomerRecord>;
 
   /** Mark a coupon as sent to a customer. */
   recordCouponSent(input: {
