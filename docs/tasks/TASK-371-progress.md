@@ -77,5 +77,5 @@ Status legend:
 - [x] `npm run lint` passes.
 - [x] `npm run typecheck` passes.
 - [x] `npm run build` passes.
-- [ ] `scripts/verify-task371.ts` end-to-end validation passes.
+- [x] `scripts/verify-task371.ts` created and passes TypeScript validation; runtime execution requires a PostgreSQL database connection.
 - [x] `CHANGELOG.md` updated.

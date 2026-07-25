@@ -420,7 +420,7 @@ All notable changes to **OmniConnect AI** are documented here.
     - Competitor page displays benchmark panel with recommendations.
     - Reusable workflow cards extracted: `WorkflowCard`, `BriefSectionCard`, `ProductPromotionCard`, `DmOpportunityCard`, `CommentInsightCard`, `CompetitorAlertCard`, `TrendingHashtagCard`, `BestTimeCard`, `FollowerLinkCard`.
     - Daily Marketing, Engagement, Growth, and Revenue pages refactored to use shared card components.
-  - Remaining: `verify-task371.ts` end-to-end validation.
+    - `scripts/verify-task371.ts` end-to-end validation script created (typechecked; requires PostgreSQL connection to run).
 
 ### ⏭️ Next (proposed build order)
 

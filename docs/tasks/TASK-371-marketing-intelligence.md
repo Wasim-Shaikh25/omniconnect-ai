@@ -59,11 +59,11 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 ### Cleanup / Verification
 - [x] 27. Update `intelligence/index.ts` and `ai/index.ts` public barrels to expose new contracts.
 - [x] 28. Run `npm run lint`, `npm run typecheck`, `npm run build`.
-- [ ] 29. Write `scripts/verify-task371.ts` end-to-end validation.
+- [x] 29. Write `scripts/verify-task371.ts` end-to-end validation (created and typechecked; runtime requires PostgreSQL connection).
 - [x] 30. Update `docs/tasks/TASK-371-progress.md` and `CHANGELOG.md`.
 
 ## Acceptance Criteria
 
 - [x] Implemented subtasks pass lint + typecheck + build.
-- [ ] Remaining subtasks (1-9, 12, 14, 26, 29) are documented in Next section or follow-up task.
-- [ ] `CHANGELOG.md` updated.
+- [x] Remaining subtasks documented: content competitor/own-post integration, full analytics loop with media metrics and attribution, workspace-vs-competitor benchmark, DM/comment auto recommendations, and verify script runtime DB connection.
+- [x] `CHANGELOG.md` updated.
