@@ -45,6 +45,7 @@ import {
   chartAcceptanceService,
   updateMarketingMemory,
   generateDailyBrief,
+  generateMarketingInsightsFromMemory,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -845,6 +846,8 @@ export async function getMarketingMemoryAction(
 
   try {
     const memory = await updateMarketingMemory(user.organizationId, parsed.data.storeId);
+    await generateMarketingInsightsFromMemory(memory);
+    await recommendationService.generateFromOpenInsights(user.organizationId, parsed.data.storeId);
     const brief = await generateDailyBrief(user.organizationId, parsed.data.storeId, memory);
     return { memory, brief };
   } catch (error) {

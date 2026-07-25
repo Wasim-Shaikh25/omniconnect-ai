@@ -43,6 +43,7 @@ import { makeRiskMitigationRegistry } from "../application/risk-mitigations";
 import { makeOperatingModelService } from "../application/operating-model";
 import { makeUpdateMarketingMemory } from "../application/marketing-memory";
 import { makeGenerateDailyBrief } from "../application/daily-brief";
+import { makeGenerateMarketingInsightsFromMemory } from "../application/marketing-insights";
 import {
   makeUnifiedContextService,
   makeKnowledgeGraphService,
@@ -289,6 +290,10 @@ export const updateMarketingMemory = makeUpdateMarketingMemory({
 });
 export const generateDailyBrief = makeGenerateDailyBrief({
   updateMarketingMemory,
+  eventBus,
+});
+export const generateMarketingInsightsFromMemory = makeGenerateMarketingInsightsFromMemory({
+  insights,
   eventBus,
 });
 

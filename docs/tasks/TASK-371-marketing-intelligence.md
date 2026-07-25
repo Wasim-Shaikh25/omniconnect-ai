@@ -30,7 +30,7 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 ### DM & Comment Insights
 - [x] 10. DM pattern extraction: `intelligence` reads conversations and extracts categories (price objection, size, availability, compliment, complaint).
 - [x] 11. Comment pattern extraction: `intelligence` reads `social` comments and extracts the same categories.
-- [ ] 12. DM/comment insights generate marketing insights + content/campaign recommendations (recommendations are still sourced from existing recommendation service; marketing-memory-driven recommendations are next).
+- [x] 12. DM/comment insights generate marketing insights + content/campaign recommendations (`generateMarketingInsightsFromMemory` emits `DmPatternDetected`/`CommentPatternDetected` and `BusinessInsight` records; `recommendationService` creates DM campaign recommendations from these insights).
 
 ### Product Promotion Scores
 - [x] 13. `intelligence` computes `ProductScore` (content, engagement, conversation, sales, trend, competitor) per product from ecommerce, conversation, and order data.

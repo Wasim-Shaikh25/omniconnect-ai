@@ -14,7 +14,13 @@ import {
   BestTimeCard,
   FollowerLinkCard,
 } from "@/components/marketing-brief-cards";
-import { updateMarketingMemory, generateDailyBrief, RecommendationConflictCard } from "@/modules/intelligence";
+import {
+  updateMarketingMemory,
+  generateDailyBrief,
+  generateMarketingInsightsFromMemory,
+  recommendationService,
+  RecommendationConflictCard,
+} from "@/modules/intelligence";
 import { Sparkles, TrendingUp } from "lucide-react";
 
 export default async function DailyMarketingPage({
@@ -36,6 +42,8 @@ export default async function DailyMarketingPage({
   if (!user.organizationId) redirect("/stores");
 
   const memory = await updateMarketingMemory(user.organizationId, storeId);
+  await generateMarketingInsightsFromMemory(memory);
+  await recommendationService.generateFromOpenInsights(user.organizationId, storeId);
   const brief = await generateDailyBrief(user.organizationId, storeId, memory);
 
   return (

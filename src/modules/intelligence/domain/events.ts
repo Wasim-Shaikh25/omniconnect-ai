@@ -199,3 +199,29 @@ export interface DailyMarketingBriefGeneratedPayload {
 export class DailyMarketingBriefGenerated extends BaseDomainEvent<DailyMarketingBriefGeneratedPayload> {
   readonly name = "DailyMarketingBriefGenerated";
 }
+
+export interface DmPatternDetectedPayload {
+  organizationId: string;
+  storeId: string;
+  category: string;
+  frequency: number;
+  sample: string | null;
+  insightId: string;
+}
+
+export class DmPatternDetected extends BaseDomainEvent<DmPatternDetectedPayload> {
+  readonly name = "DmPatternDetected";
+}
+
+export interface CommentPatternDetectedPayload {
+  organizationId: string;
+  storeId: string;
+  category: string;
+  frequency: number;
+  sample: string | null;
+  insightId: string;
+}
+
+export class CommentPatternDetected extends BaseDomainEvent<CommentPatternDetectedPayload> {
+  readonly name = "CommentPatternDetected";
+}

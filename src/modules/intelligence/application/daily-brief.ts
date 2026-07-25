@@ -62,7 +62,10 @@ function buildSections(
     {
       title: "Comment insights",
       value: memory.commentPatterns.reduce((sum, p) => sum + p.frequency, 0),
-      detail: "Comment pattern extraction is coming soon.",
+      detail: memory.commentPatterns[0]
+        ? `Top comment theme: ${memory.commentPatterns[0].category.replace(/_/g, " ").toLowerCase()} (${memory.commentPatterns[0].frequency})`
+        : "No comment patterns yet.",
+      cta: { label: "View comments", href: `/stores/${memory.storeId}/commerce/comments` },
     },
     {
       title: "Campaign performance",

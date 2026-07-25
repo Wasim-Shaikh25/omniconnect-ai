@@ -169,6 +169,7 @@ export {
   operatingModelService,
   updateMarketingMemory,
   generateDailyBrief,
+  generateMarketingInsightsFromMemory,
   unifiedContextService,
   knowledgeGraphService,
   featureService,

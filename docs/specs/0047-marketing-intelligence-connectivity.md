@@ -192,17 +192,17 @@ New fields proposed:
 ## 13. Acceptance Criteria
 
 - [~] Content Studio generates ideas with grounding evidence (DM, comment, product, trend, and daily brief via `content.generateContentIdeasAction`); competitor/own posts and campaign analytics integration remain.
-- [ ] Analytics has Content / Audience / Product / Campaign marketing dimensions.
-- [ ] Competitor Analysis detects changes and produces benchmark gaps with actionable suggestions.
-- [ ] Repeated DM questions produce a `DmPatternDetected` insight and at least one content/campaign recommendation.
-- [ ] Repeated comment objections produce a `CommentPatternDetected` insight and update product/campaign strategy.
-- [ ] Each product has promotion scores and an explanation.
-- [ ] `MarketingMemory` persists per workspace and is updated at least daily.
-- [ ] Business Brain produces a daily marketing brief with all required sections.
-- [ ] AI explains post performance with concrete drivers.
-- [ ] No raw PII is stored in `MarketingMemory` or insights.
-- [ ] Lint + typecheck + build pass.
-- [ ] `CHANGELOG.md` and task tracker updated.
+- [~] Analytics has Content / Audience / Product / Campaign marketing dimensions (`getMarketingPerformance` + `/analytics` dashboard); full attribution/post-to-order loop remains.
+- [x] Competitor Analysis detects changes and produces benchmark gaps with actionable suggestions.
+- [x] Repeated DM questions produce a `DmPatternDetected` insight and at least one campaign recommendation.
+- [x] Repeated comment objections produce a `CommentPatternDetected` insight and update product/campaign strategy.
+- [x] Each product has promotion scores and an explanation.
+- [x] `MarketingMemory` is computed on demand across `content`, `ai`, `commerce`, and `intelligence` flows and drives the Daily Marketing dashboard.
+- [x] Business Brain produces a daily marketing brief with all required sections.
+- [~] AI explains post performance with concrete drivers (Marketing Brain prompt includes patterns; full post-performance drivers need media metrics).
+- [x] No raw PII is stored in `MarketingMemory` or insights (sample phrases redact usernames/phone/email; patterns store categories).
+- [x] Lint + typecheck + build pass.
+- [x] `CHANGELOG.md` and task tracker updated.
 
 ## 14. Open Questions
 

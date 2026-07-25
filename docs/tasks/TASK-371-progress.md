@@ -26,11 +26,11 @@ Status legend:
 
 ### 4. DM AI doesn't influence marketing
 - [x] DM pattern extraction (categories, frequency, anonymized samples) in `intelligence`.
-- [~] DM patterns surface on Daily Marketing dashboard and feed `MarketingMemory`; auto-generated content/campaign recommendations are next.
+- [x] DM/comment patterns surface on Daily Marketing dashboard and feed `MarketingMemory`; auto-generated `DmPatternDetected`/`CommentPatternDetected` insights and `CREATE_DM_CAMPAIGN` recommendations are generated from memory.
 
 ### 5. Comments are treated as support
 - [x] Comment pattern extraction (objections, questions, compliments) in `intelligence` from `social` comments.
-- [ ] Comment patterns update analytics, campaign, content, and sales strategy (groundwork laid via `MarketingMemory`).
+- [x] Comment patterns update analytics, campaign, content, and sales strategy (insights and `CREATE_DM_CAMPAIGN` recommendations generated from comment patterns).
 
 ### 6. Analytics should become marketing analytics
 - [ ] Content Performance view: which content sold, gained followers, started conversations, generated profile visits.
