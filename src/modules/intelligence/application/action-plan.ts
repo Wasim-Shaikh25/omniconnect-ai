@@ -35,6 +35,8 @@ function targetMetricForAction(actionType: string): string {
       return "conversation_count";
     case "CREATE_DM_CAMPAIGN":
       return "follower_count";
+    case "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN":
+      return "conversation_count";
     case "REFRESH_INTEGRATION":
       return "product_count";
     default:

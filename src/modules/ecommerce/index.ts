@@ -34,6 +34,7 @@ export {
 } from "./domain/events";
 export type {
   StoreConnectedPayload,
+  ProductInventorySnapshot,
   ProductsSyncedPayload,
   CouponGeneratedPayload,
   CouponDisabledPayload,

@@ -160,6 +160,20 @@ const onProductsSynced: EventHandler = async (event) => {
     source: "ecommerce",
     occurredAt: new Date(),
   });
+
+  for (const product of p.products) {
+    await signalIngestionService.ingest({
+      organizationId,
+      storeId: p.storeId,
+      eventType: "ProductInventory",
+      subjectType: "product",
+      subjectId: product.externalId,
+      stage: "Consideration",
+      data: { title: product.title, inventory: product.inventory, provider: p.provider },
+      source: "ecommerce",
+      occurredAt: new Date(),
+    });
+  }
 };
 
 const onNewMessage: EventHandler = async (event) => {

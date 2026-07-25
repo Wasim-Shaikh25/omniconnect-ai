@@ -647,6 +647,7 @@ enum DmCampaignType {
   BACK_IN_STOCK
   REVIEW
   RE_ENGAGE
+  ALTERNATIVE_PRODUCT
 }
 
 enum DmCampaignStatus {

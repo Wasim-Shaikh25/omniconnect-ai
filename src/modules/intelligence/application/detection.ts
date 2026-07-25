@@ -7,11 +7,13 @@ import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
 
 interface SignalSummary {
+  id: string;
   eventType: string;
   subjectType: string;
   subjectId: string;
   storeId: string;
   occurredAt: Date;
+  data: unknown;
 }
 
 export interface DetectionServiceInput {
@@ -37,11 +39,13 @@ export function makeDetectionService(input: DetectionServiceInput) {
     return rows
       .filter((s) => s.occurredAt >= since && (!eventType || s.eventType === eventType))
       .map((s) => ({
+        id: s.id,
         eventType: s.eventType,
         subjectType: s.subjectType,
         subjectId: s.subjectId,
         storeId: s.storeId,
         occurredAt: s.occurredAt,
+        data: s.data,
       }));
   }
 
@@ -152,6 +156,99 @@ export function makeDetectionService(input: DetectionServiceInput) {
     });
   }
 
+  function normalizePhrase(phrase: string): string {
+    return phrase.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+  }
+
+  function contentMatches(content: string, title: string): boolean {
+    const normalizedContent = normalizePhrase(content);
+    const normalizedTitle = normalizePhrase(title).split(/\s+/).filter(Boolean);
+    if (normalizedTitle.length === 0) return false;
+    return normalizedTitle.every((word) => normalizedContent.includes(word));
+  }
+
+  async function detectProductAvailabilityAndDemand(organizationId: string, storeId: string) {
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const products = await input.ecommerce.listProducts(storeId, 100);
+    if (products.length === 0) return;
+
+    const inStockAlternatives = products
+      .filter((p) => typeof p.inventory === "number" && p.inventory > 0)
+      .sort((a, b) => (b.inventory ?? 0) - (a.inventory ?? 0));
+
+    const allSignals = await input.signals.listByStore(storeId, 500);
+    const productSignals = allSignals.filter(
+      (s) => s.eventType === "ProductInventory" && s.subjectType === "product" && s.occurredAt >= sevenDaysAgo,
+    );
+    const messageSignals = allSignals.filter(
+      (s) => s.eventType === "NewMessage" && s.subjectType === "conversation" && s.occurredAt >= sevenDaysAgo,
+    );
+
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+
+    for (const product of products) {
+      const inventory = product.inventory ?? null;
+      if (inventory === null) continue;
+
+      const isOutOfStock = inventory === 0;
+      const isLowStock = inventory > 0 && inventory < 5;
+      if (!isOutOfStock && !isLowStock) continue;
+
+      const matchingMessages: SignalSummary[] = [];
+      for (const s of messageSignals) {
+        const data = typeof s.data === "object" && s.data !== null ? (s.data as Record<string, unknown>) : {};
+        const content = typeof data.content === "string" ? data.content : "";
+        if (contentMatches(content, product.title)) {
+          matchingMessages.push({
+            id: s.id,
+            eventType: s.eventType,
+            subjectType: s.subjectType,
+            subjectId: s.subjectId,
+            storeId: s.storeId,
+            occurredAt: s.occurredAt,
+            data: s.data,
+          });
+        }
+      }
+
+      if (matchingMessages.length === 0) continue;
+
+      const alreadyExists = openInsights.some((i) =>
+        i.title.toLowerCase().includes(product.title.toLowerCase()) &&
+        i.title.toLowerCase().includes(isOutOfStock ? "out of stock" : "low stock"),
+      );
+      if (alreadyExists) continue;
+
+      const productSignal = productSignals.find((s) => s.subjectId === product.externalId);
+      const signalIds = [productSignal?.id, ...matchingMessages.map((m) => m.id)].filter((id): id is string => !!id);
+
+      const alternative = inStockAlternatives.find((p) => p.externalId !== product.externalId);
+
+      const evidence: BusinessInsightEvidence = {
+        signalIds,
+        metricIds: [],
+        summary: `${matchingMessages.length} conversation(s) mentioned "${product.title}" in the last 7 days while inventory was ${isOutOfStock ? "out of stock" : `low (${inventory})`}.${alternative ? ` Suggest alternative: ${alternative.title}.` : ""}`,
+      };
+
+      await emit({
+        organizationId,
+        storeId,
+        type: (isOutOfStock ? "OPPORTUNITY" : "RISK") as InsightType,
+        severity: (matchingMessages.length > 5 ? "HIGH" : "MEDIUM") as InsightSeverity,
+        status: "OPEN",
+        title: isOutOfStock
+          ? `"${product.title}" is out of stock but ${matchingMessages.length} customer(s) asked about it`
+          : `"${product.title}" is low stock (${inventory}) and ${matchingMessages.length} customer(s) asked about it`,
+        description: evidence.summary,
+        evidence,
+        deepLink: `/stores/${storeId}/commerce/catalog`,
+        generatedAt: now,
+        dismissedAt: null,
+        snoozedUntil: null,
+      });
+    }
+  }
+
   async function detectStaleMetrics(organizationId: string, storeId: string) {
     const definitions = await input.metrics.listDefinitions(organizationId);
     for (const definition of definitions) {
@@ -186,6 +283,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
       for (const storeId of storeIds) {
         await detectNoOrders(organizationId, storeId);
         await detectHighIntentConversation(organizationId, storeId);
+        await detectProductAvailabilityAndDemand(organizationId, storeId);
         await detectStaleFollowers(organizationId, storeId);
         await detectStaleMetrics(organizationId, storeId);
       }
@@ -194,6 +292,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
     async analyzeStore(organizationId: string, storeId: string) {
       await detectNoOrders(organizationId, storeId);
       await detectHighIntentConversation(organizationId, storeId);
+      await detectProductAvailabilityAndDemand(organizationId, storeId);
       await detectStaleFollowers(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },
