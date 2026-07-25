@@ -112,6 +112,34 @@ export default async function SettingsPage() {
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quality & risk</CardTitle>
+                  <CardDescription>
+                    Run UIL quality checks and review risk mitigations.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/quality">Open quality</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Rollout</CardTitle>
+                  <CardDescription>
+                    Manage feature gates and rollback controls.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/rollout">Open rollout</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </>
         )}

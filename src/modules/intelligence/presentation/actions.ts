@@ -27,6 +27,9 @@ import {
   goalAutomationService,
   kpiService,
   aiGovernanceService,
+  qualityAssuranceService,
+  rolloutService,
+  riskMitigationRegistry,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -610,4 +613,31 @@ export async function validateWorkflowAction(workflow: {
   const user = await getCurrentUser();
   if (!user) return { valid: false, errors: ["Not authenticated"], warnings: [], estimatedAudience: null, assumptions: [] };
   return goalAutomationService.validateWorkflow(workflow);
+}
+
+export async function runQualityChecksAction(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return null;
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  return qualityAssuranceService.runAll({ organizationId: user.organizationId, storeId, userId: user.id, userRole: user.role ?? "STAFF" });
+}
+
+export async function getRolloutGatesAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return rolloutService.getGates();
+}
+
+export async function setRolloutGateAction(name: string, enabled: boolean) {
+  const user = await getCurrentUser();
+  if (!user || (user.role !== "ADMIN" && user.role !== "STORE_OWNER")) return null;
+  const gate = rolloutService.setGate(name as "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA", { enabled });
+  return gate;
+}
+
+export async function getRiskMitigationsAction() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return riskMitigationRegistry.list();
 }
