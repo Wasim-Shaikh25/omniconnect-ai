@@ -9,17 +9,21 @@ import { makeMetricService } from "../application/metrics";
 import { makeDataQualityService } from "../application/data-quality";
 import { makeCustomerSummaryService } from "../application/customer-summary";
 import type { MetricSourceProvider } from "../application/metrics";
+import { makeDetectionService } from "../application/detection";
+import { makeIntelligenceFeed } from "../application/intelligence-feed";
 import {
   PrismaSignalRepository,
   PrismaEntityLinkRepository,
   PrismaDataQualityRepository,
   PrismaMetricRepository,
+  PrismaBusinessInsightRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
 const links = new PrismaEntityLinkRepository();
 const issues = new PrismaDataQualityRepository();
 const metrics = new PrismaMetricRepository();
+const insights = new PrismaBusinessInsightRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
@@ -63,5 +67,14 @@ export const timelineService = makeTimelineService(signals, links);
 export const metricService = makeMetricService(metrics, metricProvider);
 export const dataQualityService = makeDataQualityService(issues, metrics);
 export const customerSummaryService = makeCustomerSummaryService();
+export const detectionService = makeDetectionService({
+  signals,
+  insights,
+  metrics,
+  ecommerce: ecommerceQueries,
+  conversations: conversationQueries,
+  crm: crmQueries,
+});
+export const intelligenceFeedService = makeIntelligenceFeed({ insights });
 
-export { signals, links, issues, metrics };
+export { signals, links, issues, metrics, insights };

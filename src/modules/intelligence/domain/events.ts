@@ -1,5 +1,5 @@
 import { BaseDomainEvent } from "@/shared/kernel";
-import type { SignalRecord, DataQualityIssueRecord } from "./types";
+import type { SignalRecord, DataQualityIssueRecord, BusinessInsightRecord } from "./types";
 
 export interface SignalIngestedPayload {
   signal: SignalRecord;
@@ -28,4 +28,12 @@ export interface EntityLinkedPayload {
 
 export class EntityLinked extends BaseDomainEvent<EntityLinkedPayload> {
   readonly name = "EntityLinked";
+}
+
+export interface BusinessInsightGeneratedPayload {
+  insight: BusinessInsightRecord;
+}
+
+export class BusinessInsightGenerated extends BaseDomainEvent<BusinessInsightGeneratedPayload> {
+  readonly name = "BusinessInsightGenerated";
 }

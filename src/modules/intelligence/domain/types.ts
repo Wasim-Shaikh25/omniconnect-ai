@@ -129,3 +129,33 @@ export interface CustomerIntelligenceSummary {
   links: EntityLinkRecord[];
   linkedEntities: Array<{ type: string; id: string; label: string; confidence: ConfidenceLevel }>;
 }
+
+export type InsightType = "ANOMALY" | "OPPORTUNITY" | "RISK" | "INFO";
+
+export type InsightSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+
+export type InsightStatus = "OPEN" | "DISMISSED" | "SNOOZED" | "RESOLVED";
+
+export interface BusinessInsightEvidence {
+  signalIds: string[];
+  metricIds: string[];
+  summary: string;
+}
+
+export interface BusinessInsightRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  type: InsightType;
+  severity: InsightSeverity;
+  status: InsightStatus;
+  title: string;
+  description: string;
+  evidence: BusinessInsightEvidence | null;
+  deepLink: string | null;
+  generatedAt: Date;
+  dismissedAt: Date | null;
+  snoozedUntil: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}

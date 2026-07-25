@@ -246,11 +246,18 @@ All notable changes to **OmniConnect AI** are documented here.
   - Customer intelligence summary (next best action, risks, opportunities, preferred channel, linked entities) and cross-module deep links.
   - UI widgets: `CustomerIntelligence` on `/customers/[customerId]`, `ConversationContext` on conversation detail, `DataQualityAlerts` + deep-link cards on `/dashboard`, profile link in `/inbox`.
   - Validated end-to-end: signal/entity-link creation from events, summary/timeline/metrics/quality in a single Node script; `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-352 — Unified Intelligence Layer Phase 2: Explanatory Intelligence** (spec `0033`):
+  - New `BusinessInsight` model/migration (`InsightType`, `InsightSeverity`, `InsightStatus`), repository, and `BusinessInsightGenerated` domain event.
+  - `DetectionService` with rule-based detectors: no orders in 24h, high-intent unanswered conversation, no new followers in 7 days, stale metrics.
+  - `IntelligenceFeedService` ranks open insights by severity and recency, supports dismiss.
+  - Server actions `getIntelligenceFeedAction` and `dismissInsightAction`.
+  - UI components `TodayFeed` + `IntelligencePanel` embedded on `/dashboard` and `/stores/[storeId]`, with severity badges, evidence drawer, and cross-module deep links.
+  - Validated end-to-end with seeded signals; `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### 🔨 In Progress
 
-- **TASK-352 — Unified Intelligence Layer Phase 2: Intelligence Feed / Recommendations** (spec `0033`):
-  - Build on Phase 1 signals to add workspace "Today" feed, anomaly detection, predictive scoring, and actionable recommendations.
+- **TASK-353 — Unified Intelligence Layer Phase 3: Next Best Action & goals** (spec `0033`):
+  - Recommendations, action plans, decision policy, goal pacing, automation wizard, outcome tracking.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
 - Next: stabilize, harden, and address feedback from merged PRs.
 

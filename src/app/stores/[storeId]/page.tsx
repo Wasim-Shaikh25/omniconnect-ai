@@ -25,6 +25,7 @@ import { SyncProductsButton } from "@/components/sync-products-button";
 import { GenerateCouponForm } from "@/components/generate-coupon-form";
 import { MetaConnectForm } from "@/components/meta-connect-form";
 import { MetaSimulateForm } from "@/components/meta-simulate-form";
+import { IntelligencePanel } from "@/components/intelligence-panel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -85,6 +86,10 @@ export default async function StoreDetailPage({
           <Link href="/stores">Back to stores</Link>
         </Button>
       </header>
+
+      <section className="mt-8">
+        <IntelligencePanel storeId={storeId} />
+      </section>
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         <Card>
