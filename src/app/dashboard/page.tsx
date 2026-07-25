@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/modules/auth";
 import { analyticsQueries } from "@/modules/analytics";
 import { DataQualityAlerts } from "@/components/data-quality-alerts";
 import { IntelligencePanel } from "@/components/intelligence-panel";
+import { RecommendationsPanel } from "@/components/recommendations-panel";
+import { GoalsPanel } from "@/components/goals-panel";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -110,6 +112,11 @@ export default async function DashboardPage() {
 
       <section className="mb-8">
         <IntelligencePanel />
+      </section>
+
+      <section className="mb-8 grid gap-6 md:grid-cols-2">
+        <RecommendationsPanel />
+        <GoalsPanel />
       </section>
 
       <section className="mb-8 grid gap-6 md:grid-cols-3">

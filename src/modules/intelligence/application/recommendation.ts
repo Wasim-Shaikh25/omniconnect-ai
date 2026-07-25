@@ -1,0 +1,136 @@
+import type { BusinessInsightRepository, RecommendationRepository } from "./ports";
+import type { BusinessInsightRecord, RecommendationRecord, RiskTier } from "../domain/types";
+
+export interface RecommendationServiceInput {
+  insights: BusinessInsightRepository;
+  recommendations: RecommendationRepository;
+}
+
+function riskFromSeverity(severity: BusinessInsightRecord["severity"]): RiskTier {
+  switch (severity) {
+    case "CRITICAL":
+      return "TIER_4";
+    case "HIGH":
+      return "TIER_3";
+    case "MEDIUM":
+      return "TIER_2";
+    default:
+      return "TIER_1";
+  }
+}
+
+function recommendationFromInsight(insight: BusinessInsightRecord): Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt"> {
+  const base = {
+    organizationId: insight.organizationId,
+    storeId: insight.storeId,
+    insightId: insight.id,
+    status: "PROPOSED" as RecommendationRecord["status"],
+    generatedAt: new Date(),
+    dismissedAt: null,
+    snoozedUntil: null,
+  };
+
+  if (insight.title.toLowerCase().includes("no orders")) {
+    return {
+      ...base,
+      title: "Offer a welcome coupon to recover revenue",
+      description: "No orders were completed in the last 24 hours. A targeted coupon can nudge high-intent visitors to complete checkout.",
+      objective: "Increase orders",
+      reasonCodes: ["revenue_decline", "low_conversion"],
+      impactRange: { min: 1, max: 5, unit: "orders" },
+      confidence: 0.6,
+      effort: "LOW",
+      urgency: "HIGH",
+      riskTier: riskFromSeverity(insight.severity),
+      eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+      actionType: "GENERATE_COUPON",
+      actionParams: { storeId: insight.storeId, discountPct: 10 },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/coupons` : "/dashboard",
+    };
+  }
+
+  if (insight.title.toLowerCase().includes("high-intent")) {
+    const conversationId = insight.evidence?.signalIds[0] ?? "";
+    return {
+      ...base,
+      title: "Take over the high-intent conversation",
+      description: insight.description,
+      objective: "Convert hot lead",
+      reasonCodes: ["hot_lead", "unanswered_message"],
+      impactRange: { min: 1, max: 1, unit: "conversion" },
+      confidence: 0.7,
+      effort: "LOW",
+      urgency: "HIGH",
+      riskTier: riskFromSeverity(insight.severity),
+      eligibility: { requiresApproval: false, roles: ["ADMIN", "STORE_OWNER", "STAFF"] },
+      actionType: "TAKE_OVER_CONVERSATION",
+      actionParams: { storeId: insight.storeId, conversationId },
+      deepLink: insight.deepLink ?? "/inbox",
+    };
+  }
+
+  if (insight.title.toLowerCase().includes("no new followers")) {
+    return {
+      ...base,
+      title: "Launch a follower re-engagement DM campaign",
+      description: "No new followers in the last 7 days. Re-activate your existing audience with a targeted DM campaign.",
+      objective: "Grow followers",
+      reasonCodes: ["follower_growth_stall", "audience_reactivation"],
+      impactRange: { min: 5, max: 50, unit: "followers" },
+      confidence: 0.5,
+      effort: "MEDIUM",
+      urgency: "MEDIUM",
+      riskTier: riskFromSeverity(insight.severity),
+      eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+      actionType: "CREATE_DM_CAMPAIGN",
+      actionParams: { storeId: insight.storeId, campaignType: "RE_ENGAGE", audienceCriteria: { segment: "existing_followers" } },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
+    };
+  }
+
+  return {
+    ...base,
+    title: "Refresh integrations and recompute metrics",
+    description: insight.description,
+    objective: "Improve data freshness",
+    reasonCodes: ["stale_data", "integration_health"],
+    impactRange: { min: 0, max: 0, unit: "issues" },
+    confidence: 0.9,
+    effort: "LOW",
+    urgency: "LOW",
+    riskTier: "TIER_1",
+    eligibility: { requiresApproval: false, roles: ["ADMIN", "STORE_OWNER", "STAFF"] },
+    actionType: "REFRESH_INTEGRATION",
+    actionParams: { storeId: insight.storeId, metricNames: insight.evidence?.metricIds ?? [] },
+    deepLink: insight.storeId ? `/stores/${insight.storeId}/integrations` : "/dashboard",
+  };
+}
+
+export function makeRecommendationService(input: RecommendationServiceInput) {
+  return {
+    async generateFromOpenInsights(organizationId: string, storeId?: string): Promise<RecommendationRecord[]> {
+      const insights = await input.insights.listOpen(organizationId, storeId, 50);
+      const existing = await input.recommendations.listOpen(organizationId, storeId, 200);
+      const seenInsightIds = new Set(existing.map((r) => r.insightId).filter(Boolean));
+
+      const generated: RecommendationRecord[] = [];
+      for (const insight of insights) {
+        if (seenInsightIds.has(insight.id)) continue;
+        const draft = recommendationFromInsight(insight);
+        const saved = await input.recommendations.save(draft);
+        generated.push(saved);
+      }
+      return generated;
+    },
+
+    async listOpen(organizationId: string, storeId?: string, limit = 20): Promise<RecommendationRecord[]> {
+      return input.recommendations.listOpen(organizationId, storeId, limit);
+    },
+
+    async dismiss(id: string): Promise<RecommendationRecord | null> {
+      return input.recommendations.updateStatus(id, "DISMISSED");
+    },
+  };
+}
+
+export type RecommendationService = ReturnType<typeof makeRecommendationService>;

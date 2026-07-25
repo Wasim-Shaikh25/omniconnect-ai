@@ -13,6 +13,9 @@ import {
   metricService,
   detectionService,
   intelligenceFeedService,
+  recommendationService,
+  actionPlanService,
+  goalService,
 } from "../infrastructure/container";
 
 export interface IntelligenceActionState {
@@ -164,6 +167,109 @@ export async function mergeEntityAction(formData: FormData): Promise<void> {
   await entityResolutionService.merge(parsed.data.linkId);
   revalidatePath("/customers");
   revalidatePath(`/customers/${link.targetId}`);
+}
+
+export async function getRecommendationsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { recommendations: [] };
+  const organizationId = user.organizationId;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { recommendations: [] };
+  }
+
+  await recommendationService.generateFromOpenInsights(organizationId, storeId);
+  const recommendations = await recommendationService.listOpen(organizationId, storeId, 20);
+  return { recommendations };
+}
+
+export async function approveRecommendationAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const parsed = z.object({ recommendationId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  const recommendation = await recommendationService.listOpen(user.organizationId).then((rs) => rs.find((r) => r.id === parsed.data.recommendationId));
+  if (!recommendation || recommendation.organizationId !== user.organizationId) return;
+
+  const plan = await actionPlanService.createFromRecommendation(recommendation.id, user.id);
+  await actionPlanService.approve(plan.id, user.id, user.role);
+
+  revalidatePath("/dashboard");
+  if (plan.storeId) revalidatePath(`/stores/${plan.storeId}`);
+}
+
+export async function executeActionPlanAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const parsed = z.object({ recommendationId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  const recommendation = await recommendationService.listOpen(user.organizationId).then((rs) => rs.find((r) => r.id === parsed.data.recommendationId));
+  if (!recommendation || recommendation.organizationId !== user.organizationId) return;
+
+  const plan = await actionPlanService.createFromRecommendation(recommendation.id, user.id);
+  await actionPlanService.approve(plan.id, user.id, user.role);
+  await actionPlanService.execute(plan.id, user.id, user.role);
+  revalidatePath("/dashboard");
+  if (plan.storeId) revalidatePath(`/stores/${plan.storeId}`);
+}
+
+export async function dismissRecommendationAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const parsed = z.object({ recommendationId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  const recommendation = await recommendationService.listOpen(user.organizationId).then((rs) => rs.find((r) => r.id === parsed.data.recommendationId));
+  if (!recommendation || recommendation.organizationId !== user.organizationId) return;
+
+  await recommendationService.dismiss(recommendation.id);
+  revalidatePath("/dashboard");
+  if (recommendation.storeId) revalidatePath(`/stores/${recommendation.storeId}`);
+}
+
+export async function getGoalsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { goals: [] };
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { goals: [] };
+  }
+
+  const goals = await goalService.list(user.organizationId, storeId, 20);
+  return { goals };
+}
+
+export async function createGoalAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const schema = z.object({
+    storeId: z.string().optional(),
+    name: z.string().min(1),
+    targetMetric: z.string().min(1),
+    target: z.coerce.number().optional(),
+    endDate: z.coerce.date().optional(),
+  });
+
+  const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  const { storeId, name, targetMetric, target, endDate } = parsed.data;
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return;
+  }
+
+  await goalService.create(user.organizationId, storeId, name, targetMetric, target ?? null, endDate ?? null, user.id);
+  revalidatePath("/dashboard");
+  if (storeId) revalidatePath(`/stores/${storeId}`);
 }
 
 export async function splitEntityAction(formData: FormData): Promise<void> {

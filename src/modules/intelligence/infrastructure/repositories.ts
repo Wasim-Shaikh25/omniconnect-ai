@@ -6,6 +6,11 @@ import type {
   DataQualityRepository,
   MetricRepository,
   BusinessInsightRepository,
+  RecommendationRepository,
+  ActionPlanRepository,
+  DecisionRepository,
+  OutcomeRepository,
+  GoalRepository,
 } from "../application/ports";
 import type {
   SignalRecord,
@@ -14,6 +19,15 @@ import type {
   MetricDefinitionRecord,
   MetricSnapshotRecord,
   BusinessInsightRecord,
+  RecommendationRecord,
+  ActionPlanRecord,
+  DecisionRecord,
+  OutcomeRecord,
+  GoalRecord,
+  RecommendationStatus,
+  ActionPlanStatus,
+  OutcomeStatus,
+  GoalStatus,
 } from "../domain/types";
 
 type StoredSignal = {
@@ -420,5 +434,274 @@ export class PrismaBusinessInsightRepository implements BusinessInsightRepositor
     if (status !== "SNOOZED") data.snoozedUntil = null;
     const updated = await prisma.businessInsight.update({ where: { id }, data });
     return toInsightRecord(updated as StoredBusinessInsight);
+  }
+}
+
+type StoredRecommendation = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  insightId: string | null;
+  title: string;
+  description: string;
+  objective: string | null;
+  reasonCodes: string[];
+  impactRange: unknown;
+  confidence: number | null;
+  effort: string | null;
+  urgency: string | null;
+  riskTier: RecommendationRecord["riskTier"];
+  eligibility: unknown;
+  status: RecommendationRecord["status"];
+  actionType: string;
+  actionParams: unknown;
+  deepLink: string | null;
+  generatedAt: Date;
+  dismissedAt: Date | null;
+  snoozedUntil: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toRecommendationRecord(row: StoredRecommendation): RecommendationRecord {
+  return {
+    ...row,
+    impactRange:
+      typeof row.impactRange === "object" && row.impactRange !== null
+        ? (row.impactRange as RecommendationRecord["impactRange"])
+        : null,
+    eligibility:
+      typeof row.eligibility === "object" && row.eligibility !== null ? row.eligibility : null,
+    actionParams:
+      typeof row.actionParams === "object" && row.actionParams !== null ? row.actionParams : null,
+  };
+}
+
+export class PrismaRecommendationRepository implements RecommendationRepository {
+  async save(rec: Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt">): Promise<RecommendationRecord> {
+    const created = await prisma.recommendation.create({
+      data: rec as unknown as Prisma.RecommendationCreateInput,
+    });
+    return toRecommendationRecord(created as StoredRecommendation);
+  }
+
+  async listOpen(organizationId: string, storeId?: string, limit = 50): Promise<RecommendationRecord[]> {
+    const rows = await prisma.recommendation.findMany({
+      where: {
+        organizationId,
+        status: { in: ["PROPOSED", "ACCEPTED", "EDITED"] },
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: [{ generatedAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => toRecommendationRecord(r as StoredRecommendation));
+  }
+
+  async findById(id: string): Promise<RecommendationRecord | null> {
+    const row = await prisma.recommendation.findUnique({ where: { id } });
+    return row ? toRecommendationRecord(row as StoredRecommendation) : null;
+  }
+
+  async updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord> {
+    const data: Prisma.RecommendationUpdateInput = { status };
+    if (status === "DISMISSED") data.dismissedAt = new Date();
+    if (status !== "SNOOZED") data.snoozedUntil = null;
+    const updated = await prisma.recommendation.update({ where: { id }, data });
+    return toRecommendationRecord(updated as StoredRecommendation);
+  }
+}
+
+type StoredActionPlan = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  recommendationId: string | null;
+  title: string;
+  steps: unknown;
+  targetMetric: string | null;
+  expectedImpact: unknown;
+  status: ActionPlanRecord["status"];
+  approvedBy: string | null;
+  executedAt: Date | null;
+  stoppedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toActionPlanRecord(row: StoredActionPlan): ActionPlanRecord {
+  return {
+    ...row,
+    steps: typeof row.steps === "object" && row.steps !== null ? row.steps : null,
+    expectedImpact:
+      typeof row.expectedImpact === "object" && row.expectedImpact !== null
+        ? (row.expectedImpact as ActionPlanRecord["expectedImpact"])
+        : null,
+  };
+}
+
+export class PrismaActionPlanRepository implements ActionPlanRepository {
+  async save(plan: Omit<ActionPlanRecord, "id" | "createdAt" | "updatedAt">): Promise<ActionPlanRecord> {
+    const created = await prisma.actionPlan.create({
+      data: plan as unknown as Prisma.ActionPlanCreateInput,
+    });
+    return toActionPlanRecord(created as StoredActionPlan);
+  }
+
+  async findById(id: string): Promise<ActionPlanRecord | null> {
+    const row = await prisma.actionPlan.findUnique({ where: { id } });
+    return row ? toActionPlanRecord(row as StoredActionPlan) : null;
+  }
+
+  async updateStatus(
+    id: string,
+    status: ActionPlanStatus,
+    approvedBy?: string | null,
+    executedAt?: Date | null,
+    stoppedAt?: Date | null,
+  ): Promise<ActionPlanRecord> {
+    const data: Prisma.ActionPlanUpdateInput = { status };
+    if (approvedBy !== undefined) data.approvedBy = approvedBy;
+    if (executedAt !== undefined) data.executedAt = executedAt ?? null;
+    if (stoppedAt !== undefined) data.stoppedAt = stoppedAt ?? null;
+    const updated = await prisma.actionPlan.update({ where: { id }, data });
+    return toActionPlanRecord(updated as StoredActionPlan);
+  }
+}
+
+type StoredDecision = {
+  id: string;
+  organizationId: string;
+  actionPlanId: string;
+  recommendationId: string | null;
+  decisionType: DecisionRecord["decisionType"];
+  reason: string | null;
+  decidedBy: string;
+  decidedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export class PrismaDecisionRepository implements DecisionRepository {
+  async save(decision: Omit<DecisionRecord, "id" | "createdAt" | "updatedAt">): Promise<DecisionRecord> {
+    const created = await prisma.decision.create({
+      data: decision as unknown as Prisma.DecisionCreateInput,
+    });
+    return created as StoredDecision;
+  }
+
+  async listByActionPlan(actionPlanId: string): Promise<DecisionRecord[]> {
+    const rows = await prisma.decision.findMany({
+      where: { actionPlanId },
+      orderBy: { decidedAt: "desc" },
+    });
+    return rows as StoredDecision[];
+  }
+}
+
+type StoredOutcome = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  actionPlanId: string;
+  metricName: string | null;
+  beforeValue: number | null;
+  afterValue: number | null;
+  observationWindowDays: number;
+  measuredAt: Date | null;
+  status: OutcomeRecord["status"];
+  attribution: string | null;
+  confidence: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export class PrismaOutcomeRepository implements OutcomeRepository {
+  async save(outcome: Omit<OutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<OutcomeRecord> {
+    const created = await prisma.outcome.create({
+      data: outcome as unknown as Prisma.OutcomeCreateInput,
+    });
+    return created as StoredOutcome;
+  }
+
+  async findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null> {
+    const row = await prisma.outcome.findFirst({ where: { actionPlanId } });
+    return (row as StoredOutcome) ?? null;
+  }
+
+  async updateMeasured(
+    id: string,
+    beforeValue: number | null,
+    afterValue: number | null,
+    status: OutcomeStatus,
+    measuredAt: Date,
+  ): Promise<OutcomeRecord> {
+    const updated = await prisma.outcome.update({
+      where: { id },
+      data: { beforeValue, afterValue, status, measuredAt },
+    });
+    return updated as StoredOutcome;
+  }
+}
+
+type StoredGoal = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  name: string;
+  targetMetric: string;
+  baseline: number | null;
+  target: number | null;
+  startDate: Date;
+  endDate: Date | null;
+  ownerUserId: string | null;
+  pacing: unknown;
+  status: GoalRecord["status"];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toGoalRecord(row: StoredGoal): GoalRecord {
+  return {
+    ...row,
+    pacing:
+      typeof row.pacing === "object" && row.pacing !== null
+        ? (row.pacing as GoalRecord["pacing"])
+        : null,
+  };
+}
+
+export class PrismaGoalRepository implements GoalRepository {
+  async save(goal: Omit<GoalRecord, "id" | "createdAt" | "updatedAt">): Promise<GoalRecord> {
+    const created = await prisma.goal.create({
+      data: goal as unknown as Prisma.GoalCreateInput,
+    });
+    return toGoalRecord(created as StoredGoal);
+  }
+
+  async list(organizationId: string, storeId?: string, limit = 50): Promise<GoalRecord[]> {
+    const rows = await prisma.goal.findMany({
+      where: {
+        organizationId,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toGoalRecord(r as StoredGoal));
+  }
+
+  async findById(id: string): Promise<GoalRecord | null> {
+    const row = await prisma.goal.findUnique({ where: { id } });
+    return row ? toGoalRecord(row as StoredGoal) : null;
+  }
+
+  async updatePacing(id: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord> {
+    const data: Prisma.GoalUpdateInput = {
+      pacing: (pacing ?? Prisma.JsonNull) as unknown as Prisma.InputJsonValue,
+    };
+    if (status) data.status = status;
+    const updated = await prisma.goal.update({ where: { id }, data });
+    return toGoalRecord(updated as StoredGoal);
   }
 }

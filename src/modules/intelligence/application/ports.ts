@@ -5,6 +5,16 @@ import type {
   MetricDefinitionRecord,
   MetricSnapshotRecord,
   BusinessInsightRecord,
+  RecommendationRecord,
+  ActionPlanRecord,
+  DecisionRecord,
+  OutcomeRecord,
+  GoalRecord,
+  RecommendationStatus,
+  ActionPlanStatus,
+  DecisionType,
+  OutcomeStatus,
+  GoalStatus,
   ConfidenceLevel,
   LinkStatus,
   DataQualityStatus,
@@ -13,6 +23,7 @@ import type {
   InsightType,
   InsightSeverity,
   InsightStatus,
+  RiskTier,
 } from "../domain/types";
 
 export interface SignalRepository {
@@ -88,4 +99,66 @@ export interface BusinessInsightRepository {
   updateStatus(id: string, status: InsightStatus): Promise<BusinessInsightRecord>;
 }
 
-export type { SignalRecord, EntityLinkRecord, DataQualityIssueRecord, MetricDefinitionRecord, MetricSnapshotRecord, BusinessInsightRecord, ConfidenceLevel, LinkStatus, DataQualityStatus, DataQualitySeverity, MetricSnapshotStatus, InsightType, InsightSeverity, InsightStatus };
+export interface RecommendationRepository {
+  save(rec: Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt">): Promise<RecommendationRecord>;
+  listOpen(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
+  findById(id: string): Promise<RecommendationRecord | null>;
+  updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord>;
+}
+
+export interface ActionPlanRepository {
+  save(plan: Omit<ActionPlanRecord, "id" | "createdAt" | "updatedAt">): Promise<ActionPlanRecord>;
+  findById(id: string): Promise<ActionPlanRecord | null>;
+  updateStatus(id: string, status: ActionPlanStatus, approvedBy?: string | null, executedAt?: Date | null, stoppedAt?: Date | null): Promise<ActionPlanRecord>;
+}
+
+export interface DecisionRepository {
+  save(decision: Omit<DecisionRecord, "id" | "createdAt" | "updatedAt">): Promise<DecisionRecord>;
+  listByActionPlan(actionPlanId: string): Promise<DecisionRecord[]>;
+}
+
+export interface OutcomeRepository {
+  save(outcome: Omit<OutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<OutcomeRecord>;
+  findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null>;
+  updateMeasured(id: string, beforeValue: number | null, afterValue: number | null, status: OutcomeStatus, measuredAt: Date): Promise<OutcomeRecord>;
+}
+
+export interface GoalRepository {
+  save(goal: Omit<GoalRecord, "id" | "createdAt" | "updatedAt">): Promise<GoalRecord>;
+  list(organizationId: string, storeId?: string, limit?: number): Promise<GoalRecord[]>;
+  findById(id: string): Promise<GoalRecord | null>;
+  updatePacing(id: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord>;
+}
+
+export interface ActionExecutor {
+  canExecute(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean };
+  execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;
+}
+
+export type {
+  SignalRecord,
+  EntityLinkRecord,
+  DataQualityIssueRecord,
+  MetricDefinitionRecord,
+  MetricSnapshotRecord,
+  BusinessInsightRecord,
+  RecommendationRecord,
+  ActionPlanRecord,
+  DecisionRecord,
+  OutcomeRecord,
+  GoalRecord,
+  RecommendationStatus,
+  ActionPlanStatus,
+  DecisionType,
+  OutcomeStatus,
+  GoalStatus,
+  ConfidenceLevel,
+  LinkStatus,
+  DataQualityStatus,
+  DataQualitySeverity,
+  MetricSnapshotStatus,
+  InsightType,
+  InsightSeverity,
+  InsightStatus,
+  RiskTier,
+};
