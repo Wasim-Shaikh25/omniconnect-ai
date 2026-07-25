@@ -280,10 +280,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions: `getAgencyPortfolioAction`, `getCompetitorIntelligenceAction`, `getSystemHealthAction`.
   - UI components `AgencyPortfolioPanel`, `CompetitorIntelligencePanel`, `SystemHealthPanel` wired into `/dashboard` and `/stores/[storeId]`.
   - End-to-end validation: multi-store portfolio snapshot, competitor insights, and system-health summary; `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-120 — UI Pages and Dark/Light Mode** (spec `0035`):
+  - Audited core UI routes; all listed pages exist and build.
+  - Added `Reports` and `Settings` links to desktop and mobile navigation.
+  - Verified `ThemeProvider`/`ThemeToggle` wiring and no hard-coded light-mode colors.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
-### ✅ Done (all UIL phases complete)
+### ✅ Done
 
-- Phases 1–5 of the Unified Intelligence Layer are implemented and merged.
+- All Unified Intelligence Layer phases (TASK-350/351/352/353/354/355) implemented and merged.
+- TASK-120 (UI pages + dark/light mode) completed.
 
 ### 🔨 In Progress
 

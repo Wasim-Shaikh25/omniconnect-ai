@@ -16,6 +16,8 @@ export async function AppHeader() {
         { href: "/inbox", label: "Inbox" },
         { href: "/stores", label: "Stores" },
         { href: "/customers", label: "Customers" },
+        { href: "/reports", label: "Reports" },
+        { href: "/settings", label: "Settings" },
         { href: "/help", label: "Help" },
         { href: "/notifications", label: "Notifications", badge: unreadCount },
       ]
@@ -40,6 +42,8 @@ export async function AppHeader() {
                 <Link href="/inbox">Inbox</Link>
                 <Link href="/stores">Stores</Link>
                 <Link href="/customers">Customers</Link>
+                <Link href="/reports">Reports</Link>
+                <Link href="/settings">Settings</Link>
                 <Link href="/help">Help</Link>
                 <Link href="/notifications" className="relative">
                   Notifications
