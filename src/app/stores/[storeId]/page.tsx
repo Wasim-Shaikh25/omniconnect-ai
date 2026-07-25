@@ -33,11 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-function formatPrice(price: number | null, currency: string | null): string {
-  if (price === null) return "—";
-  return `${currency ?? "$"}${price.toFixed(2)}`;
-}
+import { formatCurrency } from "@/lib/currency";
 
 export default async function StoreDetailPage({
   params,
@@ -152,6 +148,9 @@ export default async function StoreDetailPage({
                 ))}
               </ul>
             )}
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link href={`/stores/${storeId}/coupons`}>View all coupons</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -178,7 +177,7 @@ export default async function StoreDetailPage({
                 >
                   <span className="font-medium">{p.title}</span>
                   <span className="text-muted-foreground">
-                    {formatPrice(p.price, p.currency)}
+                    {formatCurrency(p.price, p.currency)}
                     {p.inventory !== null ? ` · ${p.inventory} in stock` : ""}
                   </span>
                 </li>
@@ -342,6 +341,38 @@ export default async function StoreDetailPage({
           >
             Competitors
           </Link>
+          <Link
+            href={`/stores/${storeId}/content`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Content Studio
+          </Link>
+          <Link
+            href={`/stores/${storeId}/orders`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Orders
+          </Link>
+          <Link
+            href={`/stores/${storeId}/analytics`}
+            className="ml-4 text-sm text-primary underline"
+          >
+            Analytics
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Campaigns</CardTitle>
+          <CardDescription>
+            Active automations like first-time follower welcome.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/campaigns`}>View campaigns</Link>
+          </Button>
         </CardContent>
       </Card>
 
@@ -421,6 +452,9 @@ export default async function StoreDetailPage({
                 No followers yet. Simulate a follow event to create one.
               </p>
             )}
+            <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
+              <Link href={`/stores/${storeId}/followers`}>View all followers</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

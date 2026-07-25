@@ -183,11 +183,32 @@ All notable changes to **OmniConnect AI** are documented here.
   - New `/business-brain` page with natural-language question form, preset prompts, and grounded answers built from workspace context.
   - `askBusinessBrainAction` and `makeAskBusinessBrain` use-case in the `ai` module, with deterministic fallback when `OPENAI_API_KEY` is absent.
   - Global nav (`AppHeader`) updated with Dashboard and AI Brain links.
-  - Verified end-to-end: register → create store → connect mock Shopify → sync products → simulate follow → dashboard shows updated KPIs → ask AI Business Brain.
+- **TASK-190 — Unified Inbox** (spec `0016`):
+  - New `/inbox` page lists all conversations across stores with channel/status/search filters and take-over/resume actions.
+- **TASK-200 — AI CRM Refinements** (spec `0017`):
+  - Customer lifecycle stage, consent flag, engagement/lead scoring, and derived segment labels in the customer directory.
+  - New `/customers` directory and `/customers/[customerId]` detail page with edit forms.
+- **TASK-210 — Content Studio MVP** (spec `0018`):
+  - New `/stores/[storeId]/content` page with AI post-idea and caption generators, reusing existing AI actions and product multi-select.
+- **TASK-220 — Orders View** (spec `0019`):
+  - New `/stores/[storeId]/orders` page showing live connector orders (mock fallback in dev).
+  - `ecommerceQueries.listOrders` added to fetch orders through the provider interface.
+- **TASK-230 — Store Analytics** (spec `0020`):
+  - New `/stores/[storeId]/analytics` page with KPI cards and recent activity.
+- **TASK-240 — INR Currency Support** (spec `0021`):
+  - New shared `formatCurrency` utility defaults to `INR` and uses Indian locale (`en-IN`).
+  - Store detail page and AI reply context now format prices with `₹`.
+  - `syncProducts` falls back to store currency; mock connector returns INR prices and totals.
+- **TASK-250 / TASK-260 / TASK-270 / TASK-271 — Store Hub Pages** (specs `0022`–`0025`):
+  - `/stores/[storeId]/campaigns` lists active campaigns.
+  - `/stores/[storeId]/coupons` lists discount codes.
+  - `/stores/[storeId]/followers` lists Meta followers.
+  - `/reports` gives a workspace-wide KPI and per-store breakdown view.
+  - Store detail page links to all of the above plus Content, Orders, and Analytics.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Unified Inbox (TASK-190)**, **Orders (TASK-220)**, or **live Meta Graph API adapters** for commerce, comments, and messaging.
+- Next: **Automation module (TASK-280)**, then Brand Deals, Affiliate Center, Media Kit, Integrations catalog, Settings/Admin, and Mobile/PWA polish.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

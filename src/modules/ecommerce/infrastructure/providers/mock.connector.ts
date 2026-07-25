@@ -23,26 +23,26 @@ export class MockConnector implements EcommerceConnector {
     return {
       name: "Demo Store",
       domain: this.shopDomain ?? "demo-store.example.com",
-      currency: "USD",
+      currency: "INR",
       provider: this.provider,
     };
   }
 
   async getProducts(limit = 12): Promise<ConnectorProduct[]> {
     const catalog = [
-      { title: "Classic Sneakers", price: 79.99, inventory: 42 },
-      { title: "Running Shoes", price: 119.0, inventory: 18 },
-      { title: "Canvas Tote Bag", price: 24.5, inventory: 130 },
-      { title: "Wool Beanie", price: 19.99, inventory: 76 },
-      { title: "Leather Wallet", price: 49.0, inventory: 33 },
-      { title: "Sports Socks (3-pack)", price: 14.99, inventory: 210 },
+      { title: "Classic Sneakers", price: 3499.0, inventory: 42 },
+      { title: "Running Shoes", price: 5999.0, inventory: 18 },
+      { title: "Canvas Tote Bag", price: 1299.0, inventory: 130 },
+      { title: "Wool Beanie", price: 999.0, inventory: 76 },
+      { title: "Leather Wallet", price: 2499.0, inventory: 33 },
+      { title: "Sports Socks (3-pack)", price: 799.0, inventory: 210 },
     ];
     return catalog.slice(0, limit).map((p, i) => ({
       externalId: `mock-${i + 1}`,
       title: p.title,
       description: `${p.title} — demo catalog item.`,
       price: p.price,
-      currency: "USD",
+      currency: "INR",
       inventory: p.inventory,
       imageUrl: null,
     }));
@@ -51,8 +51,8 @@ export class MockConnector implements EcommerceConnector {
   async getOrders(limit = 5): Promise<ConnectorOrder[]> {
     return Array.from({ length: Math.min(limit, 5) }, (_, i) => ({
       externalId: `mock-order-${i + 1}`,
-      total: 49.99 + i * 10,
-      currency: "USD",
+      total: 5999.0 + i * 1000,
+      currency: "INR",
       createdAt: new Date(Date.now() - i * 86_400_000),
       customerRef: `mock-cust-${i + 1}`,
     }));
