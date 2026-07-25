@@ -213,10 +213,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - New `BrandDeal` Prisma model + `branddeals` module with list/create use-cases, repository, and server actions.
   - `/stores/[storeId]/brand-deals` page with a multi-column status pipeline (Lead, Negotiating, Contracted, Delivered, Paid, Closed) and an add-deal form.
   - Store detail page links to Brand Deals.
+- **TASK-300 — Affiliate Center** (spec `0028`):
+  - New `/stores/[storeId]/affiliates` page reusing the `growth` module's ambassador/referral infrastructure.
+  - Enroll ambassador and record referral forms; actions now also revalidate the affiliates page.
+  - Lists ambassadors (code, discount/commission, referrals, earnings) and referral orders (order id, amount, commission, status) with INR formatting.
+  - Store detail page links to Affiliate Center.
 
 ### 🔨 In Progress
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **Affiliate Center (TASK-300)**, then Media Kit, Integrations catalog, Settings/Admin, and Mobile/PWA polish.
+- Next: **Media Kit (TASK-310)**, then Integrations catalog, Settings/Admin, and Mobile/PWA polish.
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

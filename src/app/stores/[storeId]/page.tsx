@@ -489,6 +489,22 @@ export default async function StoreDetailPage({
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Affiliate Center</CardTitle>
+            <CardDescription>
+              Enroll ambassadors and track referrals.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/affiliates`}>
+                View affiliates
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

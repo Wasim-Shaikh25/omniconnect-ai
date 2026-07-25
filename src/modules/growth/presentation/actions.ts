@@ -140,6 +140,7 @@ export async function enrollAmbassadorAction(formData: FormData): Promise<void> 
   if (!(await requireStoreAccess(parsed.data.storeId))) return;
   await growthService.enrollAmbassador(parsed.data);
   revalidatePath(`/stores/${parsed.data.storeId}/commerce/growth`);
+  revalidatePath(`/stores/${parsed.data.storeId}/affiliates`);
 }
 
 export async function recordReferralAction(formData: FormData): Promise<void> {
@@ -148,6 +149,7 @@ export async function recordReferralAction(formData: FormData): Promise<void> {
   if (!(await requireStoreAccess(parsed.data.storeId))) return;
   await growthService.recordReferral(parsed.data);
   revalidatePath(`/stores/${parsed.data.storeId}/commerce/growth`);
+  revalidatePath(`/stores/${parsed.data.storeId}/affiliates`);
 }
 
 export async function createDmCampaignAction(formData: FormData): Promise<void> {
