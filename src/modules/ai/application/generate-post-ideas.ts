@@ -1,5 +1,6 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
 import type { TrendIdea } from "./generate-trends";
+import type { MarketingMemoryRecord, DailyBriefRecord } from "@/modules/intelligence";
 
 export interface GeneratePostIdeasInput {
   storeId: string;
@@ -16,10 +17,16 @@ export interface GeneratePostIdeasInput {
   };
   ownerUsername?: string | null;
   count?: number;
+  organizationId?: string;
 }
 
 export interface GeneratePostIdeas {
   (input: GeneratePostIdeasInput): Promise<TrendIdea[]>;
+}
+
+export interface MarketingMemoryPort {
+  getMemory(organizationId: string, storeId: string): Promise<MarketingMemoryRecord>;
+  getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
 }
 
 const DEFAULT_TONE = "trendy, authentic, and platform-native";
@@ -27,20 +34,52 @@ const DEFAULT_TONE = "trendy, authentic, and platform-native";
 export function makeGeneratePostIdeas(deps: {
   aiProvider: AIProvider;
   aiConfigurationRepository: AIConfigurationRepository;
+  marketingMemory?: MarketingMemoryPort;
 }): GeneratePostIdeas {
   return async function generatePostIdeas(input): Promise<TrendIdea[]> {
     const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const count = Math.min(Math.max(input.count ?? 3, 1), 10);
 
+    let memory: MarketingMemoryRecord | undefined;
+    let brief: DailyBriefRecord | undefined;
+    if (deps.marketingMemory && input.organizationId) {
+      try {
+        memory = await deps.marketingMemory.getMemory(input.organizationId, input.storeId);
+        brief = await deps.marketingMemory.getBrief(input.organizationId, input.storeId);
+      } catch {
+        // Marketing context is optional; fall back to provided post data.
+      }
+    }
+
+    const topProducts = memory?.productScores
+      .slice(0, 3)
+      .map((p) => `${p.productTitle} (score ${Math.round(p.compositeScore * 100)})`)
+      .join(", ") ?? "none";
+
+    const dmPatterns = memory?.dmPatterns
+      .slice(0, 3)
+      .map((p) => `${p.category}: ${p.frequency}`)
+      .join("; ") ?? "none";
+
+    const commentPatterns = memory?.commentPatterns
+      .slice(0, 3)
+      .map((p) => `${p.category}: ${p.frequency}`)
+      .join("; ") ?? "none";
+
+    const trendingHashtags = memory?.trendingHashtags
+      .map((h) => `#${h.tag}`)
+      .join(" ") ?? "none";
+
     const system = `You are a social media content strategist for Instagram. Tone: ${tone}.
 Analyze the provided post and generate a JSON array of ${count} fresh content ideas inspired by *why* this post worked (or what would make it work better).
+Ground ideas in the brand's marketing memory: top products to promote, recent DM/comment themes, trending hashtags, and today's brief.
 For each idea return:
 - title (string, punchy idea name)
 - format (string, one of Reel/Post/Carousel/Story)
 - hook (string, scroll-stopping first line)
 - description (string, 2-3 sentences describing the video/post)
-- whyItWorks (string, 1 sentence explaining the trend mechanic or audience psychology)
+- whyItWorks (string, 1 sentence explaining the trend mechanic, audience psychology, or marketing context)
 - hashtags (array of 10-15 niche hashtags, no banned/spam ones)
 - audioSuggestion (string, trending audio style or sound cue)
 - predictedEngagementScore (number 0-100)
@@ -52,7 +91,12 @@ Return only a JSON array. Do not wrap in markdown.`;
 Caption: ${input.caption ?? "(no caption)"}
 Hashtags: ${input.hashtags.join(" ") || "(none)"}
 Metrics: likes ${input.metrics.likes ?? 0}, comments ${input.metrics.comments ?? 0}, plays ${input.metrics.plays ?? 0}, reach ${input.metrics.reach ?? 0}.
-Generate content ideas that follow the same vibe but are original for our brand.`;
+Top products to promote: ${topProducts}
+DM themes: ${dmPatterns}
+Comment themes: ${commentPatterns}
+Trending hashtags from mentions: ${trendingHashtags}
+${brief ? `Today's brief: ${brief.priorities.join("; ")}. Content idea: ${brief.contentIdea ?? "none"}` : ""}
+Generate content ideas that follow the same vibe, tie to the brand's current marketing priorities, and are original for our brand.`;
 
     const raw = await deps.aiProvider.complete(
       [

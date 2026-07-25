@@ -63,16 +63,6 @@ export const generateTrends = makeGenerateTrends({
   aiConfigurationRepository,
 });
 
-export const generatePostIdeas = makeGeneratePostIdeas({
-  aiProvider,
-  aiConfigurationRepository,
-});
-
-export const analyzeCompetitor = makeAnalyzeCompetitor({
-  aiProvider,
-  aiConfigurationRepository,
-});
-
 const workspaceContext = makeWorkspaceContext({
   organizations: organizationQueries,
   ecommerce: ecommerceQueries,
@@ -85,6 +75,17 @@ const marketingMemory = {
   getMemory: updateMarketingMemory,
   getBrief: generateDailyBrief,
 };
+
+export const generatePostIdeas = makeGeneratePostIdeas({
+  aiProvider,
+  aiConfigurationRepository,
+  marketingMemory,
+});
+
+export const analyzeCompetitor = makeAnalyzeCompetitor({
+  aiProvider,
+  aiConfigurationRepository,
+});
 
 export const askBusinessBrain = makeAskBusinessBrain({
   aiProvider,

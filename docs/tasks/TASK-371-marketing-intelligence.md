@@ -13,7 +13,7 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 ## Subtasks
 
 ### Content Intelligence
-- [ ] 1. Content Studio recommendations consume competitor posts, own best posts, comments, DMs, product catalog, campaigns, analytics, and trends.
+- [~] 1. `ai.generatePostIdeas` consumes Marketing Memory (products, DM/comment themes, trending hashtags, daily brief). Still need competitor posts, own best posts, and analytics integration.
 - [ ] 2. `content` exposes `generateContentIdeas(input)` and publishes `ContentIdeasGenerated`.
 - [ ] 3. Every content idea includes grounding evidence (data source + why it was recommended).
 

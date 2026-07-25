@@ -205,6 +205,7 @@ export async function generatePostIdeasAction(
   try {
     const trends = await generatePostIdeas({
       storeId: parsed.data.storeId,
+      organizationId: user.organizationId ?? undefined,
       caption: parsed.data.caption ?? null,
       hashtags: hashtagList,
       mediaType: parsed.data.mediaType,

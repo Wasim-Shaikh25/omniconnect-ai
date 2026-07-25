@@ -11,7 +11,8 @@ Status legend:
 ## Product gaps (from repositioning review)
 
 ### 1. Content Intelligence is disconnected
-- [ ] Content Studio consumes competitor posts, own best posts, audience comments, DMs, product catalog, campaigns, analytics, trends.
+- [~] Content Studio post-idea generation now consumes Marketing Memory (top products, DM/comment themes, trending hashtags, today's brief) to ground ideas.
+- [ ] Still need: competitor posts, own best posts, explicit campaigns/analytics integration, and UI evidence panel.
 - [ ] Generated ideas include grounding evidence (why this idea was recommended).
 
 ### 2. Analytics doesn't close the loop
