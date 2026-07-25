@@ -394,7 +394,12 @@ All notable changes to **OmniConnect AI** are documented here.
     - `generate-reply` writes an `AuditLog` entry with prompt metadata and no PII.
     - `/api/meta/webhook` gets in-memory rate limiting and payload idempotency via `webhookGuard`.
     - `env.ts` exposes `validateProductionSecrets()`; `src/instrumentation.ts` calls it at runtime startup so missing production secrets fail fast without breaking `next build`.
-  - Next: Phase 1 (move detection/recommendation ownership to domain modules).
+  - Phase 1 (domain detection/recommendation ownership) paused while product positioning is finalized.
+
+- **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`):
+  - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
+  - Defined the 12 product gaps and the connecting architecture: Content Intelligence, Analytics loop, active Competitor Analysis, DM → marketing, comments as research, marketing analytics, product promotion scores, Marketing Memory, inbox multi-insight, competitor benchmarking, AI explanation, Business Brain → Marketing Brain daily brief.
+  - Spec, task tracker, and progress tracker written. Implementation not started.
 
 ### ⏭️ Next (proposed build order)
 
