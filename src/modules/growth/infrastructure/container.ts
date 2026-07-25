@@ -1,4 +1,4 @@
-import { metaService } from "@/modules/meta";
+import { metaService } from "@/modules/meta/server";
 import {
   PrismaUgcRepository,
   PrismaAmbassadorRepository,

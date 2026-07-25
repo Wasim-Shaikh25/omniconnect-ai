@@ -1,0 +1,16 @@
+/**
+ * Server-only meta module barrel.
+ *
+ * Exports the wired application services / composition root. Client code should
+ * use `@/modules/meta` (types + actions) instead.
+ */
+export {
+  connectMeta,
+  processMetaWebhook,
+  metaQueries,
+  metaService,
+} from "./infrastructure/container";
+export {
+  verifyWebhookChallenge,
+  verifyWebhookSignature,
+} from "./application/verify-webhook";

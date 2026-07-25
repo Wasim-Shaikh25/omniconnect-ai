@@ -5,7 +5,7 @@ import {
   conversationQueries,
 } from "@/modules/conversations";
 import { ecommerceQueries } from "@/modules/ecommerce";
-import { metaService } from "@/modules/meta";
+import { metaService } from "@/modules/meta/server";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";

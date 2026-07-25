@@ -7,14 +7,16 @@ import {
   ecommerceQueries,
   generateCouponAction,
   syncProductsAction,
+  type ProductRecord,
+  type CouponRecord,
 } from "@/modules/ecommerce";
 import {
   connectMetaAction,
-  metaQueries,
   simulateInboundAction,
 } from "@/modules/meta";
-import { conversationQueries } from "@/modules/conversations";
-import { crmQueries } from "@/modules/crm";
+import { metaQueries } from "@/modules/meta/server";
+import { conversationQueries, type ConversationRecord } from "@/modules/conversations";
+import { crmQueries, type FollowerRecord } from "@/modules/crm";
 import { aiQueries } from "@/modules/ai/server";
 import { updateAIConfigurationAction } from "@/modules/ai";
 import { ConnectStoreForm } from "@/components/connect-store-form";
@@ -137,7 +139,7 @@ export default async function StoreDetailPage({
             )}
             {coupons.length > 0 && (
               <ul className="space-y-2 border-t pt-4">
-                {coupons.map((c) => (
+                {coupons.map((c: CouponRecord) => (
                   <li
                     key={c.id}
                     className="flex items-center justify-between text-sm"
@@ -169,7 +171,7 @@ export default async function StoreDetailPage({
         <CardContent>
           {products.length > 0 ? (
             <ul className="divide-y">
-              {products.map((p) => (
+              {products.map((p: ProductRecord) => (
                 <li
                   key={p.id}
                   className="flex items-center justify-between py-2 text-sm"
@@ -364,7 +366,7 @@ export default async function StoreDetailPage({
           <CardContent>
             {conversations.length > 0 ? (
               <ul className="divide-y">
-                {conversations.map((c) => (
+                {conversations.map((c: ConversationRecord) => (
                   <li
                     key={c.id}
                     className="flex items-center justify-between py-2 text-sm"
@@ -394,7 +396,7 @@ export default async function StoreDetailPage({
           <CardContent>
             {followers.length > 0 ? (
               <ul className="divide-y">
-                {followers.map((f) => (
+                {followers.map((f: FollowerRecord) => (
                   <li
                     key={f.id}
                     className="flex items-center justify-between py-2 text-sm"

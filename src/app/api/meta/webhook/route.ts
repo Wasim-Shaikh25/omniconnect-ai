@@ -4,7 +4,7 @@ import {
   processMetaWebhook,
   verifyWebhookChallenge,
   verifyWebhookSignature,
-} from "@/modules/meta";
+} from "@/modules/meta/server";
 import { ensureSubscribers } from "@/server/subscribers";
 
 export const runtime = "nodejs";

@@ -1,19 +1,23 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { requireRole, ForbiddenError } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { connectMeta } from "../infrastructure/container";
+import { metaService } from "../infrastructure/container";
 import { connectMetaSchema } from "../application/connect-meta";
 import {
   simulateInbound,
   simulateInboundSchema,
 } from "../application/simulate-inbound";
+import type { MetaMediaItem } from "../application/ports";
 
 export interface MetaActionState {
   error?: string;
   ok?: boolean;
   message?: string;
+  media?: MetaMediaItem[];
 }
 
 /** Ensures the current user's organization owns the target store. */
@@ -84,4 +88,59 @@ export async function simulateInboundAction(
 
   revalidatePath(`/stores/${parsed.data.storeId}`);
   return { ok: true, message: `Simulated ${parsed.data.kind} event.` };
+}
+
+const searchHashtagMediaSchema = z.object({
+  storeId: z.string().min(1),
+  query: z.string().min(1).max(120),
+  ownerFilter: z.string().max(120).optional(),
+  limit: z.coerce.number().min(1).max(25).default(10),
+});
+
+export async function searchHashtagMediaAction(
+  _prev: MetaActionState,
+  formData: FormData,
+): Promise<MetaActionState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = searchHashtagMediaSchema.safeParse({
+    storeId: formData.get("storeId"),
+    query: formData.get("query"),
+    ownerFilter: formData.get("ownerFilter") || undefined,
+    limit: formData.get("limit") || 10,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const { storeId, query, ownerFilter, limit } = parsed.data;
+
+  const search = await metaService.searchHashtag(storeId, query);
+  if (!search.hashtagId) {
+    // When no connected IG account / token, fallback returns dev sample media.
+    const fallback = await metaService.getHashtagMedia(storeId, `mock-${query.toLowerCase()}`, {
+      top: true,
+      limit,
+    });
+    return { ok: true, media: filterByOwner(fallback, ownerFilter) };
+  }
+
+  const media = await metaService.getHashtagMedia(storeId, search.hashtagId, {
+    top: true,
+    limit,
+  });
+  return { ok: true, media: filterByOwner(media, ownerFilter) };
+}
+
+function filterByOwner(media: MetaMediaItem[], ownerFilter?: string): MetaMediaItem[] {
+  if (!ownerFilter) return media;
+  const needle = ownerFilter.toLowerCase().replace(/^@/, "");
+  return media.filter(
+    (m) =>
+      (m.ownerUsername?.toLowerCase().includes(needle) ?? false) ||
+      (m.caption?.toLowerCase().includes(needle) ?? false),
+  );
 }

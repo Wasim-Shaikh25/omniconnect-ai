@@ -1,7 +1,7 @@
 # Spec 0007: Meta Content Intelligence & Marketing Insights
 
 - **Module(s):** analytics, reports, meta
-- **Status:** Draft
+- **Status:** Partially implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-110)
 - **Related ADR(s):** —
@@ -135,10 +135,11 @@ Meta content intelligence turns a connected Instagram/Facebook account into acti
 
 ## 13. Acceptance Criteria (Definition of Done)
 - [ ] Domain modeled (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `Report`, `TrackedAccount`, `ContentRecommendation`) and events defined.
-- [ ] `MetaAnalyticsClient` port + Graph API implementation with retry/caching.
-- [ ] `AnalyticsService` and `ReportsService` use-cases implemented and exposed via the module barrel.
-- [ ] Dashboard pages for content performance, trend explorer, competitors, reports, and recommendations.
-- [ ] AI-generated "why it worked", content ideas, and slide-by-slide storyboards.
+- [x] `MetaService` extended with `searchHashtag`, `getHashtagMedia`, and `getAccountMedia` Graph API methods, plus a dev fallback for public hashtag top/recent media.
+- [x] Trending posts / competitor search UI at `/stores/[storeId]/commerce/trends` with creator-handle filter.
+- [x] AI-generated content ideas (hook, format, why it works, hashtags, audio suggestion, best time, CTA, predicted engagement score).
+- [ ] Full dashboard pages for content performance, trend explorer, competitors, reports, and recommendations.
+- [ ] AI-generated "why it worked" analysis and slide-by-slide storyboards.
 - [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Open Questions
