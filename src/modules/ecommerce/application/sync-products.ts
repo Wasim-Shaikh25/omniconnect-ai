@@ -29,7 +29,20 @@ export function makeSyncProducts(deps: {
       return err(new ConnectorError(connector.provider, "getProducts"));
     }
 
-    const count = await deps.products.upsertMany(storeId, fetched);
+    let storeCurrency: string | null = null;
+    try {
+      const storeInfo = await connector.fetchStoreInfo();
+      storeCurrency = storeInfo.currency;
+    } catch {
+      storeCurrency = null;
+    }
+
+    const normalized = fetched.map((p) => ({
+      ...p,
+      currency: p.currency ?? storeCurrency,
+    }));
+
+    const count = await deps.products.upsertMany(storeId, normalized);
 
     await eventBus.publish(
       new ProductsSynced(storeId, {
