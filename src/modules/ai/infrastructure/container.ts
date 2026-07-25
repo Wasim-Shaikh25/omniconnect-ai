@@ -5,12 +5,13 @@ import {
   conversationQueries,
 } from "@/modules/conversations";
 import { ecommerceQueries } from "@/modules/ecommerce";
-import { metaService } from "@/modules/meta";
+import { metaService } from "@/modules/meta/server";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
 import { makeGenerateCaptions } from "../application/generate-captions";
 import { makeGenerateTrends } from "../application/generate-trends";
+import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { OpenAIProvider } from "./openai.provider";
 
@@ -49,6 +50,11 @@ export const generateCaptions = makeGenerateCaptions({
 });
 
 export const generateTrends = makeGenerateTrends({
+  aiProvider,
+  aiConfigurationRepository,
+});
+
+export const generatePostIdeas = makeGeneratePostIdeas({
   aiProvider,
   aiConfigurationRepository,
 });

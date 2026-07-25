@@ -32,29 +32,24 @@ export {
   MetaNotConnectedError,
 } from "./domain/errors";
 
-// Application — schemas, webhook verification + processing
-export {
-  verifyWebhookChallenge,
-  verifyWebhookSignature,
-} from "./application/verify-webhook";
+// Application — schemas and types
 export { connectMetaSchema } from "./application/connect-meta";
 export type { ConnectMetaInput } from "./application/connect-meta";
 export { simulateInboundSchema } from "./application/simulate-inbound";
 export type { SimulateInboundInput } from "./application/simulate-inbound";
-export type { MetaIntegrationRecord, MetaService } from "./application/ports";
+export type {
+  MetaIntegrationRecord,
+  MetaService,
+  MetaMediaItem,
+  MetaMediaMetrics,
+  HashtagMediaOptions,
+} from "./application/ports";
 export type { MetaConnectionView } from "./application/queries";
-
-// Composition root — use-cases, queries, outbound service
-export {
-  connectMeta,
-  processMetaWebhook,
-  metaQueries,
-  metaService,
-} from "./infrastructure/container";
 
 // Presentation
 export {
   connectMetaAction,
   simulateInboundAction,
+  searchHashtagMediaAction,
 } from "./presentation/actions";
 export type { MetaActionState } from "./presentation/actions";

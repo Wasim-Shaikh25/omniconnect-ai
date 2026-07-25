@@ -2,7 +2,7 @@ import { generateWelcome } from "@/modules/ai/server";
 import { crmCommands } from "@/modules/crm";
 import { conversationCommands } from "@/modules/conversations";
 import { generateCoupon } from "@/modules/ecommerce";
-import { metaService } from "@/modules/meta";
+import { metaService } from "@/modules/meta/server";
 import { makeGetCampaign } from "../application/get-campaign";
 import { makeUpdateCampaign } from "../application/update-campaign";
 import { makeWelcomeFirstFollower } from "../application/welcome-first-follower";
