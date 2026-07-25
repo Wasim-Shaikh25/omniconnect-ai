@@ -294,12 +294,21 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `DmCampaignType.ALTERNATIVE_PRODUCT` enum and migration.
   - End-to-end validation (`scripts/verify-task360.ts`) confirms product sync → message mention → insight → recommendation → executed campaign.
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-361 — Revenue Decline & Funnel Diagnosis** (spec `0037`):
+  - Added `revenue_7d`, `order_count_7d`, `aov_7d` semantic metrics computed from `ecommerce.listOrders`.
+  - Extended `MetricSourceProvider` with `getRevenue`, `getOrderCount`, `getAverageOrderValue`.
+  - Created `DiagnosisService` that compares current and previous 7-day windows, decomposes revenue into orders × AOV and new/repeat customer mix, and flags product availability as a driver.
+  - Wired `DiagnosisService` into `DetectionService` as `detectRevenueDecline`.
+  - `RecommendationService` maps revenue-decline insights to the dominant-driver action: `GENERATE_COUPON` for AOV decline, `CREATE_DM_CAMPAIGN` for order-volume decline, `CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN` when availability is the driver.
+  - End-to-end validation (`scripts/verify-task361.ts`) confirms revenue decline → insight → recommendation → executed action plan.
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### ✅ Done
 
 - All Unified Intelligence Layer phases (TASK-350/351/352/353/354/355) implemented and merged.
 - TASK-120 (UI pages + dark/light mode) completed.
 - TASK-360 (Product availability & demand mismatch) completed.
+- TASK-361 (Revenue decline & funnel diagnosis) completed.
 
 ### 🔨 In Progress
 

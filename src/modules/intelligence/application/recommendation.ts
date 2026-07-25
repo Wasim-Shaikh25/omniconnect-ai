@@ -133,6 +133,74 @@ async function recommendationFromInsight(
     }
   }
 
+  if (insight.title.toLowerCase().includes("revenue declined")) {
+    const title = insight.title.toLowerCase();
+    const availabilityDriven = title.includes("out-of-stock") || title.includes("low-stock") || title.includes("availability");
+    const aovDriven = title.includes("lower aov") || title.includes("higher aov");
+
+    if (aovDriven) {
+      return {
+        ...base,
+        title: "Generate a threshold coupon to lift AOV",
+        description: "Revenue decline is driven by lower average order value. A minimum-spend discount can nudge customers to add more to their cart.",
+        objective: "Increase AOV",
+        reasonCodes: ["aov_decline", "revenue_decline"],
+        impactRange: { min: 5, max: 20, unit: "AOV_pct" },
+        confidence: 0.6,
+        effort: "LOW",
+        urgency: insight.severity === "HIGH" || insight.severity === "CRITICAL" ? "HIGH" : "MEDIUM",
+        riskTier: riskFromSeverity(insight.severity),
+        eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+        actionType: "GENERATE_COUPON",
+        actionParams: { storeId: insight.storeId, discountPct: 10, minimumSpendPct: 25 },
+        deepLink: insight.storeId ? `/stores/${insight.storeId}/coupons` : "/dashboard",
+      };
+    }
+
+    if (availabilityDriven && insight.storeId) {
+      const products = await ecommerce.listProducts(insight.storeId, 100);
+      const alternative = products
+        .filter((p) => typeof p.inventory === "number" && p.inventory > 0)
+        .sort((a, b) => (b.inventory ?? 0) - (a.inventory ?? 0))[0];
+
+      if (alternative) {
+        return {
+          ...base,
+          title: `Promote "${alternative.title}" to recover revenue lost to stock issues`,
+          description: insight.description,
+          objective: "Recover revenue",
+          reasonCodes: ["revenue_decline", "availability", "alternative_product"],
+          impactRange: { min: 1, max: 10, unit: "conversions" },
+          confidence: 0.55,
+          effort: "LOW",
+          urgency: insight.severity === "HIGH" || insight.severity === "CRITICAL" ? "HIGH" : "MEDIUM",
+          riskTier: riskFromSeverity(insight.severity),
+          eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+          actionType: "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN",
+          actionParams: { storeId: insight.storeId, outOfStockProductTitle: "N/A", alternativeProductTitle: alternative.title, audienceCriteria: { segment: "recent_customers" } },
+          deepLink: `/stores/${insight.storeId}/commerce/growth`,
+        };
+      }
+    }
+
+    return {
+      ...base,
+      title: "Launch a re-engagement DM campaign to recover lost orders",
+      description: "Revenue decline is driven by fewer orders. Re-engage recent customers and high-intent conversations with a targeted DM campaign.",
+      objective: "Recover orders",
+      reasonCodes: ["revenue_decline", "order_volume_decline"],
+      impactRange: { min: 5, max: 50, unit: "orders" },
+      confidence: 0.5,
+      effort: "MEDIUM",
+      urgency: insight.severity === "HIGH" || insight.severity === "CRITICAL" ? "HIGH" : "MEDIUM",
+      riskTier: riskFromSeverity(insight.severity),
+      eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+      actionType: "CREATE_DM_CAMPAIGN",
+      actionParams: { storeId: insight.storeId, campaignType: "RE_ENGAGE", audienceCriteria: { segment: "recent_customers" } },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
+    };
+  }
+
   return {
     ...base,
     title: "Refresh integrations and recompute metrics",
