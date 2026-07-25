@@ -37,12 +37,12 @@ function buildDevReply(messages: AIMessage[]): string {
 export class OpenAIProvider implements AIProvider {
   async complete(
     messages: AIMessage[],
-    config: { model: string },
+    config: { model: string; fallback?: string },
   ): Promise<string> {
     const apiKey = env.OPENAI_API_KEY;
     if (!apiKey) {
       logger.info("ai.openai.skipped", { reason: "no-api-key" });
-      return buildDevReply(messages);
+      return config.fallback ?? buildDevReply(messages);
     }
 
     try {

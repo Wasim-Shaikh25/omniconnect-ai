@@ -7,6 +7,7 @@ import {
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { metaService } from "@/modules/meta";
 import { makeGenerateReply } from "../application/generate-reply";
+import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { OpenAIProvider } from "./openai.provider";
@@ -19,6 +20,11 @@ export const aiQueries = {
   getConfiguration: (storeId: string) =>
     aiConfigurationRepository.getByStore(storeId),
 };
+
+export const generateWelcome = makeGenerateWelcome({
+  aiProvider,
+  aiConfigurationRepository,
+});
 
 export const generateReply = makeGenerateReply({
   aiProvider,

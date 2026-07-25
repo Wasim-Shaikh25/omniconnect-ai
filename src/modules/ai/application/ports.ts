@@ -24,7 +24,10 @@ export interface AIMessage {
 }
 
 export interface AIProvider {
-  complete(messages: AIMessage[], config: { model: string }): Promise<string>;
+  complete(
+    messages: AIMessage[],
+    config: { model: string; fallback?: string },
+  ): Promise<string>;
 }
 
 export interface AssistantService {

@@ -111,11 +111,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - AI replies appended to `Conversation`, outbound `metaService.sendMessage` attempted, and status set to `HUMAN_ACTIVE` on `[ESCALATE]`.
   - Store detail page `/stores/[storeId]`: AI configuration form (RBAC-gated) + `updateAIConfigurationAction`.
   - Subscribers wired at `src/server/subscribers.ts`; lint + typecheck pass.
+- **TASK-080 — First-time Follower Campaign** (spec `0005`):
+  - Expanded spec; `Campaign` schema with `type` enum and `@@unique([storeId, type])`; `Follower` fields for coupon/message audit.
+  - New `coupons` module: `CampaignRepository`, `updateCampaign`, `welcomeFirstFollower` orchestrator, `FirstTimeFollowerDetected` subscriber.
+  - Event-driven flow: Meta follow → CRM emits `FirstTimeFollowerDetected` → coupons generates a local coupon via `ecommerce.generateCoupon`, composes AI welcome message via `ai.generateWelcome`, calls `metaService.sendMessage`, records enrollment in CRM, and creates a conversation with the AI message.
+  - New `/stores/[storeId]/campaigns/first-follower` page with RBAC-gated campaign settings + dev simulator; linked from store detail page.
+  - `generateCoupon` extended with `pushToProvider` flag so welcome coupons can be created locally without a live Shopify connection.
+  - `AIProvider.complete` accepts an optional `fallback` for deterministic offline welcome copy.
+  - Verified end-to-end in the dev simulator (screenshots captured); lint + typecheck + build pass.
 
 ### 🔨 In Progress
 - Repo pushed to GitHub (`Wasim-Shaikh25/omniconnect-ai`, `main`); committing straight to main.
 - Local infra: Postgres + Redis run as Docker containers (`omni-pg`, `omni-redis`).
-- Next: **TASK-080 — First-time follower campaign** (event-driven: follow → coupon → message).
+- Next: **TASK-090 — Human takeover** + **TASK-100 — Notifications** (or move to Phase 2/TASK-130 per backlog).
 
 ### ⏭️ Next (proposed build order)
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

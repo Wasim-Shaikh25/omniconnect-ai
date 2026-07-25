@@ -249,14 +249,17 @@ model Message {
 }
 
 model Follower {
-  id         String   @id @default(cuid())
-  storeId    String
-  store      Store    @relation(fields: [storeId], references: [id])
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
-  igUserId   String?
-  username   String?
-  followedAt DateTime @default(now())
+  id                  String    @id @default(cuid())
+  storeId             String
+  store               Store     @relation(fields: [storeId], references: [id])
+  customerId          String?
+  customer            Customer? @relation(fields: [customerId], references: [id])
+  igUserId            String?
+  username            String?
+  followedAt          DateTime  @default(now())
+  couponId            String?
+  campaignEnrolledAt  DateTime?
+  welcomeMessageText  String?
 
   @@unique([storeId, igUserId])
 }
@@ -278,17 +281,24 @@ model AIConfiguration {
 }
 
 // ── campaigns (first-time follower) ─────────────────────────────────────────
+enum CampaignType {
+  FIRST_TIME_FOLLOWER
+}
+
 model Campaign {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   storeId         String
-  store           Store    @relation(fields: [storeId], references: [id])
+  store           Store        @relation(fields: [storeId], references: [id])
+  type            CampaignType @default(FIRST_TIME_FOLLOWER)
   name            String
-  discountPct     Int      @default(10)
-  couponTtlDays   Int      @default(30)
+  discountPct     Int          @default(10)
+  couponTtlDays   Int          @default(30)
   messageTemplate String
-  active          Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([storeId, type])
 }
 
 // ── reports ─────────────────────────────────────────────────────────────────

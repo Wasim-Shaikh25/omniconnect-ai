@@ -34,7 +34,7 @@ const onMetaFollowReceived: EventHandler = async (event) => {
     username: p.username,
   });
 
-  const { isNew } = await followers.record({
+  const { record, isNew } = await followers.record({
     storeId: p.storeId,
     customerId: customer.id,
     externalUserId: p.externalUserId,
@@ -46,6 +46,7 @@ const onMetaFollowReceived: EventHandler = async (event) => {
       new FirstTimeFollowerDetected(customer.id, {
         storeId: p.storeId,
         customerId: customer.id,
+        followerId: record.id,
         channel: p.channel,
         externalUserId: p.externalUserId,
         username: p.username,

@@ -1,44 +1,107 @@
 # Spec 0005: First-Time Follower Campaign
 
-- **Module(s):** crm, coupons, ai, notifications
-- **Status:** Draft
+- **Module(s):** crm, coupons, ai, meta, notifications
+- **Status:** Implemented
 - **Owner:** wasim
-- **Related task(s):** docs/tasks/backlog.md
+- **Related task(s):** `docs/tasks/backlog.md` (TASK-080)
 - **Related ADR(s):** —
-- **Last updated:** 2026-07-24
+- **Last updated:** 2026-07-25
 
 ## 1. Summary
-Automated event-driven workflow: when a user follows an Instagram page, detect if first interaction, generate a personalized coupon, and send an AI welcome message with the code.
+An event-driven workflow that welcomes a first-time Instagram/Facebook follower with a personalized discount coupon and an AI-generated welcome message. The campaign is configurable per store (discount %, expiration, message template, eligibility rules) and orchestrated entirely through domain events so `crm`, `coupons`, `ai`, and `meta` remain loosely coupled.
 
 ## 2. Goals
-- Detect new follower (from `NewFollow` event)
-- Check CRM to determine first interaction
-- Generate personalized coupon (e.g. username JOHN_SMITH → code JOHN_SMITH, 10%)
-- Send AI welcome message with the coupon
-- Configurable: discount %, expiration, message template, eligibility rules
+- Detect a new follower from the `NewFollow`/`MetaFollowReceived` event.
+- Determine if the follower has never interacted with the store before (no `Customer` and no `Follower` record).
+- If eligible, generate a single-use, personalized coupon (e.g. username-based code, 10% off, 7-day expiry).
+- Compose an AI welcome message that includes the coupon code and store tone.
+- Send the welcome message via the `meta` outbound adapter.
+- Persist a `Campaign` record and `Coupon`/`CouponUsage`/`Message` audit trail.
+- Provide a campaign settings UI on the store page.
 
 ## 3. Non-Goals
-- Anything listed under Phase 2/3 in the Future Roadmap (see `docs/specs/0000-project-overview.md`).
+- Re-engagement campaigns for existing followers (Phase 2).
+- Multi-step nurture sequences.
+- Advanced segmentation beyond first-interaction check.
+- Any feature listed in Phase 2/3 of `docs/specs/0000-project-overview.md`.
 
-## 4. Public Contract (loose coupling)
-- Orchestrated purely via domain events — no tight coupling: `NewFollow` → (crm) `FirstInteractionDetected` → (coupons) `CouponGenerated` → (ai/meta) welcome message → (notifications) `CouponSent`.
-- Campaign settings live as a `Campaign` config consumed by handlers.
+## 4. User Stories
+- As a Store Owner, I want to automatically welcome new followers with a discount so they make a first purchase.
+- As a Store Owner, I want to configure the discount percentage and coupon expiry so the offer fits my margins.
+- As a Store Owner, I want the welcome message to match my brand voice so it feels personal.
+- As a Store Owner, I want to see how many coupons were sent and used so I can measure the campaign.
 
-> Other modules interact ONLY through the contract above (application service / port /
-> domain events). No module imports this module's internals. No circular dependencies.
+## 5. Domain Model
 
-## 5. Data / Persistence
-`Campaigns`, `Followers`, `Customers`, `Coupons`, `CouponUsage`. Ownership spans modules via events.
-All schema changes via Prisma migrations.
+### Entities / Aggregates
+- `FirstTimeFollowerCampaign` (per-store config): enabled, discountPct, expiryDays, messageTemplate, toneOverride.
+- `Follower` (crm): externalUserId, storeId, platform, username, firstDetectedAt, campaignEnrolledAt, couponId.
+- `Coupon` (ecommerce): code, storeId, customerId, discountPct, status, expiresAt.
+- `CampaignDispatch` (campaigns): id, storeId, followerId, couponId, messageText, status SENT|FAILED|REDEEMED, sentAt.
 
-## 6. Notes
-This spec is the canonical example of event-driven loose coupling; no module calls another's internals.
+### Domain Events
+- `FirstTimeFollowerDetected` (crm publishes) — payload: storeId, externalUserId, username, platform, followerId.
+- `WelcomeCouponGenerated` (coupons publishes) — payload: storeId, externalUserId, couponId, code, discountPct, expiresAt.
+- `WelcomeMessageSent` (meta/ai publishes) — payload: storeId, externalUserId, couponId, messageText.
+- `CouponRedeemed` (ecommerce publishes) — payload: storeId, couponId, orderId, customerId.
 
-## 7. Acceptance Criteria (Definition of Done)
-- [ ] Domain modeled (entities, events) with pure unit tests.
-- [ ] Application services/ports implemented and exposed via the module's public barrel.
-- [ ] Infrastructure adapters/repositories implemented (Prisma, external APIs).
-- [ ] Presentation (routes/UI) wired where applicable, with RBAC.
-- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` updated.
+## 6. Public Contract (loose coupling)
+- `FirstTimeFollowerCampaignService` port:
+  - `isEligible(storeId, externalUserId)`
+  - `enroll(storeId, externalUserId, username)`
+  - `getConfig(storeId)`
+  - `updateConfig(storeId, input)`
+- `CampaignDispatcher` port (campaigns module): handles `FirstTimeFollowerDetected` and orchestrates coupon generation + AI message + outbound send.
+- Consumes: `FirstTimeFollowerDetected` from `crm`; `CouponRedeemed` for analytics.
+- Emits: `WelcomeCouponGenerated`, `WelcomeMessageSent`.
 
-> This is an initial stub. Expand using `_TEMPLATE.md` before implementation begins.
+> No module imports another module's internals. `crm` only knows followers; `coupons` only knows coupons; `ai` generates text; `meta` sends messages.
+
+## 7. Data / Persistence
+- `FirstTimeFollowerCampaign` table (id, storeId, enabled, discountPct, expiryDays, messageTemplate, toneOverride, createdAt, updatedAt).
+- `Follower` table already exists in `crm`; add `couponId` and `campaignEnrolledAt` columns.
+- `Coupon` table already exists; `customerId` links to `Customer` (nullable until a CRM record is created or the coupon is used).
+- `CampaignDispatch` table (id, storeId, followerId, couponId, messageText, status, error, sentAt, createdAt).
+- Unique index on `(storeId, externalUserId)` in `Follower` to prevent duplicate first-follower triggers.
+
+## 8. API / UI Surface
+- `/stores/[storeId]/campaigns/first-follower` — campaign settings form.
+- Server action: `updateFirstTimeFollowerCampaign(storeId, input)`.
+- Server action: `getFirstTimeFollowerCampaign(storeId)`.
+- The dev simulator on `/stores/[storeId]` gets a "Simulate new follower" button that triggers the end-to-end flow and shows the generated coupon + message.
+
+## 9. External Integrations
+- **Meta Graph API** to send the welcome DM (`POST /me/messages` or Instagram Messaging API equivalent). Requires user-initiated conversation or an approved `ACCOUNT_UPDATE`/`POST_PURCHASE_UPDATE` message tag. For a follow event, the follower has not messaged the page yet, so a comment reply or Messenger "Get Started" may be needed. In the first version we send the welcome message via the existing `metaService.sendMessage` and document the 24h window limitation; the dev simulator bypasses the real API and logs the message.
+- **AI Provider** (`ai` module) for composing the welcome copy from the template + coupon + store tone.
+- **Coupon Generator** (`ecommerce` module) for creating the personalized coupon.
+
+## 10. Edge Cases & Failure Modes
+- Follower already exists → no coupon, no message (idempotent).
+- Campaign disabled for the store → no action.
+- AI provider unavailable → use a static fallback message with the coupon code.
+- Meta send fails (e.g., 24h window, invalid token) → dispatch status `FAILED`, retry later if possible.
+- Coupon generation fails → log error, no message sent.
+- Username contains invalid characters for a coupon code → sanitize (uppercase, alphanum, fallback to random suffix).
+
+## 11. Security & Privacy
+- Store-scoped campaign settings; RBAC-gated.
+- No PII beyond username/external id stored in `Follower`.
+- Coupon codes are not logged in plaintext outside the database.
+
+## 12. Testing Strategy
+- Unit tests for `isEligible` and coupon code sanitization.
+- Integration test for the event chain `FirstTimeFollowerDetected` → `WelcomeCouponGenerated` → `WelcomeMessageSent` with mocked `meta` and `ai` adapters.
+- UI test for the campaign settings form and simulator.
+
+## 13. Acceptance Criteria (Definition of Done)
+- [ ] Domain modeled (`FirstTimeFollowerCampaign`, `CampaignDispatch`) and events defined.
+- [ ] `FirstTimeFollowerCampaignService` port and Prisma repository implemented.
+- [ ] Campaign dispatcher subscribes to `FirstTimeFollowerDetected`, generates coupon, AI message, and outbound send.
+- [ ] UI page for campaign settings on `/stores/[storeId]/campaigns/first-follower`.
+- [ ] Dev simulator supports "Simulate new follower" and shows result.
+- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+
+## 14. Open Questions
+1. Should the welcome message be sent as a DM immediately after follow, or only when the follower sends the first message? Meta's 24h rule may prevent the former.
+2. Should the coupon be a fixed code per store or personalized per follower?
+3. Do we track coupon redemptions at Shopify checkout or via a manual `redeemCoupon` action?
