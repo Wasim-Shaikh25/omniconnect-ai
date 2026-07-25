@@ -422,6 +422,9 @@ export interface CompetitorChange {
   handle: string;
   changeType: string;
   detectedAt: Date;
+  latestCaption: string | null;
+  latestMediaType: string | null;
+  latestEngagement: number;
 }
 
 export interface MarketingMemoryRecord {

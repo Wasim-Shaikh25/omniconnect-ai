@@ -2,6 +2,7 @@ import { eventBus } from "@/shared/events";
 import type { RecommendationRepository, RecommendationConflictRepository } from "./ports";
 import type { RecommendationRecord, RecommendationConflictRecord } from "../domain/types";
 import { RecommendationExpired, RecommendationConflictDetected } from "../domain/events";
+import { isRecommendationExpired } from "../domain/recommendation";
 
 export interface Conflict {
   recommendationId: string;
@@ -137,10 +138,10 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
 
     const allOpen = await input.recommendations.listOpen(organizationId, undefined, 500);
     for (const rec of allOpen) {
-      if (rec.validUntil && rec.validUntil <= now) {
+      if (isRecommendationExpired(rec, now)) {
         await input.recommendations.invalidate(rec.id, "RecommendationExpired");
         await eventBus.publish(
-          new RecommendationExpired(rec.id, { recommendationId: rec.id, reason: "validUntil elapsed" }),
+          new RecommendationExpired(rec.id, { recommendationId: rec.id, reason: "validUntil elapsed or recommendation invalidated" }),
         );
         expired.push(rec.id);
       } else {

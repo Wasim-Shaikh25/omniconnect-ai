@@ -432,6 +432,12 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `RecommendationConflict` table and surfaced conflicts via `getRecommendationConflictsAction` and `RecommendationConflictCard` on Daily Marketing.
     - Refactored action execution so `WorkspaceActionExecutor` dispatches through domain action handlers: `executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`.
     - Added `ReadModelRefresher` service and `refreshReadModelsAction` to recompute `MetricSnapshot`, `BusinessInsight`, and `Recommendation` from canonical signals.
+  - **Async intelligence lifecycle (Phase 5 follow-up):**
+    - Added shared `QueueService` abstraction (`src/shared/queue`) with `BullMQQueue` (Redis) and `InMemoryQueue` (fallback) backends, plus `JobRegistry`, `BullMQ` worker, and `src/jobs/worker.ts` entry point.
+    - `intelligence` registers `REFRESH_READ_MODELS`, `REFRESH_PREDICTIONS`, and `LEARN_FROM_OUTCOME` queue handlers; `refreshReadModelsAction` now enqueues jobs and returns immediately instead of blocking.
+    - Added `WORKER_CONCURRENCY` to `env.ts`, `serverExternalPackages` for `bullmq`/`ioredis` in `next.config.ts`, and `npm run worker` script.
+    - Created `@/modules/analytics/server` and `@/modules/intelligence/server` server-only barrels plus `@/modules/ai/events` lightweight events barrel to break a module cycle that surfaced under `tsx`/`npm run worker`.
+    - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup all pass.
 
 - **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
   - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
@@ -447,11 +453,14 @@ All notable changes to **OmniConnect AI** are documented here.
     - New `generateDailyBrief()` builds a daily marketing brief with sections, content idea, recommended product, best posting time, trending hashtags, and priorities.
     - `ai.askBusinessBrain` now consumes `MarketingMemory` and `DailyBriefRecord` when a store is selected; prompt persona rebranded to Marketing Brain and includes top products, DM/comment patterns, and today's brief.
     - PII redaction for pattern samples.
-    - `ai.generatePostIdeas` now consumes `MarketingMemory` and the daily brief to ground content ideas in top products, DM/comment themes, and trending hashtags, and returns an `evidence` string.
+    - `getAccountMedia` added to the analytics server barrel; `updateMarketingMemory` fetches the connected Meta account's own media and computes `topPerformingPosts`.
+    - `detectCompetitorChanges` enriches `CompetitorChange` with each tracked competitor's top post caption, media type, and engagement.
+    - `ai.generatePostIdeas` now consumes `MarketingMemory` (top products, DM/comment themes, trending hashtags, own best-performing posts, competitor changes) and the daily brief, and returns an `evidence` string.
     - `ContentStudioForms` displays a "Why these ideas" panel with the memory signals that influenced the suggestions.
     - Product promotion scores are now displayed in `/stores/[storeId]/commerce/catalog` via `listCommerceCatalogAction`, which consumes `updateMarketingMemory()`.
-    - Marketing analytics view (`getMarketingPerformance`) reorganizes metrics around Content, Audience, Product, and Campaign and publishes `MarketingPerformanceUpdated`.
-    - `/stores/[storeId]/analytics` dashboard renders the marketing performance sections.
+    - Marketing analytics view (`getMarketingPerformance`) reorganizes metrics around Content, Audience, Product, and Campaign, adds per-section `why`/`nextRecommendation`, an overall `explanation`, and publishes `MarketingPerformanceUpdated`.
+    - New `/stores/[storeId]/analytics/content`, `/audience`, `/product`, and `/campaign` subpages answer the four marketing analytics questions.
+    - `/stores/[storeId]/analytics` dashboard links to subpages and surfaces the overall AI marketing explanation.
     - Competitor benchmark (`getCompetitorBenchmark`) computes post frequency, Reel ratio, hook/caption length, engagement, top hashtags, and consistency, and produces actionable adaptation suggestions.
     - `CompetitorChangeDetected` and `CompetitorBenchmarkReady` domain events published from `analytics`.
     - Competitor page displays benchmark panel with recommendations.

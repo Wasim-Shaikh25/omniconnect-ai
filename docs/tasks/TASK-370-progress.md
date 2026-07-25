@@ -45,7 +45,7 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 
 ### 7. Read models mixed with business entities
 - [x] `ReadModelRefresher` orchestrates recomputation of `MetricSnapshot`, `BusinessInsight`, `Recommendation` from canonical signals via `refreshReadModelsAction`.
-- [~] `Prediction` and `Outcome` are updated by existing prediction/outcome services; async scheduler not yet implemented.
+- [x] `refreshReadModelsAction` now enqueues `REFRESH_READ_MODELS` and `REFRESH_PREDICTIONS` jobs instead of blocking the request.
 
 ### 8. Business Brain is stateless
 - [x] Conversation memory for Brain (`BrainConversationMemory`) persists previous questions, answers, accepted/rejected advice, and goals.
@@ -67,15 +67,18 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [~] Prompt templates, memory, retrieval, confidence, and model routing centralized behind `ai` module contracts; retrieval/confidence scaffolding can be added later.
 
 ### 13. Application layer is enormous
-- [ ] `intelligence/application` services refactored into smaller, focused services (scoring, lifecycle, conflict, learning).
-- [ ] Domain logic pushed into domain layer where possible.
+- [~] `intelligence/application` services remain large but domain invariants extracted; scoring/lifecycle/conflict/learning decomposition can continue in a follow-up.
+- [x] Domain logic for recommendation execution/expiry pushed into the domain layer.
 
 ### 14. Domain model is anemic
-- [ ] Core invariants (e.g. `Recommendation` cannot be executed after expiry) live in domain objects, not only application services.
-- [ ] Decide and document whether the project uses rich DDD or transaction-script style.
+- [x] Core `Recommendation` executable/expiry invariants live in the domain (`src/modules/intelligence/domain/recommendation.ts`) and are enforced by `ActionPlanService.execute()` and `recommendationLifecycleService.expireStaleRecommendations()`.
+- [x] Domain-driven invariants adopted for `Recommendation`; transaction-script style remains for read/complex cross-domain orchestration.
 
 ### 15. Intelligence lifecycle is synchronous
-- [ ] Prediction, learning, correlation, and trend jobs can run asynchronously (BullMQ/Redis) without blocking business operations.
+- [x] Shared `QueueService` abstraction in `src/shared/queue` with `BullMQQueue` (Redis) and `InMemoryQueue` (fallback) backends.
+- [x] `intelligence` registers `REFRESH_READ_MODELS`, `REFRESH_PREDICTIONS`, and `LEARN_FROM_OUTCOME` job handlers.
+- [x] `refreshReadModelsAction` enqueues read-model/prediction refresh jobs and returns immediately.
+- [x] `npm run worker` runs a BullMQ/in-memory worker process (`src/jobs/worker.ts`).
 
 ---
 
@@ -87,8 +90,8 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] AI prompt audit log without PII.
 - [x] `/api/meta/webhook` rate limiting and replay idempotency.
 - [x] `env.ts` rejects startup via `validateProductionSecrets()` + `instrumentation.ts`.
-- [ ] Tenant isolation audit completed for all mutating server actions (deferred to follow-up).
-- [ ] Dev-only simulators cannot be triggered in production (deferred to follow-up).
+- [~] Tenant isolation audit: existing `assertStoreInOrg` pattern is used across mutating server actions; a full audit of every action remains a follow-up checklist item.
+- [x] Dev-only simulators blocked in production (`simulateInbound` in `meta/application/simulate-inbound.ts` and `simulateFirstTimeFollower` in `coupons/presentation/actions.ts` reject production calls).
 
 ---
 
@@ -97,5 +100,6 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] `npm run lint` passes.
 - [x] `npm run typecheck` passes.
 - [x] `npm run build` passes.
+- [x] `npm run worker` starts without errors.
 - [x] `scripts/verify-task370.ts` end-to-end validation script created and typechecks; runtime requires PostgreSQL.
 - [x] `CHANGELOG.md` updated.

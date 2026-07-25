@@ -8,6 +8,7 @@ import { MarketingMemoryUpdated } from "../domain/events";
 import type { ConversationRecord, MessageRecord } from "@/modules/conversations";
 import type { TrackedAccountRecord } from "@/modules/analytics";
 import type { SocialCommentRecord, SocialMentionRecord } from "@/modules/social";
+import type { MetaMediaItem } from "@/modules/meta";
 import type { MarketingMemoryRecord, ProductScoreRecord } from "../domain/types";
 
 interface MarketingMemoryDeps {
@@ -15,6 +16,7 @@ interface MarketingMemoryDeps {
   conversationQueries: ConversationQueries;
   crmQueries: CrmQueries;
   analyticsQueries: AnalyticsQueries;
+  getAccountMedia: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
   socialQueries: SocialQueries;
   eventBus: EventBus;
 }
@@ -175,6 +177,11 @@ function extractCommentPatterns(comments: SocialCommentRecord[]) {
     .slice(0, 5);
 }
 
+function engagementScore(item: MetaMediaItem): number {
+  const metrics = item.metrics ?? {};
+  return (metrics.likes ?? 0) + (metrics.comments ?? 0) * 2 + (metrics.shares ?? 0) * 3 + (metrics.plays ?? 0) * 0.1;
+}
+
 function detectCompetitorChanges(accounts: TrackedAccountRecord[]) {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   return accounts
@@ -182,12 +189,21 @@ function detectCompetitorChanges(accounts: TrackedAccountRecord[]) {
       (a) =>
         a.lastAnalysis != null && a.lastSyncedAt != null && a.lastSyncedAt > oneWeekAgo,
     )
-    .map((a) => ({
-      trackedAccountId: a.id,
-      handle: a.handle,
-      changeType: "Recent analysis available",
-      detectedAt: a.lastSyncedAt!,
-    }))
+    .map((a) => {
+      const posts = (a.lastMedia as MetaMediaItem[] | null) ?? [];
+      const topPost = posts.length > 0
+        ? posts.slice().sort((x, y) => engagementScore(y) - engagementScore(x))[0]
+        : null;
+      return {
+        trackedAccountId: a.id,
+        handle: a.handle,
+        changeType: "Recent analysis available",
+        detectedAt: a.lastSyncedAt!,
+        latestCaption: redactPhrase(topPost?.caption ?? "").slice(0, 120) || null,
+        latestMediaType: topPost?.mediaType ?? null,
+        latestEngagement: topPost ? engagementScore(topPost) : 0,
+      };
+    })
     .slice(0, 5);
 }
 
@@ -223,6 +239,8 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
         deps.analyticsQueries.listTrackedAccounts(storeId),
       ]);
 
+    const ownMedia = await deps.getAccountMedia(storeId, 25).catch(() => []);
+
     let orders: { total: number }[] = [];
     try {
       orders = await deps.ecommerceQueries.listOrders(storeId, 100);
@@ -252,13 +270,23 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
     const trendingHashtags = extractTrendingHashtags(mentions);
     const competitorChanges = detectCompetitorChanges(accounts);
 
+    const topPerformingPosts = ownMedia
+      .filter((m) => Boolean(m.caption))
+      .sort((a, b) => engagementScore(b) - engagementScore(a))
+      .slice(0, 5)
+      .map((m) => ({
+        id: m.id,
+        title: m.caption ? redactPhrase(m.caption).slice(0, 100) : "",
+        engagement: engagementScore(m),
+      }));
+
     const record: MarketingMemoryRecord = {
       organizationId,
       storeId,
       generatedAt: new Date(),
       followerCount: followers.length,
       productScores,
-      topPerformingPosts: [],
+      topPerformingPosts,
       dmPatterns,
       commentPatterns,
       trendingHashtags,

@@ -688,6 +688,11 @@ export class PrismaOutcomeRepository implements OutcomeRepository {
     return (row as StoredOutcome) ?? null;
   }
 
+  async findById(id: string): Promise<OutcomeRecord | null> {
+    const row = await prisma.outcome.findUnique({ where: { id } });
+    return (row as StoredOutcome) ?? null;
+  }
+
   async list(organizationId: string, storeId?: string, limit = 20): Promise<OutcomeRecord[]> {
     const rows = await prisma.outcome.findMany({
       where: {

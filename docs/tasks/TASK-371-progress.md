@@ -11,13 +11,16 @@ Status legend:
 ## Product gaps (from repositioning review)
 
 ### 1. Content Intelligence is disconnected
-- [x] Content Studio post-idea generation is exposed by the `content` module as `generateContentIdeasAction` and publishes `ContentIdeasGenerated`; it consumes Marketing Memory (top products, DM/comment themes, trending hashtags, today's brief).
-- [ ] Still need: competitor posts, own best posts, explicit campaigns/analytics integration.
+- [x] Content Studio post-idea generation is exposed by the `content` module as `generateContentIdeasAction` and publishes `ContentIdeasGenerated`; it consumes Marketing Memory (top products, DM/comment themes, trending hashtags, today's brief, own best-performing posts, competitor changes).
+- [x] `getAccountMedia` added to the analytics server barrel; `updateMarketingMemory` fetches the connected Meta account's own media and computes `topPerformingPosts`.
+- [x] `detectCompetitorChanges` captures each competitor's top post `latestCaption`, `latestMediaType`, and `latestEngagement` from `TrackedAccountRecord.lastMedia`.
+- [x] `ai.generatePostIdeas` prompt now grounds ideas in own best-performing posts and competitor changes with engagement scores.
 - [x] Generated ideas include grounding evidence panel in `ContentStudioForms` showing which memory signals influenced the ideas.
 
 ### 2. Analytics doesn't close the loop
 - [x] Marketing analytics reorganized around Content / Audience / Product / Campaign sections in `getMarketingPerformance` and `/stores/[storeId]/analytics`.
-- [~] Post performance drives summary and content engagement section; full "why" explanation + competitor comparison + next recommendation needs media metrics and post-to-order attribution.
+- [x] `getMarketingPerformance` now returns `why` and `nextRecommendation` per section, plus an overall `explanation` that closes the loop from metrics → reason → next action.
+- [~] Full post-to-order attribution and rich media metrics (hook retention, caption length, etc.) require additional Meta media data and order line-item modeling.
 
 ### 3. Competitor Analysis is passive
 - [x] Competitor change detection implemented (`CompetitorChangeDetected` published when `lastMedia` post count changes in `getCompetitorBenchmark`).
@@ -33,10 +36,12 @@ Status legend:
 - [x] Comment patterns update analytics, campaign, content, and sales strategy (insights and `CREATE_DM_CAMPAIGN` recommendations generated from comment patterns).
 
 ### 6. Analytics should become marketing analytics
-- [ ] Content Performance view: which content sold, gained followers, started conversations, generated profile visits.
-- [ ] Audience view: growing, leaving, buying, commenting.
-- [ ] Product view: which products appear in viral content, get questions, convert poorly.
-- [ ] Campaign view: revenue, followers, conversations generated.
+- [x] New `/stores/[storeId]/analytics/content` page with top recent mentions, intent breakdown, and next recommendation.
+- [x] New `/stores/[storeId]/analytics/audience` page with follower/customer/conversation/message segments and growth next step.
+- [x] New `/stores/[storeId]/analytics/product` page with revenue, AOV, top products to promote, and product next step.
+- [x] New `/stores/[storeId]/analytics/campaign` page with active coupons, coupons generated/used, and campaign next step.
+- [x] `/stores/[storeId]/analytics` links to the four subpages and surfaces the overall AI marketing explanation.
+- [~] Full attribution (which content sold, which gained followers, etc.) depends on post-to-order and richer media metrics.
 
 ### 7. Products should influence content
 - [x] `ProductScore` computed in `intelligence` (content, engagement, conversation, sales, trend, competitor scores) from ecommerce, conversations, and orders.
@@ -44,7 +49,9 @@ Status legend:
 
 ### 8. Marketing Memory
 - [x] `MarketingMemory` aggregate per workspace (`updateMarketingMemory()` in `intelligence`).
-- [~] Memory stores product scores, DM/comment patterns, trending hashtags, campaign/coupon history, competitor changes (basic). Winning posting times and top posts are placeholders pending analytics.
+- [x] `topPerformingPosts` populated from the connected Meta account's own media.
+- [x] `competitorChanges` populated with each tracked competitor's top post caption, media type, and engagement.
+- [~] Winning posting times remain a placeholder until engagement timestamps are captured.
 
 ### 9. Inbox should generate insights automatically
 - [x] One DM theme creates product insight, marketing insight, content idea, and surfaces on Daily Marketing dashboard.
@@ -56,7 +63,8 @@ Status legend:
 - [x] Workspace vs competitor side-by-side comparison implemented (`getWorkspaceCompetitorComparison` + `ComparisonPanel` UI).
 
 ### 11. AI should explain marketing
-- [~] AI prompt now includes top products, DM/comment patterns, and today's brief. Full post-performance explanation (hook retention, caption length, etc.) needs media metrics.
+- [x] `MarketingPerformanceView` includes an `explanation` field that tells the user why the metrics look the way they do and what to do next.
+- [~] Rich post-level explanation (hook retention, caption length, best/worst hooks) requires Meta media metrics and per-post attribution.
 
 ### 12. Business Brain should become Marketing Brain
 - [x] `/business-brain` rebranded as Marketing Brain.

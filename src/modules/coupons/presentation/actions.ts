@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/modules/auth";
+import { env } from "@/shared/config";
 import { eventBus } from "@/shared/events";
 import { MetaFollowReceived } from "@/modules/meta";
 import { updateCampaignSchema, updateCampaign } from "@/modules/coupons";
@@ -54,6 +55,9 @@ export async function simulateFirstTimeFollower(
   _prev: CouponsActionState,
   formData: FormData,
 ): Promise<CouponsActionState> {
+  if (env.NODE_ENV === "production") {
+    return { status: "error", message: "Simulation is disabled in production." };
+  }
   try {
     await requireRole("STORE_OWNER");
   } catch {

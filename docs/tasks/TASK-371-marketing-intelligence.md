@@ -13,13 +13,13 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 ## Subtasks
 
 ### Content Intelligence
-- [~] 1. `ai.generatePostIdeas` consumes Marketing Memory (products, DM/comment themes, trending hashtags, daily brief) and returns grounding evidence. Still need competitor posts, own best posts, and analytics integration.
+- [x] 1. `ai.generatePostIdeas` consumes Marketing Memory (products, DM/comment themes, trending hashtags, daily brief, own best-performing posts, competitor changes) and returns grounding evidence.
 - [x] 2. `content` exposes `generateContentIdeas(input)` and publishes `ContentIdeasGenerated` (new `content` module with `generateContentIdeasAction` and `ContentIdeasGenerated` domain event).
 - [x] 3. Every content idea result includes grounding evidence (signals that influenced the recommendation).
 
 ### Analytics Loop
-- [x] 4. Reorganize analytics around marketing: Content, Audience, Product, Campaign (`getMarketingPerformance` + `/stores/[storeId]/analytics` dashboard).
-- [~] 5. Post performance → `why` explanation → competitor comparison → audience reaction → next recommendation (partial: summary + content engagement; full loop needs media metrics and post-to-order attribution).
+- [x] 4. Reorganize analytics around marketing: Content, Audience, Product, Campaign (`getMarketingPerformance` + `/stores/[storeId]/analytics` dashboard + four new subpages).
+- [x] 5. `getMarketingPerformance` returns per-section `why` and `nextRecommendation` plus an overall `explanation`, closing the loop from metrics → reason → action.
 - [x] 6. `analytics` publishes `MarketingPerformanceUpdated` from `getMarketingPerformance`.
 
 ### Competitor Intelligence

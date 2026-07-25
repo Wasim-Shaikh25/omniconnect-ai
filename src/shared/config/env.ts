@@ -14,6 +14,7 @@ const envSchema = z.object({
 
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().optional(),
+  WORKER_CONCURRENCY: z.coerce.number().int().min(1).default(1),
 
   NEXTAUTH_SECRET: z.string().optional(),
   NEXTAUTH_URL: z.string().url().optional(),

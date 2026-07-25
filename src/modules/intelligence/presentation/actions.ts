@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getQueue } from "@/shared/queue";
 import { getCurrentUser, requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { customerDirectory } from "@/modules/crm";
@@ -16,7 +17,6 @@ import {
   intelligenceFeedService,
   recommendationService,
   recommendationLifecycleService,
-  readModelRefresher,
   actionPlanService,
   goalService,
   predictionService,
@@ -47,6 +47,11 @@ import {
   generateDailyBrief,
   generateMarketingInsightsFromMemory,
 } from "../infrastructure/container";
+import {
+  INTELLIGENCE_QUEUE,
+  JOB_REFRESH_READ_MODELS,
+  JOB_REFRESH_PREDICTIONS,
+} from "../infrastructure/queue-handlers";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
 export interface IntelligenceActionState {
@@ -231,7 +236,7 @@ export async function getRecommendationConflictsAction(storeId?: string) {
 
 export async function refreshReadModelsAction(storeId?: string): Promise<{
   ok: boolean;
-  result?: { insightsGenerated: number; recommendationsGenerated: number; ranked: number; expired: string[]; metricsRefreshed: number };
+  result?: { jobIds: string[] };
   error?: string;
 }> {
   const user = await requireRole("ADMIN");
@@ -243,15 +248,14 @@ export async function refreshReadModelsAction(storeId?: string): Promise<{
   if (storeId && !overview?.stores.some((s) => s.id === storeId)) return { ok: false, error: "Store not found" };
 
   try {
-    const aggregate = { insightsGenerated: 0, recommendationsGenerated: 0, ranked: 0, expired: [] as string[], metricsRefreshed: 0 };
+    const queue = getQueue(INTELLIGENCE_QUEUE);
+    const jobIds: string[] = [];
     for (const id of storeIds) {
-      const result = await readModelRefresher.refreshStore(organizationId, id);
-      aggregate.recommendationsGenerated += result.recommendationsGenerated;
-      aggregate.ranked += result.ranked;
-      aggregate.expired.push(...result.expired);
-      aggregate.metricsRefreshed = Math.max(aggregate.metricsRefreshed, result.metricsRefreshed);
+      const readJobId = await queue.add(JOB_REFRESH_READ_MODELS, { organizationId, storeId: id });
+      const predictionJobId = await queue.add(JOB_REFRESH_PREDICTIONS, { organizationId, storeId: id });
+      jobIds.push(readJobId, predictionJobId);
     }
-    return { ok: true, result: aggregate };
+    return { ok: true, result: { jobIds } };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Refresh failed";
     return { ok: false, error: message };

@@ -3,7 +3,7 @@ import { eventBus } from "@/shared/events";
 import { ecommerceQueries, executeEcommerceAction, detectCommerceInsights } from "@/modules/ecommerce";
 import { conversationQueries, executeConversationAction, detectConversationInsights } from "@/modules/conversations";
 import { crmQueries, customerDirectory, detectCrmInsights } from "@/modules/crm";
-import { analyticsQueries } from "@/modules/analytics";
+import { analyticsQueries, getAccountMedia } from "@/modules/analytics/server";
 import { socialQueries } from "@/modules/social";
 import { growthQueries, executeGrowthAction, detectGrowthInsights } from "@/modules/growth";
 import { brandDealQueries, detectBrandDealInsights } from "@/modules/branddeals";
@@ -44,6 +44,7 @@ import { makeOperatingModelService } from "../application/operating-model";
 import { makeUpdateMarketingMemory } from "../application/marketing-memory";
 import { makeGenerateDailyBrief } from "../application/daily-brief";
 import { makeGenerateMarketingInsightsFromMemory } from "../application/marketing-insights";
+import { registerIntelligenceQueueHandlers } from "./queue-handlers";
 import {
   makeUnifiedContextService,
   makeKnowledgeGraphService,
@@ -285,6 +286,7 @@ export const updateMarketingMemory = makeUpdateMarketingMemory({
   conversationQueries,
   crmQueries,
   analyticsQueries,
+  getAccountMedia,
   socialQueries,
   eventBus,
 });
@@ -307,5 +309,13 @@ export const predictionPrioritizationService = makePredictionPrioritizationServi
 export const intelligenceFeedbackService = makeIntelligenceFeedbackService();
 export const intelligenceFeedInteractionService = makeIntelligenceFeedInteractionService({ insights });
 export const chartAcceptanceService = makeChartAcceptanceService();
+
+registerIntelligenceQueueHandlers({
+  readModelRefresher,
+  predictions: predictionService,
+  businessLearning: businessLearningService,
+  recommendations,
+  outcomes,
+});
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };

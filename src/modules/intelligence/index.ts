@@ -53,6 +53,9 @@ export type {
   CompetitorChange,
 } from "./domain/types";
 
+export { canExecuteRecommendation, isRecommendationExpired } from "./domain/recommendation";
+export type { ExecutableCheck } from "./domain/recommendation";
+
 export type { IngestSignalInput } from "./application/signal-ingestion";
 export type { TimelineQuery } from "./application/timeline";
 export type { BusinessBrainContext, BusinessBrainContextService } from "./application/business-brain-context";

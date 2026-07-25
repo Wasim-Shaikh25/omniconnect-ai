@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
-import { getMarketingPerformance, type MarketingPerformanceView } from "@/modules/analytics";
+import { type MarketingPerformanceView } from "@/modules/analytics";
+import { getMarketingPerformance } from "@/modules/analytics/server";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -58,6 +59,31 @@ export default async function StoreAnalyticsPage({
       {view && (
         <>
           <p className="mb-6 text-sm text-muted-foreground">{view.summary}</p>
+
+          <div className="mb-6 flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/analytics/content`}>Content</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/analytics/audience`}>Audience</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/analytics/product`}>Product</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${storeId}/analytics/campaign`}>Campaign</Link>
+            </Button>
+          </div>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>AI marketing explanation</CardTitle>
+              <CardDescription>Why these numbers look this way and what to do next.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{view.explanation}</p>
+            </CardContent>
+          </Card>
 
           <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>

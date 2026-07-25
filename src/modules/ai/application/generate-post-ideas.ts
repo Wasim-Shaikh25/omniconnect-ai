@@ -78,9 +78,17 @@ export function makeGeneratePostIdeas(deps: {
       .map((h) => `#${h.tag}`)
       .join(" ") ?? "none";
 
+    const topPerformingPosts = memory?.topPerformingPosts
+      .map((p) => `"${p.title}" (engagement ${Math.round(p.engagement)})`)
+      .join("; ") ?? "none";
+
+    const competitorChanges = memory?.competitorChanges
+      .map((c) => `@${c.handle}: ${c.changeType}${c.latestCaption ? ` — "${c.latestCaption}"` : ""}${c.latestEngagement > 0 ? ` (engagement ${Math.round(c.latestEngagement)})` : ""}`)
+      .join("; ") ?? "none";
+
     const system = `You are a social media content strategist for Instagram. Tone: ${tone}.
 Analyze the provided post and generate a JSON array of ${count} fresh content ideas inspired by *why* this post worked (or what would make it work better).
-Ground ideas in the brand's marketing memory: top products to promote, recent DM/comment themes, trending hashtags, and today's brief.
+Ground ideas in the brand's marketing memory: top products to promote, recent DM/comment themes, trending hashtags, own best-performing posts, competitor changes, and today's brief.
 For each idea return:
 - title (string, punchy idea name)
 - format (string, one of Reel/Post/Carousel/Story)
@@ -102,10 +110,12 @@ Top products to promote: ${topProducts}
 DM themes: ${dmPatterns}
 Comment themes: ${commentPatterns}
 Trending hashtags from mentions: ${trendingHashtags}
+Own best-performing posts: ${topPerformingPosts}
+Competitor changes: ${competitorChanges}
 ${brief ? `Today's brief: ${brief.priorities.join("; ")}. Content idea: ${brief.contentIdea ?? "none"}` : ""}
-Generate content ideas that follow the same vibe, tie to the brand's current marketing priorities, and are original for our brand.`;
+Generate content ideas that follow the same vibe, tie to the brand's current marketing priorities, learn from competitors, and are original for our brand.`;
 
-    const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
+    const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags}), own best posts (${topPerformingPosts}), competitor changes (${competitorChanges})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
 
     const context = new AIContextBuilder()
       .withSystem(system)

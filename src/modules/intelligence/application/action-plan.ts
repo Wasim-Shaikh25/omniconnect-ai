@@ -14,6 +14,7 @@ import {
   ActionPlanExecuted,
   RecommendationAccepted,
 } from "../domain/events";
+import { canExecuteRecommendation } from "../domain/recommendation";
 import type { RecommendationRecord, ActionPlanRecord, DecisionRecord, OutcomeRecord, RiskTier } from "../domain/types";
 
 export interface ActionPlanServiceInput {
@@ -122,6 +123,11 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
       if (!plan) throw new Error("Action plan not found");
 
       const recommendation = await input.recommendations.findById(plan.recommendationId ?? "");
+      const executable = canExecuteRecommendation(recommendation);
+      if (!executable.ok) {
+        throw new Error(executable.reason ?? "Recommendation cannot be executed");
+      }
+
       const riskTier: RiskTier = recommendation?.riskTier ?? "TIER_2";
 
       if (plan.status !== "APPROVED" && plan.status !== "DRAFT") {

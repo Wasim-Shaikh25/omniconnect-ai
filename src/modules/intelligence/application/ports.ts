@@ -133,6 +133,7 @@ export interface DecisionRepository {
 export interface OutcomeRepository {
   save(outcome: Omit<OutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<OutcomeRecord>;
   findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null>;
+  findById(id: string): Promise<OutcomeRecord | null>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<OutcomeRecord[]>;
   updateMeasured(id: string, beforeValue: number | null, afterValue: number | null, status: OutcomeStatus, measuredAt: Date): Promise<OutcomeRecord>;
 }

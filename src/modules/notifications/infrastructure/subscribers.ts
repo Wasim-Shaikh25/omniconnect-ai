@@ -11,9 +11,7 @@ import type {
 import type {
   CouponGeneratedPayload,
 } from "@/modules/ecommerce";
-import type {
-  EscalationRequestedPayload,
-} from "@/modules/ai";
+import type { EscalationRequestedPayload } from "@/modules/ai/events";
 import { notificationService } from "./container";
 import type { NotificationService } from "../application/ports";
 
