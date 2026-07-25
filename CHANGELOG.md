@@ -262,6 +262,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Server actions: `getRecommendationsAction`, `approveRecommendationAction`, `dismissRecommendationAction`, `executeActionPlanAction`, `getGoalsAction`, `createGoalAction`.
   - UI components `RecommendationsPanel` + `GoalsPanel` wired into `/dashboard` and `/stores/[storeId]`.
   - End-to-end validation: insight → recommendation → approved plan → executed action → outcome; `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- **TASK-354 — Unified Intelligence Layer Phase 4: Predictions & Learning** (spec `0033`):
+  - Prisma models + migration for `Prediction`, `Hypothesis`, `BusinessLearning` with enums.
+  - Domain types/events and Prisma repositories for the new aggregates.
+  - `PredictionService` for churn, stock-out, purchase-propensity, and revenue-forecast rule-based predictions with probability bands, confidence/calibration metadata, and abstention when history is insufficient.
+  - `HypothesisService` generates/testable hypotheses from open `BusinessInsight` records.
+  - `BusinessLearningService` closes the loop: outcomes update rule weights; `ActionPlanService` calls it after every execution.
+  - Server actions: `getPredictionsAction`, `getHypothesesAction`, `getBusinessLearningAction`.
+  - UI components `PredictionsPanel` + `LearningPanel` wired into `/dashboard` and `/stores/[storeId]`.
+  - End-to-end validation: insight → prediction → action → outcome → `BusinessLearning` weight update; `npm run lint`, `npm run typecheck`, `npm run build` pass.
 
 ### 🔨 In Progress
 

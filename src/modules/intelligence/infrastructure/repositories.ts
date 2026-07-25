@@ -11,6 +11,9 @@ import type {
   DecisionRepository,
   OutcomeRepository,
   GoalRepository,
+  PredictionRepository,
+  HypothesisRepository,
+  BusinessLearningRepository,
 } from "../application/ports";
 import type {
   SignalRecord,
@@ -24,10 +27,14 @@ import type {
   DecisionRecord,
   OutcomeRecord,
   GoalRecord,
+  PredictionRecord,
+  HypothesisRecord,
+  BusinessLearningRecord,
   RecommendationStatus,
   ActionPlanStatus,
   OutcomeStatus,
   GoalStatus,
+  HypothesisStatus,
 } from "../domain/types";
 
 type StoredSignal = {
@@ -703,5 +710,184 @@ export class PrismaGoalRepository implements GoalRepository {
     if (status) data.status = status;
     const updated = await prisma.goal.update({ where: { id }, data });
     return toGoalRecord(updated as StoredGoal);
+  }
+}
+
+type StoredPrediction = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  predictionType: PredictionRecord["predictionType"];
+  targetEntityType: string | null;
+  targetEntityId: string | null;
+  horizon: string;
+  estimate: number;
+  probability: number | null;
+  lowerBound: number | null;
+  upperBound: number | null;
+  features: unknown;
+  calibration: string | null;
+  expiresAt: Date;
+  status: PredictionRecord["status"];
+  reason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toPredictionRecord(row: StoredPrediction): PredictionRecord {
+  return {
+    ...row,
+    features:
+      typeof row.features === "object" && row.features !== null ? row.features : null,
+  };
+}
+
+export class PrismaPredictionRepository implements PredictionRepository {
+  async save(prediction: Omit<PredictionRecord, "id" | "createdAt" | "updatedAt">): Promise<PredictionRecord> {
+    const created = await prisma.prediction.create({
+      data: prediction as unknown as Prisma.PredictionCreateInput,
+    });
+    return toPredictionRecord(created as StoredPrediction);
+  }
+
+  async listActive(organizationId: string, storeId?: string, limit = 50): Promise<PredictionRecord[]> {
+    const rows = await prisma.prediction.findMany({
+      where: {
+        organizationId,
+        status: "ACTIVE",
+        expiresAt: { gte: new Date() },
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toPredictionRecord(r as StoredPrediction));
+  }
+
+  async findById(id: string): Promise<PredictionRecord | null> {
+    const row = await prisma.prediction.findUnique({ where: { id } });
+    return row ? toPredictionRecord(row as StoredPrediction) : null;
+  }
+
+  async expire(id: string): Promise<PredictionRecord> {
+    const updated = await prisma.prediction.update({ where: { id }, data: { status: "EXPIRED" } });
+    return toPredictionRecord(updated as StoredPrediction);
+  }
+}
+
+type StoredHypothesis = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  insightId: string | null;
+  statement: string;
+  features: unknown;
+  expectedOutcome: string | null;
+  status: HypothesisRecord["status"];
+  validatedAt: Date | null;
+  confidence: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toHypothesisRecord(row: StoredHypothesis): HypothesisRecord {
+  return {
+    ...row,
+    features:
+      typeof row.features === "object" && row.features !== null ? row.features : null,
+  };
+}
+
+export class PrismaHypothesisRepository implements HypothesisRepository {
+  async save(hypothesis: Omit<HypothesisRecord, "id" | "createdAt" | "updatedAt">): Promise<HypothesisRecord> {
+    const created = await prisma.hypothesis.create({
+      data: hypothesis as unknown as Prisma.HypothesisCreateInput,
+    });
+    return toHypothesisRecord(created as StoredHypothesis);
+  }
+
+  async list(organizationId: string, storeId?: string, limit = 50): Promise<HypothesisRecord[]> {
+    const rows = await prisma.hypothesis.findMany({
+      where: { organizationId, ...(storeId ? { storeId } : {}) },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toHypothesisRecord(r as StoredHypothesis));
+  }
+
+  async findById(id: string): Promise<HypothesisRecord | null> {
+    const row = await prisma.hypothesis.findUnique({ where: { id } });
+    return row ? toHypothesisRecord(row as StoredHypothesis) : null;
+  }
+
+  async updateStatus(id: string, status: HypothesisStatus, validatedAt?: Date | null): Promise<HypothesisRecord> {
+    const data: Prisma.HypothesisUpdateInput = { status };
+    if (validatedAt !== undefined) data.validatedAt = validatedAt ?? null;
+    const updated = await prisma.hypothesis.update({ where: { id }, data });
+    return toHypothesisRecord(updated as StoredHypothesis);
+  }
+}
+
+type StoredBusinessLearning = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  ruleName: string;
+  condition: unknown;
+  effect: unknown;
+  weight: number;
+  successCount: number;
+  failureCount: number;
+  lastOutcomeAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toBusinessLearningRecord(row: StoredBusinessLearning): BusinessLearningRecord {
+  return {
+    ...row,
+    condition:
+      typeof row.condition === "object" && row.condition !== null ? row.condition : null,
+    effect:
+      typeof row.effect === "object" && row.effect !== null ? row.effect : null,
+  };
+}
+
+export class PrismaBusinessLearningRepository implements BusinessLearningRepository {
+  async save(record: Omit<BusinessLearningRecord, "id" | "createdAt" | "updatedAt">): Promise<BusinessLearningRecord> {
+    const created = await prisma.businessLearning.create({
+      data: record as unknown as Prisma.BusinessLearningCreateInput,
+    });
+    return toBusinessLearningRecord(created as StoredBusinessLearning);
+  }
+
+  async findByRule(organizationId: string, ruleName: string, storeId?: string): Promise<BusinessLearningRecord | null> {
+    const row = await prisma.businessLearning.findFirst({
+      where: { organizationId, ruleName, ...(storeId ? { storeId } : {}) },
+      orderBy: { updatedAt: "desc" },
+    });
+    return row ? toBusinessLearningRecord(row as StoredBusinessLearning) : null;
+  }
+
+  async list(organizationId: string, storeId?: string, limit = 50): Promise<BusinessLearningRecord[]> {
+    const rows = await prisma.businessLearning.findMany({
+      where: { organizationId, ...(storeId ? { storeId } : {}) },
+      orderBy: { weight: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toBusinessLearningRecord(r as StoredBusinessLearning));
+  }
+
+  async updateOutcome(id: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord> {
+    const existing = await prisma.businessLearning.findUnique({ where: { id } });
+    if (!existing) throw new Error("BusinessLearning record not found");
+    const data: Prisma.BusinessLearningUpdateInput = {
+      weight: existing.weight + weightDelta,
+      successCount: existing.successCount + (success ? 1 : 0),
+      failureCount: existing.failureCount + (success ? 0 : 1),
+      lastOutcomeAt,
+    };
+    const updated = await prisma.businessLearning.update({ where: { id }, data });
+    return toBusinessLearningRecord(updated as StoredBusinessLearning);
   }
 }

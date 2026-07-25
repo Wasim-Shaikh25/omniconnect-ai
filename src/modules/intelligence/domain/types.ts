@@ -273,3 +273,58 @@ export interface GoalRecord {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type PredictionType = "CHURN" | "STOCK_OUT" | "PURCHASE_PROPENSITY" | "REVENUE_FORECAST";
+export type PredictionStatus = "ACTIVE" | "EXPIRED" | "ABSTAINED";
+export type HypothesisStatus = "PROPOSED" | "VALIDATED" | "REFUTED";
+
+export interface PredictionRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  predictionType: PredictionType;
+  targetEntityType: string | null;
+  targetEntityId: string | null;
+  horizon: string;
+  estimate: number;
+  probability: number | null;
+  lowerBound: number | null;
+  upperBound: number | null;
+  features: unknown;
+  calibration: string | null;
+  expiresAt: Date;
+  status: PredictionStatus;
+  reason: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface HypothesisRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  insightId: string | null;
+  statement: string;
+  features: unknown;
+  expectedOutcome: string | null;
+  status: HypothesisStatus;
+  validatedAt: Date | null;
+  confidence: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BusinessLearningRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  ruleName: string;
+  condition: unknown;
+  effect: unknown;
+  weight: number;
+  successCount: number;
+  failureCount: number;
+  lastOutcomeAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}

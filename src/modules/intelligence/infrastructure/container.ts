@@ -17,6 +17,9 @@ import { makeActionPlanService } from "../application/action-plan";
 import { makeDecisionPolicyService } from "../application/decision-policy";
 import { makeOutcomeService } from "../application/outcome";
 import { makeGoalService } from "../application/goal";
+import { makePredictionService } from "../application/prediction";
+import { makeHypothesisService } from "../application/hypothesis";
+import { makeBusinessLearningService } from "../application/business-learning";
 import { makeWorkspaceActionExecutor } from "./action-executor";
 import {
   PrismaSignalRepository,
@@ -29,6 +32,9 @@ import {
   PrismaDecisionRepository,
   PrismaOutcomeRepository,
   PrismaGoalRepository,
+  PrismaPredictionRepository,
+  PrismaHypothesisRepository,
+  PrismaBusinessLearningRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -41,6 +47,9 @@ const actionPlans = new PrismaActionPlanRepository();
 const decisions = new PrismaDecisionRepository();
 const outcomes = new PrismaOutcomeRepository();
 const goals = new PrismaGoalRepository();
+const predictions = new PrismaPredictionRepository();
+const hypotheses = new PrismaHypothesisRepository();
+const learnings = new PrismaBusinessLearningRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
@@ -103,15 +112,24 @@ const actionExecutor = makeWorkspaceActionExecutor({
 export const recommendationService = makeRecommendationService({ insights, recommendations });
 export const decisionPolicyService = makeDecisionPolicyService({ executor: actionExecutor });
 export const outcomeService = makeOutcomeService({ outcomes });
+export const businessLearningService = makeBusinessLearningService({ learning: learnings });
 export const actionPlanService = makeActionPlanService({
   actionPlans,
   recommendations,
   decisions,
   outcomeService,
+  businessLearning: businessLearningService,
   executor: actionExecutor,
   policy: decisionPolicyService,
   metrics: metricService,
 });
 export const goalService = makeGoalService({ goals, metrics: metricService });
+export const predictionService = makePredictionService({
+  predictions,
+  signals,
+  metrics: metricService,
+  listCustomers: crmQueries.listCustomers.bind(crmQueries),
+});
+export const hypothesisService = makeHypothesisService({ insights, hypotheses });
 
-export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals };
+export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings };

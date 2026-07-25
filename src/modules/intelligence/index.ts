@@ -21,6 +21,9 @@ export type {
   ActionPlanRecord,
   OutcomeRecord,
   GoalRecord,
+  PredictionRecord,
+  HypothesisRecord,
+  BusinessLearningRecord,
   JourneyStage,
   ConfidenceLevel,
   LinkStatus,
@@ -34,6 +37,9 @@ export type {
   ActionPlanStatus,
   OutcomeStatus,
   GoalStatus,
+  PredictionType,
+  PredictionStatus,
+  HypothesisStatus,
   RiskTier,
 } from "./domain/types";
 
@@ -53,7 +59,10 @@ export {
   actionPlanService,
   decisionPolicyService,
   outcomeService,
+  businessLearningService,
   goalService,
+  predictionService,
+  hypothesisService,
 } from "./infrastructure/container";
 
 export {
@@ -69,6 +78,9 @@ export {
   dismissRecommendationAction,
   getGoalsAction,
   createGoalAction,
+  getPredictionsAction,
+  getHypothesesAction,
+  getBusinessLearningAction,
   mergeEntityAction,
   splitEntityAction,
 } from "./presentation/actions";
