@@ -9,6 +9,7 @@ import { organizationQueries } from "@/modules/organizations";
 import { notificationQueries } from "@/modules/notifications";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
+import { updateMarketingMemory, generateDailyBrief } from "@/modules/intelligence";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
@@ -80,8 +81,14 @@ const workspaceContext = makeWorkspaceContext({
   notifications: notificationQueries,
 });
 
+const marketingMemory = {
+  getMemory: updateMarketingMemory,
+  getBrief: generateDailyBrief,
+};
+
 export const askBusinessBrain = makeAskBusinessBrain({
   aiProvider,
   aiConfigurationRepository,
   workspaceContext,
+  marketingMemory,
 });

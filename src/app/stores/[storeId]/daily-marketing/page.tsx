@@ -2,9 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
-import { ecommerceQueries } from "@/modules/ecommerce";
-import { conversationQueries, type ConversationRecord } from "@/modules/conversations";
-import { crmQueries } from "@/modules/crm";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,27 +13,8 @@ import {
 import { StoreWorkflowNav } from "@/components/store-workflow-nav";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
 import { RecommendationsPanel } from "@/components/recommendations-panel";
-import { IntelligencePanel } from "@/components/intelligence-panel";
-import { formatCurrency } from "@/lib/currency";
-import { Sparkles, TrendingUp, Users, MessageCircle, Package, Clock, AlertCircle } from "lucide-react";
-
-function DmOpportunityCard({ conversation, storeId }: { conversation: ConversationRecord; storeId: string }) {
-  return (
-    <li className="flex items-start justify-between gap-3 rounded-md border p-3">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">
-          {conversation.channel} · {conversation.externalId ?? "unknown"}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {conversation.status === "AI_ACTIVE" ? "AI active" : "Human active"} · {conversation.updatedAt.toLocaleString()}
-        </p>
-      </div>
-      <Button asChild variant="outline" size="sm">
-        <Link href={`/stores/${storeId}/conversations/${conversation.id}`}>Reply</Link>
-      </Button>
-    </li>
-  );
-}
+import { updateMarketingMemory, generateDailyBrief } from "@/modules/intelligence";
+import { Sparkles, TrendingUp, Package, MessageCircle, Users, Clock, AlertCircle, Hash, MessageSquare } from "lucide-react";
 
 export default async function DailyMarketingPage({
   params,
@@ -54,20 +32,14 @@ export default async function DailyMarketingPage({
   const store = overview?.stores.find((s) => s.id === storeId);
   if (!store) notFound();
 
-  const [products, conversations, followers] = await Promise.all([
-    ecommerceQueries.listProducts(storeId, 10),
-    conversationQueries.listConversations(storeId, 5),
-    crmQueries.listFollowers(storeId, 5),
-  ]);
+  if (!user.organizationId) redirect("/stores");
 
-  // Placeholder product promotion scores until ProductScore backend is implemented.
-  const productsToPromote = products
-    .slice()
-    .sort((a, b) => (b.inventory ?? 0) - (a.inventory ?? 0))
-    .slice(0, 3);
+  const memory = await updateMarketingMemory(user.organizationId, storeId);
+  const brief = await generateDailyBrief(user.organizationId, storeId, memory);
 
-  const dmOpportunities = conversations.filter(
-    (c) => c.status === "AI_ACTIVE" || c.status === "PENDING",
+  const productScores = memory.productScores.slice(0, 5);
+  const dmOpportunities = memory.dmPatterns.filter(
+    (p) => p.category === "AVAILABILITY" || p.category === "SIZE_QUESTION",
   );
 
   return (
@@ -82,21 +54,36 @@ export default async function DailyMarketingPage({
 
       <StoreWorkflowNav storeId={storeId} />
 
-      <section className="mt-6 grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Today&apos;s Brief
-            </CardTitle>
-            <CardDescription>What matters right now for this store.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <IntelligencePanel storeId={storeId} />
-          </CardContent>
-        </Card>
+      {brief.contentIdea && (
+        <section className="mt-6 rounded-md bg-muted p-4">
+          <p className="text-sm font-medium text-foreground">Today&apos;s content idea</p>
+          <p className="text-sm text-muted-foreground">{brief.contentIdea}</p>
+        </section>
+      )}
 
-        <RecommendationsPanel storeId={storeId} />
+      <section className="mt-6 grid gap-4 md:grid-cols-2">
+        {brief.sections.map((section) => (
+          <Card key={section.title}>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                {section.title}
+              </CardTitle>
+              <CardDescription>{section.detail}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xl font-semibold">{section.value}</p>
+              {section.change && (
+                <p className="text-xs text-muted-foreground">{section.change}</p>
+              )}
+              {section.cta && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href={section.cta.href}>{section.cta.label}</Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </section>
 
       <section className="mt-6 grid gap-6 md:grid-cols-2">
@@ -106,22 +93,23 @@ export default async function DailyMarketingPage({
               <Package className="h-4 w-4" />
               Products To Push
             </CardTitle>
-            <CardDescription>Top products based on inventory and activity.</CardDescription>
+            <CardDescription>Top products based on customer interest and activity.</CardDescription>
           </CardHeader>
           <CardContent>
-            {productsToPromote.length === 0 ? (
+            {productScores.length === 0 ? (
               <p className="text-sm text-muted-foreground">No products yet. Sync your catalog.</p>
             ) : (
               <ul className="space-y-3">
-                {productsToPromote.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between rounded-md border p-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{p.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatCurrency(p.price, p.currency)} · {p.inventory ?? "?"} in stock
-                      </p>
+                {productScores.map((p) => (
+                  <li key={p.productId} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">{p.productTitle}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {Math.round(p.compositeScore * 100)} pts
+                      </span>
                     </div>
-                    <Button asChild variant="outline" size="sm">
+                    <p className="text-xs text-muted-foreground">{p.evidence}</p>
+                    <Button asChild variant="outline" size="sm" className="mt-2">
                       <Link href={`/stores/${storeId}/content`}>Create content</Link>
                     </Button>
                   </li>
@@ -138,25 +126,82 @@ export default async function DailyMarketingPage({
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
-              DM Opportunities
+              DM Insights
             </CardTitle>
-            <CardDescription>High-intent conversations waiting for attention.</CardDescription>
+            <CardDescription>Patterns detected in customer messages.</CardDescription>
           </CardHeader>
           <CardContent>
-            {dmOpportunities.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No pending DMs. Great work.</p>
+            {memory.dmPatterns.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No DM patterns yet.</p>
             ) : (
               <ul className="space-y-3">
-                {dmOpportunities.map((c) => (
-                  <DmOpportunityCard key={c.id} conversation={c} storeId={storeId} />
+                {memory.dmPatterns.map((p) => (
+                  <li key={p.category} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">
+                        {p.category.replace(/_/g, " ")}
+                      </p>
+                      <span className="text-xs text-muted-foreground">{p.frequency}</span>
+                    </div>
+                    {p.samplePhrases.length > 0 && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        &ldquo;{p.samplePhrases[0]}&rdquo;
+                      </p>
+                    )}
+                  </li>
                 ))}
               </ul>
+            )}
+            {dmOpportunities.length > 0 && (
+              <p className="mt-3 text-xs text-primary">
+                {dmOpportunities.reduce((sum, p) => sum + p.frequency, 0)} high-intent message(s)
+              </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
               <Link href={`/stores/${storeId}/conversations`}>Open inbox</Link>
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Comment Insights
+            </CardTitle>
+            <CardDescription>Patterns detected in post comments.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {memory.commentPatterns.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No comment patterns yet.</p>
+            ) : (
+              <ul className="space-y-3">
+                {memory.commentPatterns.map((p) => (
+                  <li key={p.category} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">
+                        {p.category.replace(/_/g, " ")}
+                      </p>
+                      <span className="text-xs text-muted-foreground">{p.frequency}</span>
+                    </div>
+                    {p.samplePhrases.length > 0 && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        &ldquo;{p.samplePhrases[0]}&rdquo;
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
+              <Link href={`/stores/${storeId}/commerce/comments`}>View comments</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mt-6">
+        <RecommendationsPanel storeId={storeId} />
       </section>
 
       <section className="mt-6 grid gap-6 md:grid-cols-3">
@@ -168,10 +213,9 @@ export default async function DailyMarketingPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">{followers.length}</p>
-            <p className="text-xs text-muted-foreground">Recent Meta followers</p>
+            <p className="text-xs text-muted-foreground">Track followers in Engagement.</p>
             <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link href={`/stores/${storeId}/followers`}>View followers</Link>
+              <Link href={`/stores/${storeId}/engagement`}>View</Link>
             </Button>
           </CardContent>
         </Card>
@@ -184,11 +228,8 @@ export default async function DailyMarketingPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-semibold">6:00 PM</p>
+            <p className="text-2xl font-semibold">{brief.bestPostingTime ?? "—"}</p>
             <p className="text-xs text-muted-foreground">Based on recent engagement patterns</p>
-            <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link href={`/stores/${storeId}/content`}>Create content</Link>
-            </Button>
           </CardContent>
         </Card>
 
@@ -200,10 +241,43 @@ export default async function DailyMarketingPage({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">No new competitor alerts yet.</p>
+            {memory.competitorChanges.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No new competitor alerts yet.</p>
+            ) : (
+              <ul className="space-y-2">
+                {memory.competitorChanges.map((c) => (
+                  <li key={c.trackedAccountId} className="text-sm">
+                    {c.handle}: {c.changeType}
+                  </li>
+                ))}
+              </ul>
+            )}
             <Button asChild variant="outline" size="sm" className="mt-3">
               <Link href={`/stores/${storeId}/commerce/competitors`}>Track competitors</Link>
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Hash className="h-4 w-4" />
+              Trending Hashtags
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {memory.trendingHashtags.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No trending hashtags yet.</p>
+            ) : (
+              <ul className="space-y-2">
+                {memory.trendingHashtags.map((h) => (
+                  <li key={h.tag} className="text-sm flex justify-between">
+                    <span>#{h.tag}</span>
+                    <span className="text-muted-foreground">{h.postCount}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </section>

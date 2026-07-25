@@ -159,3 +159,23 @@ export interface SystemMetricRecordedPayload {
 export class SystemMetricRecorded extends BaseDomainEvent<SystemMetricRecordedPayload> {
   readonly name = "SystemMetricRecorded";
 }
+
+export interface MarketingMemoryUpdatedPayload {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+}
+
+export class MarketingMemoryUpdated extends BaseDomainEvent<MarketingMemoryUpdatedPayload> {
+  readonly name = "MarketingMemoryUpdated";
+}
+
+export interface DailyMarketingBriefGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+}
+
+export class DailyMarketingBriefGenerated extends BaseDomainEvent<DailyMarketingBriefGeneratedPayload> {
+  readonly name = "DailyMarketingBriefGenerated";
+}

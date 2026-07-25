@@ -1,0 +1,133 @@
+import type { EventBus } from "@/shared/events";
+import { DailyMarketingBriefGenerated } from "../domain/events";
+import type { DailyBriefRecord, MarketingMemoryRecord } from "../domain/types";
+
+interface DailyBriefDeps {
+  updateMarketingMemory: (
+    organizationId: string,
+    storeId: string,
+  ) => Promise<MarketingMemoryRecord>;
+  eventBus: EventBus;
+}
+
+function bestPostingTime(): string {
+  // Placeholder until analytics backend computes this from historical engagement.
+  return "Today at 6:00 PM";
+}
+
+function buildSections(
+  memory: MarketingMemoryRecord,
+): DailyBriefRecord["sections"] {
+  const topProduct = memory.productScores[0] ?? null;
+  const topDm = memory.dmPatterns[0] ?? null;
+
+  const sections: DailyBriefRecord["sections"] = [
+    {
+      title: "Follower growth",
+      value: memory.followerCount,
+      detail: "Recent Meta followers tracked in this store.",
+    },
+    {
+      title: "Content opportunity",
+      value: topDm?.category ?? "None",
+      detail: topDm
+        ? `Customers are asking about ${topDm.category.replace(/_/g, " ").toLowerCase()} (${topDm.frequency} times).`
+        : "No strong DM pattern detected.",
+      cta: { label: "Generate content", href: `/stores/${memory.storeId}/content` },
+    },
+    {
+      title: "Competitor alert",
+      value: memory.competitorChanges.length,
+      detail:
+        memory.competitorChanges.length > 0
+          ? `${memory.competitorChanges.length} competitor change(s) detected.`
+          : "No new competitor changes.",
+    },
+    {
+      title: "Products to promote",
+      value: topProduct?.productTitle ?? "—",
+      detail: topProduct
+        ? `Composite score ${Math.round(topProduct.compositeScore * 100)}. ${topProduct.evidence}`
+        : "No products scored yet.",
+      cta: { label: "View products", href: `/stores/${memory.storeId}/commerce/catalog` },
+    },
+    {
+      title: "DM insights",
+      value: memory.dmPatterns.reduce((sum, p) => sum + p.frequency, 0),
+      detail: topDm
+        ? `Top pattern: ${topDm.category.replace(/_/g, " ")}`
+        : "No DM patterns yet.",
+      cta: { label: "Open inbox", href: `/stores/${memory.storeId}/conversations` },
+    },
+    {
+      title: "Comment insights",
+      value: memory.commentPatterns.reduce((sum, p) => sum + p.frequency, 0),
+      detail: "Comment pattern extraction is coming soon.",
+    },
+    {
+      title: "Campaign performance",
+      value: memory.campaignHistory.length,
+      detail: `${memory.campaignHistory.length} coupon/automation tracked.`,
+      cta: { label: "Campaigns", href: `/stores/${memory.storeId}/campaigns` },
+    },
+    {
+      title: "Best time to post",
+      value: bestPostingTime(),
+    },
+  ];
+
+  return sections;
+}
+
+export function makeGenerateDailyBrief(deps: DailyBriefDeps) {
+  return async function generateDailyBrief(
+    organizationId: string,
+    storeId: string,
+    seedMemory?: MarketingMemoryRecord,
+  ): Promise<DailyBriefRecord> {
+    const memory =
+      seedMemory ?? (await deps.updateMarketingMemory(organizationId, storeId));
+
+    const topProduct = memory.productScores[0] ?? null;
+    const topDm = memory.dmPatterns[0] ?? null;
+
+    const contentIdea = topProduct
+      ? `Create a Reel showcasing ${topProduct.productTitle}. ${topProduct.evidence}`
+      : null;
+
+    const trendingHashtags = memory.trendingHashtags.map((h) => h.tag).slice(0, 5);
+
+    const priorities: string[] = [];
+    if (topProduct) priorities.push(`Promote ${topProduct.productTitle}`);
+    if (topDm) priorities.push(`Answer ${topDm.category.replace(/_/g, " ").toLowerCase()} in content`);
+    if (memory.competitorChanges.length > 0) priorities.push("Review competitor changes");
+
+    const brief: DailyBriefRecord = {
+      organizationId,
+      storeId,
+      generatedAt: new Date(),
+      sections: buildSections(memory),
+      contentIdea,
+      recommendedProductId: topProduct?.productId ?? null,
+      recommendedProductTitle: topProduct?.productTitle ?? null,
+      bestPostingTime: bestPostingTime(),
+      trendingAudio: null,
+      trendingHashtags,
+      expectedReach: null,
+      expectedSales: null,
+      priorities: priorities.length > 0 ? priorities : ["Check your Daily Marketing dashboard"],
+    };
+
+    await deps.eventBus.publish(
+      new DailyMarketingBriefGenerated(storeId, {
+        organizationId,
+        storeId,
+        generatedAt: brief.generatedAt,
+      }),
+    );
+
+    return brief;
+  };
+}
+
+export type GenerateDailyBrief = ReturnType<typeof makeGenerateDailyBrief>;

@@ -1,7 +1,10 @@
 import { organizationQueries } from "@/modules/organizations";
+import { eventBus } from "@/shared/events";
 import { ecommerceQueries, generateCoupon } from "@/modules/ecommerce";
 import { conversationQueries, conversationCommands } from "@/modules/conversations";
 import { crmQueries, customerDirectory } from "@/modules/crm";
+import { analyticsQueries } from "@/modules/analytics";
+import { socialQueries } from "@/modules/social";
 import { growthService, growthQueries } from "@/modules/growth";
 import { brandDealQueries } from "@/modules/branddeals";
 import { notificationService, notificationQueries } from "@/modules/notifications";
@@ -35,6 +38,8 @@ import { makeQualityAssuranceService } from "../application/quality-assurance";
 import { makeRolloutService } from "../application/rollout";
 import { makeRiskMitigationRegistry } from "../application/risk-mitigations";
 import { makeOperatingModelService } from "../application/operating-model";
+import { makeUpdateMarketingMemory } from "../application/marketing-memory";
+import { makeGenerateDailyBrief } from "../application/daily-brief";
 import {
   makeUnifiedContextService,
   makeKnowledgeGraphService,
@@ -248,6 +253,18 @@ export const qualityAssuranceService = makeQualityAssuranceService({
 export const rolloutService = makeRolloutService();
 export const riskMitigationRegistry = makeRiskMitigationRegistry();
 export const operatingModelService = makeOperatingModelService();
+export const updateMarketingMemory = makeUpdateMarketingMemory({
+  ecommerceQueries,
+  conversationQueries,
+  crmQueries,
+  analyticsQueries,
+  socialQueries,
+  eventBus,
+});
+export const generateDailyBrief = makeGenerateDailyBrief({
+  updateMarketingMemory,
+  eventBus,
+});
 
 export const unifiedContextService = makeUnifiedContextService({ signals, insights, links, metrics });
 export const knowledgeGraphService = makeKnowledgeGraphService({ signals, ecommerce: ecommerceQueries });

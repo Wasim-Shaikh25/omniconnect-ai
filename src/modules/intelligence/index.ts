@@ -44,6 +44,10 @@ export type {
   PredictionStatus,
   HypothesisStatus,
   RiskTier,
+  ProductScoreRecord,
+  MarketingMemoryRecord,
+  DailyBriefRecord,
+  DailyBriefSection,
 } from "./domain/types";
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
@@ -151,6 +155,8 @@ export type { RolloutGate, RolloutMode } from "./application/rollout";
 export type { RiskMitigation } from "./application/risk-mitigations";
 export {
   operatingModelService,
+  updateMarketingMemory,
+  generateDailyBrief,
   unifiedContextService,
   knowledgeGraphService,
   featureService,

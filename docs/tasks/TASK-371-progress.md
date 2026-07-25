@@ -24,12 +24,12 @@ Status legend:
 - [ ] Benchmark gaps produce actionable content/campaign suggestions.
 
 ### 4. DM AI doesn't influence marketing
-- [ ] DM pattern extraction (categories, frequency, anonymized samples).
-- [ ] DM patterns generate marketing insights and content recommendations.
+- [x] DM pattern extraction (categories, frequency, anonymized samples) in `intelligence`.
+- [~] DM patterns surface on Daily Marketing dashboard and feed `MarketingMemory`; auto-generated content/campaign recommendations are next.
 
 ### 5. Comments are treated as support
-- [ ] Comment pattern extraction (objections, questions, compliments).
-- [ ] Comment patterns update analytics, campaign, content, and sales strategy.
+- [x] Comment pattern extraction (objections, questions, compliments) in `intelligence` from `social` comments.
+- [ ] Comment patterns update analytics, campaign, content, and sales strategy (groundwork laid via `MarketingMemory`).
 
 ### 6. Analytics should become marketing analytics
 - [ ] Content Performance view: which content sold, gained followers, started conversations, generated profile visits.
@@ -38,39 +38,41 @@ Status legend:
 - [ ] Campaign view: revenue, followers, conversations generated.
 
 ### 7. Products should influence content
-- [ ] `ProductScore` with content / engagement / conversation / sales / trend / competitor scores.
+- [x] `ProductScore` computed in `intelligence` (content, engagement, conversation, sales, trend, competitor scores) from ecommerce, conversations, and orders.
 - [ ] Product promotion score visible in catalog with explanation.
 
 ### 8. Marketing Memory
-- [ ] `MarketingMemory` aggregate per workspace.
-- [ ] Stores successful hooks, failed captions, trending hashtags, winning posting times, high-converting products, objections, competitor changes, campaign history.
+- [x] `MarketingMemory` aggregate per workspace (`updateMarketingMemory()` in `intelligence`).
+- [~] Memory stores product scores, DM/comment patterns, trending hashtags, campaign/coupon history, competitor changes (basic). Winning posting times and top posts are placeholders pending analytics.
 
 ### 9. Inbox should generate insights automatically
-- [ ] One DM theme creates product insight, marketing insight, content idea, campaign suggestion, business alert.
+- [x] One DM theme creates product insight, marketing insight, content idea, and surfaces on Daily Marketing dashboard.
+- [ ] Auto-generate campaign suggestions / business alerts from patterns.
 
 ### 10. Competitor Intelligence should benchmark
 - [ ] Workspace vs competitor posting frequency, reel frequency, hook length, trending audio usage, engagement rate, follower growth.
 - [ ] Gap → recommendation mapping.
 
 ### 11. AI should explain marketing
-- [ ] AI explains post performance drivers (hook retention, caption length, product shown in first 3s, trending audio, comment sentiment).
+- [~] AI prompt now includes top products, DM/comment patterns, and today's brief. Full post-performance explanation (hook retention, caption length, etc.) needs media metrics.
 
 ### 12. Business Brain should become Marketing Brain
-- [ ] Daily marketing brief generated each morning.
-- [ ] Brief includes follower growth, content opportunity, competitor alert, products to promote, DM/comment insights, campaign performance, best posting time, recommended Reel, trending audio, recommended hashtags, expected reach, expected sales, today's priorities.
+- [x] `/business-brain` rebranded as Marketing Brain.
+- [x] Daily marketing brief generated (`generateDailyBrief`) with follower growth, content opportunity, competitor alert, products to promote, DM/comment insights, campaign performance, best posting time, recommended content idea, trending hashtags, and priorities.
+- [x] `ai.askBusinessBrain` consumes `MarketingMemory` and `DailyBriefRecord` when a store is selected.
 
 ### 13. UI Workflows (from spec 0048)
 - [x] Navigation reorganized around Daily Marketing, Engagement, Growth, Revenue (route + tabs added).
 - [x] `/business-brain` rebranded as Marketing Brain.
-- [x] Daily Marketing dashboard surfaces all brief sections (Today’s Brief, Products To Push, DM Opportunities, Followers, Best Time To Post, Competitor Changes, Content Next Best Action).
+- [x] Daily Marketing dashboard surfaces all brief sections.
 - [x] Existing module pages reachable via workflow entry pages (aliases/redirects can be added later).
 
 ---
 
 ## Quality gates
 
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run build` passes.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run build` passes.
 - [ ] `scripts/verify-task371.ts` end-to-end validation passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `CHANGELOG.md` updated.

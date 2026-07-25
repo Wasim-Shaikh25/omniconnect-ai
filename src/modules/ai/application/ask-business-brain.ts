@@ -1,5 +1,6 @@
 import type { AIMessage, AIProvider } from "./ports";
 import type { AIConfigurationRepository } from "./ports";
+import type { MarketingMemoryRecord, DailyBriefRecord } from "@/modules/intelligence";
 
 export interface BusinessBrainAnswer {
   answer: string;
@@ -32,17 +33,29 @@ export interface WorkspaceContextPort {
   }>;
 }
 
+export interface MarketingMemoryPort {
+  getMemory(organizationId: string, storeId: string): Promise<MarketingMemoryRecord>;
+  getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
+}
+
 function buildFallbackAnswer(
   question: string,
   ctx: Awaited<ReturnType<WorkspaceContextPort["getContext"]>>,
+  brief?: DailyBriefRecord,
 ): string {
   const q = question.toLowerCase();
   const summary = `Workspace "${ctx.organizationName}" has ${ctx.storeCount} store(s), ${ctx.productCount} product(s), ${ctx.conversationCount} conversation(s), ${ctx.followerCount} follower(s), ${ctx.couponCount} coupon(s), and ${ctx.unreadNotificationCount} unread notification(s).`;
+  const daily = brief
+    ? `Today's brief: ${brief.priorities.join("; ")}.`
+    : "";
 
   if (q.includes("summary") || q.includes("overview")) {
-    return `${summary} Connected integrations: ${ctx.connectedIntegrations}.`;
+    return `${summary} Connected integrations: ${ctx.connectedIntegrations}.${daily ? ` ${daily}` : ""}`;
   }
   if (q.includes("focus") || q.includes("today") || q.includes("prioritize")) {
+    if (brief && brief.priorities.length > 0) {
+      return `${summary} ${daily}`;
+    }
     if (ctx.unreadNotificationCount > 0) {
       return `${summary} You have unread notifications to review. If conversations are pending, consider replying or taking over high-intent threads.`;
     }
@@ -52,15 +65,43 @@ function buildFallbackAnswer(
     return `${summary} Review pending conversations and consider creating a first-time follower campaign to convert new followers.`;
   }
   if (q.includes("content") || q.includes("post") || q.includes("reel")) {
-    return `${summary} Use the Trends or Competitors page to find high-performing content ideas, then generate captions with AI.`;
+    const idea = brief?.contentIdea ?? "Use the Trends or Competitors page to find high-performing content ideas, then generate captions with AI.";
+    return `${summary} ${idea}`;
   }
-  return `${summary} Ask me about your workspace summary, what to focus on today, or what content to create next.`;
+  return `${summary} ${daily ? `${daily} ` : ""}Ask me about your workspace summary, what to focus on today, or what content to create next.`;
 }
 
 function buildPrompt(
   question: string,
   ctx: Awaited<ReturnType<WorkspaceContextPort["getContext"]>>,
+  memory?: MarketingMemoryRecord,
+  brief?: DailyBriefRecord,
 ): AIMessage[] {
+  const topProducts = memory?.productScores
+    .slice(0, 3)
+    .map((p) => `${p.productTitle} (${Math.round(p.compositeScore * 100)} pts)`)
+    .join(", ") ?? "none";
+
+  const dmPatterns = memory?.dmPatterns
+    .slice(0, 3)
+    .map((p) => `${p.category}: ${p.frequency}`)
+    .join("; ") ?? "none";
+
+  const commentPatterns = memory?.commentPatterns
+    .slice(0, 3)
+    .map((p) => `${p.category}: ${p.frequency}`)
+    .join("; ") ?? "none";
+
+  const dailyBrief = brief
+    ? `
+Today's priorities: ${brief.priorities.join("; ")}
+Recommended product: ${brief.recommendedProductTitle ?? "none"}
+Content idea: ${brief.contentIdea ?? "none"}
+Best posting time: ${brief.bestPostingTime ?? "unknown"}
+Trending hashtags: ${brief.trendingHashtags.map((h) => `#${h}`).join(", ") || "none"}
+`
+    : "";
+
   const context = `
 Workspace: ${ctx.organizationName}
 Stores: ${ctx.storeNames.join(", ") || "none"}
@@ -71,22 +112,28 @@ Followers: ${ctx.followerCount}
 Coupons: ${ctx.couponCount}
 Unread notifications: ${ctx.unreadNotificationCount}
 Connected integrations: ${ctx.connectedIntegrations}
+Top products: ${topProducts}
+DM patterns: ${dmPatterns}
+Comment patterns: ${commentPatterns}${dailyBrief}
 `;
 
   return [
     {
       role: "system",
-      content: `You are OmniConnect AI Business Brain, an evidence-backed assistant for creators and social-first businesses. Answer concisely using only the workspace context below. If data is missing, say so. Recommend one concrete next action when possible.\n\nContext:${context}`,
+      content: `You are OmniConnect AI Marketing Brain, an evidence-backed assistant for Instagram and Facebook businesses. Answer concisely using only the workspace context below. If data is missing, say so. Recommend one concrete next action when possible.\n\nContext:${context}`,
     },
     { role: "user", content: question },
   ];
 }
 
-export function makeAskBusinessBrain(deps: {
+export interface AskBusinessBrainDeps {
   aiProvider: AIProvider;
   aiConfigurationRepository: AIConfigurationRepository;
   workspaceContext: WorkspaceContextPort;
-}) {
+  marketingMemory?: MarketingMemoryPort;
+}
+
+export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
   return async function askBusinessBrain(
     input: AskBusinessBrainInput,
   ): Promise<BusinessBrainAnswer> {
@@ -96,11 +143,23 @@ export function makeAskBusinessBrain(deps: {
       storeId: input.storeId,
     });
 
-    const fallback = buildFallbackAnswer(input.question, ctx);
-    const messages = buildPrompt(input.question, ctx);
+    let memory: MarketingMemoryRecord | undefined;
+    let brief: DailyBriefRecord | undefined;
+    const storeId = input.storeId ?? ctx.storeNames[0];
+    if (deps.marketingMemory && storeId) {
+      try {
+        memory = await deps.marketingMemory.getMemory(input.organizationId, storeId);
+        brief = await deps.marketingMemory.getBrief(input.organizationId, storeId);
+      } catch {
+        // Memory is optional; answer from workspace context if unavailable.
+      }
+    }
 
-    const storeId = input.storeId ?? ctx.storeNames[0] ?? "";
-    const config = await deps.aiConfigurationRepository.getByStore(storeId);
+    const fallback = buildFallbackAnswer(input.question, ctx, brief);
+    const messages = buildPrompt(input.question, ctx, memory, brief);
+
+    const configStoreId = storeId ?? "";
+    const config = await deps.aiConfigurationRepository.getByStore(configStoreId);
 
     const answer = await deps.aiProvider.complete(messages, {
       model: config?.model ?? "gpt-4o-mini",

@@ -372,3 +372,56 @@ export interface SystemMetricRecord {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface ProductScoreRecord {
+  productId: string;
+  productTitle: string;
+  contentScore: number;
+  engagementScore: number;
+  conversationScore: number;
+  salesScore: number;
+  trendScore: number;
+  competitorScore: number;
+  compositeScore: number;
+  evidence: string;
+}
+
+export interface MarketingMemoryRecord {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+  followerCount: number;
+  productScores: ProductScoreRecord[];
+  topPerformingPosts: { id: string; title: string; engagement: number }[];
+  dmPatterns: { category: string; frequency: number; samplePhrases: string[] }[];
+  commentPatterns: { category: string; frequency: number; samplePhrases: string[] }[];
+  trendingHashtags: { tag: string; postCount: number; engagement: number }[];
+  winningPostingTimes: { dayOfWeek: string; hour: number; engagementScore: number }[];
+  customerObjections: { phrase: string; frequency: number }[];
+  competitorChanges: { trackedAccountId: string; handle: string; changeType: string; detectedAt: Date }[];
+  campaignHistory: { campaignId: string; name: string; outcome: string }[];
+}
+
+export interface DailyBriefSection {
+  title: string;
+  value: string | number;
+  change?: string;
+  detail?: string;
+  cta?: { label: string; href: string };
+}
+
+export interface DailyBriefRecord {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+  sections: DailyBriefSection[];
+  contentIdea: string | null;
+  recommendedProductId: string | null;
+  recommendedProductTitle: string | null;
+  bestPostingTime: string | null;
+  trendingAudio: string | null;
+  trendingHashtags: string[];
+  expectedReach: number | null;
+  expectedSales: number | null;
+  priorities: string[];
+}

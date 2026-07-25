@@ -402,10 +402,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added UI workflow spec `0048` reorganizing the product around four workflows: Daily Marketing, Engagement, Growth, Revenue.
   - **UI shell implemented:**
     - `StoreWorkflowNav` tabs for Daily Marketing, Engagement, Growth, Revenue.
-    - `/stores/[storeId]/daily-marketing` dashboard with Today’s Brief, Products To Push, DM Opportunities, Followers, Best Time To Post, Competitor Changes, and Content Next Best Action.
+    - `/stores/[storeId]/daily-marketing` dashboard with Today’s Brief, Products To Push, DM Insights, Comment Insights, Followers, Best Time To Post, Competitor Changes, Trending Hashtags, and Content Next Best Action.
     - `/stores/[storeId]/engagement`, `/growth`, `/revenue` workflow entry pages.
     - Rebranded `/business-brain` to Marketing Brain and updated `AppHeader`.
-  - Backend data (Marketing Memory, ProductScore, DM/comment insights, competitor benchmarking) still to wire.
+  - **Marketing Memory wired:**
+    - New `intelligence` aggregate `MarketingMemory` with `updateMarketingMemory()` computes product scores, DM patterns, comment patterns, trending hashtags, competitor changes, and campaign/coupon history from `ecommerce`, `conversations`, `social`, `analytics`, and `crm` public contracts.
+    - New `generateDailyBrief()` builds a daily marketing brief with sections, content idea, recommended product, best posting time, trending hashtags, and priorities.
+    - `ai.askBusinessBrain` now consumes `MarketingMemory` and `DailyBriefRecord` when a store is selected; prompt persona rebranded to Marketing Brain and includes top products, DM/comment patterns, and today's brief.
+    - PII redaction for pattern samples.
+  - Remaining: Content Studio idea grounding, analytics loop, full competitor benchmarking, product promotion score in catalog, reusable workflow cards, `verify-task371.ts`.
 
 ### ⏭️ Next (proposed build order)
 
