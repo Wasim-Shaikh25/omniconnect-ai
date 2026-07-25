@@ -1,7 +1,7 @@
 import { eventBus } from "@/shared/events";
-import type { DetectCommerceInsights, CommerceInsight, EcommerceQueries } from "@/modules/ecommerce";
+import type { DetectCommerceInsights, EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
-import type { CrmQueries } from "@/modules/crm";
+import type { DetectCrmInsights, CrmQueries } from "@/modules/crm";
 import type { SignalRepository, MetricRepository, BusinessInsightRepository, EntityLinkRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
@@ -23,6 +23,7 @@ export interface DetectionServiceInput {
   metrics: MetricRepository;
   links: EntityLinkRepository;
   detectCommerceInsights: DetectCommerceInsights;
+  detectCrmInsights: DetectCrmInsights;
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
@@ -59,7 +60,19 @@ export function makeDetectionService(input: DetectionServiceInput) {
     return saved;
   }
 
-  function mapCommerceInsight(insight: CommerceInsight): Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt"> {
+  interface ExternalInsight {
+    organizationId: string;
+    storeId: string;
+    type: string;
+    severity: string;
+    status: string;
+    title: string;
+    description: string;
+    deepLink: string;
+    generatedAt: Date;
+  }
+
+  function mapExternalInsight(insight: ExternalInsight): Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt"> {
     const evidence: BusinessInsightEvidence = {
       signalIds: [],
       metricIds: [],
@@ -87,7 +100,17 @@ export function makeDetectionService(input: DetectionServiceInput) {
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
       if (alreadyExists) continue;
-      await emit(mapCommerceInsight(insight));
+      await emit(mapExternalInsight(insight));
+    }
+  }
+
+  async function emitCrmInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectCrmInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
     }
   }
 
@@ -126,36 +149,6 @@ export function makeDetectionService(input: DetectionServiceInput) {
         snoozedUntil: null,
       });
     }
-  }
-
-  async function detectStaleFollowers(organizationId: string, storeId: string) {
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const recentFollowerSignals = await recentSignals(organizationId, storeId, sevenDaysAgo, "FirstTimeFollowerDetected");
-    if (recentFollowerSignals.length > 0) return;
-
-    const followers = await input.crm.listFollowers(storeId, 100);
-    if (followers.length === 0) return;
-
-    const evidence: BusinessInsightEvidence = {
-      signalIds: [],
-      metricIds: [],
-      summary: `No new followers in the last 7 days for a store with ${followers.length} existing followers.`,
-    };
-
-    await emit({
-      organizationId,
-      storeId,
-      type: "RISK" as InsightType,
-      severity: "MEDIUM" as InsightSeverity,
-      status: "OPEN",
-      title: "No new followers this week",
-      description: "Follower growth has stalled. Consider a first-time follower campaign or content push.",
-      evidence,
-      deepLink: `/stores/${storeId}/campaigns/first-follower`,
-      generatedAt: now,
-      dismissedAt: null,
-      snoozedUntil: null,
-    });
   }
 
   function normalizePhrase(phrase: string): string {
@@ -310,9 +303,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
       }
 
       await emitCommerceInsights(organizationId, storeId);
+      await emitCrmInsights(organizationId, storeId);
       await detectHighIntentConversation(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);
-      await detectStaleFollowers(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },
   };

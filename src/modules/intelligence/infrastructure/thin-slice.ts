@@ -11,7 +11,7 @@ import {
 } from "./container";
 import { ecommerceQueries, detectCommerceInsights } from "@/modules/ecommerce";
 import { conversationQueries } from "@/modules/conversations";
-import { crmQueries } from "@/modules/crm";
+import { crmQueries, detectCrmInsights } from "@/modules/crm";
 import { makeDetectionService } from "../application/detection";
 
 export interface ThinSliceResult {
@@ -70,6 +70,7 @@ export async function runWeek4ThinSlice(input: {
     metrics,
     links,
     detectCommerceInsights,
+    detectCrmInsights,
     ecommerce: ecommerceQueries,
     conversations: conversationQueries,
     crm: crmQueries,

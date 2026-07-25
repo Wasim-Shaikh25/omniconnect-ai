@@ -2,7 +2,7 @@ import { organizationQueries } from "@/modules/organizations";
 import { eventBus } from "@/shared/events";
 import { ecommerceQueries, generateCoupon, detectCommerceInsights } from "@/modules/ecommerce";
 import { conversationQueries, conversationCommands } from "@/modules/conversations";
-import { crmQueries, customerDirectory } from "@/modules/crm";
+import { crmQueries, customerDirectory, detectCrmInsights } from "@/modules/crm";
 import { analyticsQueries } from "@/modules/analytics";
 import { socialQueries } from "@/modules/social";
 import { growthService, growthQueries } from "@/modules/growth";
@@ -161,6 +161,7 @@ export const detectionService = makeDetectionService({
   metrics,
   links,
   detectCommerceInsights,
+  detectCrmInsights,
   ecommerce: ecommerceQueries,
   conversations: conversationQueries,
   crm: crmQueries,
