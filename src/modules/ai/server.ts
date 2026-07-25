@@ -8,6 +8,7 @@ export {
   aiQueries,
   generateCaptions,
   generateTrends,
+  generatePostIdeas,
   generateReply,
   generateWelcome,
   updateAIConfiguration,

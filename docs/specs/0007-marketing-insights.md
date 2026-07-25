@@ -138,6 +138,7 @@ Meta content intelligence turns a connected Instagram/Facebook account into acti
 - [x] `MetaService` extended with `searchHashtag`, `getHashtagMedia`, and `getAccountMedia` Graph API methods, plus a dev fallback for public hashtag top/recent media.
 - [x] Trending posts / competitor search UI at `/stores/[storeId]/commerce/trends` with creator-handle filter.
 - [x] AI-generated content ideas (hook, format, why it works, hashtags, audio suggestion, best time, CTA, predicted engagement score).
+- [x] Inline media previews and "AI idea from this post" generation on the Trends page.
 - [ ] Full dashboard pages for content performance, trend explorer, competitors, reports, and recommendations.
 - [ ] AI-generated "why it worked" analysis and slide-by-slide storyboards.
 - [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.

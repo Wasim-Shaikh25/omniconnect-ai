@@ -33,6 +33,10 @@ export type {
   GenerateTrendsInput,
   GenerateTrends,
 } from "./application/generate-trends";
+export type {
+  GeneratePostIdeasInput,
+  GeneratePostIdeas,
+} from "./application/generate-post-ideas";
 export { updateAIConfigSchema } from "./application/update-config";
 export type { UpdateAIConfigInput } from "./application/update-config";
 
@@ -41,5 +45,6 @@ export {
   updateAIConfigurationAction,
   generateCaptionsAction,
   generateTrendsAction,
+  generatePostIdeasAction,
 } from "./presentation/actions";
-export type { AIActionState, GenerateCaptionsState, GenerateTrendsState } from "./presentation/actions";
+export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState } from "./presentation/actions";

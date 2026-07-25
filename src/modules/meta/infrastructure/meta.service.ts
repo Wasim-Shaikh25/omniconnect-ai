@@ -273,7 +273,7 @@ function generateSampleMedia(query: string, limit: number): MetaMediaItem[] {
       caption: t.caption,
       permalink: `https://instagram.com/p/MOCK${i}`,
       mediaUrl: null,
-      thumbnailUrl: null,
+      thumbnailUrl: `https://placehold.co/600x400?text=${encodeURIComponent(t.mediaType)}`,
       ownerUsername: owner,
       publishedAt: new Date(now - i * 86400000),
       hashtags: [`#${query}`, "#viral", "#trending"],

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { TrendIdea } from "@/modules/ai";
-import { generateTrendsAction } from "@/modules/ai";
+import { generateTrendsAction, generatePostIdeasAction } from "@/modules/ai";
 import type { MetaMediaItem } from "@/modules/meta";
 import { searchHashtagMediaAction } from "@/modules/meta";
 
@@ -130,16 +130,22 @@ export default function TrendsPage({
                       {m.metrics.comments !== undefined && <span>{m.metrics.comments.toLocaleString()} comments</span>}
                     </div>
                   </div>
+
+                  <MediaPreview media={m} />
+
                   <p className="text-sm text-muted-foreground">{m.caption || "No caption"}</p>
                   {m.publishedAt && (
                     <p className="text-xs text-muted-foreground">Posted {new Date(m.publishedAt).toLocaleDateString()}</p>
                   )}
                   <p className="text-sm text-muted-foreground">{m.hashtags.slice(0, 12).join(" ")}</p>
-                  {m.permalink && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={m.permalink} target="_blank" rel="noopener noreferrer">Open on Instagram</a>
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {m.permalink && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={m.permalink} target="_blank" rel="noopener noreferrer">Open on Instagram</a>
+                      </Button>
+                    )}
+                  </div>
+                  <PostIdeaPanel media={m} storeId={storeId} />
                 </CardContent>
               </Card>
             ))}
@@ -151,5 +157,69 @@ export default function TrendsPage({
         )}
       </section>
     </main>
+  );
+}
+
+function MediaPreview({ media }: { media: MetaMediaItem }) {
+  const src = media.thumbnailUrl ?? media.mediaUrl ?? null;
+  if (!src) {
+    return (
+      <div className="flex h-32 w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+        No preview available
+      </div>
+    );
+  }
+
+  const isVideo = (media.mediaType === "VIDEO" || media.mediaType === "REEL") && media.mediaUrl;
+  if (isVideo) {
+    return (
+      <video
+        src={media.mediaUrl ?? undefined}
+        poster={media.thumbnailUrl ?? undefined}
+        controls
+        preload="metadata"
+        className="max-h-64 rounded-md"
+      />
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt="Media preview" className="max-h-64 rounded-md" />
+  );
+}
+
+function PostIdeaPanel({ media, storeId }: { media: MetaMediaItem; storeId: string }) {
+  const [state, action, pending] = useActionState(generatePostIdeasAction, {});
+  const caption = media.caption ?? "";
+  const hashtags = media.hashtags.join(" ");
+
+  return (
+    <form action={action} className="mt-2">
+      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="caption" value={caption} />
+      <input type="hidden" name="hashtags" value={hashtags} />
+      <input type="hidden" name="mediaType" value={media.mediaType} />
+      <input type="hidden" name="ownerUsername" value={media.ownerUsername ?? ""} />
+      <input type="hidden" name="likes" value={media.metrics.likes ?? 0} />
+      <input type="hidden" name="comments" value={media.metrics.comments ?? 0} />
+      <input type="hidden" name="plays" value={media.metrics.plays ?? 0} />
+      <input type="hidden" name="reach" value={media.metrics.reach ?? 0} />
+      <Button type="submit" variant="secondary" size="sm" disabled={pending}>{pending ? "Thinking…" : "AI idea from this post"}</Button>
+      {state.error && <p className="text-sm text-destructive mt-2">{state.error}</p>}
+      {state.trends && state.trends.length > 0 && (
+        <div className="mt-3 space-y-3">
+          {state.trends.map((t: TrendIdea, idx: number) => (
+            <div key={idx} className="rounded-md border p-3 space-y-2">
+              <p className="text-sm font-semibold">{t.title} <span className="text-xs text-muted-foreground uppercase">{t.format}</span></p>
+              <p className="text-sm"><span className="font-medium">Hook:</span> {t.hook}</p>
+              <p className="text-sm text-muted-foreground">{t.description}</p>
+              <p className="text-sm"><span className="font-medium">Why it works:</span> {t.whyItWorks}</p>
+              <p className="text-sm text-muted-foreground">{t.hashtags.join(" ")}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </form>
   );
 }
