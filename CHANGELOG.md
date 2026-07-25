@@ -458,6 +458,10 @@ All notable changes to **OmniConnect AI** are documented here.
     - Reusable workflow cards extracted: `WorkflowCard`, `BriefSectionCard`, `ProductPromotionCard`, `DmOpportunityCard`, `CommentInsightCard`, `CompetitorAlertCard`, `TrendingHashtagCard`, `BestTimeCard`, `FollowerLinkCard`.
     - Daily Marketing, Engagement, Growth, and Revenue pages refactored to use shared card components.
     - `scripts/verify-task371.ts` end-to-end validation script created (typechecked; requires PostgreSQL connection to run).
+- **Task tracker audit**:
+  - Synced `TASK-350-unified-intelligence-layer.md` statuses from `TASK-350-progress.md`.
+  - Marked verified items done: `FeatureService` (67), AI-generated workflow acceptance criteria (96), brand-deal follow-up + CRM advocate NBA (137).
+  - Active `TASK-370`/`TASK-371` trackers updated to reflect current remaining work.
 
 ### ⏭️ Next (proposed build order)
 
