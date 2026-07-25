@@ -39,8 +39,8 @@ Tracks the architecture-review findings and the security gaps. Status legend:
 - [x] Business Brain conversation memory (`BrainConversationMemory`) added to `askBusinessBrain` prompts.
 
 ### 6. Intelligence duplicates logic
-- [ ] `SUPPORT_KEYWORDS` / `INTENT_KEYWORDS` exist in one place.
-- [ ] Product-mention detection exists in one place.
+- [x] `SUPPORT_KEYWORDS` / `INTENT_KEYWORDS` centralized in `intelligence/application/vocabulary.ts`.
+- [x] Product-mention detection centralized in `intelligence/application/vocabulary.ts` (`detectProductMentions`).
 - [ ] Keyword vocabularies are versioned and owned by the right module.
 
 ### 7. Read models mixed with business entities

@@ -27,7 +27,7 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
 - [x] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
 - [~] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce, CRM, conversation, growth, and brand-deal rules removed; product availability/demand and stale metrics remain).
-- [ ] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
+- [x] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
 
 ### Phase 2 — Reframe intelligence as a cross-domain prioritizer
 - [x] 14. Add `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to `Recommendation`.
@@ -42,13 +42,13 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 - [x] 21. Add conversation memory to Business Brain (previous questions, accepted/rejected advice, goals).
 
 ### Phase 4 — Cleanup and verification
-- [ ] 22. Update `intelligence/index.ts` public barrel and remove deprecated exports.
-- [ ] 23. Write `scripts/verify-task370.ts` end-to-end validation script.
-- [ ] 24. Run `npm run lint`, `npm run typecheck`, `npm run build`.
-- [ ] 25. Update `docs/tasks/TASK-370-progress.md` and `CHANGELOG.md`.
+- [x] 22. Update `intelligence/index.ts` public barrel and remove deprecated exports.
+- [x] 23. Write `scripts/verify-task370.ts` end-to-end validation script.
+- [x] 24. Run `npm run lint`, `npm run typecheck`, `npm run build`.
+- [x] 25. Update `docs/tasks/TASK-370-progress.md` and `CHANGELOG.md`.
 
 ## Acceptance Criteria
 
-- [ ] Matches the linked spec's acceptance criteria.
-- [ ] Lint + typecheck + build pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches the linked spec's acceptance criteria.
+- [x] Lint + typecheck + build pass.
+- [x] `CHANGELOG.md` updated.

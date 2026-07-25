@@ -8,6 +8,7 @@ import type { SignalRepository, MetricRepository, BusinessInsightRepository, Ent
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
 import type { DataQualityGateService } from "./validation-driven";
+import { detectProductMentions } from "./vocabulary";
 
 interface SignalSummary {
   id: string;
@@ -129,17 +130,6 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  function normalizePhrase(phrase: string): string {
-    return phrase.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
-  }
-
-  function contentMatches(content: string, title: string): boolean {
-    const normalizedContent = normalizePhrase(content);
-    const normalizedTitle = normalizePhrase(title).split(/\s+/).filter(Boolean);
-    if (normalizedTitle.length === 0) return false;
-    return normalizedTitle.every((word) => normalizedContent.includes(word));
-  }
-
   async function detectProductAvailabilityAndDemand(organizationId: string, storeId: string) {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const products = await input.ecommerce.listProducts(storeId, 100);
@@ -171,7 +161,8 @@ export function makeDetectionService(input: DetectionServiceInput) {
       for (const s of messageSignals) {
         const data = typeof s.data === "object" && s.data !== null ? (s.data as Record<string, unknown>) : {};
         const content = typeof data.content === "string" ? data.content : "";
-        if (contentMatches(content, product.title)) {
+        const mention = detectProductMentions(content, [{ externalId: product.externalId, title: product.title }])[0];
+        if (mention) {
           matchingMessages.push({
             id: s.id,
             eventType: s.eventType,
