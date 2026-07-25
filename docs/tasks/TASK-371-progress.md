@@ -40,7 +40,7 @@ Status legend:
 
 ### 7. Products should influence content
 - [x] `ProductScore` computed in `intelligence` (content, engagement, conversation, sales, trend, competitor scores) from ecommerce, conversations, and orders.
-- [ ] Product promotion score visible in catalog with explanation.
+- [x] Product promotion score visible in `/commerce/catalog` with composite score and evidence explanation.
 
 ### 8. Marketing Memory
 - [x] `MarketingMemory` aggregate per workspace (`updateMarketingMemory()` in `intelligence`).

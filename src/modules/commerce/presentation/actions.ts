@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
+import { updateMarketingMemory } from "@/modules/intelligence";
+import type { ProductScoreRecord } from "@/modules/intelligence";
 import { commerceQueries, commerceService } from "../infrastructure/container";
 
 const syncSchema = z.object({
@@ -22,33 +24,37 @@ export interface CommerceCatalogView {
   mappings: Awaited<ReturnType<typeof commerceQueries.listProductMappings>>;
   media: Awaited<ReturnType<typeof commerceQueries.listShoppableMedia>>;
   products: Awaited<ReturnType<typeof import("@/modules/ecommerce").ecommerceQueries.listProducts>>;
+  productScores: ProductScoreRecord[];
 }
 
 async function requireStoreAccess(storeId: string) {
   const user = await getCurrentUser();
-  if (!user) return { user: null, ok: false };
+  if (!user) return { user: null, organizationId: null, ok: false };
   const overview = user.organizationId
     ? await organizationQueries.getOrganizationOverview(user.organizationId)
     : null;
   const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) return { user, ok: false };
-  return { user, ok: true };
+  if (!store) return { user, organizationId: user.organizationId, ok: false };
+  return { user, organizationId: user.organizationId, ok: true };
 }
 
 export async function listCommerceCatalogAction(
   storeId: string,
 ): Promise<CommerceCatalogView> {
   const access = await requireStoreAccess(storeId);
-  if (!access.ok) return { sync: null, mappings: [], media: [], products: [] };
+  if (!access.ok) return { sync: null, mappings: [], media: [], products: [], productScores: [] };
 
-  const [sync, mappings, media, products] = await Promise.all([
+  const [sync, mappings, media, products, memory] = await Promise.all([
     commerceQueries.getLatestCatalogSync(storeId),
     commerceQueries.listProductMappings(storeId),
     commerceQueries.listShoppableMedia(storeId),
     (await import("@/modules/ecommerce")).ecommerceQueries.listProducts(storeId, 100),
+    access.organizationId
+      ? updateMarketingMemory(access.organizationId, storeId)
+      : Promise.resolve(null),
   ]);
 
-  return { sync, mappings, media, products };
+  return { sync, mappings, media, products, productScores: memory?.productScores ?? [] };
 }
 
 export async function syncMetaCatalogAction(

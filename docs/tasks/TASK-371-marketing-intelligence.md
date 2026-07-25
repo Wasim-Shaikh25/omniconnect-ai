@@ -34,7 +34,7 @@ See `docs/specs/0047-marketing-intelligence-connectivity.md`. This task captures
 
 ### Product Promotion Scores
 - [x] 13. `intelligence` computes `ProductScore` (content, engagement, conversation, sales, trend, competitor) per product from ecommerce, conversation, and order data.
-- [ ] 14. Product catalog shows promotion score and explanation.
+- [x] 14. Product catalog shows promotion score and explanation (`/commerce/catalog` displays product scores from `listCommerceCatalogAction`).
 
 ### Marketing Memory
 - [x] 15. `intelligence` owns `MarketingMemory` aggregate and exposes `updateMarketingMemory()`.

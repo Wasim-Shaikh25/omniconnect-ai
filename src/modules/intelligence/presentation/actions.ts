@@ -41,6 +41,8 @@ import {
   intelligenceFeedbackService,
   intelligenceFeedInteractionService,
   chartAcceptanceService,
+  updateMarketingMemory,
+  generateDailyBrief,
 } from "../infrastructure/container";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
@@ -763,4 +765,44 @@ export async function evaluateChartAcceptanceAction(title: string, decisionState
   const user = await getCurrentUser();
   if (!user) return null;
   return chartAcceptanceService.evaluate({ id: `chart-${Date.now()}`, title, decisionStatement, supportsDecision: decisionStatement });
+}
+
+export interface MarketingMemoryState {
+  error?: string;
+  memory?: Awaited<ReturnType<typeof updateMarketingMemory>>;
+  brief?: Awaited<ReturnType<typeof generateDailyBrief>>;
+}
+
+const marketingMemorySchema = z.object({
+  storeId: z.string().min(1),
+});
+
+export async function getMarketingMemoryAction(
+  _prev: MarketingMemoryState,
+  formData: FormData,
+): Promise<MarketingMemoryState> {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) {
+    return { error: "You must be signed in to a workspace." };
+  }
+
+  const parsed = marketingMemorySchema.safeParse({
+    storeId: formData.get("storeId"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === parsed.data.storeId)) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const memory = await updateMarketingMemory(user.organizationId, parsed.data.storeId);
+    const brief = await generateDailyBrief(user.organizationId, parsed.data.storeId, memory);
+    return { memory, brief };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not generate marketing memory" };
+  }
 }

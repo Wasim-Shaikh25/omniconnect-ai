@@ -86,6 +86,30 @@ function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
 
       <Card className="mb-6">
         <CardHeader>
+          <CardTitle>Product promotion scores</CardTitle>
+          <CardDescription>Products ranked by content, engagement, conversation, sales, trend, and competitor signals.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {data?.productScores && data.productScores.length > 0 ? (
+            <ul className="divide-y text-sm">
+              {data.productScores.map((p) => (
+                <li key={p.productId} className="py-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{p.productTitle}</span>
+                    <span className="text-xs text-muted-foreground">{Math.round(p.compositeScore * 100)} pts</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{p.evidence}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">No scores yet. Add products and conversations to generate scores.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
           <CardTitle>AI caption generator</CardTitle>
           <CardDescription>Generate viral captions, hooks, hashtags, and best posting times for shoppable media.</CardDescription>
         </CardHeader>
