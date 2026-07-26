@@ -396,6 +396,14 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🔨 In Progress
 
+- **TASK-376 — Super-Admin Login, Workspaces/Projects, and Auth Improvements** (spec `0052`):
+  - Spec finalized: hardcoded super-admin env config (`SUPER_ADMIN_EMAIL/PHONE/PASSWORD`),
+    email/SMTP settings, MFA/reset token expiry, and `Project`/`ProjectMember` data model.
+  - The existing platform-admin surface (`User.isSuperAdmin`, `/admin`, support tickets,
+    SaaS coupons, system logs from spec `0051`) is preserved and reused.
+  - Implementation deferred to next session: super-admin seed, MFA login, forgot-password,
+    `/projects` UI, and Prisma migration (`User.phone`, `Project`, `ProjectMember`).
+
 - **TASK-370 — Intelligence Domain Ownership Refactor** (spec `0046`):
 
   - Architecture review identified `intelligence` becoming a decision monolith.
