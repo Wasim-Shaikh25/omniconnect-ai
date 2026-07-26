@@ -1,6 +1,7 @@
 import type { GoalService } from "./goal";
 import type { RecommendationRepository, ActionPlanRepository, GoalRepository } from "./ports";
 import type { GoalRecord, RecommendationRecord, ActionPlanRecord, RiskTier } from "../domain/types";
+import { inferBusinessObjective } from "../domain/objective";
 
 export interface AutomationTemplate {
   id: string;
@@ -262,9 +263,15 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
         title: template.name,
         description: template.objective,
         objective: template.objective,
+        businessObjective: inferBusinessObjective(template.reasonCodes, template.objective),
+        reasoning: null,
+        marketContext: null,
+        competitorContext: null,
+        selfContext: null,
         reasonCodes: template.reasonCodes,
         impactRange: { min: Math.floor(target * 0.3), max: Math.ceil(target * 1.2), unit: template.targetMetric },
         confidence: 0.6,
+        confidenceSignals: 1,
         effort: "MEDIUM",
         urgency: "MEDIUM",
         riskTier: template.riskTier,

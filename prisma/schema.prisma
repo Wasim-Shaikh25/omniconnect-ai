@@ -19,20 +19,20 @@ enum Role {
 }
 
 model User {
-  id             String        @id @default(cuid())
-  email          String        @unique
-  emailVerified  DateTime?
-  name           String?
-  passwordHash   String?
+  id                      String        @id @default(cuid())
+  email                   String        @unique
+  emailVerified           DateTime?
+  name                    String?
+  passwordHash            String?
   image                   String?
-  role                  Role            @default(STORE_OWNER)
-  organizationId        String?
-  organization          Organization?   @relation(fields: [organizationId], references: [id])
-  storeId               String?
-  store                 Store?          @relation(fields: [storeId], references: [id])
+  role                    Role          @default(STORE_OWNER)
+  organizationId          String?
+  organization            Organization? @relation(fields: [organizationId], references: [id])
+  storeId                 String?
+  store                   Store?        @relation(fields: [storeId], references: [id])
   notificationPreferences Json?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   notifications Notification[]
   accounts      Account[]
@@ -83,13 +83,13 @@ enum Plan {
 }
 
 model Organization {
-  id                String   @id @default(cuid())
-  name              String
-  plan              Plan     @default(FREE)
-  subscriptionId    String?
+  id                 String   @id @default(cuid())
+  name               String
+  plan               Plan     @default(FREE)
+  subscriptionId     String?
   subscriptionStatus String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   users     User[]
   stores    Store[]
@@ -339,6 +339,8 @@ model BrainConversationMemory {
   acceptedAdviceIds String[]
   rejectedAdviceIds String[]
   goals             String[]
+  dailyActionId     String?
+  outcomeId         String?
   expiresAt         DateTime
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -349,16 +351,16 @@ model BrainConversationMemory {
 }
 
 model RecommendationConflict {
-  id            String   @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
-  storeId       String?
-  winnerId      String
-  runnerUpId    String?
-  winnerTitle   String
-  runnerUpTitle String?
-  reason        String
-  appliedPolicy String
-  resolvedAt    DateTime @default(now())
+  storeId        String?
+  winnerId       String
+  runnerUpId     String?
+  winnerTitle    String
+  runnerUpTitle  String?
+  reason         String
+  appliedPolicy  String
+  resolvedAt     DateTime @default(now())
 
   @@index([organizationId, storeId])
   @@index([resolvedAt])
@@ -1066,42 +1068,49 @@ enum GoalStatus {
 }
 
 model Recommendation {
-  id                String               @id @default(cuid())
-  organizationId    String
-  storeId           String?
-  insightId         String?
-  producedByModule  String
-  producedByService String?
-  title             String
-  description       String
-  objective         String?
-  reasonCodes       String[]
-  impactRange       Json?
-  confidence        Float?
-  effort            String?
-  urgency           String?
-  riskTier          RiskTier
-  eligibility       Json?
-  status            RecommendationStatus @default(PROPOSED)
-  actionType        String
-  actionParams      Json?
-  deepLink          String?
-  validFrom         DateTime             @default(now())
-  validUntil        DateTime?
-  invalidatedAt     DateTime?
+  id                 String               @id @default(cuid())
+  organizationId     String
+  storeId            String?
+  insightId          String?
+  producedByModule   String
+  producedByService  String?
+  title              String
+  description        String
+  objective          String?
+  businessObjective  BusinessObjective?
+  reasoning          String?
+  marketContext      String?
+  competitorContext  String?
+  selfContext        String?
+  reasonCodes        String[]
+  impactRange        Json?
+  confidence         Float?
+  confidenceSignals  Int                  @default(0)
+  effort             String?
+  urgency            String?
+  riskTier           RiskTier
+  eligibility        Json?
+  status             RecommendationStatus @default(PROPOSED)
+  actionType         String
+  actionParams       Json?
+  deepLink           String?
+  validFrom          DateTime             @default(now())
+  validUntil         DateTime?
+  invalidatedAt      DateTime?
   invalidatedByEvent String?
-  generatedAt       DateTime             @default(now())
-  dismissedAt       DateTime?
-  snoozedUntil      DateTime?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  generatedAt        DateTime             @default(now())
+  dismissedAt        DateTime?
+  snoozedUntil       DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
   @@index([organizationId, status, generatedAt])
   @@index([organizationId, storeId, status, riskTier])
+  @@index([organizationId, businessObjective, status])
 }
 
 model ActionPlan {
-  id               String            @id @default(cuid())
+  id               String           @id @default(cuid())
   organizationId   String
   storeId          String?
   recommendationId String?
@@ -1109,12 +1118,12 @@ model ActionPlan {
   steps            Json?
   targetMetric     String?
   expectedImpact   Json?
-  status           ActionPlanStatus  @default(DRAFT)
+  status           ActionPlanStatus @default(DRAFT)
   approvedBy       String?
   executedAt       DateTime?
   stoppedAt        DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@index([organizationId, storeId, status, createdAt])
 }
@@ -1154,20 +1163,20 @@ model Outcome {
 }
 
 model Goal {
-  id            String     @id @default(cuid())
+  id             String     @id @default(cuid())
   organizationId String
-  storeId       String?
-  name          String
-  targetMetric  String
-  baseline      Float?
-  target        Float?
-  startDate     DateTime
-  endDate       DateTime?
-  ownerUserId   String?
-  pacing        Json?
-  status        GoalStatus @default(ACTIVE)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  storeId        String?
+  name           String
+  targetMetric   String
+  baseline       Float?
+  target         Float?
+  startDate      DateTime
+  endDate        DateTime?
+  ownerUserId    String?
+  pacing         Json?
+  status         GoalStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([organizationId, status, endDate])
   @@index([organizationId, storeId, targetMetric, status])
@@ -1195,24 +1204,24 @@ enum HypothesisStatus {
 }
 
 model Prediction {
-  id              String           @id @default(cuid())
-  organizationId  String
-  storeId         String?
-  predictionType  PredictionType
+  id               String           @id @default(cuid())
+  organizationId   String
+  storeId          String?
+  predictionType   PredictionType
   targetEntityType String?
-  targetEntityId  String?
-  horizon         String
-  estimate        Float
-  probability     Float?
-  lowerBound      Float?
-  upperBound      Float?
-  features        Json?
-  calibration     String?
-  expiresAt       DateTime
-  status          PredictionStatus @default(ACTIVE)
-  reason          String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  targetEntityId   String?
+  horizon          String
+  estimate         Float
+  probability      Float?
+  lowerBound       Float?
+  upperBound       Float?
+  features         Json?
+  calibration      String?
+  expiresAt        DateTime
+  status           PredictionStatus @default(ACTIVE)
+  reason           String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   @@index([organizationId, status, expiresAt])
   @@index([organizationId, storeId, predictionType, status])
@@ -1220,7 +1229,7 @@ model Prediction {
 
 model Hypothesis {
   id              String           @id @default(cuid())
-  organizationId String
+  organizationId  String
   storeId         String?
   insightId       String?
   statement       String
@@ -1237,36 +1246,36 @@ model Hypothesis {
 }
 
 model BusinessLearning {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
   storeId        String?
   ruleName       String
   condition      Json?
   effect         Json?
-  weight         Float    @default(0)
-  successCount   Int      @default(0)
-  failureCount   Int      @default(0)
+  weight         Float     @default(0)
+  successCount   Int       @default(0)
+  failureCount   Int       @default(0)
   lastOutcomeAt  DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([organizationId, ruleName])
   @@index([organizationId, storeId, ruleName])
 }
 
 model CompetitorInsight {
-  id              String   @id @default(cuid())
-  organizationId  String
-  storeId         String?
+  id               String   @id @default(cuid())
+  organizationId   String
+  storeId          String?
   competitorHandle String
-  metricName      String
-  value           Float
-  benchmarkDelta  Float?
-  features        Json?
-  source          String?
-  capturedAt      DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  metricName       String
+  value            Float
+  benchmarkDelta   Float?
+  features         Json?
+  source           String?
+  capturedAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([organizationId, storeId, metricName])
   @@index([organizationId, capturedAt])
@@ -1289,19 +1298,122 @@ model PortfolioSnapshot {
 }
 
 model SystemMetric {
-  id            String   @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String
-  operation     String
-  module        String
-  latencyMs     Float?
-  costCents     Float?
-  status        String   @default("OK")
-  traceId       String?
-  metadata      Json?
-  recordedAt    DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  operation      String
+  module         String
+  latencyMs      Float?
+  costCents      Float?
+  status         String   @default("OK")
+  traceId        String?
+  metadata       Json?
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([organizationId, operation, recordedAt])
   @@index([organizationId, module, recordedAt])
+}
+
+// ── intelligence: daily operating rhythm (spec 0050) ────────────────────────
+
+enum BusinessObjective {
+  GROWTH
+  REVENUE
+  ENGAGEMENT
+  RETENTION
+  SUPPORT
+  BRAND
+}
+
+enum DailyActionStatus {
+  PENDING
+  DONE
+  SKIPPED
+  DISMISSED
+}
+
+enum ActionOutcomeStatus {
+  PENDING
+  IMPROVED
+  NO_CHANGE
+  WORSENED
+  CANCELLED
+}
+
+model DailyAction {
+  id               String            @id @default(cuid())
+  organizationId   String
+  storeId          String?
+  title            String
+  description      String
+  objective        BusinessObjective
+  confidence       Float             @default(0.5)
+  priority         Float             @default(0)
+  sourceSignals    Json?
+  suggestedAction  String?
+  deepLink         String?
+  status           DailyActionStatus @default(PENDING)
+  metricName       String?
+  completedAt      DateTime?
+  skippedAt        DateTime?
+  feedback         String?
+  outcomeId        String?
+  generatedForDate DateTime          @default(now())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, storeId, status, generatedForDate])
+}
+
+model ActionOutcome {
+  id                     String              @id @default(cuid())
+  actionId               String              @unique
+  organizationId         String
+  storeId                String?
+  metricName             String?
+  metricBefore           Json?
+  metricAfter            Json?
+  observationWindowHours Int                 @default(48)
+  measuredAt             DateTime?
+  status                 ActionOutcomeStatus @default(PENDING)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  @@index([organizationId, storeId, status])
+}
+
+model Journey {
+  id                String   @id @default(cuid())
+  organizationId    String
+  storeId           String
+  customerId        String?
+  externalUserId    String?
+  channel           String?
+  outcome           String   @default("OPEN")
+  attributedRevenue Float?
+  attributedPostId  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  steps JourneyStep[]
+
+  @@index([organizationId, storeId, customerId])
+  @@index([storeId, externalUserId])
+}
+
+model JourneyStep {
+  id         String   @id @default(cuid())
+  journeyId  String
+  type       String
+  externalId String?
+  channel    String?
+  details    Json?
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  journey Journey @relation(fields: [journeyId], references: [id], onDelete: Cascade)
+
+  @@index([journeyId, occurredAt])
 }

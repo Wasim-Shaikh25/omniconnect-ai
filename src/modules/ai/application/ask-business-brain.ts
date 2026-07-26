@@ -120,15 +120,34 @@ Trending hashtags: ${brief.trendingHashtags.map((h) => `#${h}`).join(", ") || "n
   const latestLearning = brainContext?.learning[0]?.ruleName ?? "none";
   const activeGoal = brainContext?.activeGoals[0]?.name ?? "none";
 
+  const todayActions = brainContext?.todayActions
+    .slice(0, 3)
+    .map((a) => `${a.title} (${a.objective}, ${Math.round(a.confidence * 100)}%)`)
+    .join("; ") ?? "none";
+
+  const journeys = brainContext?.recentJourneys
+    .slice(0, 3)
+    .map((j) => `${j.steps.map((s) => s.type).join("→")} ⇒ ${j.outcome}`)
+    .join("; ") ?? "none";
+
+  const citations = brainContext?.citations
+    .slice(0, 8)
+    .map((c) => `[${c.source}] ${c.detail}`)
+    .join("\n") ?? "";
+
   const intelligenceContext = brainContext
     ? `
 Intelligence summary: ${brainContext.summary}
+Today's actions: ${todayActions}
+Customer journeys: ${journeys}
 Top insight: ${topInsight}
 Top recommendation: ${topRecommendation}
 Top prediction: ${topPrediction}
 Latest outcome: ${latestOutcome}
 Latest learning: ${latestLearning}
 Active goal: ${activeGoal}
+Cite these sources when relevant:
+${citations}
 `
     : "";
 
@@ -248,9 +267,11 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
       }
     }
 
+    const citationSources = brainContext?.citations.map((c) => `${c.source}: ${c.reference}`) ?? [];
+
     return {
       answer,
-      sources: ctx.storeNames,
+      sources: [...ctx.storeNames, ...citationSources],
       confidence: answer === fallback ? "low" : "high",
       memoryId,
     };

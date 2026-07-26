@@ -51,6 +51,15 @@ export type {
   ConversationPattern,
   TrendingHashtag,
   CompetitorChange,
+  BusinessObjective,
+  DailyActionRecord,
+  DailyActionStatus,
+  ActionOutcomeRecord,
+  ActionOutcomeStatus,
+  JourneyRecord,
+  JourneyStepRecord,
+  JourneyStepType,
+  JourneyOutcome,
 } from "./domain/types";
 
 export { canExecuteRecommendation, isRecommendationExpired } from "./domain/recommendation";
@@ -58,7 +67,10 @@ export type { ExecutableCheck } from "./domain/recommendation";
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
 export type { TimelineQuery } from "./application/timeline";
-export type { BusinessBrainContext, BusinessBrainContextService } from "./application/business-brain-context";
+export type { BusinessBrainContext, BusinessBrainContextService, SourceCitation, CitationSource } from "./application/business-brain-context";
+export type { DailyActionService } from "./application/daily-action";
+export type { ActionOutcomeService } from "./application/action-outcome";
+export type { JourneyService } from "./application/journey";
 export type {
   InboxNextBestAction,
   OrdersNextBestAction,
@@ -82,6 +94,9 @@ export {
   recommendationService,
   recommendationLifecycleService,
   businessBrainContextService,
+  dailyActionService,
+  actionOutcomeService,
+  journeyService,
   actionPlanService,
   decisionPolicyService,
   outcomeService,
@@ -160,6 +175,13 @@ export {
   getMarketingMemoryAction,
   getRecommendationConflictsAction,
   refreshReadModelsAction,
+  getTodayActionsAction,
+  completeDailyActionAction,
+  skipDailyActionAction,
+  getJourneysAction,
+  getJourneyAction,
+  getBusinessBrainContextAction,
+  getRecommendationDetailAction,
 } from "./presentation/actions";
 
 export { RecommendationConflictCard } from "./presentation/components/recommendation-conflict-card";

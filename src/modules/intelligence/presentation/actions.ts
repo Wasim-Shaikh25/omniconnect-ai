@@ -46,6 +46,9 @@ import {
   updateMarketingMemory,
   generateDailyBrief,
   generateMarketingInsightsFromMemory,
+  dailyActionService,
+  journeyService,
+  businessBrainContextService,
 } from "../infrastructure/container";
 import {
   INTELLIGENCE_QUEUE,
@@ -875,4 +878,90 @@ export async function getMarketingMemoryAction(
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not generate marketing memory" };
   }
+}
+
+// ── Daily operating rhythm (spec 0050) ──────────────────────────────────────
+
+async function assertStoreInOrg(organizationId: string, storeId?: string): Promise<boolean> {
+  if (!storeId) return true;
+  const overview = await organizationQueries.getOrganizationOverview(organizationId);
+  return !!overview?.stores.some((s) => s.id === storeId);
+}
+
+export async function getTodayActionsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { actions: [] };
+  const organizationId = user.organizationId;
+  if (!(await assertStoreInOrg(organizationId, storeId))) return { actions: [] };
+
+  const actions = await dailyActionService.listToday(organizationId, storeId);
+  return { actions };
+}
+
+export async function completeDailyActionAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const parsed = z
+    .object({ actionId: z.string().min(1), feedback: z.string().optional() })
+    .safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  await dailyActionService.complete(parsed.data.actionId, parsed.data.feedback ?? null, user.organizationId);
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+}
+
+export async function skipDailyActionAction(formData: FormData): Promise<void> {
+  const user = await requireRole("STAFF");
+  if (!user.organizationId) return;
+
+  const parsed = z
+    .object({ actionId: z.string().min(1), reason: z.string().optional() })
+    .safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return;
+
+  await dailyActionService.skip(parsed.data.actionId, parsed.data.reason ?? null, user.organizationId);
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+}
+
+export async function getJourneysAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { journeys: [] };
+  const organizationId = user.organizationId;
+  if (!(await assertStoreInOrg(organizationId, storeId))) return { journeys: [] };
+
+  const journeys = await journeyService.listJourneys(organizationId, storeId, 50);
+  return { journeys };
+}
+
+export async function getJourneyAction(journeyId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { journey: null };
+
+  const journey = await journeyService.getJourney(journeyId);
+  if (!journey || journey.organizationId !== user.organizationId) return { journey: null };
+  return { journey };
+}
+
+export async function getBusinessBrainContextAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { context: null };
+  const organizationId = user.organizationId;
+  if (!(await assertStoreInOrg(organizationId, storeId))) return { context: null };
+
+  const context = await businessBrainContextService.getContext(organizationId, storeId);
+  return { context };
+}
+
+export async function getRecommendationDetailAction(recommendationId: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { recommendation: null };
+
+  const recommendations = await recommendationService.listOpen(user.organizationId, undefined, 200);
+  const recommendation = recommendations.find((r) => r.id === recommendationId) ?? null;
+  if (!recommendation || recommendation.organizationId !== user.organizationId) return { recommendation: null };
+  return { recommendation };
 }

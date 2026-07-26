@@ -34,6 +34,14 @@ import type {
   InsightSeverity,
   InsightStatus,
   RiskTier,
+  BusinessObjective,
+  DailyActionRecord,
+  DailyActionStatus,
+  ActionOutcomeRecord,
+  ActionOutcomeStatus,
+  JourneyRecord,
+  JourneyStepRecord,
+  JourneyOutcome,
 } from "../domain/types";
 
 export interface SignalRepository {
@@ -116,7 +124,78 @@ export interface RecommendationRepository {
   listActive(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
   findById(id: string): Promise<RecommendationRecord | null>;
   updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord>;
+  updateObjective(id: string, objective: BusinessObjective, reason: string): Promise<RecommendationRecord | null>;
+  updateConfidence(id: string, confidence: number, signals: number): Promise<RecommendationRecord | null>;
   invalidate(id: string, eventName: string): Promise<RecommendationRecord>;
+}
+
+export interface DailyActionRepository {
+  save(action: Omit<DailyActionRecord, "id" | "createdAt" | "updatedAt">): Promise<DailyActionRecord>;
+  listPending(organizationId: string, storeId?: string, limit?: number): Promise<DailyActionRecord[]>;
+  listForDate(organizationId: string, since: Date, storeId?: string, limit?: number): Promise<DailyActionRecord[]>;
+  findById(id: string): Promise<DailyActionRecord | null>;
+  complete(id: string, feedback: string | null, outcomeId: string | null): Promise<DailyActionRecord>;
+  skip(id: string, reason: string | null): Promise<DailyActionRecord>;
+  setOutcome(id: string, outcomeId: string): Promise<DailyActionRecord>;
+}
+
+export interface ActionOutcomeRepository {
+  save(outcome: Omit<ActionOutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<ActionOutcomeRecord>;
+  findByAction(actionId: string): Promise<ActionOutcomeRecord | null>;
+  findById(id: string): Promise<ActionOutcomeRecord | null>;
+  updateMeasured(
+    id: string,
+    metricAfter: unknown,
+    status: ActionOutcomeStatus,
+    measuredAt: Date,
+  ): Promise<ActionOutcomeRecord>;
+  listPendingDue(organizationId: string, storeId?: string, limit?: number): Promise<ActionOutcomeRecord[]>;
+}
+
+export interface AppendTouchpointInput {
+  organizationId: string;
+  storeId: string;
+  customerId?: string | null;
+  externalUserId?: string | null;
+  channel?: string | null;
+  step: {
+    type: JourneyStepRecord["type"];
+    externalId?: string | null;
+    channel?: string | null;
+    details?: unknown;
+    occurredAt?: Date;
+  };
+  outcome?: JourneyOutcome;
+  attributedRevenue?: number | null;
+  attributedPostId?: string | null;
+}
+
+export interface JourneyRepository {
+  findOpen(
+    organizationId: string,
+    storeId: string,
+    key: { customerId?: string | null; externalUserId?: string | null },
+  ): Promise<JourneyRecord | null>;
+  create(journey: {
+    organizationId: string;
+    storeId: string;
+    customerId: string | null;
+    externalUserId: string | null;
+    channel: string | null;
+    outcome: JourneyOutcome;
+  }): Promise<JourneyRecord>;
+  appendStep(
+    journeyId: string,
+    step: Omit<JourneyStepRecord, "id" | "journeyId" | "createdAt">,
+    update: { outcome?: JourneyOutcome; attributedRevenue?: number | null; attributedPostId?: string | null },
+  ): Promise<JourneyRecord>;
+  findById(id: string): Promise<JourneyRecord | null>;
+  list(organizationId: string, storeId?: string, limit?: number): Promise<JourneyRecord[]>;
+  search(
+    organizationId: string,
+    query: { storeId?: string; externalUserId?: string; customerId?: string; postId?: string; couponCode?: string },
+    limit?: number,
+  ): Promise<JourneyRecord[]>;
 }
 
 export interface ActionPlanRepository {
@@ -250,4 +329,12 @@ export type {
   InsightSeverity,
   InsightStatus,
   RiskTier,
+  BusinessObjective,
+  DailyActionRecord,
+  DailyActionStatus,
+  ActionOutcomeRecord,
+  ActionOutcomeStatus,
+  JourneyRecord,
+  JourneyStepRecord,
+  JourneyOutcome,
 };

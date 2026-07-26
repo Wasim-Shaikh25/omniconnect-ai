@@ -12,6 +12,31 @@ export function parsePlan(value: string | null | undefined): Plan {
   return isPlan(value) ? value : Plan.FREE;
 }
 
+/**
+ * Enforceable per-plan entitlements. `null` means unlimited.
+ * Keep in sync with the marketing copy in PLAN_FEATURES below.
+ */
+export interface PlanLimits {
+  maxStores: number | null;
+  monthlyAiReplies: number | null;
+  teamSeats: number | null;
+}
+
+export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
+  [Plan.FREE]: { maxStores: 1, monthlyAiReplies: 50, teamSeats: 1 },
+  [Plan.STARTER]: { maxStores: 3, monthlyAiReplies: 500, teamSeats: 3 },
+  [Plan.PRO]: { maxStores: null, monthlyAiReplies: null, teamSeats: null },
+};
+
+/** Returns true when `current` usage is still within the plan's limit. */
+export function isWithinLimit(limit: number | null, current: number): boolean {
+  return limit === null || current < limit;
+}
+
+export function planLimits(plan: Plan): PlanLimits {
+  return PLAN_LIMITS[plan];
+}
+
 export const PLAN_FEATURES: Record<
   Plan,
   { label: string; price: string; monthlyPrice: number; description: string; features: string[] }

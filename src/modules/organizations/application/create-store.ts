@@ -2,7 +2,8 @@ import { z } from "zod";
 import { eventBus } from "@/shared/events";
 import { Result, ok, err } from "@/shared/kernel";
 import { ECOMMERCE_PROVIDERS } from "../domain/provider";
-import { OrganizationNotFoundError } from "../domain/errors";
+import { OrganizationNotFoundError, StoreLimitError } from "../domain/errors";
+import { planLimits, isWithinLimit } from "../domain/plan";
 import { StoreCreated } from "../domain/events";
 import { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
 
@@ -21,11 +22,22 @@ export function makeCreateStore(deps: {
 }) {
   return async function createStore(
     raw: CreateStoreInput,
-  ): Promise<Result<StoreRecord, OrganizationNotFoundError>> {
+  ): Promise<Result<StoreRecord, OrganizationNotFoundError | StoreLimitError>> {
     const input = createStoreSchema.parse(raw);
 
     const org = await deps.organizations.findById(input.organizationId);
     if (!org) return err(new OrganizationNotFoundError(input.organizationId));
+
+    // Billing enforcement: respect the plan's store limit.
+    const { maxStores } = planLimits(org.plan);
+    const existing = await deps.stores.listByOrganization(input.organizationId);
+    if (!isWithinLimit(maxStores, existing.length)) {
+      return err(
+        new StoreLimitError(
+          `Your ${org.plan} plan allows up to ${maxStores} store(s). Upgrade to add more.`,
+        ),
+      );
+    }
 
     const store = await deps.stores.create({
       organizationId: input.organizationId,

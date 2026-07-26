@@ -9,6 +9,8 @@ import {
   PrismaGoalRepository,
   PrismaPredictionRepository,
   PrismaBusinessLearningRepository,
+  PrismaDailyActionRepository,
+  PrismaJourneyRepository,
 } from "@/modules/intelligence/infrastructure/repositories";
 import { makeDetectionService } from "@/modules/intelligence/application/detection";
 import { makeRecommendationService } from "@/modules/intelligence/application/recommendation";
@@ -132,6 +134,8 @@ async function main() {
     outcomes: new PrismaOutcomeRepository(),
     learning: new PrismaBusinessLearningRepository(),
     goals: new PrismaGoalRepository(),
+    dailyActions: new PrismaDailyActionRepository(),
+    journeys: new PrismaJourneyRepository(),
   });
 
   await detectionService.analyzeStore(org.id, store.id);

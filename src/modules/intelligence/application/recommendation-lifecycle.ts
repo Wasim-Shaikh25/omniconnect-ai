@@ -3,6 +3,8 @@ import type { RecommendationRepository, RecommendationConflictRepository } from 
 import type { RecommendationRecord, RecommendationConflictRecord } from "../domain/types";
 import { RecommendationExpired, RecommendationConflictDetected } from "../domain/events";
 import { isRecommendationExpired } from "../domain/recommendation";
+import { objectivePriority, inferBusinessObjective } from "../domain/objective";
+import type { BusinessObjective } from "../domain/types";
 
 export interface Conflict {
   recommendationId: string;
@@ -52,7 +54,15 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
     if (rec.confidence) score += rec.confidence * 20;
     if (rec.effort === "LOW") score += 10;
     if (rec.effort === "MEDIUM") score += 5;
+    // Business objective priority: revenue-first ordering nudges the score so
+    // higher-value objectives win close races.
+    const objective = resolveObjective(rec);
+    score += (6 - objectivePriority(objective)) * 3;
     return score;
+  }
+
+  function resolveObjective(rec: RecommendationRecord): BusinessObjective {
+    return rec.businessObjective ?? inferBusinessObjective(rec.reasonCodes, rec.objective);
   }
 
   async function prioritizeRecommendations(
@@ -93,12 +103,26 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
     const resolutions: ConflictResolution[] = [];
 
     if (discountConflicts.length > 1) {
-      const sorted = discountConflicts.sort((a, b) => b.priority - a.priority);
+      const recById = new Map(recommendations.map((r) => [r.id, r]));
+      // Resolve on business objective first (revenue-first), then confidence,
+      // then the composite priority score.
+      const sorted = discountConflicts.sort((a, b) => {
+        const recA = recById.get(a.recommendationId);
+        const recB = recById.get(b.recommendationId);
+        if (recA && recB) {
+          const objDiff = objectivePriority(resolveObjective(recA)) - objectivePriority(resolveObjective(recB));
+          if (objDiff !== 0) return objDiff;
+          const confDiff = (recB.confidence ?? 0) - (recA.confidence ?? 0);
+          if (Math.abs(confDiff) > 0.001) return confDiff;
+        }
+        return b.priority - a.priority;
+      });
       const winner = sorted[0];
       const runnerUp = sorted[1];
       const winnerRec = recommendations.find((r) => r.id === winner.recommendationId);
       const runnerUpRec = recommendations.find((r) => r.id === runnerUp?.recommendationId);
-      const reason = `Selected highest-priority discount recommendation from ${winner.module} to avoid conflicting pricing actions.`;
+      const winnerObjective = winnerRec ? resolveObjective(winnerRec) : "REVENUE";
+      const reason = `Selected discount recommendation from ${winner.module} — highest-priority objective (${winnerObjective}) and confidence (${Math.round((winnerRec?.confidence ?? 0) * 100)}%) — to avoid conflicting pricing actions.`;
       resolutions.push({
         winnerId: winner.recommendationId,
         reason,

@@ -386,6 +386,7 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🔨 In Progress
 
 - **TASK-370 — Intelligence Domain Ownership Refactor** (spec `0046`):
+
   - Architecture review identified `intelligence` becoming a decision monolith.
   - Plan: move domain-specific detection/recommendation into `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`; reframe `intelligence` as cross-domain prioritizer/scorer/conflict resolver; add recommendation lifecycle and expiration; connect `Business Brain` to intelligence outputs; harden security (token encryption, AI data consent, webhook rate limiting, production env validation).
   - **Phase 0 (security hardening) implemented:**
@@ -498,14 +499,32 @@ All notable changes to **OmniConnect AI** are documented here.
     `.env.example` with Stripe variables.
   - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup pass; screenshots
     of landing, pricing, help, dashboard, billing, and stores captured.
-- **TASK-374 — Daily Marketing Operating Rhythm** (spec `0050`) — planned:
-  - Move the product from a page-oriented feature set to a daily operating rhythm where the
-    dashboard shows prioritized, completable actions.
-  - Make Marketing Memory the single source of truth for every module's decisions.
-  - Promote the Marketing Brain to the central product identity with source citations.
-  - Add objective-tagged, confidence-scored, adaptive recommendations.
-  - Build journey-level attribution: Reel → profile visit → DM → coupon → purchase → repeat.
-  - Production maturity: tests, CI, Redis-backed scaling, billing enforcement, tenant-isolation audit.
+- **TASK-374 — Daily Marketing Operating Rhythm** (spec `0050`) — first slice landed
+  (see `docs/tasks/TASK-374-progress.md` for the full checklist and remaining follow-ups):
+  - **Persistence:** added `DailyAction`, `ActionOutcome`, `Journey`, `JourneyStep` models,
+    the `BusinessObjective`/`DailyActionStatus`/`ActionOutcomeStatus` enums, recommendation
+    objective/confidence/context columns, and a Prisma migration.
+  - **Daily rhythm:** `dailyActionService.generate/complete/skip` (objective + confidence
+    prioritization, idempotent per day, Marketing-Memory-fed) and `actionOutcomeService.measure`
+    with a configurable observation window; completing an action schedules a measured outcome.
+  - **Resilience fix:** metric provider catches `StoreNotConnectedError` and returns `0` for order/revenue/AOV reads, so `completeDailyActionAction` works for stores without a connected eCommerce integration.
+  - **Decision quality:** objective tagging, `recalculateConfidence`, objective+confidence
+    conflict resolution, and market-trend vs competitor-advantage vs self-mistake diagnosis.
+  - **Journey attribution:** `journeyService.appendTouchpoint/getJourney`, with Meta post
+    views, follows, DMs, coupon sends, and referral orders linked into one journey via
+    domain-event subscribers.
+  - **Surfaces:** Today feed on the dashboard (`TodayFeed`/`TodayActionCard`, objective badge,
+    confidence meter), `/analytics/journeys` explorer, and Business Brain answers grounded in
+    Daily Brief / Marketing Memory / Journeys / Recommendations with visible source citations.
+  - **Server actions:** `getTodayActionsAction`, `completeDailyActionAction`,
+    `skipDailyActionAction`, `getJourneysAction`, `getJourneyAction`,
+    `getBusinessBrainContextAction`, `getRecommendationDetailAction` (tenant/store guarded).
+  - **Production maturity:** Vitest setup + domain/service tests (27 tests), a GitHub Actions
+    CI workflow (lint, typecheck, test, Postgres migration dry-run), security response headers,
+    a reusable rate limiter (applied to Stripe checkout), and plan-based store-limit enforcement.
+  - **Deferred follow-ups:** `ai/generatePostIdeas` + inbox/coupons/analytics deeper cohesion,
+    AI-reply-quota and team-seat metering, Redis-backed production queue/bus wiring, and the
+    full tenant-isolation audit.
 
 ### ⏭️ Next (proposed build order)
 
