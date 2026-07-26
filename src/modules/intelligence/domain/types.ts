@@ -178,6 +178,8 @@ export interface RecommendationImpactRange {
   unit?: string;
 }
 
+export type BusinessObjective = "GROWTH" | "REVENUE" | "ENGAGEMENT" | "RETENTION" | "SUPPORT" | "BRAND";
+
 export interface RecommendationRecord {
   id: string;
   organizationId: string;
@@ -188,9 +190,15 @@ export interface RecommendationRecord {
   title: string;
   description: string;
   objective: string | null;
+  businessObjective: BusinessObjective | null;
+  reasoning: string | null;
+  marketContext: string | null;
+  competitorContext: string | null;
+  selfContext: string | null;
   reasonCodes: string[];
   impactRange: RecommendationImpactRange | null;
   confidence: number | null;
+  confidenceSignals: number;
   effort: string | null;
   urgency: string | null;
   riskTier: RiskTier;
@@ -465,4 +473,78 @@ export interface DailyBriefRecord {
   expectedReach: number | null;
   expectedSales: number | null;
   priorities: string[];
+}
+
+// ── Daily operating rhythm (spec 0050) ──────────────────────────────────────
+
+export type DailyActionStatus = "PENDING" | "DONE" | "SKIPPED" | "DISMISSED";
+
+export type ActionOutcomeStatus = "PENDING" | "IMPROVED" | "NO_CHANGE" | "WORSENED" | "CANCELLED";
+
+export type JourneyStepType = "POST_VIEW" | "PROFILE_VISIT" | "DM" | "COUPON_SENT" | "ORDER";
+
+export type JourneyOutcome = "PURCHASE" | "FOLLOW" | "INQUIRY" | "CHURNED" | "OPEN";
+
+export interface DailyActionRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  title: string;
+  description: string;
+  objective: BusinessObjective;
+  confidence: number;
+  priority: number;
+  sourceSignals: unknown;
+  suggestedAction: string | null;
+  deepLink: string | null;
+  status: DailyActionStatus;
+  metricName: string | null;
+  completedAt: Date | null;
+  skippedAt: Date | null;
+  feedback: string | null;
+  outcomeId: string | null;
+  generatedForDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ActionOutcomeRecord {
+  id: string;
+  actionId: string;
+  organizationId: string;
+  storeId: string | null;
+  metricName: string | null;
+  metricBefore: unknown;
+  metricAfter: unknown;
+  observationWindowHours: number;
+  measuredAt: Date | null;
+  status: ActionOutcomeStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface JourneyStepRecord {
+  id: string;
+  journeyId: string;
+  type: JourneyStepType;
+  externalId: string | null;
+  channel: string | null;
+  details: unknown;
+  occurredAt: Date;
+  createdAt: Date;
+}
+
+export interface JourneyRecord {
+  id: string;
+  organizationId: string;
+  storeId: string;
+  customerId: string | null;
+  externalUserId: string | null;
+  channel: string | null;
+  outcome: JourneyOutcome;
+  attributedRevenue: number | null;
+  attributedPostId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  steps: JourneyStepRecord[];
 }

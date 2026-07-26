@@ -12,6 +12,15 @@ export const INTELLIGENCE_QUEUE = "intelligence";
 export const JOB_REFRESH_READ_MODELS = "REFRESH_READ_MODELS";
 export const JOB_REFRESH_PREDICTIONS = "REFRESH_PREDICTIONS";
 export const JOB_LEARN_FROM_OUTCOME = "LEARN_FROM_OUTCOME";
+export const JOB_MEASURE_ACTION_OUTCOME = "MEASURE_ACTION_OUTCOME";
+
+export interface MeasureActionOutcomeData {
+  outcomeId: string;
+}
+
+export interface ActionOutcomeMeasurer {
+  measureById(outcomeId: string): Promise<unknown>;
+}
 
 export interface RefreshReadModelsData {
   organizationId: string;
@@ -34,6 +43,7 @@ export interface IntelligenceQueueHandlersInput {
   businessLearning: BusinessLearningService;
   recommendations: RecommendationRepository;
   outcomes: OutcomeRepository;
+  actionOutcomeMeasurer: ActionOutcomeMeasurer;
 }
 
 export function registerIntelligenceQueueHandlers(deps: IntelligenceQueueHandlersInput): void {
@@ -48,6 +58,10 @@ export function registerIntelligenceQueueHandlers(deps: IntelligenceQueueHandler
 
   jobRegistry.register<RefreshPredictionsData>(JOB_REFRESH_PREDICTIONS, async ({ data }) => {
     await deps.predictions.generateForStore(data.organizationId, data.storeId);
+  });
+
+  jobRegistry.register<MeasureActionOutcomeData>(JOB_MEASURE_ACTION_OUTCOME, async ({ data }) => {
+    await deps.actionOutcomeMeasurer.measureById(data.outcomeId);
   });
 
   jobRegistry.register<LearnFromOutcomeData>(JOB_LEARN_FROM_OUTCOME, async ({ data }) => {

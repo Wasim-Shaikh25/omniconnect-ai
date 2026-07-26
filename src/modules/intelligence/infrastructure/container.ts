@@ -20,6 +20,9 @@ import { makeDiagnosisService } from "../application/diagnosis";
 import { makeIntelligenceFeed } from "../application/intelligence-feed";
 import { makeRecommendationService } from "../application/recommendation";
 import { makeRecommendationLifecycleService } from "../application/recommendation-lifecycle";
+import { makeDailyActionService } from "../application/daily-action";
+import { makeActionOutcomeService } from "../application/action-outcome";
+import { makeJourneyService } from "../application/journey";
 import { makeBusinessBrainContextService } from "../application/business-brain-context";
 import { makeActionPlanService } from "../application/action-plan";
 import { makeDecisionPolicyService } from "../application/decision-policy";
@@ -44,7 +47,13 @@ import { makeOperatingModelService } from "../application/operating-model";
 import { makeUpdateMarketingMemory } from "../application/marketing-memory";
 import { makeGenerateDailyBrief } from "../application/daily-brief";
 import { makeGenerateMarketingInsightsFromMemory } from "../application/marketing-insights";
-import { registerIntelligenceQueueHandlers } from "./queue-handlers";
+import {
+  registerIntelligenceQueueHandlers,
+  INTELLIGENCE_QUEUE,
+  JOB_MEASURE_ACTION_OUTCOME,
+  type MeasureActionOutcomeData,
+} from "./queue-handlers";
+import { getQueue } from "@/shared/queue";
 import {
   makeUnifiedContextService,
   makeKnowledgeGraphService,
@@ -78,6 +87,9 @@ import {
   PrismaSystemMetricRepository,
   PrismaKpiRepository,
   PrismaRecommendationConflictRepository,
+  PrismaDailyActionRepository,
+  PrismaActionOutcomeRepository,
+  PrismaJourneyRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -98,6 +110,9 @@ const competitorInsights = new PrismaCompetitorInsightRepository();
 const portfolioSnapshots = new PrismaPortfolioSnapshotRepository();
 const systemMetrics = new PrismaSystemMetricRepository();
 const kpis = new PrismaKpiRepository();
+const dailyActions = new PrismaDailyActionRepository();
+const actionOutcomes = new PrismaActionOutcomeRepository();
+const journeys = new PrismaJourneyRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
@@ -187,6 +202,23 @@ const actionExecutor = makeWorkspaceActionExecutor({
 
 export const recommendationService = makeRecommendationService({ insights, recommendations, ecommerce: ecommerceQueries });
 export const recommendationLifecycleService = makeRecommendationLifecycleService({ recommendations, conflicts: recommendationConflicts });
+export const journeyService = makeJourneyService({ journeys });
+export const actionOutcomeService = makeActionOutcomeService({
+  actionOutcomes,
+  dailyActions,
+  metrics: metricService,
+});
+export const dailyActionService = makeDailyActionService({
+  dailyActions,
+  actionOutcomes,
+  recommendations,
+  prioritize: recommendationLifecycleService.prioritizeRecommendations,
+  metrics: metricService,
+  getMemory: (organizationId, storeId) => updateMarketingMemory(organizationId, storeId),
+  enqueueMeasurement: async (outcomeId: string) => {
+    await getQueue(INTELLIGENCE_QUEUE).add<MeasureActionOutcomeData>(JOB_MEASURE_ACTION_OUTCOME, { outcomeId });
+  },
+});
 export const readModelRefresher = makeReadModelRefresher({
   detection: detectionService,
   recommendations: recommendationService,
@@ -200,6 +232,9 @@ export const businessBrainContextService = makeBusinessBrainContextService({
   outcomes,
   learning: learnings,
   goals,
+  dailyActions,
+  journeys,
+  getMemory: (organizationId, storeId) => updateMarketingMemory(organizationId, storeId),
 });
 export const decisionPolicyService = makeDecisionPolicyService();
 export const outcomeService = makeOutcomeService({ outcomes });
@@ -316,6 +351,7 @@ registerIntelligenceQueueHandlers({
   businessLearning: businessLearningService,
   recommendations,
   outcomes,
+  actionOutcomeMeasurer: actionOutcomeService,
 });
 
-export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };
+export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis, dailyActions, actionOutcomes, journeys };

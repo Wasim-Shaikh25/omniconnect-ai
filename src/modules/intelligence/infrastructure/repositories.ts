@@ -7,6 +7,9 @@ import type {
   MetricRepository,
   BusinessInsightRepository,
   RecommendationRepository,
+  DailyActionRepository,
+  ActionOutcomeRepository,
+  JourneyRepository,
   ActionPlanRepository,
   DecisionRepository,
   OutcomeRepository,
@@ -45,6 +48,13 @@ import type {
   OutcomeStatus,
   GoalStatus,
   HypothesisStatus,
+  DailyActionRecord,
+  DailyActionStatus,
+  ActionOutcomeRecord,
+  ActionOutcomeStatus,
+  JourneyRecord,
+  JourneyStepRecord,
+  JourneyOutcome,
 } from "../domain/types";
 
 type StoredSignal = {
@@ -472,9 +482,15 @@ type StoredRecommendation = {
   title: string;
   description: string;
   objective: string | null;
+  businessObjective: RecommendationRecord["businessObjective"];
+  reasoning: string | null;
+  marketContext: string | null;
+  competitorContext: string | null;
+  selfContext: string | null;
   reasonCodes: string[];
   impactRange: unknown;
   confidence: number | null;
+  confidenceSignals: number;
   effort: string | null;
   urgency: string | null;
   riskTier: RecommendationRecord["riskTier"];
@@ -557,6 +573,26 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
     if (status !== "SNOOZED") data.snoozedUntil = null;
     if (status === "EXPIRED") data.invalidatedAt = new Date();
     const updated = await prisma.recommendation.update({ where: { id }, data });
+    return toRecommendationRecord(updated as StoredRecommendation);
+  }
+
+  async updateObjective(
+    id: string,
+    objective: RecommendationRecord["businessObjective"],
+    reason: string,
+  ): Promise<RecommendationRecord | null> {
+    const updated = await prisma.recommendation.update({
+      where: { id },
+      data: { businessObjective: objective ?? undefined, reasoning: reason },
+    });
+    return toRecommendationRecord(updated as StoredRecommendation);
+  }
+
+  async updateConfidence(id: string, confidence: number, signals: number): Promise<RecommendationRecord | null> {
+    const updated = await prisma.recommendation.update({
+      where: { id },
+      data: { confidence, confidenceSignals: signals },
+    });
     return toRecommendationRecord(updated as StoredRecommendation);
   }
 
@@ -1271,5 +1307,295 @@ export class PrismaRecommendationConflictRepository implements RecommendationCon
       take: limit,
     });
     return rows.map((r) => toRecommendationConflictRecord(r as StoredRecommendationConflict));
+  }
+}
+
+// ── Daily operating rhythm (spec 0050) ──────────────────────────────────────
+
+type StoredDailyAction = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  title: string;
+  description: string;
+  objective: DailyActionRecord["objective"];
+  confidence: number;
+  priority: number;
+  sourceSignals: unknown;
+  suggestedAction: string | null;
+  deepLink: string | null;
+  status: DailyActionStatus;
+  metricName: string | null;
+  completedAt: Date | null;
+  skippedAt: Date | null;
+  feedback: string | null;
+  outcomeId: string | null;
+  generatedForDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toDailyActionRecord(row: StoredDailyAction): DailyActionRecord {
+  return {
+    ...row,
+    sourceSignals:
+      typeof row.sourceSignals === "object" && row.sourceSignals !== null ? row.sourceSignals : null,
+  };
+}
+
+export class PrismaDailyActionRepository implements DailyActionRepository {
+  async save(action: Omit<DailyActionRecord, "id" | "createdAt" | "updatedAt">): Promise<DailyActionRecord> {
+    const created = await prisma.dailyAction.create({
+      data: action as unknown as Prisma.DailyActionCreateInput,
+    });
+    return toDailyActionRecord(created as StoredDailyAction);
+  }
+
+  async listPending(organizationId: string, storeId?: string, limit = 20): Promise<DailyActionRecord[]> {
+    const rows = await prisma.dailyAction.findMany({
+      where: { organizationId, status: "PENDING", ...(storeId ? { storeId } : {}) },
+      orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => toDailyActionRecord(r as StoredDailyAction));
+  }
+
+  async listForDate(organizationId: string, since: Date, storeId?: string, limit = 50): Promise<DailyActionRecord[]> {
+    const rows = await prisma.dailyAction.findMany({
+      where: { organizationId, generatedForDate: { gte: since }, ...(storeId ? { storeId } : {}) },
+      orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => toDailyActionRecord(r as StoredDailyAction));
+  }
+
+  async findById(id: string): Promise<DailyActionRecord | null> {
+    const row = await prisma.dailyAction.findUnique({ where: { id } });
+    return row ? toDailyActionRecord(row as StoredDailyAction) : null;
+  }
+
+  async complete(id: string, feedback: string | null, outcomeId: string | null): Promise<DailyActionRecord> {
+    const updated = await prisma.dailyAction.update({
+      where: { id },
+      data: { status: "DONE", completedAt: new Date(), feedback, outcomeId },
+    });
+    return toDailyActionRecord(updated as StoredDailyAction);
+  }
+
+  async skip(id: string, reason: string | null): Promise<DailyActionRecord> {
+    const updated = await prisma.dailyAction.update({
+      where: { id },
+      data: { status: "SKIPPED", skippedAt: new Date(), feedback: reason },
+    });
+    return toDailyActionRecord(updated as StoredDailyAction);
+  }
+
+  async setOutcome(id: string, outcomeId: string): Promise<DailyActionRecord> {
+    const updated = await prisma.dailyAction.update({ where: { id }, data: { outcomeId } });
+    return toDailyActionRecord(updated as StoredDailyAction);
+  }
+}
+
+type StoredActionOutcome = {
+  id: string;
+  actionId: string;
+  organizationId: string;
+  storeId: string | null;
+  metricName: string | null;
+  metricBefore: unknown;
+  metricAfter: unknown;
+  observationWindowHours: number;
+  measuredAt: Date | null;
+  status: ActionOutcomeStatus;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function toActionOutcomeRecord(row: StoredActionOutcome): ActionOutcomeRecord {
+  return { ...row };
+}
+
+export class PrismaActionOutcomeRepository implements ActionOutcomeRepository {
+  async save(outcome: Omit<ActionOutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<ActionOutcomeRecord> {
+    const created = await prisma.actionOutcome.create({
+      data: outcome as unknown as Prisma.ActionOutcomeCreateInput,
+    });
+    return toActionOutcomeRecord(created as StoredActionOutcome);
+  }
+
+  async findByAction(actionId: string): Promise<ActionOutcomeRecord | null> {
+    const row = await prisma.actionOutcome.findUnique({ where: { actionId } });
+    return row ? toActionOutcomeRecord(row as StoredActionOutcome) : null;
+  }
+
+  async findById(id: string): Promise<ActionOutcomeRecord | null> {
+    const row = await prisma.actionOutcome.findUnique({ where: { id } });
+    return row ? toActionOutcomeRecord(row as StoredActionOutcome) : null;
+  }
+
+  async updateMeasured(
+    id: string,
+    metricAfter: unknown,
+    status: ActionOutcomeStatus,
+    measuredAt: Date,
+  ): Promise<ActionOutcomeRecord> {
+    const updated = await prisma.actionOutcome.update({
+      where: { id },
+      data: { metricAfter: (metricAfter ?? Prisma.JsonNull) as Prisma.InputJsonValue, status, measuredAt },
+    });
+    return toActionOutcomeRecord(updated as StoredActionOutcome);
+  }
+
+  async listPendingDue(organizationId: string, storeId?: string, limit = 50): Promise<ActionOutcomeRecord[]> {
+    const rows = await prisma.actionOutcome.findMany({
+      where: { organizationId, status: "PENDING", ...(storeId ? { storeId } : {}) },
+      orderBy: { createdAt: "asc" },
+      take: limit,
+    });
+    return rows.map((r) => toActionOutcomeRecord(r as StoredActionOutcome));
+  }
+}
+
+type StoredJourneyStep = {
+  id: string;
+  journeyId: string;
+  type: string;
+  externalId: string | null;
+  channel: string | null;
+  details: unknown;
+  occurredAt: Date;
+  createdAt: Date;
+};
+
+type StoredJourney = {
+  id: string;
+  organizationId: string;
+  storeId: string;
+  customerId: string | null;
+  externalUserId: string | null;
+  channel: string | null;
+  outcome: string;
+  attributedRevenue: number | null;
+  attributedPostId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  steps?: StoredJourneyStep[];
+};
+
+function toJourneyStepRecord(row: StoredJourneyStep): JourneyStepRecord {
+  return { ...row, type: row.type as JourneyStepRecord["type"] };
+}
+
+function toJourneyRecord(row: StoredJourney): JourneyRecord {
+  return {
+    ...row,
+    outcome: row.outcome as JourneyOutcome,
+    steps: (row.steps ?? []).map(toJourneyStepRecord),
+  };
+}
+
+export class PrismaJourneyRepository implements JourneyRepository {
+  async findOpen(
+    organizationId: string,
+    storeId: string,
+    key: { customerId?: string | null; externalUserId?: string | null },
+  ): Promise<JourneyRecord | null> {
+    if (!key.customerId && !key.externalUserId) return null;
+    const row = await prisma.journey.findFirst({
+      where: {
+        organizationId,
+        storeId,
+        outcome: { notIn: ["PURCHASE", "CHURNED"] },
+        ...(key.customerId ? { customerId: key.customerId } : {}),
+        ...(key.externalUserId ? { externalUserId: key.externalUserId } : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+      include: { steps: { orderBy: { occurredAt: "asc" } } },
+    });
+    return row ? toJourneyRecord(row as StoredJourney) : null;
+  }
+
+  async create(journey: {
+    organizationId: string;
+    storeId: string;
+    customerId: string | null;
+    externalUserId: string | null;
+    channel: string | null;
+    outcome: JourneyOutcome;
+  }): Promise<JourneyRecord> {
+    const created = await prisma.journey.create({
+      data: journey,
+      include: { steps: { orderBy: { occurredAt: "asc" } } },
+    });
+    return toJourneyRecord(created as StoredJourney);
+  }
+
+  async appendStep(
+    journeyId: string,
+    step: Omit<JourneyStepRecord, "id" | "journeyId" | "createdAt">,
+    update: { outcome?: JourneyOutcome; attributedRevenue?: number | null; attributedPostId?: string | null },
+  ): Promise<JourneyRecord> {
+    await prisma.journeyStep.create({
+      data: {
+        journeyId,
+        type: step.type,
+        externalId: step.externalId,
+        channel: step.channel,
+        details: (step.details ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+        occurredAt: step.occurredAt,
+      },
+    });
+    const updated = await prisma.journey.update({
+      where: { id: journeyId },
+      data: {
+        ...(update.outcome ? { outcome: update.outcome } : {}),
+        ...(update.attributedRevenue !== undefined ? { attributedRevenue: update.attributedRevenue } : {}),
+        ...(update.attributedPostId !== undefined ? { attributedPostId: update.attributedPostId } : {}),
+      },
+      include: { steps: { orderBy: { occurredAt: "asc" } } },
+    });
+    return toJourneyRecord(updated as StoredJourney);
+  }
+
+  async findById(id: string): Promise<JourneyRecord | null> {
+    const row = await prisma.journey.findUnique({
+      where: { id },
+      include: { steps: { orderBy: { occurredAt: "asc" } } },
+    });
+    return row ? toJourneyRecord(row as StoredJourney) : null;
+  }
+
+  async list(organizationId: string, storeId?: string, limit = 50): Promise<JourneyRecord[]> {
+    const rows = await prisma.journey.findMany({
+      where: { organizationId, ...(storeId ? { storeId } : {}) },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+      include: { steps: { orderBy: { occurredAt: "asc" } } },
+    });
+    return rows.map((r) => toJourneyRecord(r as StoredJourney));
+  }
+
+  async search(
+    organizationId: string,
+    query: { storeId?: string; externalUserId?: string; customerId?: string; postId?: string; couponCode?: string },
+    limit = 50,
+  ): Promise<JourneyRecord[]> {
+    const stepFilters: Prisma.JourneyStepWhereInput[] = [];
+    if (query.postId) stepFilters.push({ type: "POST_VIEW", externalId: query.postId });
+    if (query.couponCode) stepFilters.push({ type: "COUPON_SENT", externalId: query.couponCode });
+    const rows = await prisma.journey.findMany({
+      where: {
+        organizationId,
+        ...(query.storeId ? { storeId: query.storeId } : {}),
+        ...(query.externalUserId ? { externalUserId: query.externalUserId } : {}),
+        ...(query.customerId ? { customerId: query.customerId } : {}),
+        ...(query.postId ? { attributedPostId: query.postId } : {}),
+        ...(stepFilters.length > 0 ? { steps: { some: { OR: stepFilters } } } : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+      include: { steps: { orderBy: { occurredAt: "asc" } } },
+    });
+    return rows.map((r) => toJourneyRecord(r as StoredJourney));
   }
 }

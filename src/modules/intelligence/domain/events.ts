@@ -225,3 +225,86 @@ export interface CommentPatternDetectedPayload {
 export class CommentPatternDetected extends BaseDomainEvent<CommentPatternDetectedPayload> {
   readonly name = "CommentPatternDetected";
 }
+
+// ── Daily operating rhythm (spec 0050) ──────────────────────────────────────
+
+export interface DailyActionsGeneratedPayload {
+  organizationId: string;
+  storeId: string | null;
+  actionIds: string[];
+  generatedAt: Date;
+}
+
+export class DailyActionsGenerated extends BaseDomainEvent<DailyActionsGeneratedPayload> {
+  readonly name = "DailyActionsGenerated";
+}
+
+export interface DailyActionCompletedPayload {
+  actionId: string;
+  organizationId: string;
+  storeId: string | null;
+  outcomeId: string | null;
+  observationWindowHours: number;
+  feedback: string | null;
+}
+
+export class DailyActionCompleted extends BaseDomainEvent<DailyActionCompletedPayload> {
+  readonly name = "DailyActionCompleted";
+}
+
+export interface DailyActionSkippedPayload {
+  actionId: string;
+  organizationId: string;
+  storeId: string | null;
+  reason: string | null;
+}
+
+export class DailyActionSkipped extends BaseDomainEvent<DailyActionSkippedPayload> {
+  readonly name = "DailyActionSkipped";
+}
+
+export interface ActionOutcomeMeasuredPayload {
+  actionId: string;
+  outcomeId: string;
+  organizationId: string;
+  storeId: string | null;
+  status: string;
+}
+
+export class ActionOutcomeMeasured extends BaseDomainEvent<ActionOutcomeMeasuredPayload> {
+  readonly name = "ActionOutcomeMeasured";
+}
+
+export interface JourneyUpdatedPayload {
+  journeyId: string;
+  organizationId: string;
+  storeId: string;
+  stepType: string;
+  outcome: string;
+}
+
+export class JourneyUpdated extends BaseDomainEvent<JourneyUpdatedPayload> {
+  readonly name = "JourneyUpdated";
+}
+
+export interface ConfidenceChangedPayload {
+  subjectType: string;
+  subjectId: string;
+  previousConfidence: number | null;
+  newConfidence: number;
+  signals: number;
+}
+
+export class ConfidenceChanged extends BaseDomainEvent<ConfidenceChangedPayload> {
+  readonly name = "ConfidenceChanged";
+}
+
+export interface RecommendationObjectiveTaggedPayload {
+  recommendationId: string;
+  objective: string;
+  reason: string;
+}
+
+export class RecommendationObjectiveTagged extends BaseDomainEvent<RecommendationObjectiveTaggedPayload> {
+  readonly name = "RecommendationObjectiveTagged";
+}

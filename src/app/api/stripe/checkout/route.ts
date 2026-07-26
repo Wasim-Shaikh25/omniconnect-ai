@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/modules/auth";
 import { billingService, isPlan } from "@/modules/organizations";
+import { rateLimit, clientIp } from "@/shared/security/rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,18 @@ export async function POST(request: Request) {
     }
     if (!["ADMIN", "STORE_OWNER"].includes(user.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const limit = await rateLimit({
+      key: `stripe-checkout:${user.id ?? clientIp(request)}`,
+      limit: 10,
+      windowMs: 60_000,
+    });
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: { "Retry-After": "60" } },
+      );
     }
     if (!billingService) {
       return NextResponse.json(

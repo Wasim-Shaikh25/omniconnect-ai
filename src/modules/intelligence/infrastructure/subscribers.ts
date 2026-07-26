@@ -27,10 +27,16 @@ import type {
   ReferralConvertedPayload,
 } from "@/modules/growth";
 import type { BrandDealCreatedPayload } from "@/modules/branddeals";
+import type {
+  MetaMessageReceivedPayload,
+  MetaFollowReceivedPayload,
+  MetaCommentReceivedPayload,
+} from "@/modules/meta";
 import {
   signalIngestionService,
   entityResolutionService,
   proactiveNotificationService,
+  journeyService,
 } from "./container";
 import type {
   BusinessInsightGeneratedPayload,
@@ -514,6 +520,102 @@ const onCompetitorInsightGenerated: EventHandler = async (event) => {
   });
 };
 
+// ── Journey attribution (spec 0050) ─────────────────────────────────────────
+// Link Meta post views, profile visits, DMs, coupon sends, and orders into one journey.
+
+async function appendJourneySafely(
+  input: Parameters<typeof journeyService.appendTouchpoint>[0],
+  context: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await journeyService.appendTouchpoint(input);
+  } catch (err) {
+    logger.warn("intelligence.journeyTouchpointFailed", { ...context, error: err instanceof Error ? err.message : "unknown" });
+  }
+}
+
+const onMetaCommentReceivedJourney: EventHandler = async (event) => {
+  const p = event.payload as MetaCommentReceivedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await appendJourneySafely(
+    {
+      organizationId,
+      storeId: p.storeId,
+      externalUserId: p.externalUserId,
+      channel: p.channel,
+      attributedPostId: p.postId,
+      step: { type: "POST_VIEW", externalId: p.postId, channel: p.channel, details: { text: p.text } },
+    },
+    { storeId: p.storeId, step: "POST_VIEW" },
+  );
+};
+
+const onMetaFollowReceivedJourney: EventHandler = async (event) => {
+  const p = event.payload as MetaFollowReceivedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await appendJourneySafely(
+    {
+      organizationId,
+      storeId: p.storeId,
+      externalUserId: p.externalUserId,
+      channel: p.channel,
+      step: { type: "PROFILE_VISIT", externalId: p.externalUserId, channel: p.channel, details: { username: p.username } },
+    },
+    { storeId: p.storeId, step: "PROFILE_VISIT" },
+  );
+};
+
+const onMetaMessageReceivedJourney: EventHandler = async (event) => {
+  const p = event.payload as MetaMessageReceivedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await appendJourneySafely(
+    {
+      organizationId,
+      storeId: p.storeId,
+      externalUserId: p.externalUserId,
+      channel: p.channel,
+      step: { type: "DM", externalId: p.externalConversationId, channel: p.channel, details: { text: p.text } },
+    },
+    { storeId: p.storeId, step: "DM" },
+  );
+};
+
+const onCouponGeneratedJourney: EventHandler = async (event) => {
+  const p = event.payload as CouponGeneratedPayload;
+  if (!p.customerId) return;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await appendJourneySafely(
+    {
+      organizationId,
+      storeId: p.storeId,
+      customerId: p.customerId,
+      step: { type: "COUPON_SENT", externalId: p.couponId, details: { code: p.code, discountPct: p.discountPct } },
+    },
+    { storeId: p.storeId, step: "COUPON_SENT" },
+  );
+};
+
+const onReferralConvertedJourney: EventHandler = async (event) => {
+  const p = event.payload as ReferralConvertedPayload;
+  const organizationId = await orgForStore(p.storeId);
+  if (!organizationId) return;
+  await appendJourneySafely(
+    {
+      organizationId,
+      storeId: p.storeId,
+      customerId: p.ambassadorId,
+      outcome: "PURCHASE",
+      attributedRevenue: p.orderAmount,
+      step: { type: "ORDER", externalId: p.orderId, details: { orderAmount: p.orderAmount } },
+    },
+    { storeId: p.storeId, step: "ORDER" },
+  );
+};
+
 export function registerIntelligenceSubscribers(bus: EventBus = eventBus): void {
   bus.subscribe("FirstTimeFollowerDetected", onFirstTimeFollowerDetected);
   bus.subscribe("CustomerProfileUpdated", onCustomerProfileUpdated);
@@ -532,4 +634,11 @@ export function registerIntelligenceSubscribers(bus: EventBus = eventBus): void 
   bus.subscribe("ReferralConverted", onReferralConverted);
   bus.subscribe("BrandDealCreated", onBrandDealCreated);
   bus.subscribe("CompetitorInsightGenerated", onCompetitorInsightGenerated);
+
+  // Journey attribution touchpoints.
+  bus.subscribe("MetaCommentReceived", onMetaCommentReceivedJourney);
+  bus.subscribe("MetaFollowReceived", onMetaFollowReceivedJourney);
+  bus.subscribe("MetaMessageReceived", onMetaMessageReceivedJourney);
+  bus.subscribe("CouponGenerated", onCouponGeneratedJourney);
+  bus.subscribe("ReferralConverted", onReferralConvertedJourney);
 }

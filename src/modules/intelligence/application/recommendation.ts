@@ -1,6 +1,13 @@
+import { eventBus } from "@/shared/events";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { BusinessInsightRepository, RecommendationRepository } from "./ports";
-import type { BusinessInsightRecord, RecommendationRecord, RiskTier } from "../domain/types";
+import type { BusinessInsightRecord, BusinessObjective, RecommendationRecord, RiskTier } from "../domain/types";
+import {
+  inferBusinessObjective,
+  diagnoseRecommendationContext,
+  recalculateConfidence,
+} from "../domain/objective";
+import { ConfidenceChanged } from "../domain/events";
 
 export interface RecommendationServiceInput {
   insights: BusinessInsightRepository;
@@ -36,6 +43,12 @@ async function recommendationFromInsight(
     insightId: insight.id,
     producedByModule: "intelligence" as const,
     producedByService: "recommendationFromInsight",
+    businessObjective: null as BusinessObjective | null,
+    reasoning: null as string | null,
+    marketContext: null as string | null,
+    competitorContext: null as string | null,
+    selfContext: null as string | null,
+    confidenceSignals: 1,
     status: "PROPOSED" as RecommendationRecord["status"],
     generatedAt: now,
     validFrom: now,
@@ -296,7 +309,16 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
         if (seenInsightIds.has(insight.id)) continue;
         const draft = await recommendationFromInsight(insight, input.ecommerce);
         if (!draft) continue;
-        const saved = await input.recommendations.save(draft);
+        const objective = inferBusinessObjective(draft.reasonCodes, draft.objective);
+        const diagnosis = diagnoseRecommendationContext({ reasonCodes: draft.reasonCodes });
+        const saved = await input.recommendations.save({
+          ...draft,
+          businessObjective: objective,
+          reasoning: diagnosis.reasoning,
+          marketContext: diagnosis.marketContext,
+          competitorContext: diagnosis.competitorContext,
+          selfContext: diagnosis.selfContext,
+        });
         generated.push(saved);
       }
       return generated;
@@ -308,6 +330,41 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
 
     async dismiss(id: string): Promise<RecommendationRecord | null> {
       return input.recommendations.updateStatus(id, "DISMISSED");
+    },
+
+    async tagObjective(
+      recommendationId: string,
+      objective: BusinessObjective,
+      reason: string,
+    ): Promise<RecommendationRecord | null> {
+      return input.recommendations.updateObjective(recommendationId, objective, reason);
+    },
+
+    async recalculateConfidence(
+      recommendationId: string,
+      signals?: { supportingSignals?: number; contradictingSignals?: number },
+    ): Promise<RecommendationRecord | null> {
+      const rec = await input.recommendations.findById(recommendationId);
+      if (!rec) return null;
+      const next = recalculateConfidence({
+        currentConfidence: rec.confidence ?? 0.5,
+        currentSignals: rec.confidenceSignals ?? 0,
+        supportingSignals: signals?.supportingSignals ?? 1,
+        contradictingSignals: signals?.contradictingSignals ?? 0,
+      });
+      const updated = await input.recommendations.updateConfidence(recommendationId, next.confidence, next.signals);
+      if (updated && Math.abs((rec.confidence ?? 0.5) - next.confidence) >= 0.001) {
+        await eventBus.publish(
+          new ConfidenceChanged(recommendationId, {
+            subjectType: "Recommendation",
+            subjectId: recommendationId,
+            previousConfidence: rec.confidence ?? null,
+            newConfidence: next.confidence,
+            signals: next.signals,
+          }),
+        );
+      }
+      return updated;
     },
   };
 }

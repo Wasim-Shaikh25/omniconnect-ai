@@ -4,6 +4,7 @@ import type { ElementType } from "react";
 import { getCurrentUser } from "@/modules/auth";
 import { analyticsQueries } from "@/modules/analytics";
 import { DataQualityAlerts } from "@/components/data-quality-alerts";
+import { TodayFeed } from "@/components/today-feed";
 import { IntelligencePanel } from "@/components/intelligence-panel";
 import { RecommendationsPanel } from "@/components/recommendations-panel";
 import { GoalsPanel } from "@/components/goals-panel";
@@ -115,6 +116,10 @@ export default async function DashboardPage() {
           href="/business-brain"
         />
       </div>
+
+      <section className="mb-8">
+        <TodayFeed />
+      </section>
 
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-medium">Intelligence KPIs</h2>
