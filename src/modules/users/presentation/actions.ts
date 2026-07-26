@@ -1,13 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser, requireRole } from "@/modules/auth";
+import { requireUser, requireRole, requireSuperAdmin } from "@/modules/auth";
 import { updateProfileSchema } from "../application/update-profile";
 import { changeRoleSchema } from "../application/change-role";
 import {
   updateProfile,
   changeUserRole,
   auditCommands,
+  listAllUsers,
+  setUserSuperAdmin,
 } from "../infrastructure/container";
 
 export interface ProfileActionState {
@@ -66,4 +68,35 @@ export async function changeUserRoleAction(
   revalidatePath("/settings");
   revalidatePath("/settings/audit");
   return { ok: true };
+}
+
+export async function listAllUsersAction() {
+  await requireSuperAdmin();
+  return listAllUsers();
+}
+
+export async function toggleUserSuperAdminAction(
+  _prev: { error?: string; ok?: boolean },
+  formData: FormData,
+) {
+  const admin = await requireSuperAdmin();
+  const userId = formData.get("userId");
+  const isSuperAdminRaw = formData.get("isSuperAdmin");
+  if (typeof userId !== "string" || !userId) return { error: "User ID is required" };
+  const isSuperAdmin = isSuperAdminRaw === "true";
+
+  const user = await setUserSuperAdmin(userId, isSuperAdmin);
+
+  await auditCommands.create({
+    organizationId: "platform",
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: isSuperAdmin ? "USER_PROMOTED_SUPER_ADMIN" : "USER_DEMOTED_SUPER_ADMIN",
+    resource: "User",
+    resourceId: userId,
+    details: `Super admin set to ${isSuperAdmin}`,
+  });
+
+  revalidatePath("/admin/users");
+  return { ok: true, user };
 }

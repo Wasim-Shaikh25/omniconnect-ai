@@ -35,9 +35,27 @@ export type {
 export type { OrganizationOverview } from "./application/queries";
 
 // Queries + use-cases (composed)
-export { organizationQueries, createStore, tenantGuard, billingService } from "./infrastructure/container";
+export {
+  organizationQueries,
+  createStore,
+  tenantGuard,
+  billingService,
+  createSaaSCoupon,
+  validateSaaSCoupon,
+  saasCouponRepository,
+} from "./infrastructure/container";
 
 // Presentation + bootstrap wiring
-export { createStoreAction } from "./presentation/actions";
+export {
+  createStoreAction,
+  listAllOrganizationsAction,
+} from "./presentation/actions";
 export type { StoreActionState } from "./presentation/actions";
+export {
+  createSaaSCouponAction,
+  listSaaSCouponsAction,
+  applyCouponToCheckoutAction,
+  incrementCouponUsageAction,
+} from "./presentation/saas-coupon.actions";
+export type { CouponActionState } from "./presentation/saas-coupon.actions";
 export { registerOrganizationSubscribers } from "./infrastructure/subscribers";

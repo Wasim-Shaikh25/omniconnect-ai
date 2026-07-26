@@ -22,6 +22,7 @@ export interface StoreRecord {
 export interface OrganizationRepository {
   create(input: { name: string }): Promise<OrganizationRecord>;
   findById(id: string): Promise<OrganizationRecord | null>;
+  listAll(): Promise<OrganizationRecord[]>;
   updatePlan(
     id: string,
     input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },

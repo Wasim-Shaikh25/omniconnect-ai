@@ -7,6 +7,7 @@ export interface SessionUser {
   email: string;
   name: string | null;
   role: Role;
+  isSuperAdmin: boolean;
   organizationId: string | null;
 }
 
@@ -20,6 +21,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     email: user.email,
     name: user.name ?? null,
     role: user.role,
+    isSuperAdmin: user.isSuperAdmin ?? false,
     organizationId: user.organizationId ?? null,
   };
 }
@@ -35,5 +37,12 @@ export async function requireUser(): Promise<SessionUser> {
 export async function requireRole(role: Role): Promise<SessionUser> {
   const user = await requireUser();
   if (!roleSatisfies(user.role, role)) throw new ForbiddenError();
+  return user;
+}
+
+/** Returns the current user only if they are a platform super admin. */
+export async function requireSuperAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (!user.isSuperAdmin) throw new ForbiddenError();
   return user;
 }

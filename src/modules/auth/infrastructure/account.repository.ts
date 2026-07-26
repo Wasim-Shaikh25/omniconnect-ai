@@ -12,6 +12,7 @@ export class PrismaAccountRepository implements AccountRepository {
       name: user.name,
       passwordHash: user.passwordHash,
       role: user.role as Role,
+      isSuperAdmin: user.isSuperAdmin,
       organizationId: user.organizationId,
     };
   }
@@ -36,6 +37,7 @@ export class PrismaAccountRepository implements AccountRepository {
       name: user.name,
       passwordHash: user.passwordHash,
       role: user.role as Role,
+      isSuperAdmin: user.isSuperAdmin,
       organizationId: user.organizationId,
     };
   }

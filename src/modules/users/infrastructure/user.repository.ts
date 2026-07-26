@@ -8,6 +8,7 @@ type PrismaUser = {
   name: string | null;
   image: string | null;
   role: string;
+  isSuperAdmin: boolean;
   organizationId: string | null;
   storeId: string | null;
 };
@@ -19,6 +20,7 @@ function toProfile(user: PrismaUser): UserProfile {
     name: user.name,
     image: user.image,
     role: user.role as Role,
+    isSuperAdmin: user.isSuperAdmin,
     organizationId: user.organizationId,
     storeId: user.storeId,
   };
@@ -56,5 +58,20 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
       orderBy: { createdAt: "asc" },
     });
     return users.map(toProfile);
+  }
+
+  async listAll(): Promise<UserProfile[]> {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return users.map(toProfile);
+  }
+
+  async setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile> {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { isSuperAdmin },
+    });
+    return toProfile(user);
   }
 }

@@ -29,7 +29,7 @@ export class StripePaymentGateway implements PaymentGateway {
       throw new Error(`No Stripe price configured for plan ${input.plan}`);
     }
 
-    const session = await this.client.checkout.sessions.create({
+    const sessionInput: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: input.successUrl,
@@ -38,7 +38,13 @@ export class StripePaymentGateway implements PaymentGateway {
       subscription_data: {
         metadata: { organizationId: input.organizationId, plan: input.plan },
       },
-    });
+    };
+
+    if (input.promotionCodeId) {
+      sessionInput.discounts = [{ promotion_code: input.promotionCodeId }];
+    }
+
+    const session = await this.client.checkout.sessions.create(sessionInput);
 
     return { url: session.url ?? null };
   }

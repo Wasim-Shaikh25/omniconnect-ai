@@ -40,6 +40,7 @@ const providers: NextAuthConfig["providers"] = [
         email: account.email,
         name: account.name,
         role: account.role,
+        isSuperAdmin: account.isSuperAdmin,
         organizationId: account.organizationId,
       };
     },
@@ -106,6 +107,8 @@ export const authConfig: NextAuthConfig = {
         token.id = user.id;
         const role = (user as { role?: unknown }).role;
         token.role = isRole(role) ? role : "STORE_OWNER";
+        const isSuperAdmin = (user as { isSuperAdmin?: unknown }).isSuperAdmin;
+        token.isSuperAdmin = typeof isSuperAdmin === "boolean" ? isSuperAdmin : false;
         const orgId = (user as { organizationId?: unknown }).organizationId;
         token.organizationId = typeof orgId === "string" ? orgId : null;
       }
@@ -114,7 +117,10 @@ export const authConfig: NextAuthConfig = {
         const fresh = await accounts.findByEmail(
           typeof token.email === "string" ? token.email : "",
         );
-        if (fresh) token.organizationId = fresh.organizationId;
+        if (fresh) {
+          token.organizationId = fresh.organizationId;
+          token.isSuperAdmin = fresh.isSuperAdmin;
+        }
       }
       return token;
     },
@@ -128,6 +134,8 @@ export const authConfig: NextAuthConfig = {
           typeof token.organizationId === "string"
             ? token.organizationId
             : null;
+        session.user.isSuperAdmin =
+          typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
       }
       return session;
     },

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/modules/auth";
-import { billingService, isPlan } from "@/modules/organizations";
+import { billingService, isPlan, validateSaaSCoupon, saasCouponRepository } from "@/modules/organizations";
 import { rateLimit, clientIp } from "@/shared/security/rate-limit";
+import { logSystemError } from "@/shared/observability";
 
 export async function POST(request: Request) {
   try {
@@ -34,15 +35,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as { plan?: string };
+    const body = (await request.json()) as { plan?: string; couponCode?: string };
     if (!body.plan || !isPlan(body.plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    const { url } = await billingService.createCheckoutSession(
-      user.organizationId,
-      body.plan,
-    );
+    let promotionCodeId: string | undefined;
+    if (body.couponCode) {
+      const couponResult = await validateSaaSCoupon(body.couponCode, body.plan);
+      if (!couponResult.ok) {
+        return NextResponse.json({ error: couponResult.error.message }, { status: 400 });
+      }
+      if (!couponResult.value.stripePromotionCodeId) {
+        return NextResponse.json(
+          { error: "Coupon is not linked to a Stripe promotion code" },
+          { status: 400 },
+        );
+      }
+      promotionCodeId = couponResult.value.stripePromotionCodeId;
+      await saasCouponRepository.incrementUsage(couponResult.value.id).catch((error: unknown) => {
+        logSystemError("stripe.checkout.incrementCouponUsage", error, {
+          metadata: { couponId: couponResult.value.id },
+        });
+      });
+    }
+
+    const { url } = await billingService.createCheckoutSession({
+      organizationId: user.organizationId,
+      plan: body.plan,
+      successUrl: `${process.env.APP_URL ?? "http://localhost:3000"}/settings/billing?success=1`,
+      cancelUrl: `${process.env.APP_URL ?? "http://localhost:3000"}/settings/billing?canceled=1`,
+      promotionCodeId,
+    });
     if (!url) {
       return NextResponse.json(
         { error: "Could not create checkout session" },

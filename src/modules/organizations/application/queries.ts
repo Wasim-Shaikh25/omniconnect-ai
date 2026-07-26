@@ -14,6 +14,22 @@ export function makeOrganizationQueries(deps: {
   stores: StoreRepository;
 }) {
   return {
+    async listAllOrganizations(): Promise<OrganizationOverview[]> {
+      const orgs = await deps.organizations.listAll();
+      return Promise.all(
+        orgs.map(async (org) => {
+          const stores = await deps.stores.listByOrganization(org.id);
+          return {
+            id: org.id,
+            name: org.name,
+            plan: org.plan,
+            subscriptionStatus: org.subscriptionStatus,
+            stores,
+          };
+        }),
+      );
+    },
+
     async getOrganizationOverview(
       organizationId: string,
     ): Promise<OrganizationOverview | null> {

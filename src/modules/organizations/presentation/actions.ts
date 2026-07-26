@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole, ForbiddenError } from "@/modules/auth";
-import { createStore } from "../infrastructure/container";
+import { requireRole, requireSuperAdmin, ForbiddenError } from "@/modules/auth";
+import { createStore, organizationQueries } from "../infrastructure/container";
 import { createStoreSchema } from "../application/create-store";
 
 export interface StoreActionState {
@@ -39,4 +39,9 @@ export async function createStoreAction(
 
   revalidatePath("/stores");
   return { ok: true };
+}
+
+export async function listAllOrganizationsAction() {
+  await requireSuperAdmin();
+  return organizationQueries.listAllOrganizations();
 }

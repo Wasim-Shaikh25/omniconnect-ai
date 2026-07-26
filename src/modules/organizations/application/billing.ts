@@ -1,13 +1,10 @@
 import { env } from "@/shared/config/env";
 import { Plan } from "../domain/plan";
 import { OrganizationRepository } from "./ports";
-import { PaymentGateway } from "./payment-gateway";
+import { CheckoutSessionInput, PaymentGateway } from "./payment-gateway";
 
 export interface BillingService {
-  createCheckoutSession(
-    organizationId: string,
-    plan: Plan,
-  ): Promise<{ url: string | null }>;
+  createCheckoutSession(input: CheckoutSessionInput): Promise<{ url: string | null }>;
   fulfillCheckout(payload: string | Buffer, signature: string): Promise<void>;
 }
 
@@ -16,16 +13,10 @@ export function makeBillingService(deps: {
   paymentGateway: PaymentGateway;
 }): BillingService {
   return {
-    async createCheckoutSession(organizationId: string, plan: Plan) {
-      const org = await deps.organizations.findById(organizationId);
+    async createCheckoutSession(input: CheckoutSessionInput) {
+      const org = await deps.organizations.findById(input.organizationId);
       if (!org) throw new Error("Organization not found");
-      const appUrl = env.APP_URL ?? "http://localhost:3000";
-      return deps.paymentGateway.createCheckoutSession({
-        organizationId,
-        plan,
-        successUrl: `${appUrl}/settings/billing?success=1`,
-        cancelUrl: `${appUrl}/settings/billing?canceled=1`,
-      });
+      return deps.paymentGateway.createCheckoutSession(input);
     },
 
     async fulfillCheckout(payload, signature) {

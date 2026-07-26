@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -28,6 +30,7 @@ export function PricingCards({
 }: PricingCardsProps) {
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState("");
 
   const plans = [Plan.FREE, Plan.STARTER, Plan.PRO].filter(
     (p) => showFree || p !== Plan.FREE,
@@ -43,7 +46,7 @@ export function PricingCards({
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, couponCode: couponCode.trim() || undefined }),
       });
       const json = (await res.json()) as { url?: string; error?: string };
       if (res.ok && json.url) {
@@ -59,9 +62,21 @@ export function PricingCards({
   }
 
   return (
-    <div
-      className={`grid gap-6 ${compact ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 md:grid-cols-3"}`}
-    >
+    <div className="space-y-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <div className="flex-1 space-y-2">
+          <Label htmlFor="coupon">Coupon code (optional)</Label>
+          <Input
+            id="coupon"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            placeholder="WELCOME20"
+          />
+        </div>
+      </div>
+      <div
+        className={`grid gap-6 ${compact ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 md:grid-cols-3"}`}
+      >
       {plans.map((plan) => {
         const meta = PLAN_FEATURES[plan];
         const isCurrent = plan === currentPlan;
@@ -110,6 +125,7 @@ export function PricingCards({
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }
