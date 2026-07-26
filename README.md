@@ -4,25 +4,37 @@ The **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
 
 OmniConnect AI turns every interaction — posts, comments, DMs, followers, competitors, and
 products — into actionable marketing decisions. It connects your Shopify catalog and Meta pages
-into one daily workflow: content ideas, competitor insights, DM automation, analytics, and
-post-to-order attribution.
+into one daily workflow: content ideas, competitor insights, DM automation, analytics, customer
+journeys, and post-to-order attribution.
 
-> **Status:** Active development — SaaS landing page, Stripe billing, and full deployment docs
-> are now part of the repository.
+> **Status:** Active development — SaaS landing page, Stripe billing, platform admin, support
+tickets, system logging, and full deployment docs are now part of the repository.
 
 ## What it does
 
-- **Daily Marketing Brief** — one prioritized list of what to post, promote, and reply to today.
-- **Content Intelligence** — Reel and post ideas grounded in your own best-performing content,
-  competitor changes, audience comments, DMs, and product catalog.
+- **Daily Marketing Brief** — one prioritized list of what to post, promote, and reply to today,
+  fed by your catalog, audience signals, and competitors.
+- **Content Intelligence** — Reel and post ideas, captions, hooks, and hashtags grounded in your own
+  best-performing content, competitor changes, audience comments, DMs, and product catalog.
 - **DM & Comment Automation** — AI replies to Instagram/Facebook messages and comments, with
-  automatic human handoff.
-- **First-Time Follower Campaigns** — auto-welcome new followers with personalized coupons.
+  automatic human handoff and consent-aware customer memory.
+- **First-Time Follower Campaigns** — auto-welcome new followers with personalized coupons and
+  welcome messages.
 - **Shopify + Meta Commerce** — sync products, push shoppable posts, and see which content drives
   orders.
 - **Marketing Analytics** — content, audience, product, and campaign views built around growth
-  questions.
-- **Competitor Benchmarking** — compare posting frequency, hooks, audio usage, and engagement.
+  questions, plus 7-day post-to-order attribution.
+- **Competitor Benchmarking** — compare posting frequency, hooks, audio usage, and engagement, and
+  generate actionable adaptation ideas.
+- **Growth & Advocacy** — UGC collection, ambassador/referral tracking, DM campaigns, brand-deal
+  pipeline, and a ready-made media kit.
+- **Automations & Goals** — goal-based automation templates with guardrails for audience size,
+  discount caps, consent, and frequency.
+- **Customer Journeys** — connect post views, follows, DMs, coupon sends, and orders into one
+  timeline.
+- **Unified Inbox** — conversations across all stores in one place with AI/human handoff.
+- **Support & Operations** — users can open support tickets; super admins can triage tickets, issue
+  SaaS coupons, inspect system logs, and manage organizations from the platform admin area.
 
 ## Plans
 
@@ -32,7 +44,8 @@ post-to-order attribution.
 | Starter | $4.99/mo | Up to 3 stores, 500 AI replies, advanced analytics, DM automation, competitor tracking. |
 | Pro | $9.99/mo | Unlimited stores and AI replies, team seats, brand deals, benchmarking, priority support. |
 
-Payments are processed by Stripe. Upgrade from **Settings → Billing**.
+Payments are processed by Stripe. Apply a coupon code at checkout from **Settings → Billing**.
+Upgrade or downgrade from the same page.
 
 ## Quick start (local)
 
@@ -63,6 +76,12 @@ Payments are processed by Stripe. Upgrade from **Settings → Billing**.
    ```bash
    npm run worker
    ```
+7. **Run quality checks:**
+   ```bash
+   npm run lint
+   npm run typecheck
+   npm run test
+   ```
 
 ## Environment files
 
@@ -83,14 +102,17 @@ including Vercel, Fly.io, Docker, Stripe webhook setup, and the production check
 
 - **Next.js 15** app router, TypeScript strict, TailwindCSS, ShadCN UI.
 - **PostgreSQL** via Prisma.
-- **Redis + BullMQ** for background jobs.
-- **NextAuth v5** with organization-scoped RBAC (Admin / Store Owner / Staff).
-- **OpenAI** via a provider interface for assistant replies and content generation.
+- **Redis + BullMQ** for background jobs and queues.
+- **NextAuth v5** with organization-scoped RBAC (Admin / Store Owner / Staff) and a super-admin
+  flag for platform management.
+- **OpenAI** via a provider interface for assistant replies, content generation, and the Marketing
+  Brain.
 - **Meta Graph API** and webhooks for Instagram/Facebook events.
-- **Stripe** for subscriptions and billing.
+- **Stripe** for subscriptions, billing, and promotion-code discounts.
 
 Domain modules: `auth`, `users`, `organizations`, `ecommerce`, `meta`, `ai`, `coupons`, `crm`,
-`conversations`, `analytics`, `reports`, `notifications`.
+`conversations`, `analytics`, `reports`, `notifications`, `intelligence`, `support`, `branddeals`,
+`growth`, `content`, `commerce`, `social`.
 
 ## Engineering standards
 
