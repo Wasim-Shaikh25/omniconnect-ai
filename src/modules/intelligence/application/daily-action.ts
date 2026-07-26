@@ -159,9 +159,13 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
   }
 
   async function listToday(organizationId: string, storeId?: string): Promise<DailyActionRecord[]> {
-    const pending = await input.dailyActions.listPending(organizationId, storeId, 20);
+    const pending = await listPending(organizationId, storeId);
     if (pending.length > 0) return pending;
     return generate(organizationId, storeId);
+  }
+
+  async function listPending(organizationId: string, storeId?: string): Promise<DailyActionRecord[]> {
+    return input.dailyActions.listPending(organizationId, storeId, 20);
   }
 
   async function complete(
@@ -228,7 +232,7 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     );
   }
 
-  return { generate, listToday, complete, skip };
+  return { generate, listToday, listPending, complete, skip };
 }
 
 export type DailyActionService = ReturnType<typeof makeDailyActionService>;

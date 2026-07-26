@@ -13,6 +13,8 @@ import {
   updateMarketingMemory,
   generateDailyBrief,
   businessBrainContextService,
+  dailyActionService,
+  journeyService,
 } from "@/modules/intelligence";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
@@ -89,6 +91,12 @@ export const generatePostIdeas = makeGeneratePostIdeas({
   aiProvider,
   aiConfigurationRepository,
   marketingMemory,
+  dailyActions: {
+    listPending: (organizationId, storeId) => dailyActionService.listPending(organizationId, storeId),
+  },
+  journeys: {
+    listRecent: (organizationId, storeId, limit) => journeyService.listJourneys(organizationId, storeId, limit),
+  },
 });
 
 export const analyzeCompetitor = makeAnalyzeCompetitor({

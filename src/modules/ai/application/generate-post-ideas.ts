@@ -1,6 +1,11 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
 import type { TrendIdea } from "./generate-trends";
-import type { MarketingMemoryRecord, DailyBriefRecord } from "@/modules/intelligence";
+import type {
+  MarketingMemoryRecord,
+  DailyBriefRecord,
+  DailyActionRecord,
+  JourneyRecord,
+} from "@/modules/intelligence";
 import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
 
@@ -36,12 +41,22 @@ export interface MarketingMemoryPort {
   getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
 }
 
+export interface DailyActionContextPort {
+  listPending(organizationId: string, storeId: string): Promise<DailyActionRecord[]>;
+}
+
+export interface JourneyContextPort {
+  listRecent(organizationId: string, storeId: string, limit?: number): Promise<JourneyRecord[]>;
+}
+
 const DEFAULT_TONE = "trendy, authentic, and platform-native";
 
 export function makeGeneratePostIdeas(deps: {
   aiProvider: AIProvider;
   aiConfigurationRepository: AIConfigurationRepository;
   marketingMemory?: MarketingMemoryPort;
+  dailyActions?: DailyActionContextPort;
+  journeys?: JourneyContextPort;
 }): GeneratePostIdeas {
   return async function generatePostIdeas(input): Promise<GeneratePostIdeasResult> {
     const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
@@ -56,6 +71,19 @@ export function makeGeneratePostIdeas(deps: {
         brief = await deps.marketingMemory.getBrief(input.organizationId, input.storeId);
       } catch {
         // Marketing context is optional; fall back to provided post data.
+      }
+    }
+
+    let todayActions: DailyActionRecord[] = [];
+    let recentJourneys: JourneyRecord[] = [];
+    if (deps.dailyActions && deps.journeys && input.organizationId) {
+      try {
+        [todayActions, recentJourneys] = await Promise.all([
+          deps.dailyActions.listPending(input.organizationId, input.storeId),
+          deps.journeys.listRecent(input.organizationId, input.storeId, 5),
+        ]);
+      } catch {
+        // Daily action and journey context is optional; fall back to memory-only grounding.
       }
     }
 
@@ -90,9 +118,19 @@ export function makeGeneratePostIdeas(deps: {
       .map((t) => `${t.dayOfWeek} ${t.hour}:00 UTC (engagement ${Math.round(t.engagementScore)})`)
       .join("; ") ?? "none";
 
+    const todayActionSummary = todayActions
+      .slice(0, 5)
+      .map((a) => `"${a.title}" (${a.objective}, confidence ${Math.round(a.confidence * 100)}%)`)
+      .join("; ") || "none";
+
+    const journeySummary = recentJourneys
+      .slice(0, 3)
+      .map((j) => `${j.steps.map((s) => s.type).join(" → ")} → ${j.outcome}`)
+      .join("; ") || "none";
+
     const system = `You are a social media content strategist for Instagram. Tone: ${tone}.
 Analyze the provided post and generate a JSON array of ${count} fresh content ideas inspired by *why* this post worked (or what would make it work better).
-Ground ideas in the brand's marketing memory: top products to promote, recent DM/comment themes, trending hashtags, own best-performing posts, competitor changes, and today's brief.
+Ground ideas in the brand's marketing memory: top products to promote, recent DM/comment themes, trending hashtags, own best-performing posts, competitor changes, today's action objectives, recent customer journey context, and today's brief.
 For each idea return:
 - title (string, punchy idea name)
 - format (string, one of Reel/Post/Carousel/Story)
@@ -117,10 +155,12 @@ Trending hashtags from mentions: ${trendingHashtags}
 Own best-performing posts: ${topPerformingPosts}
 Competitor changes: ${competitorChanges}
 Winning posting times: ${winningPostingTimes}
+Today's action objectives: ${todayActionSummary}
+Recent customer journeys: ${journeySummary}
 ${brief ? `Today's brief: ${brief.priorities.join("; ")}. Content idea: ${brief.contentIdea ?? "none"}` : ""}
 Generate content ideas that follow the same vibe, tie to the brand's current marketing priorities, learn from competitors, post at winning times, and are original for our brand.`;
 
-    const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags}), own best posts (${topPerformingPosts}), competitor changes (${competitorChanges}), winning posting times (${winningPostingTimes})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
+    const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags}), own best posts (${topPerformingPosts}), competitor changes (${competitorChanges}), winning posting times (${winningPostingTimes}), today's action objectives (${todayActionSummary}), recent customer journeys (${journeySummary})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
 
     const context = new AIContextBuilder()
       .withSystem(system)
