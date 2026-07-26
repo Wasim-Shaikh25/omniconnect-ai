@@ -6,6 +6,7 @@ export interface UserProfile {
   name: string | null;
   image: string | null;
   role: Role;
+  isSuperAdmin: boolean;
   organizationId: string | null;
   storeId: string | null;
 }
@@ -19,4 +20,6 @@ export interface UserProfileRepository {
   setOrganization(id: string, organizationId: string): Promise<void>;
   setRole(id: string, role: Role): Promise<UserProfile>;
   listByOrganization(organizationId: string): Promise<UserProfile[]>;
+  listAll(): Promise<UserProfile[]>;
+  setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
 }

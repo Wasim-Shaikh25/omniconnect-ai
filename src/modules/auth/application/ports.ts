@@ -6,6 +6,7 @@ export interface AccountRecord {
   name: string | null;
   passwordHash: string | null;
   role: Role;
+  isSuperAdmin: boolean;
   organizationId: string | null;
 }
 

@@ -34,6 +34,7 @@ export {
   getCurrentUser,
   requireUser,
   requireRole,
+  requireSuperAdmin,
 } from "./infrastructure/session";
 export type { SessionUser } from "./infrastructure/session";
 

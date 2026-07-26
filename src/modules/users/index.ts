@@ -29,6 +29,8 @@ export type {
 export {
   getUserProfile,
   listOrganizationUsers,
+  listAllUsers,
+  setUserSuperAdmin,
   updateProfile,
   changeUserRole,
   auditQueries,
@@ -39,6 +41,8 @@ export {
 export {
   updateProfileAction,
   changeUserRoleAction,
+  listAllUsersAction,
+  toggleUserSuperAdminAction,
 } from "./presentation/actions";
 export type { ProfileActionState } from "./presentation/actions";
 export { registerUsersSubscribers } from "./infrastructure/subscribers";

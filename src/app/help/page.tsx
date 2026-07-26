@@ -293,6 +293,235 @@ const helpSections: HelpSection[] = [
       </>
     ),
   },
+  {
+    title: "Billing and SaaS coupons",
+    keywords: ["billing", "coupon", "discount", "stripe", "checkout", "upgrade", "plan", "promo"],
+    content: (
+      <>
+        <p className="mb-2">
+          Upgrade or downgrade from <strong>Settings → Billing</strong>. Choose Free, Starter, or
+          Pro. If you have a coupon code, enter it before choosing a plan; the discount is applied
+          at Stripe Checkout.
+        </p>
+        <p>
+          Coupons are percentage discounts and may be limited to specific plans, a maximum number of
+          uses, or an expiration date.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Support tickets",
+    keywords: ["support", "ticket", "help", "issue", "bug", "contact"],
+    content: (
+      <>
+        <p className="mb-2">
+          Open <strong>Support</strong> from the top navigation to create a ticket. Describe the
+          issue, choose a category (Billing, Technical, Feature request, or Other), and submit.
+        </p>
+        <p>
+          You can view your tickets and their status at any time. The platform team can update status,
+          priority, assign the ticket, and reply.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Platform admin (founder)",
+    keywords: ["admin", "super admin", "founder", "tenants", "users", "platform"],
+    content: (
+      <>
+        <p className="mb-2">
+          Users with the super-admin flag can open <strong>Admin</strong> from the top navigation.
+          The admin surface is for platform management only:
+        </p>
+        <ul className="ml-5 list-disc space-y-1">
+          <li><strong>Dashboard:</strong> counts for organizations, users, coupons, open tickets, and recent logs.</li>
+          <li><strong>Organizations:</strong> list every tenant on the platform.</li>
+          <li><strong>Users:</strong> list all accounts and manage super-admin access.</li>
+          <li><strong>Coupons:</strong> create SaaS promotion codes with discount %, plan eligibility, max uses, and expiration.</li>
+          <li><strong>Tickets:</strong> triage, assign, and reply to user support tickets.</li>
+          <li><strong>Logs:</strong> filter and inspect application/system logs by level and service.</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: "System logs",
+    keywords: ["logs", "system log", "error", "warn", "debug", "admin"],
+    content: (
+      <>
+        <p className="mb-2">
+          Super admins can view structured system logs in <strong>Admin → Logs</strong>. Logs include
+          DEBUG, INFO, WARN, ERROR, and FATAL events with service name, message, and metadata.
+        </p>
+        <p>
+          Use the level and service filters to triage operational issues. Logs never include secrets,
+          tokens, or payment payloads.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Daily Marketing workflow",
+    keywords: ["daily marketing", "workflow", "today", "brief", "priority"],
+    content: (
+      <>
+        <p className="mb-2">
+          Open a store and click <strong>Daily Marketing</strong> for a prioritized daily brief: what
+          to post, which product to push, DM and comment opportunities, competitor changes, trending
+          hashtags, and the best posting time.
+        </p>
+        <p>
+          The Engagement, Growth, and Revenue tabs organize related actions into focused workflows so
+          you do not have to jump between settings pages.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Content Studio",
+    keywords: ["content", "caption", "post ideas", "reel", "hashtag", "trends"],
+    content: (
+      <>
+        <p className="mb-2">
+          From a store, open <strong>Content</strong> to generate post ideas, captions, hooks, and
+          hashtags. The AI uses your product catalog, marketing memory, competitor changes, and
+          trending hashtags.
+        </p>
+        <p>
+          Each suggestion shows why it was recommended and links to the product or trend that inspired
+          it.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Orders and revenue",
+    keywords: ["orders", "revenue", "sales", "checkout", "purchase"],
+    content: (
+      <>
+        <p className="mb-2">
+          The <strong>Orders</strong> page lists recent orders pulled from your Shopify store (or the
+          demo provider). Use the Revenue workflow to see revenue trends and receive recommendations
+          when orders decline.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Brand Deals",
+    keywords: ["brand deal", "collaboration", "creator", "pipeline"],
+    content: (
+      <>
+        <p className="mb-2">
+          Track brand-deal opportunities through stages: Lead, Negotiating, Contracted, Delivered,
+          Paid, and Closed. Add deals from a store page and move them through the pipeline as they
+          progress.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Affiliates and Media Kit",
+    keywords: ["affiliate", "ambassador", "referral", "media kit", "creator"],
+    content: (
+      <>
+        <p className="mb-2">
+          Enroll ambassadors, generate referral codes, and record referral orders from a store. The
+          Affiliate Center shows commissions and earnings.
+        </p>
+        <p>
+          The Media Kit page produces a shareable summary of your store KPIs, top products, and
+          collaboration pitch for creators and brands.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Automations and goals",
+    keywords: ["automation", "goal", "template", "guardrail", "campaign"],
+    content: (
+      <>
+        <p className="mb-2">
+          <strong>Automations</strong> is a hub for welcome campaigns, abandoned-cart DMs,
+          back-in-stock alerts, comment-to-DM unlock, review requests, re-engagement, and AI-driven
+          goals.
+        </p>
+        <p>
+          Goal-based automations include guardrails for audience size, discount caps, consent,
+          frequency, and actions per day. Each template shows a risk tier and workflow-acceptance
+          report.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Customer journeys",
+    keywords: ["journey", "customer journey", "touchpoint", "attribution"],
+    content: (
+      <>
+        <p className="mb-2">
+          Customer journeys connect post views, follows, DMs, coupon sends, and orders into one
+          timeline. The <strong>Journeys</strong> explorer shows how customers move from discovery to
+          purchase and back to advocacy.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Unified Inbox",
+    keywords: ["inbox", "messages", "dm", "conversation", "all stores"],
+    content: (
+      <>
+        <p className="mb-2">
+          The global <strong>Inbox</strong> lists conversations across all your stores. Filter by
+          channel, status, or search, and take over or resume AI control from any thread.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Customers and CRM",
+    keywords: ["customer", "crm", "profile", "consent", "tags", "lead"],
+    content: (
+      <>
+        <p className="mb-2">
+          The <strong>Customers</strong> page lists contacts captured from Meta DMs, comments,
+          follows, and orders. Click a customer to view their profile, lifecycle stage, consent,
+          tags, interests, and intelligence summary.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Integrations catalog",
+    keywords: ["integration", "shopify", "meta", "connected", "catalog"],
+    content: (
+      <>
+        <p className="mb-2">
+          Each store has an <strong>Integrations</strong> page showing eCommerce and Meta connection
+          status, provider/channel, domain/account id, product count, and the date connected. Connect
+          or review health from one place.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: "Settings, quality, and rollout",
+    keywords: ["settings", "profile", "role", "audit", "quality", "rollout", "operating model"],
+    content: (
+      <>
+        <p className="mb-2">
+          Use <strong>Settings</strong> to manage your profile, team roles, billing, and audit log.
+        </p>
+        <p>
+          Quality &amp; Risk runs data, intelligence, AI, and action checks. Rollout and Operating
+          Model pages are internal-facing planning tools for managing feature gates and milestones.
+        </p>
+      </>
+    ),
+  },
 ];
 
 export default function HelpPage() {

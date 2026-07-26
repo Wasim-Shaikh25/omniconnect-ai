@@ -17,9 +17,11 @@ export async function AppHeader() {
         { href: "/stores", label: "Stores" },
         { href: "/customers", label: "Customers" },
         { href: "/reports", label: "Reports" },
+        { href: "/support", label: "Support" },
         { href: "/settings", label: "Settings" },
         { href: "/help", label: "Help" },
         { href: "/notifications", label: "Notifications", badge: unreadCount },
+        ...(user.isSuperAdmin ? [{ href: "/admin", label: "Admin" }] : []),
       ]
     : [
         { href: "/login", label: "Sign in" },
@@ -43,8 +45,10 @@ export async function AppHeader() {
                 <Link href="/stores">Stores</Link>
                 <Link href="/customers">Customers</Link>
                 <Link href="/reports">Reports</Link>
+                <Link href="/support">Support</Link>
                 <Link href="/settings">Settings</Link>
                 <Link href="/help">Help</Link>
+                {user.isSuperAdmin && <Link href="/admin">Admin</Link>}
                 <Link href="/notifications" className="relative">
                   Notifications
                   {unreadCount > 0 && (

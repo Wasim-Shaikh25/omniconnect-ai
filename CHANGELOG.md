@@ -370,6 +370,17 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **TASK-375 — Platform admin, SaaS coupons, support tickets, and system logging** (spec `0051`):
+  - New `User.isSuperAdmin` flag, `requireSuperAdmin()` guard, and super-admin session token/session types.
+  - New `SaaSCoupon` Prisma model/migration with Stripe coupon + promotion code sync, flexible percentage discount, `appliesTo` plan filtering, expiration, and max-uses tracking.
+  - New `SupportTicket`, `TicketComment`, `SystemLog` models/migrations with admin triage statuses, priorities, categories, internal comments, and structured log levels.
+  - New `support` module (application services, Prisma repository, server actions) and `src/shared/observability` system-log repository and helpers (`logSystem`, `logSystemError`, `listSystemLogs`).
+  - Admin pages `/admin`, `/admin/organizations`, `/admin/users`, `/admin/coupons`, `/admin/tickets`, `/admin/logs` with super-admin-only layout and navigation.
+  - User `/support` page for creating/viewing tickets; `/settings/billing` now accepts a SaaS coupon code and applies the Stripe promotion code at checkout.
+  - Server actions for user/organization listing, super-admin toggle, SaaS coupon CRUD, ticket workflow, and log filtering.
+  - `AppHeader` exposes Support and Admin links.
+  - `/help` help center updated with billing/coupons, support tickets, platform admin, system logs, and existing workflow sections (Daily Marketing, Content Studio, Orders, Brand Deals, Affiliates/Media Kit, Automations, Journeys, Inbox, Customers/CRM, Integrations, Settings/quality/rollout).
+  - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 - All Unified Intelligence Layer phases (TASK-350/351/352/353/354/355) implemented and merged.
 - TASK-120 (UI pages + dark/light mode) completed.
 - TASK-360 (Product availability & demand mismatch) completed.

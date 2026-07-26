@@ -33,3 +33,14 @@ export async function listOrganizationUsers(
 ): Promise<UserProfile[]> {
   return users.listByOrganization(organizationId);
 }
+
+export async function listAllUsers(): Promise<UserProfile[]> {
+  return users.listAll();
+}
+
+export async function setUserSuperAdmin(
+  id: string,
+  isSuperAdmin: boolean,
+): Promise<UserProfile> {
+  return users.setSuperAdmin(id, isSuperAdmin);
+}
