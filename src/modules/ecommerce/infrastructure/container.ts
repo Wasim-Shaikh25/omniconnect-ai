@@ -2,6 +2,7 @@ import { makeConnectStore } from "../application/connect-store";
 import { makeSyncProducts } from "../application/sync-products";
 import { makeGenerateCoupon } from "../application/generate-coupon";
 import { makeEcommerceQueries } from "../application/queries";
+import { makeDetectCommerceInsights } from "../application/detect-insights";
 import { PrismaIntegrationRepository } from "./integration.repository";
 import { PrismaProductRepository } from "./product.repository";
 import { PrismaCouponRepository } from "./coupon.repository";
@@ -22,3 +23,4 @@ export const ecommerceQueries = makeEcommerceQueries({
   coupons,
   connectors,
 });
+export const detectCommerceInsights = makeDetectCommerceInsights({ ecommerce: ecommerceQueries });

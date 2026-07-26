@@ -78,6 +78,26 @@ export class RecommendationDismissed extends BaseDomainEvent<RecommendationDismi
   readonly name = "RecommendationDismissed";
 }
 
+export interface RecommendationExpiredPayload {
+  recommendationId: string;
+  reason: string;
+}
+
+export class RecommendationExpired extends BaseDomainEvent<RecommendationExpiredPayload> {
+  readonly name = "RecommendationExpired";
+}
+
+export interface RecommendationConflictDetectedPayload {
+  winnerId: string;
+  runnerUpId?: string;
+  reason: string;
+  appliedPolicy: string;
+}
+
+export class RecommendationConflictDetected extends BaseDomainEvent<RecommendationConflictDetectedPayload> {
+  readonly name = "RecommendationConflictDetected";
+}
+
 export interface ActionPlanApprovedPayload {
   actionPlan: ActionPlanRecord;
   decision: DecisionRecord;
@@ -158,4 +178,50 @@ export interface SystemMetricRecordedPayload {
 
 export class SystemMetricRecorded extends BaseDomainEvent<SystemMetricRecordedPayload> {
   readonly name = "SystemMetricRecorded";
+}
+
+export interface MarketingMemoryUpdatedPayload {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+}
+
+export class MarketingMemoryUpdated extends BaseDomainEvent<MarketingMemoryUpdatedPayload> {
+  readonly name = "MarketingMemoryUpdated";
+}
+
+export interface DailyMarketingBriefGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+}
+
+export class DailyMarketingBriefGenerated extends BaseDomainEvent<DailyMarketingBriefGeneratedPayload> {
+  readonly name = "DailyMarketingBriefGenerated";
+}
+
+export interface DmPatternDetectedPayload {
+  organizationId: string;
+  storeId: string;
+  category: string;
+  frequency: number;
+  sample: string | null;
+  insightId: string;
+}
+
+export class DmPatternDetected extends BaseDomainEvent<DmPatternDetectedPayload> {
+  readonly name = "DmPatternDetected";
+}
+
+export interface CommentPatternDetectedPayload {
+  organizationId: string;
+  storeId: string;
+  category: string;
+  frequency: number;
+  sample: string | null;
+  insightId: string;
+}
+
+export class CommentPatternDetected extends BaseDomainEvent<CommentPatternDetectedPayload> {
+  readonly name = "CommentPatternDetected";
 }

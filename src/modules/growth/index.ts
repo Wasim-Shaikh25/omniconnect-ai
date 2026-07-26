@@ -15,9 +15,12 @@ export type {
   BackInStockSubscriptionRecord,
   CommentUnlockCampaignRecord,
   CommentUnlockRedemptionRecord,
+  GrowthQueries,
 } from "./application/ports";
 
-export { growthService, growthQueries } from "./infrastructure/container";
+export { growthService, growthQueries, detectGrowthInsights } from "./infrastructure/container";
+export type { ActionResult } from "./application/action-handlers";
+export { executeGrowthAction } from "./application/action-handlers";
 
 export {
   listGrowthAction,
@@ -41,4 +44,9 @@ export type {
   ReferralConvertedPayload,
   DmCampaignCreatedPayload,
   DmCampaignSentPayload,
+  GrowthInsight,
+  GrowthRecommendation,
+  GrowthInsightGeneratedPayload,
+  GrowthRecommendationGeneratedPayload,
 } from "./domain/events";
+export type { DetectGrowthInsights } from "./application/detect-insights";

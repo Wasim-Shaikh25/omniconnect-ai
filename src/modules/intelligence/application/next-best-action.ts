@@ -6,6 +6,7 @@ import { brandDealQueries } from "@/modules/branddeals";
 import type { SignalRepository } from "./ports";
 import type { SignalRecord } from "../domain/types";
 import type { CompetitorIntelligenceService } from "./competitor-intelligence";
+import { SUPPORT_KEYWORDS, INTENT_KEYWORDS, containsKeyword, detectProductMentions } from "./vocabulary";
 
 export type CustomerDirectory = typeof customerDirectory;
 
@@ -94,17 +95,12 @@ export interface CompetitorNextBestAction {
   warnings: string[];
 }
 
-const SUPPORT_KEYWORDS = ["return", "refund", "broken", "issue", "complaint", "support", "wrong", "missing", "damaged", "angry"];
-const INTENT_KEYWORDS = ["buy", "order", "purchase", "price", "discount", "interested", "how much", "available", "ship", "checkout"];
-
-function containsKeyword(text: string, keywords: string[]): boolean {
-  const lowered = text.toLowerCase();
-  return keywords.some((k) => lowered.includes(k));
-}
-
 function findProductMentions(products: ProductRecord[], content: string): ProductRecord[] {
-  const lowered = content.toLowerCase();
-  return products.filter((p) => lowered.includes(p.title.toLowerCase()));
+  const mentions = detectProductMentions(
+    content,
+    products.map((p) => ({ externalId: p.id, title: p.title })),
+  );
+  return products.filter((p) => mentions.some((m) => m.externalId === p.id));
 }
 
 function toSuggestedProduct(product: ProductRecord, reason: string): SuggestedProduct {

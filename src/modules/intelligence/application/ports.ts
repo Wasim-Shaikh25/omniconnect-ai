@@ -16,6 +16,7 @@ import type {
   CompetitorInsightRecord,
   PortfolioSnapshotRecord,
   SystemMetricRecord,
+  RecommendationConflictRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,
@@ -112,8 +113,10 @@ export interface BusinessInsightRepository {
 export interface RecommendationRepository {
   save(rec: Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt">): Promise<RecommendationRecord>;
   listOpen(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
+  listActive(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
   findById(id: string): Promise<RecommendationRecord | null>;
   updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord>;
+  invalidate(id: string, eventName: string): Promise<RecommendationRecord>;
 }
 
 export interface ActionPlanRepository {
@@ -130,6 +133,8 @@ export interface DecisionRepository {
 export interface OutcomeRepository {
   save(outcome: Omit<OutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<OutcomeRecord>;
   findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null>;
+  findById(id: string): Promise<OutcomeRecord | null>;
+  list(organizationId: string, storeId?: string, limit?: number): Promise<OutcomeRecord[]>;
   updateMeasured(id: string, beforeValue: number | null, afterValue: number | null, status: OutcomeStatus, measuredAt: Date): Promise<OutcomeRecord>;
 }
 
@@ -201,8 +206,12 @@ export interface KpiRepository {
 }
 
 export interface ActionExecutor {
-  canExecute(actionType: string, riskTier: RiskTier, userRole: string | null): { allowed: boolean; requiresApproval: boolean };
   execute(actionType: string, params: unknown): Promise<{ ok: boolean; message?: string }>;
+}
+
+export interface RecommendationConflictRepository {
+  save(conflict: Omit<RecommendationConflictRecord, "id" | "resolvedAt">): Promise<RecommendationConflictRecord>;
+  listRecent(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationConflictRecord[]>;
 }
 
 export type {
@@ -223,6 +232,7 @@ export type {
   CompetitorInsightRecord,
   PortfolioSnapshotRecord,
   SystemMetricRecord,
+  RecommendationConflictRecord,
   RecommendationStatus,
   ActionPlanStatus,
   DecisionType,

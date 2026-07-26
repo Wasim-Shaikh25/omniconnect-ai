@@ -9,9 +9,11 @@ import {
   outcomeService,
   dataQualityGateService,
 } from "./container";
-import { ecommerceQueries } from "@/modules/ecommerce";
-import { conversationQueries } from "@/modules/conversations";
-import { crmQueries } from "@/modules/crm";
+import { ecommerceQueries, detectCommerceInsights } from "@/modules/ecommerce";
+import { conversationQueries, detectConversationInsights } from "@/modules/conversations";
+import { crmQueries, detectCrmInsights } from "@/modules/crm";
+import { detectGrowthInsights } from "@/modules/growth";
+import { detectBrandDealInsights } from "@/modules/branddeals";
 import { makeDetectionService } from "../application/detection";
 
 export interface ThinSliceResult {
@@ -69,6 +71,11 @@ export async function runWeek4ThinSlice(input: {
     insights,
     metrics,
     links,
+    detectCommerceInsights,
+    detectCrmInsights,
+    detectConversationInsights,
+    detectGrowthInsights,
+    detectBrandDealInsights,
     ecommerce: ecommerceQueries,
     conversations: conversationQueries,
     crm: crmQueries,

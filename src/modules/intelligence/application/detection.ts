@@ -1,12 +1,14 @@
 import { eventBus } from "@/shared/events";
-import type { EcommerceQueries } from "@/modules/ecommerce";
-import type { ConversationQueries } from "@/modules/conversations";
-import type { CrmQueries } from "@/modules/crm";
+import type { DetectCommerceInsights, EcommerceQueries } from "@/modules/ecommerce";
+import type { ConversationQueries, DetectConversationInsights } from "@/modules/conversations";
+import type { DetectCrmInsights, CrmQueries } from "@/modules/crm";
+import type { DetectGrowthInsights } from "@/modules/growth";
+import type { DetectBrandDealInsights } from "@/modules/branddeals";
 import type { SignalRepository, MetricRepository, BusinessInsightRepository, EntityLinkRepository } from "./ports";
 import { BusinessInsightGenerated } from "../domain/events";
 import type { BusinessInsightRecord, BusinessInsightEvidence, InsightType, InsightSeverity } from "../domain/types";
-import { makeDiagnosisService } from "./diagnosis";
 import type { DataQualityGateService } from "./validation-driven";
+import { detectProductMentions } from "./vocabulary";
 
 interface SignalSummary {
   id: string;
@@ -23,6 +25,11 @@ export interface DetectionServiceInput {
   insights: BusinessInsightRepository;
   metrics: MetricRepository;
   links: EntityLinkRepository;
+  detectCommerceInsights: DetectCommerceInsights;
+  detectCrmInsights: DetectCrmInsights;
+  detectConversationInsights: DetectConversationInsights;
+  detectGrowthInsights: DetectGrowthInsights;
+  detectBrandDealInsights: DetectBrandDealInsights;
   ecommerce: EcommerceQueries;
   conversations: ConversationQueries;
   crm: CrmQueries;
@@ -32,27 +39,6 @@ export interface DetectionServiceInput {
 
 export function makeDetectionService(input: DetectionServiceInput) {
   const now = input.now ?? new Date();
-  const diagnosisService = makeDiagnosisService({ ecommerce: input.ecommerce, now });
-
-  async function recentSignals(
-    organizationId: string,
-    storeId: string,
-    since: Date,
-    eventType?: string,
-  ): Promise<SignalSummary[]> {
-    const rows = await input.signals.listByStore(storeId, 500);
-    return rows
-      .filter((s) => s.occurredAt >= since && (!eventType || s.eventType === eventType))
-      .map((s) => ({
-        id: s.id,
-        eventType: s.eventType,
-        subjectType: s.subjectType,
-        subjectId: s.subjectId,
-        storeId: s.storeId,
-        occurredAt: s.occurredAt,
-        data: s.data,
-      }));
-  }
 
   async function emit(insight: Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt">) {
     const saved = await input.insights.save(insight);
@@ -60,116 +46,88 @@ export function makeDetectionService(input: DetectionServiceInput) {
     return saved;
   }
 
-  async function detectNoOrders(organizationId: string, storeId: string) {
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    let orders: Awaited<ReturnType<typeof input.ecommerce.listOrders>> = [];
-    try {
-      orders = await input.ecommerce.listOrders(storeId, 50);
-    } catch {
-      // Treat a disconnected store as having no orders for detection purposes.
-    }
-    const recentOrders = orders.filter((o) => new Date(o.createdAt) >= oneDayAgo);
-    if (recentOrders.length > 0) return;
-
-    const signals = await recentSignals(organizationId, storeId, oneDayAgo, "NewMessage");
-    const evidence: BusinessInsightEvidence = {
-      signalIds: signals.map((s) => s.subjectId),
-      metricIds: [],
-      summary: "No completed orders in the last 24 hours despite existing conversation activity.",
-    };
-
-    await emit({
-      organizationId,
-      storeId,
-      type: "RISK" as InsightType,
-      severity: "HIGH" as InsightSeverity,
-      status: "OPEN",
-      title: "No orders in the last 24 hours",
-      description: "There are active conversations but no recorded orders. Consider following up with high-intent customers or checking store integration health.",
-      evidence,
-      deepLink: `/stores/${storeId}/orders`,
-      generatedAt: now,
-      dismissedAt: null,
-      snoozedUntil: null,
-    });
+  interface ExternalInsight {
+    organizationId: string;
+    storeId: string;
+    type: string;
+    severity: string;
+    status: string;
+    title: string;
+    description: string;
+    deepLink: string;
+    generatedAt: Date;
   }
 
-  async function detectHighIntentConversation(organizationId: string, storeId: string) {
-    const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
-    const recent = await recentSignals(organizationId, storeId, thirtyMinutesAgo, "NewMessage");
-    const seen = new Set<string>();
-
-    for (const signal of recent) {
-      if (signal.subjectType !== "conversation") continue;
-      if (seen.has(signal.subjectId)) continue;
-      seen.add(signal.subjectId);
-
-      const detail = await input.conversations.getConversation(signal.subjectId);
-      if (!detail || detail.conversation.status === "HUMAN_ACTIVE") continue;
-      if (new Date(detail.conversation.updatedAt) > thirtyMinutesAgo) continue;
-
-      const evidence: BusinessInsightEvidence = {
-        signalIds: [signal.subjectId],
-        metricIds: [],
-        summary: `Conversation ${signal.subjectId.slice(0, 8)} received a new customer message and has not been taken over by a human.`,
-      };
-
-      await emit({
-        organizationId,
-        storeId,
-        type: "OPPORTUNITY" as InsightType,
-        severity: "MEDIUM" as InsightSeverity,
-        status: "OPEN",
-        title: "High-intent conversation needs attention",
-        description: `A ${detail.conversation.channel} conversation has an unanswered customer message. Review to avoid losing a hot lead.`,
-        evidence,
-        deepLink: `/stores/${storeId}/conversations/${signal.subjectId}`,
-        generatedAt: now,
-        dismissedAt: null,
-        snoozedUntil: null,
-      });
-    }
-  }
-
-  async function detectStaleFollowers(organizationId: string, storeId: string) {
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const recentFollowerSignals = await recentSignals(organizationId, storeId, sevenDaysAgo, "FirstTimeFollowerDetected");
-    if (recentFollowerSignals.length > 0) return;
-
-    const followers = await input.crm.listFollowers(storeId, 100);
-    if (followers.length === 0) return;
-
+  function mapExternalInsight(insight: ExternalInsight): Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt"> {
     const evidence: BusinessInsightEvidence = {
       signalIds: [],
       metricIds: [],
-      summary: `No new followers in the last 7 days for a store with ${followers.length} existing followers.`,
+      summary: insight.description,
     };
-
-    await emit({
-      organizationId,
-      storeId,
-      type: "RISK" as InsightType,
-      severity: "MEDIUM" as InsightSeverity,
-      status: "OPEN",
-      title: "No new followers this week",
-      description: "Follower growth has stalled. Consider a first-time follower campaign or content push.",
+    return {
+      organizationId: insight.organizationId,
+      storeId: insight.storeId,
+      type: insight.type as InsightType,
+      severity: insight.severity as InsightSeverity,
+      status: insight.status as BusinessInsightRecord["status"],
+      title: insight.title,
+      description: insight.description,
       evidence,
-      deepLink: `/stores/${storeId}/campaigns/first-follower`,
-      generatedAt: now,
+      deepLink: insight.deepLink,
+      generatedAt: insight.generatedAt,
       dismissedAt: null,
       snoozedUntil: null,
-    });
+    };
   }
 
-  function normalizePhrase(phrase: string): string {
-    return phrase.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+  async function emitCommerceInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectCommerceInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
   }
 
-  function contentMatches(content: string, title: string): boolean {
-    const normalizedContent = normalizePhrase(content);
-    const normalizedTitle = normalizePhrase(title).split(/\s+/).filter(Boolean);
-    if (normalizedTitle.length === 0) return false;
-    return normalizedTitle.every((word) => normalizedContent.includes(word));
+  async function emitCrmInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectCrmInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
+  }
+
+  async function emitConversationInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectConversationInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
+  }
+
+  async function emitGrowthInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectGrowthInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
+  }
+
+  async function emitBrandDealInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectBrandDealInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
+    for (const insight of insights) {
+      const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
+      if (alreadyExists) continue;
+      await emit(mapExternalInsight(insight));
+    }
   }
 
   async function detectProductAvailabilityAndDemand(organizationId: string, storeId: string) {
@@ -203,7 +161,8 @@ export function makeDetectionService(input: DetectionServiceInput) {
       for (const s of messageSignals) {
         const data = typeof s.data === "object" && s.data !== null ? (s.data as Record<string, unknown>) : {};
         const content = typeof data.content === "string" ? data.content : "";
-        if (contentMatches(content, product.title)) {
+        const mention = detectProductMentions(content, [{ externalId: product.externalId, title: product.title }])[0];
+        if (mention) {
           matchingMessages.push({
             id: s.id,
             eventType: s.eventType,
@@ -252,20 +211,6 @@ export function makeDetectionService(input: DetectionServiceInput) {
         snoozedUntil: null,
       });
     }
-  }
-
-  async function detectRevenueDecline(organizationId: string, storeId: string) {
-    const insight = await diagnosisService.diagnoseRevenue(organizationId, storeId);
-    if (!insight) return;
-
-    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
-    const alreadyExists = openInsights.some((i) =>
-      i.title.toLowerCase().includes("revenue declined") ||
-      i.title.toLowerCase().includes("revenue recovered"),
-    );
-    if (alreadyExists) return;
-
-    await emit(insight);
   }
 
   async function detectStaleMetrics(organizationId: string, storeId: string) {
@@ -326,11 +271,12 @@ export function makeDetectionService(input: DetectionServiceInput) {
         }
       }
 
-      await detectNoOrders(organizationId, storeId);
-      await detectHighIntentConversation(organizationId, storeId);
+      await emitCommerceInsights(organizationId, storeId);
+      await emitCrmInsights(organizationId, storeId);
+      await emitConversationInsights(organizationId, storeId);
+      await emitGrowthInsights(organizationId, storeId);
+      await emitBrandDealInsights(organizationId, storeId);
       await detectProductAvailabilityAndDemand(organizationId, storeId);
-      await detectRevenueDecline(organizationId, storeId);
-      await detectStaleFollowers(organizationId, storeId);
       await detectStaleMetrics(organizationId, storeId);
     },
   };

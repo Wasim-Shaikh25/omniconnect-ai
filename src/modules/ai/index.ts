@@ -21,7 +21,10 @@ export type {
   AIMessage,
   AIProvider,
   AssistantService,
+  BrainConversationMemoryRecord,
+  BrainMemoryRepository,
 } from "./application/ports";
+export type { BrainMemoryService } from "./application/brain-memory";
 export type { GenerateWelcome } from "./application/generate-welcome";
 export type {
   GeneratedCaption,
@@ -36,6 +39,7 @@ export type {
 export type {
   GeneratePostIdeasInput,
   GeneratePostIdeas,
+  GeneratePostIdeasResult,
 } from "./application/generate-post-ideas";
 export type {
   AnalyzeCompetitorInput,
@@ -48,6 +52,10 @@ export type {
   BusinessBrainAnswer,
   AskBusinessBrainInput,
 } from "./application/ask-business-brain";
+export { AIContextBuilder } from "./application/ai-context";
+export type { AIContext } from "./application/ai-context";
+export { selectModel } from "./application/model-router";
+export type { AIOperation, ModelSelection } from "./application/model-router";
 
 // Presentation
 export {

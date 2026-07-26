@@ -92,7 +92,7 @@ This file tracks all 139 subtasks from `TASK-350-unified-intelligence-layer.md` 
 - [x] 64. `EntityResolutionService` (§3.2.2).
 - [~] 65. Business knowledge graph queries (§3.2.3).
 - [x] 66. `MetricService` / semantic metric service (§3.2.4).
-- [ ] 67. `FeatureService` for customer, product, content, campaign, and business features (§3.2.5).
+- [x] 67. `FeatureService` for customer, product, content, campaign, and business features (§3.2.5).
 - [x] 68. `DetectionService` for anomalies, thresholds, trends, sequences, opportunities, risks, goal pacing, data-quality problems (§3.2.6).
 - [x] 69. `DiagnosisService` for evidence-backed candidate explanations (observed fact / likely contributor / hypothesis / unknown) (§3.2.7).
 - [x] 70. `PredictionService` with abstention conditions and calibrated estimates (§3.2.8).

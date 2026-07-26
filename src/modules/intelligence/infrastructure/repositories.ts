@@ -18,6 +18,7 @@ import type {
   PortfolioSnapshotRepository,
   SystemMetricRepository,
   KpiRepository,
+  RecommendationConflictRepository,
 } from "../application/ports";
 import type { KpiSnapshot } from "../application/ports";
 import type {
@@ -38,6 +39,7 @@ import type {
   CompetitorInsightRecord,
   PortfolioSnapshotRecord,
   SystemMetricRecord,
+  RecommendationConflictRecord,
   RecommendationStatus,
   ActionPlanStatus,
   OutcomeStatus,
@@ -465,6 +467,8 @@ type StoredRecommendation = {
   organizationId: string;
   storeId: string | null;
   insightId: string | null;
+  producedByModule: string;
+  producedByService: string | null;
   title: string;
   description: string;
   objective: string | null;
@@ -479,6 +483,10 @@ type StoredRecommendation = {
   actionType: string;
   actionParams: unknown;
   deepLink: string | null;
+  validFrom: Date;
+  validUntil: Date | null;
+  invalidatedAt: Date | null;
+  invalidatedByEvent: string | null;
   generatedAt: Date;
   dismissedAt: Date | null;
   snoozedUntil: Date | null;
@@ -521,6 +529,23 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
     return rows.map((r) => toRecommendationRecord(r as StoredRecommendation));
   }
 
+  async listActive(organizationId: string, storeId?: string, limit = 50): Promise<RecommendationRecord[]> {
+    const now = new Date();
+    const rows = await prisma.recommendation.findMany({
+      where: {
+        organizationId,
+        status: { in: ["PROPOSED", "ACCEPTED", "EDITED"] },
+        validFrom: { lte: now },
+        OR: [{ validUntil: null }, { validUntil: { gte: now } }],
+        invalidatedAt: null,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: [{ generatedAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => toRecommendationRecord(r as StoredRecommendation));
+  }
+
   async findById(id: string): Promise<RecommendationRecord | null> {
     const row = await prisma.recommendation.findUnique({ where: { id } });
     return row ? toRecommendationRecord(row as StoredRecommendation) : null;
@@ -530,6 +555,17 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
     const data: Prisma.RecommendationUpdateInput = { status };
     if (status === "DISMISSED") data.dismissedAt = new Date();
     if (status !== "SNOOZED") data.snoozedUntil = null;
+    if (status === "EXPIRED") data.invalidatedAt = new Date();
+    const updated = await prisma.recommendation.update({ where: { id }, data });
+    return toRecommendationRecord(updated as StoredRecommendation);
+  }
+
+  async invalidate(id: string, eventName: string): Promise<RecommendationRecord> {
+    const data: Prisma.RecommendationUpdateInput = {
+      status: "EXPIRED",
+      invalidatedAt: new Date(),
+      invalidatedByEvent: eventName,
+    };
     const updated = await prisma.recommendation.update({ where: { id }, data });
     return toRecommendationRecord(updated as StoredRecommendation);
   }
@@ -650,6 +686,23 @@ export class PrismaOutcomeRepository implements OutcomeRepository {
   async findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null> {
     const row = await prisma.outcome.findFirst({ where: { actionPlanId } });
     return (row as StoredOutcome) ?? null;
+  }
+
+  async findById(id: string): Promise<OutcomeRecord | null> {
+    const row = await prisma.outcome.findUnique({ where: { id } });
+    return (row as StoredOutcome) ?? null;
+  }
+
+  async list(organizationId: string, storeId?: string, limit = 20): Promise<OutcomeRecord[]> {
+    const rows = await prisma.outcome.findMany({
+      where: {
+        organizationId,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: limit,
+    });
+    return rows.map((r) => r as StoredOutcome);
   }
 
   async updateMeasured(
@@ -1174,5 +1227,49 @@ export class PrismaKpiRepository implements KpiRepository {
       identityConfidenceAvg,
       highConfidenceEntityLinks,
     };
+  }
+}
+
+type StoredRecommendationConflict = {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  winnerId: string;
+  runnerUpId: string | null;
+  winnerTitle: string;
+  runnerUpTitle: string | null;
+  reason: string;
+  appliedPolicy: string;
+  resolvedAt: Date;
+};
+
+function toRecommendationConflictRecord(row: StoredRecommendationConflict): RecommendationConflictRecord {
+  return row;
+}
+
+export class PrismaRecommendationConflictRepository implements RecommendationConflictRepository {
+  async save(
+    conflict: Omit<RecommendationConflictRecord, "id" | "resolvedAt">,
+  ): Promise<RecommendationConflictRecord> {
+    const created = await prisma.recommendationConflict.create({
+      data: conflict as unknown as Prisma.RecommendationConflictCreateInput,
+    });
+    return toRecommendationConflictRecord(created as StoredRecommendationConflict);
+  }
+
+  async listRecent(
+    organizationId: string,
+    storeId?: string,
+    limit = 10,
+  ): Promise<RecommendationConflictRecord[]> {
+    const rows = await prisma.recommendationConflict.findMany({
+      where: {
+        organizationId,
+        ...(storeId ? { storeId } : {}),
+      },
+      orderBy: { resolvedAt: "desc" },
+      take: limit,
+    });
+    return rows.map((r) => toRecommendationConflictRecord(r as StoredRecommendationConflict));
   }
 }

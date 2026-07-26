@@ -1,5 +1,8 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
 import type { TrendIdea } from "./generate-trends";
+import type { MarketingMemoryRecord, DailyBriefRecord } from "@/modules/intelligence";
+import { AIContextBuilder } from "./ai-context";
+import { selectModel } from "./model-router";
 
 export interface GeneratePostIdeasInput {
   storeId: string;
@@ -16,10 +19,21 @@ export interface GeneratePostIdeasInput {
   };
   ownerUsername?: string | null;
   count?: number;
+  organizationId?: string;
+}
+
+export interface GeneratePostIdeasResult {
+  ideas: TrendIdea[];
+  evidence: string;
 }
 
 export interface GeneratePostIdeas {
-  (input: GeneratePostIdeasInput): Promise<TrendIdea[]>;
+  (input: GeneratePostIdeasInput): Promise<GeneratePostIdeasResult>;
+}
+
+export interface MarketingMemoryPort {
+  getMemory(organizationId: string, storeId: string): Promise<MarketingMemoryRecord>;
+  getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
 }
 
 const DEFAULT_TONE = "trendy, authentic, and platform-native";
@@ -27,20 +41,64 @@ const DEFAULT_TONE = "trendy, authentic, and platform-native";
 export function makeGeneratePostIdeas(deps: {
   aiProvider: AIProvider;
   aiConfigurationRepository: AIConfigurationRepository;
+  marketingMemory?: MarketingMemoryPort;
 }): GeneratePostIdeas {
-  return async function generatePostIdeas(input): Promise<TrendIdea[]> {
+  return async function generatePostIdeas(input): Promise<GeneratePostIdeasResult> {
     const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const count = Math.min(Math.max(input.count ?? 3, 1), 10);
 
+    let memory: MarketingMemoryRecord | undefined;
+    let brief: DailyBriefRecord | undefined;
+    if (deps.marketingMemory && input.organizationId) {
+      try {
+        memory = await deps.marketingMemory.getMemory(input.organizationId, input.storeId);
+        brief = await deps.marketingMemory.getBrief(input.organizationId, input.storeId);
+      } catch {
+        // Marketing context is optional; fall back to provided post data.
+      }
+    }
+
+    const topProducts = memory?.productScores
+      .slice(0, 3)
+      .map((p) => `${p.productTitle} (score ${Math.round(p.compositeScore * 100)})`)
+      .join(", ") ?? "none";
+
+    const dmPatterns = memory?.dmPatterns
+      .slice(0, 3)
+      .map((p) => `${p.category}: ${p.frequency}`)
+      .join("; ") ?? "none";
+
+    const commentPatterns = memory?.commentPatterns
+      .slice(0, 3)
+      .map((p) => `${p.category}: ${p.frequency}`)
+      .join("; ") ?? "none";
+
+    const trendingHashtags = memory?.trendingHashtags
+      .map((h) => `#${h.tag}`)
+      .join(" ") ?? "none";
+
+    const topPerformingPosts = memory?.topPerformingPosts
+      .map((p) => `"${p.title}" (engagement ${Math.round(p.engagement)})`)
+      .join("; ") ?? "none";
+
+    const competitorChanges = memory?.competitorChanges
+      .map((c) => `@${c.handle}: ${c.changeType}${c.latestCaption ? ` — "${c.latestCaption}"` : ""}${c.latestEngagement > 0 ? ` (engagement ${Math.round(c.latestEngagement)})` : ""}`)
+      .join("; ") ?? "none";
+
+    const winningPostingTimes = memory?.winningPostingTimes
+      .map((t) => `${t.dayOfWeek} ${t.hour}:00 UTC (engagement ${Math.round(t.engagementScore)})`)
+      .join("; ") ?? "none";
+
     const system = `You are a social media content strategist for Instagram. Tone: ${tone}.
 Analyze the provided post and generate a JSON array of ${count} fresh content ideas inspired by *why* this post worked (or what would make it work better).
+Ground ideas in the brand's marketing memory: top products to promote, recent DM/comment themes, trending hashtags, own best-performing posts, competitor changes, and today's brief.
 For each idea return:
 - title (string, punchy idea name)
 - format (string, one of Reel/Post/Carousel/Story)
 - hook (string, scroll-stopping first line)
 - description (string, 2-3 sentences describing the video/post)
-- whyItWorks (string, 1 sentence explaining the trend mechanic or audience psychology)
+- whyItWorks (string, 1 sentence explaining the trend mechanic, audience psychology, or marketing context)
 - hashtags (array of 10-15 niche hashtags, no banned/spam ones)
 - audioSuggestion (string, trending audio style or sound cue)
 - predictedEngagementScore (number 0-100)
@@ -52,27 +110,44 @@ Return only a JSON array. Do not wrap in markdown.`;
 Caption: ${input.caption ?? "(no caption)"}
 Hashtags: ${input.hashtags.join(" ") || "(none)"}
 Metrics: likes ${input.metrics.likes ?? 0}, comments ${input.metrics.comments ?? 0}, plays ${input.metrics.plays ?? 0}, reach ${input.metrics.reach ?? 0}.
-Generate content ideas that follow the same vibe but are original for our brand.`;
+Top products to promote: ${topProducts}
+DM themes: ${dmPatterns}
+Comment themes: ${commentPatterns}
+Trending hashtags from mentions: ${trendingHashtags}
+Own best-performing posts: ${topPerformingPosts}
+Competitor changes: ${competitorChanges}
+Winning posting times: ${winningPostingTimes}
+${brief ? `Today's brief: ${brief.priorities.join("; ")}. Content idea: ${brief.contentIdea ?? "none"}` : ""}
+Generate content ideas that follow the same vibe, tie to the brand's current marketing priorities, learn from competitors, post at winning times, and are original for our brand.`;
 
-    const raw = await deps.aiProvider.complete(
-      [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      { model: config?.model ?? "gpt-4o-mini", fallback: DEFAULT_DEV_OUTPUT },
-    );
+    const evidence = `Grounded in: top products (${topProducts}), DM themes (${dmPatterns}), comment themes (${commentPatterns}), trending hashtags (${trendingHashtags}), own best posts (${topPerformingPosts}), competitor changes (${competitorChanges}), winning posting times (${winningPostingTimes})${brief ? `, today's brief (${brief.priorities.join("; ")})` : ""}.`;
+
+    const context = new AIContextBuilder()
+      .withSystem(system)
+      .withUser(user)
+      .withModel(selectModel("post-ideas", config?.model).model)
+      .withFallback(DEFAULT_DEV_OUTPUT)
+      .withOperation("post-ideas")
+      .withMetadata({ storeId: input.storeId, mediaType: input.mediaType, grounded: Boolean(memory) })
+      .build();
+
+    const raw = await deps.aiProvider.complete(context.messages, {
+      model: context.model,
+      fallback: context.fallback,
+    });
 
     try {
       const parsed = JSON.parse(raw) as unknown;
       if (!Array.isArray(parsed)) {
-        return [parseSingleIdea(raw, input.mediaType)];
+        return { ideas: [parseSingleIdea(raw, input.mediaType)], evidence };
       }
-      return parsed
+      const ideas = parsed
         .map((item) => parseIdea(item, input.mediaType))
         .filter((t): t is TrendIdea => t !== null)
         .slice(0, count);
+      return { ideas, evidence };
     } catch {
-      return [parseSingleIdea(raw, input.mediaType)];
+      return { ideas: [parseSingleIdea(raw, input.mediaType)], evidence };
     }
   };
 }

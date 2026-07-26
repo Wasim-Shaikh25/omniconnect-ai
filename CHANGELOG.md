@@ -394,7 +394,110 @@ All notable changes to **OmniConnect AI** are documented here.
     - `generate-reply` writes an `AuditLog` entry with prompt metadata and no PII.
     - `/api/meta/webhook` gets in-memory rate limiting and payload idempotency via `webhookGuard`.
     - `env.ts` exposes `validateProductionSecrets()`; `src/instrumentation.ts` calls it at runtime startup so missing production secrets fail fast without breaking `next build`.
-  - Next: Phase 1 (move detection/recommendation ownership to domain modules).
+  - **Phase 1 (domain detection/recommendation ownership) started:**
+    - `ecommerce/application/detect-insights.ts` created with `detectCommerceInsights` that owns no-orders and revenue decline detection.
+    - `CommerceInsightGenerated` and `CommerceRecommendationGenerated` domain events added to `ecommerce`.
+    - `crm/application/detect-insights.ts` created with `detectCrmInsights` that owns stale-follower detection.
+    - `CrmInsightGenerated` and `CrmRecommendationGenerated` domain events added to `crm`.
+    - `conversations/application/detect-insights.ts` created with `detectConversationInsights` that owns high-intent conversation detection.
+    - `ConversationInsightGenerated` and `ConversationRecommendationGenerated` domain events added to `conversations`.
+    - `growth/application/detect-insights.ts` created with `detectGrowthInsights` that owns DM campaign staleness and UGC presence detection.
+    - `GrowthInsightGenerated` and `GrowthRecommendationGenerated` domain events added to `growth`.
+    - `branddeals/application/detect-insights.ts` created with `detectBrandDealInsights` that owns stuck-negotiation detection.
+    - `BrandDealInsightGenerated` and `BrandDealRecommendationGenerated` domain events added to `branddeals`.
+    - `intelligence/application/detection.ts` removed all domain-specific detection helpers (no-orders, revenue decline, stale followers, high-intent conversations, stale DM campaigns, no UGC, stuck brand deals) and now delegates to each module's `detect*Insights` service, mapping the results into `BusinessInsight` records.
+    - `intelligence/application/diagnosis.ts` now maps `CommerceInsight` results into `BusinessInsight` records instead of computing revenue itself.
+  - **Phase 2 (recommendation lifecycle) implemented:**
+    - Added `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to the `Recommendation` Prisma model and `RecommendationRecord` type.
+    - Created `intelligence/application/recommendation-lifecycle.ts` with `prioritizeRecommendations`, `resolveConflicts`, and `expireStaleRecommendations`.
+    - Added `RecommendationExpired` and `RecommendationConflictDetected` domain events.
+    - Updated `PrismaRecommendationRepository` with `listActive` and `invalidate` and wired the lifecycle service through `intelligence/infrastructure/container.ts` and the public barrel.
+    - `recommendationService` now sets `producedByModule`/`producedByService`/`validFrom` when generating recommendations from insights.
+  - **Phase 3 (Business Brain consumes Intelligence) implemented:**
+    - Created `intelligence/application/business-brain-context.ts` exposing `businessBrainContextService.getContext(organizationId, storeId)` that returns top insights, active recommendations, predictions, recent outcomes, business learning, and active goals.
+    - Added `OutcomeRepository.list` and `outcomeService.list` to support context.
+    - `ai/application/ask-business-brain.ts` now optionally consumes `BusinessBrainContextPort` and injects intelligence summaries into prompts and fallback answers.
+    - Wired `businessBrainContextService` through `intelligence/infrastructure/container.ts` and the public barrel; connected in `ai/infrastructure/container.ts`.
+  - **Phase 3b (Business Brain memory) implemented:**
+    - Added `BrainConversationMemory` Prisma model and migration.
+    - Created `ai/application/brain-memory.ts` service and `PrismaBrainMemoryRepository` with save/list/update feedback methods.
+    - `askBusinessBrain` now loads recent memory into the prompt and persists each Q/A pair with `userId`/`organizationId`/`storeId`.
+  - **Phase 4 (cleanup, vocabulary deduplication, and action-executor shrink) implemented:**
+    - Centralized `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and `detectProductMentions` in `intelligence/application/vocabulary.ts` and updated `subscribers.ts`, `next-best-action.ts`, and `detection.ts` to use them.
+    - Shrunk `WorkspaceActionExecutor` to an `execute` dispatcher; moved risk/approval gating into `decision-policy.ts` and removed `canExecute` from the `ActionExecutor` port.
+    - Added `scripts/verify-task370.ts` end-to-end validation script covering detection, recommendation lifecycle, and Business Brain context wiring.
+    - Updated `intelligence/index.ts` public barrel and validated `npm run lint`, `npm run typecheck`, `npm run build`.
+  - **Phase 5 (remaining architectural items) implemented:**
+    - Added `expiresAt` to `BrainConversationMemory` with `brainMemoryService.purgeExpired` / `PrismaBrainMemoryRepository.purgeExpiredBefore` retention.
+    - Added `RecommendationConflict` table and surfaced conflicts via `getRecommendationConflictsAction` and `RecommendationConflictCard` on Daily Marketing.
+    - Refactored action execution so `WorkspaceActionExecutor` dispatches through domain action handlers: `executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`.
+    - Added `ReadModelRefresher` service and `refreshReadModelsAction` to recompute `MetricSnapshot`, `BusinessInsight`, and `Recommendation` from canonical signals.
+  - **Async intelligence lifecycle (Phase 5 follow-up):**
+    - Added shared `QueueService` abstraction (`src/shared/queue`) with `BullMQQueue` (Redis) and `InMemoryQueue` (fallback) backends, plus `JobRegistry`, `BullMQ` worker, and `src/jobs/worker.ts` entry point.
+    - `intelligence` registers `REFRESH_READ_MODELS`, `REFRESH_PREDICTIONS`, and `LEARN_FROM_OUTCOME` queue handlers; `refreshReadModelsAction` now enqueues jobs and returns immediately instead of blocking.
+    - Added `WORKER_CONCURRENCY` to `env.ts`, `serverExternalPackages` for `bullmq`/`ioredis` in `next.config.ts`, and `npm run worker` script.
+    - Created `@/modules/analytics/server` and `@/modules/intelligence/server` server-only barrels plus `@/modules/ai/events` lightweight events barrel to break a module cycle that surfaced under `tsx`/`npm run worker`.
+    - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup all pass.
+
+- **TASK-371 — Marketing Intelligence Connectivity** (spec `0047`, `0048`):
+  - Repositioned OmniConnect as the **AI Marketing & Commerce Platform for Instagram and Facebook Businesses**.
+  - Defined the 12 product gaps and the connecting architecture: Content Intelligence, Analytics loop, active Competitor Analysis, DM → marketing, comments as research, marketing analytics, product promotion scores, Marketing Memory, inbox multi-insight, competitor benchmarking, AI explanation, Business Brain → Marketing Brain daily brief.
+  - Added UI workflow spec `0048` reorganizing the product around four workflows: Daily Marketing, Engagement, Growth, Revenue.
+  - **UI shell implemented:**
+    - `StoreWorkflowNav` tabs for Daily Marketing, Engagement, Growth, Revenue.
+    - `/stores/[storeId]/daily-marketing` dashboard with Today’s Brief, Products To Push, DM Insights, Comment Insights, Followers, Best Time To Post, Competitor Changes, Trending Hashtags, and Content Next Best Action.
+    - `/stores/[storeId]/engagement`, `/growth`, `/revenue` workflow entry pages.
+    - Rebranded `/business-brain` to Marketing Brain and updated `AppHeader`.
+  - **Marketing Memory wired:**
+    - New `intelligence` aggregate `MarketingMemory` with `updateMarketingMemory()` computes product scores, DM patterns, comment patterns, trending hashtags, competitor changes, and campaign/coupon history from `ecommerce`, `conversations`, `social`, `analytics`, and `crm` public contracts.
+    - New `generateDailyBrief()` builds a daily marketing brief with sections, content idea, recommended product, best posting time, trending hashtags, and priorities.
+    - `ai.askBusinessBrain` now consumes `MarketingMemory` and `DailyBriefRecord` when a store is selected; prompt persona rebranded to Marketing Brain and includes top products, DM/comment patterns, and today's brief.
+    - PII redaction for pattern samples.
+    - `getAccountMedia` added to the analytics server barrel; `updateMarketingMemory` fetches the connected Meta account's own media and computes `topPerformingPosts`.
+    - `detectCompetitorChanges` enriches `CompetitorChange` with each tracked competitor's top post caption, media type, and engagement.
+    - `ai.generatePostIdeas` now consumes `MarketingMemory` (top products, DM/comment themes, trending hashtags, own best-performing posts, competitor changes) and the daily brief, and returns an `evidence` string.
+    - `ContentStudioForms` displays a "Why these ideas" panel with the memory signals that influenced the suggestions.
+    - Product promotion scores are now displayed in `/stores/[storeId]/commerce/catalog` via `listCommerceCatalogAction`, which consumes `updateMarketingMemory()`.
+    - Marketing analytics view (`getMarketingPerformance`) reorganizes metrics around Content, Audience, Product, and Campaign, adds per-section `why`/`nextRecommendation`, an overall `explanation`, and publishes `MarketingPerformanceUpdated`.
+    - New `/stores/[storeId]/analytics/content`, `/audience`, `/product`, and `/campaign` subpages answer the four marketing analytics questions.
+    - `/stores/[storeId]/analytics` dashboard links to subpages and surfaces the overall AI marketing explanation.
+    - Competitor benchmark (`getCompetitorBenchmark`) computes post frequency, Reel ratio, hook/caption length, engagement, top hashtags, and consistency, and produces actionable adaptation suggestions.
+    - `CompetitorChangeDetected` and `CompetitorBenchmarkReady` domain events published from `analytics`.
+    - Competitor page displays benchmark panel with recommendations.
+    - Reusable workflow cards extracted: `WorkflowCard`, `BriefSectionCard`, `ProductPromotionCard`, `DmOpportunityCard`, `CommentInsightCard`, `CompetitorAlertCard`, `TrendingHashtagCard`, `BestTimeCard`, `FollowerLinkCard`.
+    - Daily Marketing, Engagement, Growth, and Revenue pages refactored to use shared card components.
+    - `scripts/verify-task371.ts` end-to-end validation script created (typechecked; requires PostgreSQL connection to run).
+- **Task tracker audit**:
+  - Synced `TASK-350-unified-intelligence-layer.md` statuses from `TASK-350-progress.md`.
+  - Marked verified items done: `FeatureService` (67), AI-generated workflow acceptance criteria (96), brand-deal follow-up + CRM advocate NBA (137).
+  - Active `TASK-370`/`TASK-371` trackers updated to reflect current remaining work.
+- **Follow-up fixes**:
+  - Replaced `eslint-config-next` / `@eslint/eslintrc` with direct `@next/eslint-plugin-next` + `typescript-eslint` flat config; upgraded `eslint` to v10. `npm audit` now reports 0 high-severity findings; `npm run lint` / `typecheck` / `build` still pass.
+  - Computed `winningPostingTimes` in `MarketingMemory` from own post engagement timestamps and surfaced the top slot in the `DailyBrief` and `generatePostIdeas` prompt.
+  - Added `tenantGuard` to the `organizations` module and hardened tenant isolation for `coupons` (`updateCampaignAction`, `simulateFirstTimeFollower`) and `users` (`changeUserRole` now enforces same-organization target); added explicit store-ownership checks to `intelligence` read actions (`getUnifiedContextAction`, `getKnowledgeGraphAction`, `getFeatureProfileAction`).
+  - Built post-to-order attribution foundation: `getMarketingPerformance` now fetches own Meta media, computes richer per-post metrics (likes, comments, shares, plays, reach, impressions), attributes orders to the nearest preceding post within a 7-day window, and exposes `orders`/`revenue` per post in the Content analytics subpage.
+  - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup all pass; `npm audit` reports 0 vulnerabilities.
+- **TASK-372 — SaaS landing page, pricing, payments, and onboarding docs** (spec `0049`):
+  - Replaced the generic feature-card landing page with a marketing-focused `/` page: hero,
+    positioning, capability grid, and transparent pricing.
+  - Added `/pricing` with Free, Starter ($4.99/mo), and Pro ($9.99/mo) tiers plus FAQ.
+  - Added Stripe Checkout integration behind `/api/stripe/checkout` and webhook handling at
+    `/api/stripe/webhook` (signature verified, plan updated via `OrganizationRepository`).
+  - Added `Plan` enum + `plan`, `subscriptionId`, `subscriptionStatus` columns to `Organization`
+    with a Prisma migration.
+  - Extended `OrganizationRecord`, `OrganizationOverview`, and `billingService` in the `organizations`
+    module; exposed `PLAN_FEATURES` from the public barrel.
+  - Updated `/settings/billing` to show the current plan and upgrade cards (Stripe-disabled state
+    when keys are missing).
+  - Expanded `/help` with pricing, Marketing Brain, analytics/attribution, security, and deployment
+    sections.
+  - Rewrote `README.md` with SaaS positioning, quick start, plans, and env templates.
+  - Rewrote `docs/deployment.md` with local → test → production steps for Vercel, Fly.io, and Docker,
+    plus Stripe webhook and production checklist.
+  - Created `.env.local`, `.env.test`, and `.env.production` templates (gitignored) and updated
+    `.env.example` with Stripe variables.
+  - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup pass; screenshots
+    of landing, pricing, help, dashboard, billing, and stores captured.
 
 ### ⏭️ Next (proposed build order)
 

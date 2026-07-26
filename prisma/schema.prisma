@@ -76,11 +76,20 @@ model VerificationToken {
 }
 
 // ── organizations ───────────────────────────────────────────────────────────
+enum Plan {
+  FREE
+  STARTER
+  PRO
+}
+
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  plan              Plan     @default(FREE)
+  subscriptionId    String?
+  subscriptionStatus String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   users     User[]
   stores    Store[]
@@ -318,6 +327,41 @@ model AIConfiguration {
   model           String   @default("gpt-4o-mini")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model BrainConversationMemory {
+  id                String   @id @default(cuid())
+  userId            String
+  organizationId    String
+  storeId           String?
+  question          String
+  answer            String
+  acceptedAdviceIds String[]
+  rejectedAdviceIds String[]
+  goals             String[]
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, storeId])
+  @@index([organizationId, createdAt])
+  @@index([expiresAt])
+}
+
+model RecommendationConflict {
+  id            String   @id @default(cuid())
+  organizationId String
+  storeId       String?
+  winnerId      String
+  runnerUpId    String?
+  winnerTitle   String
+  runnerUpTitle String?
+  reason        String
+  appliedPolicy String
+  resolvedAt    DateTime @default(now())
+
+  @@index([organizationId, storeId])
+  @@index([resolvedAt])
 }
 
 // ── campaigns (first-time follower) ─────────────────────────────────────────
@@ -1022,29 +1066,35 @@ enum GoalStatus {
 }
 
 model Recommendation {
-  id              String               @id @default(cuid())
-  organizationId  String
-  storeId         String?
-  insightId       String?
-  title           String
-  description     String
-  objective       String?
-  reasonCodes     String[]
-  impactRange     Json?
-  confidence      Float?
-  effort          String?
-  urgency         String?
-  riskTier        RiskTier
-  eligibility     Json?
-  status          RecommendationStatus @default(PROPOSED)
-  actionType      String
-  actionParams    Json?
-  deepLink        String?
-  generatedAt     DateTime             @default(now())
-  dismissedAt     DateTime?
-  snoozedUntil    DateTime?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id                String               @id @default(cuid())
+  organizationId    String
+  storeId           String?
+  insightId         String?
+  producedByModule  String
+  producedByService String?
+  title             String
+  description       String
+  objective         String?
+  reasonCodes       String[]
+  impactRange       Json?
+  confidence        Float?
+  effort            String?
+  urgency           String?
+  riskTier          RiskTier
+  eligibility       Json?
+  status            RecommendationStatus @default(PROPOSED)
+  actionType        String
+  actionParams      Json?
+  deepLink          String?
+  validFrom         DateTime             @default(now())
+  validUntil        DateTime?
+  invalidatedAt     DateTime?
+  invalidatedByEvent String?
+  generatedAt       DateTime             @default(now())
+  dismissedAt       DateTime?
+  snoozedUntil      DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 
   @@index([organizationId, status, generatedAt])
   @@index([organizationId, storeId, status, riskTier])

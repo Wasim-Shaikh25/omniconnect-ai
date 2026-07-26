@@ -21,16 +21,27 @@ function riskFromSeverity(severity: BusinessInsightRecord["severity"]): RiskTier
   }
 }
 
+function isRisk(category: string): boolean {
+  return category === "PRICE_OBJECTION" || category === "COMPLAINT";
+}
+
 async function recommendationFromInsight(
   insight: BusinessInsightRecord,
   ecommerce: EcommerceQueries,
 ): Promise<Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt"> | null> {
+  const now = new Date();
   const base = {
     organizationId: insight.organizationId,
     storeId: insight.storeId,
     insightId: insight.id,
+    producedByModule: "intelligence" as const,
+    producedByService: "recommendationFromInsight",
     status: "PROPOSED" as RecommendationRecord["status"],
-    generatedAt: new Date(),
+    generatedAt: now,
+    validFrom: now,
+    validUntil: null,
+    invalidatedAt: null,
+    invalidatedByEvent: null,
     dismissedAt: null,
     snoozedUntil: null,
   };
@@ -131,6 +142,60 @@ async function recommendationFromInsight(
         };
       }
     }
+  }
+
+  if (insight.title.toLowerCase().includes("dm pattern:")) {
+    const categoryMatch = insight.title.match(/DM pattern: ([\w_]+)/i);
+    const category = categoryMatch?.[1] ?? "question";
+    const sample = insight.evidence?.summary?.match(/Sample: "([^"]+)"/)?.[1] ?? "";
+    return {
+      ...base,
+      title: `Send a DM campaign addressing "${category.replace(/_/g, " ")}"`,
+      description: insight.description,
+      objective: "Convert recurring DM questions into engagement",
+      reasonCodes: ["dm_pattern", "recurring_question"],
+      impactRange: { min: 1, max: 20, unit: "responses" },
+      confidence: 0.6,
+      effort: "LOW",
+      urgency: "MEDIUM",
+      riskTier: riskFromSeverity(insight.severity),
+      eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+      actionType: "CREATE_DM_CAMPAIGN",
+      actionParams: {
+        storeId: insight.storeId,
+        campaignType: "ANSWER_PATTERN",
+        audienceCriteria: { segment: "recent_conversations", dmPattern: category, sampleQuestion: sample },
+      },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
+    };
+  }
+
+  if (insight.title.toLowerCase().includes("comment pattern:")) {
+    const categoryMatch = insight.title.match(/Comment pattern: ([\w_]+)/i);
+    const category = categoryMatch?.[1] ?? "feedback";
+    const isObjection = isRisk(category);
+    return {
+      ...base,
+      title: isObjection
+        ? `Create a response campaign for "${category.replace(/_/g, " ")}" comments`
+        : `Run a campaign amplifying "${category.replace(/_/g, " ")}" feedback`,
+      description: insight.description,
+      objective: isObjection ? "Address objections and prevent churn" : "Turn positive feedback into reach",
+      reasonCodes: ["comment_pattern", isObjection ? "objection" : "social_proof"],
+      impactRange: { min: 1, max: 15, unit: "engagements" },
+      confidence: 0.55,
+      effort: "LOW",
+      urgency: isObjection ? "HIGH" : "MEDIUM",
+      riskTier: riskFromSeverity(insight.severity),
+      eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
+      actionType: "CREATE_DM_CAMPAIGN",
+      actionParams: {
+        storeId: insight.storeId,
+        campaignType: isObjection ? "OBJECTION_RESPONSE" : "SOCIAL_PROOF",
+        audienceCriteria: { segment: "recent_commenters", commentPattern: category },
+      },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
+    };
   }
 
   if (insight.title.toLowerCase().includes("revenue declined")) {

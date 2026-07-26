@@ -10,13 +10,15 @@ import { Label } from "@/components/ui/label";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis, TrendIdea } from "@/modules/ai";
 import { generatePostIdeasAction } from "@/modules/ai";
-import type { TrackedAccountRecord, SuggestedCompetitor } from "@/modules/analytics";
+import type { TrackedAccountRecord, SuggestedCompetitor, CompetitorBenchmarkState, WorkspaceCompetitorComparisonState } from "@/modules/analytics";
 import {
   trackCompetitorAction,
   getCompetitorMediaAction,
   analyzeCompetitorAction,
   deleteTrackedCompetitorAction,
   discoverCompetitorsAction,
+  getCompetitorBenchmarkAction,
+  getWorkspaceCompetitorComparisonAction,
 } from "@/modules/analytics";
 
 export default function CompetitorsPageClient({
@@ -157,6 +159,8 @@ function CompetitorCard({
 }) {
   const [mediaState, mediaAction, mediaPending] = useActionState(getCompetitorMediaAction, {});
   const [analysisState, analysisAction, analysisPending] = useActionState(analyzeCompetitorAction, {});
+  const [benchmarkState, benchmarkAction, benchmarkPending] = useActionState(getCompetitorBenchmarkAction, {});
+  const [comparisonState, comparisonAction, comparisonPending] = useActionState(getWorkspaceCompetitorComparisonAction, {});
   const media = mediaState.media ?? account.lastMedia ?? [];
   const analysis = analysisState.analysis ?? account.lastAnalysis ?? null;
 
@@ -188,9 +192,29 @@ function CompetitorCard({
             <input type="hidden" name="accountId" value={account.id} />
             <Button type="submit" variant="secondary" size="sm" disabled={analysisPending}>{analysisPending ? "Analyzing…" : "AI strategy analysis"}</Button>
           </form>
+          <form action={benchmarkAction}>
+            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="accountId" value={account.id} />
+            <Button type="submit" variant="outline" size="sm" disabled={benchmarkPending}>{benchmarkPending ? "Benchmarking…" : "Benchmark"}</Button>
+          </form>
+          <form action={comparisonAction}>
+            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="accountId" value={account.id} />
+            <Button type="submit" variant="outline" size="sm" disabled={comparisonPending}>{comparisonPending ? "Comparing…" : "Compare with me"}</Button>
+          </form>
         </div>
         {mediaState.error && <p className="text-sm text-destructive">{mediaState.error}</p>}
         {analysisState.error && <p className="text-sm text-destructive">{analysisState.error}</p>}
+        {benchmarkState.error && <p className="text-sm text-destructive">{benchmarkState.error}</p>}
+        {comparisonState.error && <p className="text-sm text-destructive">{comparisonState.error}</p>}
+
+        {benchmarkState.benchmark && (
+          <BenchmarkPanel benchmark={benchmarkState.benchmark} />
+        )}
+
+        {comparisonState.comparison && (
+          <ComparisonPanel comparison={comparisonState.comparison} />
+        )}
 
         {analysis && (
           <AnalysisPanel analysis={analysis} />
@@ -210,6 +234,92 @@ function CompetitorCard({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function BenchmarkPanel({ benchmark }: { benchmark: NonNullable<CompetitorBenchmarkState["benchmark"]> }) {
+  return (
+    <div className="rounded-md border bg-muted/50 p-4 space-y-3">
+      <p className="text-sm font-semibold">Competitor benchmark</p>
+      <div className="grid gap-4 md:grid-cols-4 text-sm">
+        <div>
+          <p className="text-muted-foreground">Posts</p>
+          <p className="font-medium">{benchmark.postCount}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Posts/week</p>
+          <p className="font-medium">{benchmark.postsPerWeek}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Reels</p>
+          <p className="font-medium">{benchmark.reelCount} ({benchmark.reelRatio}%)</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Avg engagement</p>
+          <p className="font-medium">{benchmark.avgEngagement}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Avg hook length</p>
+          <p className="font-medium">{benchmark.avgHookLength} words</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Avg caption length</p>
+          <p className="font-medium">{benchmark.avgCaptionLength}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Consistency</p>
+          <p className="font-medium">{benchmark.postingConsistencyScore}%</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Likes / comments</p>
+          <p className="font-medium">{benchmark.totalLikes.toLocaleString()} / {benchmark.totalComments.toLocaleString()}</p>
+        </div>
+      </div>
+      {benchmark.topHashtags.length > 0 && (
+        <div>
+          <p className="text-sm font-medium">Top hashtags</p>
+          <p className="text-sm text-muted-foreground">{benchmark.topHashtags.map((h) => `#${h}`).join(" ")}</p>
+        </div>
+      )}
+      <div>
+        <p className="text-sm font-medium">Recommendations</p>
+        <ul className="list-disc list-inside text-sm text-muted-foreground">
+          {benchmark.suggestions.map((s, i) => <li key={i}>{s}</li>)}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function ComparisonPanel({ comparison }: { comparison: NonNullable<WorkspaceCompetitorComparisonState["comparison"]> }) {
+  const metrics: Array<{ label: string; workspace: number | string; competitor: number | string }> = [
+    { label: "Posts", workspace: comparison.workspace.postCount, competitor: comparison.competitor.postCount },
+    { label: "Posts/week", workspace: comparison.workspace.postsPerWeek, competitor: comparison.competitor.postsPerWeek },
+    { label: "Reel ratio", workspace: `${comparison.workspace.reelRatio}%`, competitor: `${comparison.competitor.reelRatio}%` },
+    { label: "Avg hook", workspace: comparison.workspace.avgHookLength, competitor: comparison.competitor.avgHookLength },
+    { label: "Avg caption", workspace: comparison.workspace.avgCaptionLength, competitor: comparison.competitor.avgCaptionLength },
+    { label: "Avg engagement", workspace: comparison.workspace.avgEngagement, competitor: comparison.competitor.avgEngagement },
+  ];
+
+  return (
+    <div className="rounded-md border bg-muted/50 p-4 space-y-3">
+      <p className="text-sm font-semibold">Workspace vs @{comparison.handle}</p>
+      <div className="grid gap-4 md:grid-cols-3 text-sm">
+        {metrics.map((m) => (
+          <div key={m.label} className="space-y-1">
+            <p className="text-muted-foreground">{m.label}</p>
+            <p className="font-medium">You: {m.workspace}</p>
+            <p className="text-muted-foreground">Them: {m.competitor}</p>
+          </div>
+        ))}
+      </div>
+      <div>
+        <p className="text-sm font-medium">Gaps &amp; recommendations</p>
+        <ul className="list-disc list-inside text-sm text-muted-foreground">
+          {comparison.gaps.map((g, i) => <li key={i}>{g}</li>)}
+        </ul>
+      </div>
+    </div>
   );
 }
 

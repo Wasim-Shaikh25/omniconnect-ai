@@ -9,6 +9,11 @@ import { organizationQueries } from "@/modules/organizations";
 import { notificationQueries } from "@/modules/notifications";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
+import {
+  updateMarketingMemory,
+  generateDailyBrief,
+  businessBrainContextService,
+} from "@/modules/intelligence";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
@@ -17,11 +22,14 @@ import { makeGenerateTrends } from "../application/generate-trends";
 import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
 import { makeAnalyzeCompetitor } from "../application/analyze-competitor";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
+import { makeBrainMemoryService } from "../application/brain-memory";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
+import { PrismaBrainMemoryRepository } from "./brain-memory.repository";
 import { OpenAIProvider } from "./openai.provider";
 import { makeWorkspaceContext } from "./workspace-context";
 
 const aiConfigurationRepository = new PrismaAIConfigurationRepository();
+const brainMemoryRepository = new PrismaBrainMemoryRepository();
 const aiProvider = new OpenAIProvider();
 
 /** Composition root for the ai module. */
@@ -62,15 +70,7 @@ export const generateTrends = makeGenerateTrends({
   aiConfigurationRepository,
 });
 
-export const generatePostIdeas = makeGeneratePostIdeas({
-  aiProvider,
-  aiConfigurationRepository,
-});
-
-export const analyzeCompetitor = makeAnalyzeCompetitor({
-  aiProvider,
-  aiConfigurationRepository,
-});
+export const brainMemoryService = makeBrainMemoryService({ repository: brainMemoryRepository });
 
 const workspaceContext = makeWorkspaceContext({
   organizations: organizationQueries,
@@ -80,8 +80,27 @@ const workspaceContext = makeWorkspaceContext({
   notifications: notificationQueries,
 });
 
+const marketingMemory = {
+  getMemory: updateMarketingMemory,
+  getBrief: generateDailyBrief,
+};
+
+export const generatePostIdeas = makeGeneratePostIdeas({
+  aiProvider,
+  aiConfigurationRepository,
+  marketingMemory,
+});
+
+export const analyzeCompetitor = makeAnalyzeCompetitor({
+  aiProvider,
+  aiConfigurationRepository,
+});
+
 export const askBusinessBrain = makeAskBusinessBrain({
   aiProvider,
   aiConfigurationRepository,
   workspaceContext,
+  marketingMemory,
+  businessBrainContext: businessBrainContextService,
+  brainMemory: brainMemoryService,
 });

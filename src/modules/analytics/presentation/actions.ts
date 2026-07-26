@@ -9,9 +9,17 @@ import { analyzeCompetitor } from "@/modules/ai/server";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
+import { getMarketingPerformance } from "../server";
+import { getCompetitorBenchmark } from "../infrastructure/container";
+import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
 
 const trackedAccountRepository = new PrismaTrackedAccountRepository();
+
+const getWorkspaceCompetitorComparison = makeGetWorkspaceCompetitorComparison({
+  trackedAccounts: trackedAccountRepository,
+  getAccountMedia: metaService.getAccountMedia.bind(metaService),
+});
 
 export interface TrackCompetitorState {
   error?: string;
@@ -289,5 +297,113 @@ export async function deleteTrackedCompetitorAction(
     return { ok: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not remove competitor" };
+  }
+}
+
+export interface MarketingPerformanceState {
+  error?: string;
+  view?: Awaited<ReturnType<typeof getMarketingPerformance>>;
+}
+
+const marketingPerformanceSchema = z.object({
+  storeId: z.string().min(1),
+});
+
+export async function getMarketingPerformanceAction(
+  _prev: MarketingPerformanceState,
+  formData: FormData,
+): Promise<MarketingPerformanceState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = marketingPerformanceSchema.safeParse({
+    storeId: formData.get("storeId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+  if (!user.organizationId) return { error: "Organization not found." };
+
+  try {
+    const view = await getMarketingPerformance({
+      organizationId: user.organizationId,
+      storeId: parsed.data.storeId,
+    });
+    return { view };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load marketing performance" };
+  }
+}
+
+export interface CompetitorBenchmarkState {
+  error?: string;
+  benchmark?: Awaited<ReturnType<typeof getCompetitorBenchmark>>;
+}
+
+const competitorBenchmarkSchema = z.object({
+  storeId: z.string().min(1),
+  accountId: z.string().min(1),
+});
+
+export async function getCompetitorBenchmarkAction(
+  _prev: CompetitorBenchmarkState,
+  formData: FormData,
+): Promise<CompetitorBenchmarkState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = competitorBenchmarkSchema.safeParse({
+    storeId: formData.get("storeId"),
+    accountId: formData.get("accountId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+  if (!user.organizationId) return { error: "Organization not found." };
+
+  try {
+    const benchmark = await getCompetitorBenchmark({
+      organizationId: user.organizationId,
+      storeId: parsed.data.storeId,
+      accountId: parsed.data.accountId,
+    });
+    if (!benchmark) return { error: "Competitor not found or no media available." };
+    return { benchmark };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load competitor benchmark" };
+  }
+}
+
+export interface WorkspaceCompetitorComparisonState {
+  error?: string;
+  comparison?: Awaited<ReturnType<typeof getWorkspaceCompetitorComparison>>;
+}
+
+export async function getWorkspaceCompetitorComparisonAction(
+  _prev: WorkspaceCompetitorComparisonState,
+  formData: FormData,
+): Promise<WorkspaceCompetitorComparisonState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = competitorBenchmarkSchema.safeParse({
+    storeId: formData.get("storeId"),
+    accountId: formData.get("accountId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+  if (!user.organizationId) return { error: "Organization not found." };
+
+  try {
+    const comparison = await getWorkspaceCompetitorComparison({
+      organizationId: user.organizationId,
+      storeId: parsed.data.storeId,
+      accountId: parsed.data.accountId,
+    });
+    if (!comparison) return { error: "Competitor not found or no media available." };
+    return { comparison };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load workspace comparison" };
   }
 }

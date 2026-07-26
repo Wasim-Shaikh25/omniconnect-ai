@@ -14,6 +14,7 @@ const envSchema = z.object({
 
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().optional(),
+  WORKER_CONCURRENCY: z.coerce.number().int().min(1).default(1),
 
   NEXTAUTH_SECRET: z.string().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
@@ -44,6 +45,12 @@ const envSchema = z.object({
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 
   ENCRYPTION_KEY: z.string().min(32).optional(),
+
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_STARTER: z.string().optional(),
+  STRIPE_PRICE_PRO: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

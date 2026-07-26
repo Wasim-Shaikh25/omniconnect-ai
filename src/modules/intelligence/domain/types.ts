@@ -183,6 +183,8 @@ export interface RecommendationRecord {
   organizationId: string;
   storeId: string | null;
   insightId: string | null;
+  producedByModule: string;
+  producedByService: string | null;
   title: string;
   description: string;
   objective: string | null;
@@ -197,11 +199,28 @@ export interface RecommendationRecord {
   actionType: string;
   actionParams: unknown;
   deepLink: string | null;
+  validFrom: Date;
+  validUntil: Date | null;
+  invalidatedAt: Date | null;
+  invalidatedByEvent: string | null;
   generatedAt: Date;
   dismissedAt: Date | null;
   snoozedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface RecommendationConflictRecord {
+  id: string;
+  organizationId: string;
+  storeId: string | null;
+  winnerId: string;
+  runnerUpId: string | null;
+  winnerTitle: string;
+  runnerUpTitle: string | null;
+  reason: string;
+  appliedPolicy: string;
+  resolvedAt: Date;
 }
 
 export interface ActionPlanRecord {
@@ -371,4 +390,79 @@ export interface SystemMetricRecord {
   recordedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ProductScoreRecord {
+  productId: string;
+  productTitle: string;
+  contentScore: number;
+  engagementScore: number;
+  conversationScore: number;
+  salesScore: number;
+  trendScore: number;
+  competitorScore: number;
+  compositeScore: number;
+  evidence: string;
+}
+
+export interface ConversationPattern {
+  category: string;
+  frequency: number;
+  samplePhrases: string[];
+}
+
+export interface TrendingHashtag {
+  tag: string;
+  postCount: number;
+  engagement: number;
+}
+
+export interface CompetitorChange {
+  trackedAccountId: string;
+  handle: string;
+  changeType: string;
+  detectedAt: Date;
+  latestCaption: string | null;
+  latestMediaType: string | null;
+  latestEngagement: number;
+}
+
+export interface MarketingMemoryRecord {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+  followerCount: number;
+  productScores: ProductScoreRecord[];
+  topPerformingPosts: { id: string; title: string; engagement: number }[];
+  dmPatterns: ConversationPattern[];
+  commentPatterns: ConversationPattern[];
+  trendingHashtags: TrendingHashtag[];
+  winningPostingTimes: { dayOfWeek: string; hour: number; engagementScore: number }[];
+  customerObjections: { phrase: string; frequency: number }[];
+  competitorChanges: CompetitorChange[];
+  campaignHistory: { campaignId: string; name: string; outcome: string }[];
+}
+
+export interface DailyBriefSection {
+  title: string;
+  value: string | number;
+  change?: string;
+  detail?: string;
+  cta?: { label: string; href: string };
+}
+
+export interface DailyBriefRecord {
+  organizationId: string;
+  storeId: string;
+  generatedAt: Date;
+  sections: DailyBriefSection[];
+  contentIdea: string | null;
+  recommendedProductId: string | null;
+  recommendedProductTitle: string | null;
+  bestPostingTime: string | null;
+  trendingAudio: string | null;
+  trendingHashtags: string[];
+  expectedReach: number | null;
+  expectedSales: number | null;
+  priorities: string[];
 }

@@ -1,6 +1,7 @@
 import type { EventBus, EventHandler } from "@/shared/events";
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
+import { SUPPORT_KEYWORDS, INTENT_KEYWORDS, containsKeyword, detectProductMentions } from "../application/vocabulary";
 import { organizationQueries } from "@/modules/organizations";
 import { crmCommands } from "@/modules/crm";
 import type {
@@ -192,14 +193,6 @@ const onProductsSynced: EventHandler = async (event) => {
   }
 };
 
-const SUPPORT_KEYWORDS = ["return", "refund", "broken", "issue", "complaint", "support", "wrong", "missing", "damaged", "angry"];
-const INTENT_KEYWORDS = ["buy", "order", "purchase", "price", "discount", "interested", "how much", "available", "ship", "checkout"];
-
-function containsKeyword(text: string, keywords: string[]): boolean {
-  const lowered = text.toLowerCase();
-  return keywords.some((k) => lowered.includes(k));
-}
-
 const onNewMessage: EventHandler = async (event) => {
   const p = event.payload as NewMessagePayload;
   const organizationId = await orgForStore(p.storeId);
@@ -252,8 +245,11 @@ const onNewMessage: EventHandler = async (event) => {
 
   // Inbox ↔ Orders/Products: detect product mentions and write them to the timeline.
   const products = await ecommerceQueries.listProducts(p.storeId, 100);
-  const mentioned = products.filter((prod) => p.content.toLowerCase().includes(prod.title.toLowerCase()));
-  for (const product of mentioned) {
+  const mentioned = detectProductMentions(
+    p.content,
+    products.map((p) => ({ externalId: p.externalId, title: p.title })),
+  );
+  for (const product of products.filter((p) => mentioned.some((m) => m.externalId === p.externalId))) {
     await signalIngestionService.ingest({
       organizationId,
       storeId: p.storeId,

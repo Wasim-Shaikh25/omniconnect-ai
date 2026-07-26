@@ -44,10 +44,21 @@ export type {
   PredictionStatus,
   HypothesisStatus,
   RiskTier,
+  ProductScoreRecord,
+  MarketingMemoryRecord,
+  DailyBriefRecord,
+  DailyBriefSection,
+  ConversationPattern,
+  TrendingHashtag,
+  CompetitorChange,
 } from "./domain/types";
+
+export { canExecuteRecommendation, isRecommendationExpired } from "./domain/recommendation";
+export type { ExecutableCheck } from "./domain/recommendation";
 
 export type { IngestSignalInput } from "./application/signal-ingestion";
 export type { TimelineQuery } from "./application/timeline";
+export type { BusinessBrainContext, BusinessBrainContextService } from "./application/business-brain-context";
 export type {
   InboxNextBestAction,
   OrdersNextBestAction,
@@ -66,8 +77,11 @@ export {
   dataQualityService,
   customerSummaryService,
   detectionService,
+  diagnosisService,
   intelligenceFeedService,
   recommendationService,
+  recommendationLifecycleService,
+  businessBrainContextService,
   actionPlanService,
   decisionPolicyService,
   outcomeService,
@@ -143,14 +157,22 @@ export {
   evaluateChartAcceptanceAction,
   mergeEntityAction,
   splitEntityAction,
+  getMarketingMemoryAction,
+  getRecommendationConflictsAction,
+  refreshReadModelsAction,
 } from "./presentation/actions";
 
-export type { IntelligenceActionState } from "./presentation/actions";
+export { RecommendationConflictCard } from "./presentation/components/recommendation-conflict-card";
+
+export type { IntelligenceActionState, MarketingMemoryState } from "./presentation/actions";
 export type { QualityReport, QualityCheck } from "./application/quality-assurance";
 export type { RolloutGate, RolloutMode } from "./application/rollout";
 export type { RiskMitigation } from "./application/risk-mitigations";
 export {
   operatingModelService,
+  updateMarketingMemory,
+  generateDailyBrief,
+  generateMarketingInsightsFromMemory,
   unifiedContextService,
   knowledgeGraphService,
   featureService,

@@ -14,41 +14,47 @@ See `docs/specs/0046-intelligence-domain-ownership.md`. This is the architecture
 
 ### Phase 0 — Security hardening (do first)
 - [x] 1. Encrypt `Integration.accessToken` and `refreshToken` at rest (`src/shared/security/encryption.ts`, ecommerce + meta integration repositories).
-- [ ] 2. Encrypt or avoid persisting NextAuth `Account.access_token` / `refresh_token` at rest. (Deferred: requires a custom NextAuth adapter wrapper; track in a follow-up security task.)
+- [x] 2. Encrypt or avoid persisting NextAuth `Account.access_token` / `refresh_token` at rest. (Implemented via `EncryptedPrismaAdapter` wrapping `@auth/prisma-adapter` and encrypting `access_token`, `refresh_token`, `id_token` on write, decrypting on read; backwards-compatible with legacy plaintext.)
 - [x] 3. Enforce `Customer.consent` in `generate-reply` (declined consent excludes profile from the AI prompt).
 - [x] 4. Log AI prompt metadata without PII via existing `AuditLog`.
 - [x] 5. Add rate limiting and replay idempotency to `/api/meta/webhook` (`src/modules/meta/infrastructure/webhook-guard.ts`).
 - [x] 6. Make required production secrets non-optional via `validateProductionSecrets()` + `src/instrumentation.ts`.
 
 ### Phase 1 — Move detection/recommendation into owning domains
-- [ ] 7. `ecommerce`: create `detectCommerceInsights` + publish `CommerceInsightGenerated` / `CommerceRecommendationGenerated`.
-- [ ] 8. `crm`: create `detectCrmInsights` + publish `CrmInsightGenerated` / `CrmRecommendationGenerated`.
-- [ ] 9. `conversations`: create `detectConversationInsights` + publish `ConversationInsightGenerated` / `ConversationRecommendationGenerated`.
-- [ ] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
-- [ ] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
-- [ ] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts`.
-- [ ] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
+- [x] 7. `ecommerce`: create `detectCommerceInsights` + publish `CommerceInsightGenerated` / `CommerceRecommendationGenerated`.
+- [x] 8. `crm`: create `detectCrmInsights` + publish `CrmInsightGenerated` / `CrmRecommendationGenerated` (stale-follower detection extracted).
+- [x] 9. `conversations`: create `detectConversationInsights` + publish `ConversationInsightGenerated` / `ConversationRecommendationGenerated` (high-intent conversation detection extracted).
+- [x] 10. `growth`: create `detectGrowthInsights` + publish `GrowthInsightGenerated` / `GrowthRecommendationGenerated`.
+- [x] 11. `branddeals`: create `detectBrandDealInsights` + publish `BrandDealInsightGenerated` / `BrandDealRecommendationGenerated`.
+- [x] 12. Remove domain-specific detection rules from `intelligence/application/detection.ts` (commerce, CRM, conversation, growth, and brand-deal rules delegated to respective modules; product availability/demand correlation and stale metrics remain in intelligence as cross-domain concerns).
+- [x] 13. Deduplicate `SUPPORT_KEYWORDS`, `INTENT_KEYWORDS`, and product-mention logic into shared vocabularies owned by the right modules.
 
 ### Phase 2 — Reframe intelligence as a cross-domain prioritizer
-- [ ] 14. Add `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to `Recommendation`.
-- [ ] 15. Implement `intelligence.prioritizeRecommendations` scoring.
-- [ ] 16. Implement `intelligence.resolveConflicts` for conflicting cross-domain recommendations.
-- [ ] 17. Implement `intelligence.expireStaleRecommendations` lifecycle job.
-- [ ] 18. Shrink or remove `WorkspaceActionExecutor`; dispatch execution to domain commands through public barrels.
+- [x] 14. Add `producedByModule`, `producedByService`, `validFrom`, `validUntil`, `invalidatedAt`, and `invalidatedByEvent` to `Recommendation`.
+- [x] 15. Implement `intelligence.prioritizeRecommendations` scoring.
+- [x] 16. Implement `intelligence.resolveConflicts` for conflicting cross-domain recommendations.
+- [x] 17. Implement `intelligence.expireStaleRecommendations` lifecycle job.
+- [x] 18. Shrink `WorkspaceActionExecutor` by moving `canExecute` logic into `decision-policy.ts`; executor now only dispatches `execute` to domain commands through public barrels.
 
 ### Phase 3 — Business Brain consumes Intelligence
-- [ ] 19. Create `intelligence.getBusinessBrainContext` (insights, predictions, recommendations, outcomes, learning).
-- [ ] 20. Update `askBusinessBrain` and `workspace-context` to use the new context.
-- [ ] 21. Add conversation memory to Business Brain (previous questions, accepted/rejected advice, goals).
+- [x] 19. Create `intelligence.getBusinessBrainContext` (insights, predictions, recommendations, outcomes, learning).
+- [x] 20. Update `askBusinessBrain` and `workspace-context` to use the new context.
+- [x] 21. Add conversation memory to Business Brain (previous questions, accepted/rejected advice, goals).
 
 ### Phase 4 — Cleanup and verification
-- [ ] 22. Update `intelligence/index.ts` public barrel and remove deprecated exports.
-- [ ] 23. Write `scripts/verify-task370.ts` end-to-end validation script.
-- [ ] 24. Run `npm run lint`, `npm run typecheck`, `npm run build`.
-- [ ] 25. Update `docs/tasks/TASK-370-progress.md` and `CHANGELOG.md`.
+- [x] 22. Update `intelligence/index.ts` public barrel and remove deprecated exports.
+- [x] 23. Write `scripts/verify-task370.ts` end-to-end validation script.
+- [x] 24. Run `npm run lint`, `npm run typecheck`, `npm run build`.
+- [x] 25. Update `docs/tasks/TASK-370-progress.md` and `CHANGELOG.md`.
+
+### Phase 5 — Remaining architectural long-term items
+- [x] 26. Add `expiresAt` to `BrainConversationMemory` and implement `purgeExpiredBrainMemory` retention routine.
+- [x] 27. Surface recommendation conflicts in UI via `getRecommendationConflictsAction` and a conflict card.
+- [x] 28. Refactor action plan execution so `WorkspaceActionExecutor` dispatches to domain action handlers (`executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`) via public barrels.
+- [x] 29. Materialize cross-domain read models via `ReadModelRefresher` service and `refreshReadModelsAction`.
 
 ## Acceptance Criteria
 
-- [ ] Matches the linked spec's acceptance criteria.
-- [ ] Lint + typecheck + build pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches the linked spec's acceptance criteria.
+- [x] Lint + typecheck + build pass.
+- [x] `CHANGELOG.md` updated.

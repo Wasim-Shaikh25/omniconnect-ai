@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getQueue } from "@/shared/queue";
 import { getCurrentUser, requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { customerDirectory } from "@/modules/crm";
@@ -15,6 +16,7 @@ import {
   detectionService,
   intelligenceFeedService,
   recommendationService,
+  recommendationLifecycleService,
   actionPlanService,
   goalService,
   predictionService,
@@ -41,7 +43,15 @@ import {
   intelligenceFeedbackService,
   intelligenceFeedInteractionService,
   chartAcceptanceService,
+  updateMarketingMemory,
+  generateDailyBrief,
+  generateMarketingInsightsFromMemory,
 } from "../infrastructure/container";
+import {
+  INTELLIGENCE_QUEUE,
+  JOB_REFRESH_READ_MODELS,
+  JOB_REFRESH_PREDICTIONS,
+} from "../infrastructure/queue-handlers";
 import { listTrackedCompetitorsAction } from "@/modules/analytics";
 
 export interface IntelligenceActionState {
@@ -208,6 +218,48 @@ export async function getRecommendationsAction(storeId?: string) {
   await recommendationService.generateFromOpenInsights(organizationId, storeId);
   const recommendations = await recommendationService.listOpen(organizationId, storeId, 20);
   return { recommendations };
+}
+
+export async function getRecommendationConflictsAction(storeId?: string) {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { conflicts: [] };
+  const organizationId = user.organizationId;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return { conflicts: [] };
+  }
+
+  const conflicts = await recommendationLifecycleService.getRecentConflicts(organizationId, storeId, 5);
+  return { conflicts };
+}
+
+export async function refreshReadModelsAction(storeId?: string): Promise<{
+  ok: boolean;
+  result?: { jobIds: string[] };
+  error?: string;
+}> {
+  const user = await requireRole("ADMIN");
+  if (!user.organizationId) return { ok: false, error: "Unauthorized" };
+  const organizationId = user.organizationId;
+
+  const overview = await organizationQueries.getOrganizationOverview(organizationId);
+  const storeIds = storeId ? [storeId] : overview?.stores.map((s) => s.id) ?? [];
+  if (storeId && !overview?.stores.some((s) => s.id === storeId)) return { ok: false, error: "Store not found" };
+
+  try {
+    const queue = getQueue(INTELLIGENCE_QUEUE);
+    const jobIds: string[] = [];
+    for (const id of storeIds) {
+      const readJobId = await queue.add(JOB_REFRESH_READ_MODELS, { organizationId, storeId: id });
+      const predictionJobId = await queue.add(JOB_REFRESH_PREDICTIONS, { organizationId, storeId: id });
+      jobIds.push(readJobId, predictionJobId);
+    }
+    return { ok: true, result: { jobIds } };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Refresh failed";
+    return { ok: false, error: message };
+  }
 }
 
 export async function approveRecommendationAction(formData: FormData): Promise<void> {
@@ -668,18 +720,36 @@ export async function getRiskMatrixAction() {
 export async function getUnifiedContextAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
   return unifiedContextService.getContext({ organizationId: user.organizationId, storeId });
 }
 
 export async function getKnowledgeGraphAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
   return knowledgeGraphService.query({ organizationId: user.organizationId, storeId });
 }
 
 export async function getFeatureProfileAction(type: "customer" | "product" | "content" | "campaign" | "business", id: string, storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
+
+  if (storeId) {
+    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  }
+
   if (type === "customer") return featureService.getCustomerFeatures(user.organizationId, storeId ?? "", id);
   if (type === "product") return featureService.getProductFeatures(user.organizationId, storeId ?? "", id);
   if (type === "content") return featureService.getContentFeatures();
@@ -763,4 +833,46 @@ export async function evaluateChartAcceptanceAction(title: string, decisionState
   const user = await getCurrentUser();
   if (!user) return null;
   return chartAcceptanceService.evaluate({ id: `chart-${Date.now()}`, title, decisionStatement, supportsDecision: decisionStatement });
+}
+
+export interface MarketingMemoryState {
+  error?: string;
+  memory?: Awaited<ReturnType<typeof updateMarketingMemory>>;
+  brief?: Awaited<ReturnType<typeof generateDailyBrief>>;
+}
+
+const marketingMemorySchema = z.object({
+  storeId: z.string().min(1),
+});
+
+export async function getMarketingMemoryAction(
+  _prev: MarketingMemoryState,
+  formData: FormData,
+): Promise<MarketingMemoryState> {
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) {
+    return { error: "You must be signed in to a workspace." };
+  }
+
+  const parsed = marketingMemorySchema.safeParse({
+    storeId: formData.get("storeId"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
+  if (!overview?.stores.some((s) => s.id === parsed.data.storeId)) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const memory = await updateMarketingMemory(user.organizationId, parsed.data.storeId);
+    await generateMarketingInsightsFromMemory(memory);
+    await recommendationService.generateFromOpenInsights(user.organizationId, parsed.data.storeId);
+    const brief = await generateDailyBrief(user.organizationId, parsed.data.storeId, memory);
+    return { memory, brief };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not generate marketing memory" };
+  }
 }

@@ -7,6 +7,7 @@ import type { DiagnosisService } from "./diagnosis";
 import type { RecommendationService } from "./recommendation";
 import type { AiGovernanceService } from "./ai-governance";
 import type { OutcomeService } from "./outcome";
+import type { DecisionPolicyService } from "./decision-policy";
 
 export interface QualityAssuranceServiceInput {
   signals: SignalRepository;
@@ -20,6 +21,7 @@ export interface QualityAssuranceServiceInput {
   recommendations: RecommendationService;
   recommendationRepo: RecommendationRepository;
   actionExecutor: ActionExecutor;
+  decisionPolicy: DecisionPolicyService;
   aiGovernance: AiGovernanceService;
   outcomes: OutcomeService;
   outcomeRepo: OutcomeRepository;
@@ -225,8 +227,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
 
   async function runActionTests(ctx: QualityRunContext): Promise<QualityCheck[]> {
     const c1 = await runCheck("approval rules", "action", async () => {
-      const low = input.actionExecutor.canExecute("CREATE_DM_CAMPAIGN", "TIER_1", ctx.userRole);
-      const high = input.actionExecutor.canExecute("CREATE_DM_CAMPAIGN", "TIER_4", ctx.userRole);
+      const low = input.decisionPolicy.canExecute("CREATE_DM_CAMPAIGN", "TIER_1", ctx.userRole);
+      const high = input.decisionPolicy.canExecute("CREATE_DM_CAMPAIGN", "TIER_4", ctx.userRole);
       return { passed: low.allowed && high.requiresApproval, reason: `TIER_1 allowed=${low.allowed}, TIER_4 requiresApproval=${high.requiresApproval}` };
     });
 
@@ -236,10 +238,13 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       return { passed: first.ok && second.ok, reason: `First=${first.ok}, second=${second.ok}` };
     });
 
+    const now = new Date();
     await input.recommendationRepo.save({
       organizationId: ctx.organizationId,
       storeId: ctx.storeId,
       insightId: null,
+      producedByModule: "intelligence",
+      producedByService: "qualityAssurance",
       title: "QA action plan",
       description: "Test",
       objective: "test",
@@ -254,7 +259,11 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       actionType: "REFRESH_INTEGRATION",
       actionParams: {},
       deepLink: "",
-      generatedAt: new Date(),
+      validFrom: now,
+      validUntil: null,
+      invalidatedAt: null,
+      invalidatedByEvent: null,
+      generatedAt: now,
       dismissedAt: null,
       snoozedUntil: null,
     });
@@ -279,7 +288,7 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     const c2 = await runCheck("UAT: campaign risk gate", "uat", async () => {
-      const canRun = input.actionExecutor.canExecute("CREATE_DM_CAMPAIGN", "TIER_4", ctx.userRole);
+      const canRun = input.decisionPolicy.canExecute("CREATE_DM_CAMPAIGN", "TIER_4", ctx.userRole);
       return { passed: !canRun.allowed || canRun.requiresApproval, reason: `TIER_4 campaign execution allowed=${canRun.allowed}, requiresApproval=${canRun.requiresApproval}` };
     });
 

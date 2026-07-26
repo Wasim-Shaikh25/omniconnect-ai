@@ -1,9 +1,12 @@
 import { organizationQueries } from "@/modules/organizations";
-import { ecommerceQueries, generateCoupon } from "@/modules/ecommerce";
-import { conversationQueries, conversationCommands } from "@/modules/conversations";
-import { crmQueries, customerDirectory } from "@/modules/crm";
-import { growthService, growthQueries } from "@/modules/growth";
-import { brandDealQueries } from "@/modules/branddeals";
+import { eventBus } from "@/shared/events";
+import { ecommerceQueries, executeEcommerceAction, detectCommerceInsights } from "@/modules/ecommerce";
+import { conversationQueries, executeConversationAction, detectConversationInsights } from "@/modules/conversations";
+import { crmQueries, customerDirectory, detectCrmInsights } from "@/modules/crm";
+import { analyticsQueries, getAccountMedia } from "@/modules/analytics/server";
+import { socialQueries } from "@/modules/social";
+import { growthQueries, executeGrowthAction, detectGrowthInsights } from "@/modules/growth";
+import { brandDealQueries, detectBrandDealInsights } from "@/modules/branddeals";
 import { notificationService, notificationQueries } from "@/modules/notifications";
 import { makeSignalIngestionService } from "../application/signal-ingestion";
 import { makeEntityResolutionService } from "../application/entity-resolution";
@@ -16,6 +19,8 @@ import { makeDetectionService } from "../application/detection";
 import { makeDiagnosisService } from "../application/diagnosis";
 import { makeIntelligenceFeed } from "../application/intelligence-feed";
 import { makeRecommendationService } from "../application/recommendation";
+import { makeRecommendationLifecycleService } from "../application/recommendation-lifecycle";
+import { makeBusinessBrainContextService } from "../application/business-brain-context";
 import { makeActionPlanService } from "../application/action-plan";
 import { makeDecisionPolicyService } from "../application/decision-policy";
 import { makeOutcomeService } from "../application/outcome";
@@ -25,6 +30,7 @@ import { makeHypothesisService } from "../application/hypothesis";
 import { makeBusinessLearningService } from "../application/business-learning";
 import { makePortfolioService } from "../application/portfolio";
 import { makeCompetitorIntelligenceService } from "../application/competitor-intelligence";
+import { makeReadModelRefresher } from "../application/read-models";
 import { makeCostLatencyMonitor } from "../application/system-health";
 import { makeNextBestActionService } from "../application/next-best-action";
 import { makeProactiveNotificationService } from "../application/proactive-notifications";
@@ -35,6 +41,10 @@ import { makeQualityAssuranceService } from "../application/quality-assurance";
 import { makeRolloutService } from "../application/rollout";
 import { makeRiskMitigationRegistry } from "../application/risk-mitigations";
 import { makeOperatingModelService } from "../application/operating-model";
+import { makeUpdateMarketingMemory } from "../application/marketing-memory";
+import { makeGenerateDailyBrief } from "../application/daily-brief";
+import { makeGenerateMarketingInsightsFromMemory } from "../application/marketing-insights";
+import { registerIntelligenceQueueHandlers } from "./queue-handlers";
 import {
   makeUnifiedContextService,
   makeKnowledgeGraphService,
@@ -67,6 +77,7 @@ import {
   PrismaPortfolioSnapshotRepository,
   PrismaSystemMetricRepository,
   PrismaKpiRepository,
+  PrismaRecommendationConflictRepository,
 } from "./repositories";
 
 const signals = new PrismaSignalRepository();
@@ -75,6 +86,7 @@ const issues = new PrismaDataQualityRepository();
 const metrics = new PrismaMetricRepository();
 const insights = new PrismaBusinessInsightRepository();
 const recommendations = new PrismaRecommendationRepository();
+const recommendationConflicts = new PrismaRecommendationConflictRepository();
 const actionPlans = new PrismaActionPlanRepository();
 const decisions = new PrismaDecisionRepository();
 const outcomes = new PrismaOutcomeRepository();
@@ -149,12 +161,17 @@ export const metricService = makeMetricService(metrics, metricProvider);
 export const dataQualityService = makeDataQualityService(issues, metrics);
 export const dataQualityGateService = makeDataQualityGateService({ signals, metrics, links });
 export const customerSummaryService = makeCustomerSummaryService();
-export const diagnosisService = makeDiagnosisService({ ecommerce: ecommerceQueries });
+export const diagnosisService = makeDiagnosisService({ detectCommerceInsights });
 export const detectionService = makeDetectionService({
   signals,
   insights,
   metrics,
   links,
+  detectCommerceInsights,
+  detectCrmInsights,
+  detectConversationInsights,
+  detectGrowthInsights,
+  detectBrandDealInsights,
   ecommerce: ecommerceQueries,
   conversations: conversationQueries,
   crm: crmQueries,
@@ -163,13 +180,28 @@ export const detectionService = makeDetectionService({
 export const intelligenceFeedService = makeIntelligenceFeed({ insights });
 
 const actionExecutor = makeWorkspaceActionExecutor({
-  generateCoupon,
-  takeOverConversation: conversationCommands.takeOver,
-  createDmCampaign: growthService.createDmCampaign,
+  ecommerce: { execute: executeEcommerceAction },
+  conversations: { execute: executeConversationAction },
+  growth: { execute: executeGrowthAction },
 });
 
 export const recommendationService = makeRecommendationService({ insights, recommendations, ecommerce: ecommerceQueries });
-export const decisionPolicyService = makeDecisionPolicyService({ executor: actionExecutor });
+export const recommendationLifecycleService = makeRecommendationLifecycleService({ recommendations, conflicts: recommendationConflicts });
+export const readModelRefresher = makeReadModelRefresher({
+  detection: detectionService,
+  recommendations: recommendationService,
+  lifecycle: recommendationLifecycleService,
+  metrics: metricService,
+});
+export const businessBrainContextService = makeBusinessBrainContextService({
+  insights,
+  recommendations,
+  predictions,
+  outcomes,
+  learning: learnings,
+  goals,
+});
+export const decisionPolicyService = makeDecisionPolicyService();
 export const outcomeService = makeOutcomeService({ outcomes });
 export const businessLearningService = makeBusinessLearningService({ learning: learnings });
 export const actionPlanService = makeActionPlanService({
@@ -241,6 +273,7 @@ export const qualityAssuranceService = makeQualityAssuranceService({
   recommendations: recommendationService,
   recommendationRepo: recommendations,
   actionExecutor,
+  decisionPolicy: decisionPolicyService,
   aiGovernance: aiGovernanceService,
   outcomes: outcomeService,
   outcomeRepo: outcomes,
@@ -248,6 +281,23 @@ export const qualityAssuranceService = makeQualityAssuranceService({
 export const rolloutService = makeRolloutService();
 export const riskMitigationRegistry = makeRiskMitigationRegistry();
 export const operatingModelService = makeOperatingModelService();
+export const updateMarketingMemory = makeUpdateMarketingMemory({
+  ecommerceQueries,
+  conversationQueries,
+  crmQueries,
+  analyticsQueries,
+  getAccountMedia,
+  socialQueries,
+  eventBus,
+});
+export const generateDailyBrief = makeGenerateDailyBrief({
+  updateMarketingMemory,
+  eventBus,
+});
+export const generateMarketingInsightsFromMemory = makeGenerateMarketingInsightsFromMemory({
+  insights,
+  eventBus,
+});
 
 export const unifiedContextService = makeUnifiedContextService({ signals, insights, links, metrics });
 export const knowledgeGraphService = makeKnowledgeGraphService({ signals, ecommerce: ecommerceQueries });
@@ -259,5 +309,13 @@ export const predictionPrioritizationService = makePredictionPrioritizationServi
 export const intelligenceFeedbackService = makeIntelligenceFeedbackService();
 export const intelligenceFeedInteractionService = makeIntelligenceFeedInteractionService({ insights });
 export const chartAcceptanceService = makeChartAcceptanceService();
+
+registerIntelligenceQueueHandlers({
+  readModelRefresher,
+  predictions: predictionService,
+  businessLearning: businessLearningService,
+  recommendations,
+  outcomes,
+});
 
 export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis };

@@ -3,6 +3,7 @@ import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";
 import type { NotificationQueries } from "@/modules/notifications";
+import type { TrackedAccountRepository, TrackedAccountRecord } from "./ports";
 
 export interface WorkspaceKpiSnapshot {
   organizationId: string;
@@ -29,6 +30,7 @@ export function makeAnalyticsQueries(deps: {
   conversations: ConversationQueries;
   crm: CrmQueries;
   notifications: NotificationQueries;
+  trackedAccounts: TrackedAccountRepository;
 }) {
   return {
     async getWorkspaceKpis(
@@ -86,6 +88,10 @@ export function makeAnalyticsQueries(deps: {
         connectedIntegrations: perStore.filter((s) => s.connected).length,
         stores,
       };
+    },
+
+    async listTrackedAccounts(storeId: string): Promise<TrackedAccountRecord[]> {
+      return deps.trackedAccounts.listByStore(storeId);
     },
   };
 }

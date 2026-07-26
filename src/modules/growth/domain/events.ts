@@ -122,3 +122,46 @@ export interface CommentUnlockSentPayload {
 export class CommentUnlockSent extends BaseDomainEvent<CommentUnlockSentPayload> {
   readonly name = "CommentUnlockSent";
 }
+
+export interface GrowthInsight {
+  organizationId: string;
+  storeId: string;
+  type: "RISK" | "OPPORTUNITY" | "ANOMALY";
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  status: "OPEN" | "DISMISSED" | "SNOOZED";
+  title: string;
+  description: string;
+  deepLink: string;
+  generatedAt: Date;
+}
+
+export interface GrowthRecommendation {
+  organizationId: string;
+  storeId: string;
+  type: "ACTION" | "INVESTIGATE" | "WAIT";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  title: string;
+  description: string;
+  deepLink: string;
+  generatedAt: Date;
+}
+
+export interface GrowthInsightGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  insight: GrowthInsight;
+}
+
+export class GrowthInsightGenerated extends BaseDomainEvent<GrowthInsightGeneratedPayload> {
+  readonly name = "GrowthInsightGenerated";
+}
+
+export interface GrowthRecommendationGeneratedPayload {
+  organizationId: string;
+  storeId: string;
+  recommendation: GrowthRecommendation;
+}
+
+export class GrowthRecommendationGenerated extends BaseDomainEvent<GrowthRecommendationGeneratedPayload> {
+  readonly name = "GrowthRecommendationGenerated";
+}

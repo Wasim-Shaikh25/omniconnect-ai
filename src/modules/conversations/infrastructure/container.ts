@@ -2,6 +2,7 @@ import { crmQueries } from "@/modules/crm";
 import { organizationQueries } from "@/modules/organizations";
 import { makeConversationCommands } from "../application/commands";
 import { makeConversationQueries } from "../application/queries";
+import { makeDetectConversationInsights } from "../application/detect-insights";
 import { makeGetUnifiedInbox } from "../application/unified-inbox";
 import { PrismaConversationRepository } from "./conversation.repository";
 import { PrismaMessageRepository } from "./message.repository";
@@ -14,6 +15,7 @@ export const conversationQueries = makeConversationQueries({
   conversations,
   messages,
 });
+export const detectConversationInsights = makeDetectConversationInsights({ conversations: conversationQueries });
 
 export const unifiedInboxQueries = makeGetUnifiedInbox({
   organizations: organizationQueries,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { env } from "@/shared/config";
 import { logger } from "@/shared/observability";
 import { META_CHANNELS, META_EVENT_KINDS } from "../domain/types";
 import type { NormalizedMetaEvent } from "../domain/types";
@@ -21,6 +22,9 @@ export type SimulateInboundInput = z.infer<typeof simulateInboundSchema>;
  * exercised without a live Meta app. Callers enforce tenant authorization.
  */
 export function simulateInbound(raw: SimulateInboundInput): Promise<void> {
+  if (env.NODE_ENV === "production") {
+    throw new Error("Inbound simulation is disabled in production.");
+  }
   const input = simulateInboundSchema.parse(raw);
   const event: NormalizedMetaEvent = {
     kind: input.kind,

@@ -11,10 +11,16 @@ export const MODULE_NAME = "crm" as const;
 export {
   CustomerProfileUpdated,
   FirstTimeFollowerDetected,
+  CrmInsightGenerated,
+  CrmRecommendationGenerated,
 } from "./domain/events";
 export type {
   CustomerProfileUpdatedPayload,
   FirstTimeFollowerDetectedPayload,
+  CrmInsight,
+  CrmRecommendation,
+  CrmInsightGeneratedPayload,
+  CrmRecommendationGeneratedPayload,
 } from "./domain/events";
 
 // Application record types
@@ -31,6 +37,7 @@ export type {
 
 export type { CrmQueries } from "./application/queries";
 export type { CrmCommands } from "./application/commands";
+export type { DetectCrmInsights } from "./application/detect-insights";
 export type {
   CustomerActivity,
   CustomerDetailView,
@@ -40,7 +47,7 @@ export type {
 
 // Commands + Queries (composed)
 export { crmCommands } from "./infrastructure/container";
-export { crmQueries, customerDirectory } from "./infrastructure/container";
+export { crmQueries, customerDirectory, detectCrmInsights } from "./infrastructure/container";
 
 // Presentation
 export {

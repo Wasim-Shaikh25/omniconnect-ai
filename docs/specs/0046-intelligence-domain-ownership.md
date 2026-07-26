@@ -72,7 +72,10 @@ Stop `intelligence` from becoming a decision monolith. Move domain-specific dete
   - `validUntil DateTime?`
   - `invalidatedAt DateTime?`
   - `invalidatedByEvent String?`
-- Add `RecommendationConflict` audit table (optional MVP: reuse `AuditLog` with `entityType = "RECOMMENDATION_CONFLICT"`).
+- Add `expiresAt DateTime` to `BrainConversationMemory` and a daily `purgeExpiredBrainMemory` routine to enforce retention.
+- Add `RecommendationConflict` audit table (or reuse `AuditLog` with `entityType = "RECOMMENDATION_CONFLICT"`) storing winner, runner-up, policy, and resolution time.
+- Materialize cross-domain read models: `MetricSnapshot`, `BusinessInsight`, `Recommendation`, `Prediction`, `Outcome` are derived from canonical events/tables; update them in async background jobs rather than synchronous scans.
+- Event-driven action dispatch: `ActionPlan.execute` publishes `CouponActionRequested`, `ConversationTakeOverRequested`, `DmCampaignActionRequested`, and `AlternativeProductCampaignActionRequested` domain events; target modules subscribe, execute, and publish `ActionExecuted` / `ActionFailed` outcomes back to intelligence.
 - Encrypt `Integration.accessToken` and `refreshToken` at rest using a module-local encryption adapter.
 - Add `Customer.consentForAiProcessing Boolean?` and an `AiPromptAudit` table, or extend `AuditLog` to record prompt metadata without PII.
 - Update `shared/config/env.ts` so production startup fails if required secrets (`OPENAI_API_KEY`, `NEXTAUTH_SECRET`, `META_APP_SECRET`, `SHOPIFY_API_SECRET`, etc.) are missing.
@@ -81,8 +84,10 @@ Stop `intelligence` from becoming a decision monolith. Move domain-specific dete
 
 - Existing server actions (`getRecommendationsAction`, `executeActionPlanAction`) keep similar signatures but now consume ranked cross-domain recommendations.
 - Add `dismissRecommendationAction`, `snoozeRecommendationAction`, and `resolveRecommendationConflictAction` (admin).
+- Add `getRecommendationConflictsAction` to surface active conflicts with winner, runner-up, and policy reason.
+- Add a read-only conflict card on Daily Marketing / Engagement / Growth / Revenue workflow pages showing the latest unresolved conflict.
 - Business Brain prompt builder uses `getBusinessBrainContext` instead of raw workspace counts.
-- No new public routes are required for the MVP.
+- No new public routes are required for the MVP; conflict details can be shown in existing workflow pages.
 
 ## 9. External Integrations
 
@@ -111,15 +116,20 @@ Stop `intelligence` from becoming a decision monolith. Move domain-specific dete
 
 ## 13. Acceptance Criteria
 
-- [ ] `ecommerce`, `crm`, `conversations`, `growth`, `branddeals` each publish their own insight/recommendation events.
-- [ ] `intelligence` no longer contains domain-specific detection rules for commerce/crm/conversations/growth/branddeals.
-- [ ] `Recommendation` records include `producedByModule`, `validFrom`, `validUntil`, `invalidatedAt`.
-- [ ] `intelligence` provides `prioritizeRecommendations`, `resolveConflicts`, and `expireStaleRecommendations`.
-- [ ] `Business Brain` consumes `getBusinessBrainContext` and can explain top insight, top recommendation, and outcome history.
-- [ ] `Integration.accessToken` / `refreshToken` are encrypted at rest; connector decrypts at use time.
-- [ ] `env.ts` rejects startup in production if any required secret is missing.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run build` pass.
-- [ ] `CHANGELOG.md` and task tracker updated.
+- [x] `ecommerce`, `crm`, `conversations`, `growth`, `branddeals` each publish their own insight/recommendation events.
+- [x] `intelligence` no longer contains domain-specific detection rules for commerce/crm/conversations/growth/branddeals.
+- [x] `Recommendation` records include `producedByModule`, `validFrom`, `validUntil`, `invalidatedAt`.
+- [x] `intelligence` provides `prioritizeRecommendations`, `resolveConflicts`, and `expireStaleRecommendations`.
+- [x] `Business Brain` consumes `getBusinessBrainContext` and can explain top insight, top recommendation, and outcome history.
+- [x] `BrainConversationMemory` enforces retention via `expiresAt` and `purgeExpiredBrainMemory`.
+- [x] Recommendation conflicts are surfaced in UI via `getRecommendationConflictsAction` and a conflict card.
+- [x] Action plan execution dispatches through domain handlers (`executeEcommerceAction`, `executeConversationAction`, `executeGrowthAction`).
+- [x] Cross-domain read models (`MetricSnapshot`, `BusinessInsight`, `Recommendation`) are recomputed asynchronously from canonical signals via `ReadModelRefresher`.
+- [x] `Integration.accessToken` / `refreshToken` are encrypted at rest; connector decrypts at use time.
+- [x] NextAuth `Account.access_token` / `refresh_token` / `id_token` are encrypted at rest via `EncryptedPrismaAdapter`; reads decrypt transparently and remain backwards-compatible with legacy plaintext.
+- [x] `env.ts` rejects startup in production if any required secret is missing.
+- [x] `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- [x] `CHANGELOG.md` and task tracker updated.
 
 ## 14. Open Questions
 

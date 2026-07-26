@@ -10,8 +10,15 @@ import {
   PrismaEntityLinkRepository,
 } from "@/modules/intelligence/infrastructure/repositories";
 import type { EcommerceQueries } from "@/modules/ecommerce";
-import type { ConversationQueries } from "@/modules/conversations";
-import type { CrmQueries } from "@/modules/crm";
+import { makeDetectCommerceInsights } from "@/modules/ecommerce/application/detect-insights";
+import type { ConversationQueries, DetectConversationInsights } from "@/modules/conversations";
+import { makeDetectConversationInsights } from "@/modules/conversations/application/detect-insights";
+import type { CrmQueries, DetectCrmInsights } from "@/modules/crm";
+import { makeDetectCrmInsights } from "@/modules/crm/application/detect-insights";
+import type { GrowthQueries, DetectGrowthInsights } from "@/modules/growth";
+import { makeDetectGrowthInsights } from "@/modules/growth/application/detect-insights";
+import type { BrandDealQueries, DetectBrandDealInsights } from "@/modules/branddeals";
+import { makeDetectBrandDealInsights } from "@/modules/branddeals/application/detect-insights";
 
 const now = new Date();
 
@@ -53,6 +60,23 @@ function fakeCrm(): CrmQueries {
   };
 }
 
+function fakeGrowth(): GrowthQueries {
+  return {
+    listUgc: async () => [],
+    listAmbassadors: async () => [],
+    listReferrals: async () => [],
+    listCampaigns: async () => [],
+    listBackInStock: async () => [],
+    listCommentUnlockCampaigns: async () => [],
+  };
+}
+
+function fakeBrandDeals(): BrandDealQueries {
+  return {
+    listByStore: async () => [],
+  };
+}
+
 async function main() {
   const org = await prisma.organization.create({ data: { name: "TASK-361 Test" } });
   const store = await prisma.store.create({
@@ -73,14 +97,28 @@ async function main() {
   });
 
   const ecommerce = fakeEcommerce();
+  const crm = fakeCrm();
+  const conversations = fakeConversations();
+  const growth = fakeGrowth();
+  const brandDeals = fakeBrandDeals();
+  const detectCommerceInsights = makeDetectCommerceInsights({ ecommerce, now });
+  const detectCrmInsights = makeDetectCrmInsights({ crm, now });
+  const detectConversationInsights = makeDetectConversationInsights({ conversations, now });
+  const detectGrowthInsights = makeDetectGrowthInsights({ growth, now });
+  const detectBrandDealInsights = makeDetectBrandDealInsights({ brandDeals, now });
   const detectionService = makeDetectionService({
     signals: new PrismaSignalRepository(),
     insights: new PrismaBusinessInsightRepository(),
     metrics: new PrismaMetricRepository(),
     links: new PrismaEntityLinkRepository(),
+    detectCommerceInsights,
+    detectCrmInsights,
+    detectConversationInsights,
+    detectGrowthInsights,
+    detectBrandDealInsights,
     ecommerce,
-    conversations: fakeConversations(),
-    crm: fakeCrm(),
+    conversations,
+    crm,
     now,
   });
 
