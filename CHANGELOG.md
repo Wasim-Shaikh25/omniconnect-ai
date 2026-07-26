@@ -510,7 +510,7 @@ All notable changes to **OmniConnect AI** are documented here.
     `.env.example` with Stripe variables.
   - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup pass; screenshots
     of landing, pricing, help, dashboard, billing, and stores captured.
-- **TASK-374 — Daily Marketing Operating Rhythm** (spec `0050`) — first slice landed
+- **TASK-374 — Daily Marketing Operating Rhythm** (spec `0050`) — in progress
   (see `docs/tasks/TASK-374-progress.md` for the full checklist and remaining follow-ups):
   - **Persistence:** added `DailyAction`, `ActionOutcome`, `Journey`, `JourneyStep` models,
     the `BusinessObjective`/`DailyActionStatus`/`ActionOutcomeStatus` enums, recommendation
@@ -530,10 +530,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - **Server actions:** `getTodayActionsAction`, `completeDailyActionAction`,
     `skipDailyActionAction`, `getJourneysAction`, `getJourneyAction`,
     `getBusinessBrainContextAction`, `getRecommendationDetailAction` (tenant/store guarded).
+  - **Content cohesion:** `ai/generatePostIdeas` now consumes `DailyAction` objectives and
+    `Journey` context to ground content ideas in today's priorities and recent customer paths.
   - **Production maturity:** Vitest setup + domain/service tests (27 tests), a GitHub Actions
     CI workflow (lint, typecheck, test, Postgres migration dry-run), security response headers,
     a reusable rate limiter (applied to Stripe checkout), and plan-based store-limit enforcement.
-  - **Deferred follow-ups:** `ai/generatePostIdeas` + inbox/coupons/analytics deeper cohesion,
+  - **Deferred follow-ups:** inbox/coupons/analytics deeper cohesion,
     AI-reply-quota and team-seat metering, Redis-backed production queue/bus wiring, and the
     full tenant-isolation audit.
 

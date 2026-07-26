@@ -7,7 +7,7 @@ Spec: `docs/specs/0050-daily-marketing-operating-rhythm.md`
 - [x] Extend `MarketingMemory` to produce `Journey` touchpoints and feed `DailyAction` generation.
       (Memory winning-times/top-product feed `dailyActionService.generate`; journey touchpoints
       are produced from Meta/coupon/referral domain events.)
-- [ ] Update `ai/generatePostIdeas` to consume `DailyAction` objectives and `Journey` context.
+- [x] Update `ai/generatePostIdeas` to consume `DailyAction` objectives and `Journey` context.
 - [ ] Update `inbox` / `conversations` to surface `DailyAction` opportunities from DM patterns.
       (DM events now feed journeys; surfacing actions in the inbox UI is follow-up.)
 - [ ] Update `coupons/campaigns` to suggest campaigns aligned with today’s objective.
