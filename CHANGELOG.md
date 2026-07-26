@@ -498,6 +498,14 @@ All notable changes to **OmniConnect AI** are documented here.
     `.env.example` with Stripe variables.
   - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup pass; screenshots
     of landing, pricing, help, dashboard, billing, and stores captured.
+- **TASK-374 — Daily Marketing Operating Rhythm** (spec `0050`) — planned:
+  - Move the product from a page-oriented feature set to a daily operating rhythm where the
+    dashboard shows prioritized, completable actions.
+  - Make Marketing Memory the single source of truth for every module's decisions.
+  - Promote the Marketing Brain to the central product identity with source citations.
+  - Add objective-tagged, confidence-scored, adaptive recommendations.
+  - Build journey-level attribution: Reel → profile visit → DM → coupon → purchase → repeat.
+  - Production maturity: tests, CI, Redis-backed scaling, billing enforcement, tenant-isolation audit.
 
 ### ⏭️ Next (proposed build order)
 
