@@ -379,6 +379,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - User `/support` page for creating/viewing tickets; `/settings/billing` now accepts a SaaS coupon code and applies the Stripe promotion code at checkout.
   - Server actions for user/organization listing, super-admin toggle, SaaS coupon CRUD, ticket workflow, and log filtering.
   - `AppHeader` exposes Support and Admin links.
+  - `/help` help center updated with billing/coupons, support tickets, platform admin, system logs, and existing workflow sections (Daily Marketing, Content Studio, Orders, Brand Deals, Affiliates/Media Kit, Automations, Journeys, Inbox, Customers/CRM, Integrations, Settings/quality/rollout).
   - `npm run lint`, `npm run typecheck`, `npm run build` pass.
 - All Unified Intelligence Layer phases (TASK-350/351/352/353/354/355) implemented and merged.
 - TASK-120 (UI pages + dark/light mode) completed.
