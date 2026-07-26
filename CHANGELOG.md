@@ -396,14 +396,6 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🔨 In Progress
 
-- **TASK-376 — Super-Admin Login, Workspaces/Projects, and Auth Improvements** (spec `0052`):
-  - Spec finalized: hardcoded super-admin env config (`SUPER_ADMIN_EMAIL/PHONE/PASSWORD`),
-    email/SMTP settings, MFA/reset token expiry, and `Project`/`ProjectMember` data model.
-  - The existing platform-admin surface (`User.isSuperAdmin`, `/admin`, support tickets,
-    SaaS coupons, system logs from spec `0051`) is preserved and reused.
-  - Implementation deferred to next session: super-admin seed, MFA login, forgot-password,
-    `/projects` UI, and Prisma migration (`User.phone`, `Project`, `ProjectMember`).
-
 - **TASK-370 — Intelligence Domain Ownership Refactor** (spec `0046`):
 
   - Architecture review identified `intelligence` becoming a decision monolith.
@@ -544,6 +536,26 @@ All notable changes to **OmniConnect AI** are documented here.
   - **Deferred follow-ups:** `ai/generatePostIdeas` + inbox/coupons/analytics deeper cohesion,
     AI-reply-quota and team-seat metering, Redis-backed production queue/bus wiring, and the
     full tenant-isolation audit.
+
+- **TASK-376 — Super-Admin Login, Workspaces/Projects, and Auth Improvements** (spec `0052`):
+  - Added `User.phone`, `Project`, and `ProjectMember` models + Prisma migration
+    `add_user_phone_project_projectmember`.
+  - Added env-driven super-admin seed `ensureSuperAdmin()` wired into `src/instrumentation.ts`;
+    creates the hardcoded admin with `isSuperAdmin = true`, `phone`, and a bcrypt hash.
+  - Added `EmailSender` port with `console` and lazy-loaded `SMTP` (`nodemailer`) implementations
+    in `src/shared/email`.
+  - Added `VerificationToken`-based MFA and password-reset flows (purpose-scoped identifiers
+    `mfa:<email>` and `reset:<email>`, 10-minute MFA and 1-hour reset TTLs).
+  - Updated credentials provider to require an emailed MFA code for the super-admin email;
+    `loginAction` sends the code when absent and verifies on the second step.
+  - Added `requestPasswordResetAction` and `resetPasswordAction` + `/forgot-password` and
+    `/reset-password` pages.
+  - Added `Project` management use-cases, `ProjectRepository`, and server actions
+    (`createProjectAction`, `listProjectsAction`, `getProjectAction`, `archiveProjectAction`,
+    `addProjectMemberAction`, `removeProjectMemberAction`) exposed from the `organizations` barrel.
+  - Added `/projects` workspace-scoped page with create/list/archive and member assignment.
+  - Updated `.env.example` with `SUPER_ADMIN_*` and `SMTP_*` variables.
+  - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
 
 ### ⏭️ Next (proposed build order)
 

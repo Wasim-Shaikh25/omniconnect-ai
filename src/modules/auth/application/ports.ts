@@ -13,12 +13,21 @@ export interface AccountRecord {
 /** Persistence port for user accounts (implemented in infrastructure). */
 export interface AccountRepository {
   findByEmail(email: string): Promise<AccountRecord | null>;
+  updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
   create(input: {
     email: string;
     name: string | null;
     passwordHash: string;
     role: Role;
+    phone?: string | null;
+    isSuperAdmin?: boolean;
   }): Promise<AccountRecord>;
+}
+
+/** Persistence port for short-lived verification codes (MFA, password reset). */
+export interface VerificationCodeRepository {
+  save(identifier: string, token: string, expiresAt: Date): Promise<void>;
+  consume(identifier: string, token: string): Promise<boolean>;
 }
 
 /** Password hashing port (implemented in infrastructure). */

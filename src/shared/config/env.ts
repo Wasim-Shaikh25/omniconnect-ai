@@ -51,6 +51,17 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_STARTER: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
+
+  SUPER_ADMIN_EMAIL: z.string().email().optional(),
+  SUPER_ADMIN_PHONE: z.string().optional(),
+  SUPER_ADMIN_PASSWORD: z.string().optional(),
+
+  EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_FROM: z.string().email().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

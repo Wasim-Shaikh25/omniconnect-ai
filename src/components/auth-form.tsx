@@ -32,6 +32,7 @@ export function AuthForm({
     {},
   );
   const isRegister = mode === "register";
+  const requiresMfa = state?.mfaRequired;
 
   return (
     <div className="w-full space-y-4">
@@ -65,9 +66,37 @@ export function AuthForm({
           />
         </div>
 
+        {!isRegister && (
+          <div className="flex justify-end">
+            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+        )}
+
+        {requiresMfa && (
+          <div className="space-y-2">
+            <Label htmlFor="mfaCode">Verification code</Label>
+            <Input
+              id="mfaCode"
+              name="mfaCode"
+              type="text"
+              inputMode="numeric"
+              required={requiresMfa}
+              placeholder="123456"
+              autoComplete="one-time-code"
+            />
+          </div>
+        )}
+
         {state?.error && (
           <p className="text-sm text-destructive" role="alert">
             {state.error}
+          </p>
+        )}
+        {state?.message && !state?.error && (
+          <p className="text-sm text-muted-foreground" role="status">
+            {state.message}
           </p>
         )}
 
@@ -76,7 +105,9 @@ export function AuthForm({
             ? "Please wait…"
             : isRegister
               ? "Create account"
-              : "Sign in"}
+              : requiresMfa
+                ? "Verify and sign in"
+                : "Sign in"}
         </Button>
       </form>
 

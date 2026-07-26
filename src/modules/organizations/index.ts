@@ -31,8 +31,11 @@ export type { CreateStoreInput } from "./application/create-store";
 export type {
   OrganizationRecord,
   StoreRecord,
+  ProjectRecord,
+  ProjectMemberRole,
 } from "./application/ports";
 export type { OrganizationOverview } from "./application/queries";
+export { createProjectSchema } from "./application/project";
 
 // Queries + use-cases (composed)
 export {
@@ -58,4 +61,14 @@ export {
   incrementCouponUsageAction,
 } from "./presentation/saas-coupon.actions";
 export type { CouponActionState } from "./presentation/saas-coupon.actions";
+export {
+  createProjectAction,
+  listProjectsAction,
+  getProjectAction,
+  archiveProjectAction,
+  addProjectMemberAction,
+  removeProjectMemberAction,
+} from "./presentation/project-actions";
+export type { ProjectActionState } from "./presentation/project-actions";
+export type { ProjectMemberRecord } from "./application/ports";
 export { registerOrganizationSubscribers } from "./infrastructure/subscribers";

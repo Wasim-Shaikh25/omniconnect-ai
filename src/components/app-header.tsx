@@ -12,6 +12,7 @@ export async function AppHeader() {
   const navItems = user
     ? [
         { href: "/dashboard", label: "Dashboard" },
+        { href: "/projects", label: "Projects" },
         { href: "/business-brain", label: "Marketing Brain" },
         { href: "/inbox", label: "Inbox" },
         { href: "/stores", label: "Stores" },
@@ -40,6 +41,7 @@ export async function AppHeader() {
             {user ? (
               <>
                 <Link href="/dashboard">Dashboard</Link>
+                <Link href="/projects">Projects</Link>
                 <Link href="/business-brain">Marketing Brain</Link>
                 <Link href="/inbox">Inbox</Link>
                 <Link href="/stores">Stores</Link>

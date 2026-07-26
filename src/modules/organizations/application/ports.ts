@@ -1,6 +1,8 @@
 import { EcommerceProvider } from "../domain/provider";
 import { Plan } from "../domain/plan";
 
+export type ProjectMemberRole = "OWNER" | "ADMIN" | "EDITOR" | "VIEWER";
+
 export interface OrganizationRecord {
   id: string;
   name: string;
@@ -17,6 +19,26 @@ export interface StoreRecord {
   domain: string | null;
   organizationId: string;
   createdAt: Date;
+}
+
+export interface ProjectRecord {
+  id: string;
+  organizationId: string;
+  name: string;
+  description: string | null;
+  instagramHandle: string | null;
+  integrationId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProjectMemberRecord {
+  id: string;
+  projectId: string;
+  userId: string;
+  role: ProjectMemberRole;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface OrganizationRepository {
@@ -38,4 +60,20 @@ export interface StoreRepository {
   }): Promise<StoreRecord>;
   listByOrganization(organizationId: string): Promise<StoreRecord[]>;
   findById(id: string): Promise<StoreRecord | null>;
+}
+
+export interface ProjectRepository {
+  create(input: {
+    organizationId: string;
+    name: string;
+    description?: string | null;
+    instagramHandle?: string | null;
+    integrationId?: string | null;
+  }): Promise<ProjectRecord>;
+  listByOrganization(organizationId: string): Promise<ProjectRecord[]>;
+  findById(id: string): Promise<ProjectRecord | null>;
+  archive(id: string): Promise<ProjectRecord | null>;
+  addMember(input: { projectId: string; userId: string; role: ProjectMemberRole }): Promise<ProjectMemberRecord>;
+  removeMember(memberId: string): Promise<void>;
+  listMembers(projectId: string): Promise<ProjectMemberRecord[]>;
 }
