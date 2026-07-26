@@ -46,5 +46,8 @@ export {
   registerAction,
   signOutAction,
   oauthSignInAction,
+  requestPasswordResetAction,
+  resetPasswordAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";
+export { isSuperAdmin } from "./infrastructure/super-admin";

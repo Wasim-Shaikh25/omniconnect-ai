@@ -1,7 +1,7 @@
 # Spec 0052: Super-Admin Login, Workspace/Project Model, and Auth Improvements
 
 - **Module(s):** `auth`, `users`, `organizations`, `meta`, `support`, `shared`
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** Devin
 - **Related task(s):** `docs/tasks/TASK-376-super-admin-workspace-project-auth.md`
 - **Related ADR(s):** —
@@ -175,14 +175,14 @@ Seed script (`instrumentation.ts`) calls `ensureSuperAdmin()` at startup.
 
 ## 14. Acceptance Criteria (Definition of Done)
 
-- [ ] Spec `0052` and task `TASK-376` created/updated.
-- [ ] Prisma migration adds `User.phone`, `Project`, and `ProjectMember`.
-- [ ] `ensureSuperAdmin()` creates the hardcoded admin with `isSuperAdmin = true`, `phone`, and a hashed password.
-- [ ] Super-admin login requires and validates an emailed MFA code.
-- [ ] Forgot-password request sends a code and the reset page updates the password.
-- [ ] Users can create/list/archive projects inside a workspace and assign members.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run test` pass.
+- [x] Spec `0052` and task `TASK-376` created/updated.
+- [x] Prisma migration adds `User.phone`, `Project`, and `ProjectMember`.
+- [x] `ensureSuperAdmin()` creates the hardcoded admin with `isSuperAdmin = true`, `phone`, and a hashed password.
+- [x] Super-admin login requires and validates an emailed MFA code.
+- [x] Forgot-password request sends a code and the reset page updates the password.
+- [x] Users can create/list/archive projects inside a workspace and assign members.
+- [x] `CHANGELOG.md` updated.
+- [x] `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run test` pass.
 
 ## 15. Open Questions
 
