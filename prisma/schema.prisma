@@ -19,25 +19,27 @@ enum Role {
 }
 
 model User {
-  id                      String        @id @default(cuid())
-  email                   String        @unique
+  id                      String          @id @default(cuid())
+  email                   String          @unique
   emailVerified           DateTime?
   name                    String?
+  phone                   String?
   passwordHash            String?
   image                   String?
-  role                    Role          @default(STORE_OWNER)
+  role                    Role            @default(STORE_OWNER)
   organizationId          String?
-  organization            Organization? @relation(fields: [organizationId], references: [id])
+  organization            Organization?   @relation(fields: [organizationId], references: [id])
   storeId                 String?
-  store                   Store?        @relation(fields: [storeId], references: [id])
+  store                   Store?          @relation(fields: [storeId], references: [id])
   notificationPreferences Json?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
 
-  notifications Notification[]
-  accounts      Account[]
-  sessions      Session[]
-  auditLogs     AuditLog[]
+  notifications  Notification[]
+  accounts       Account[]
+  sessions       Session[]
+  auditLogs      AuditLog[]
+  projectMembers ProjectMember[]
 }
 
 // NextAuth (Auth.js) adapter models.
@@ -83,17 +85,56 @@ enum Plan {
 }
 
 model Organization {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   name               String
-  plan               Plan     @default(FREE)
+  plan               Plan      @default(FREE)
   subscriptionId     String?
   subscriptionStatus String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   users     User[]
   stores    Store[]
+  projects  Project[]
   auditLogs AuditLog[]
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  instagramHandle String?
+  integrationId   String?
+  integration     Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  members ProjectMember[]
+
+  @@index([organizationId])
+}
+
+model ProjectMember {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       ProjectMemberRole @default(OWNER)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+enum ProjectMemberRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
 }
 
 // ── ecommerce ───────────────────────────────────────────────────────────────
@@ -158,6 +199,8 @@ model Integration {
   store        Store           @relation(fields: [storeId], references: [id])
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
+
+  projects Project[]
 }
 
 model Product {

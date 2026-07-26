@@ -13,6 +13,8 @@ import { isRole, type Role } from "../domain/role";
 import { UserLoggedIn } from "../domain/events";
 import { PrismaAccountRepository } from "./account.repository";
 import { BcryptPasswordHasher } from "./password-hasher";
+import { isSuperAdmin } from "./super-admin";
+import { consumeVerificationCode } from "./verification";
 
 const accounts = new PrismaAccountRepository();
 const hasher = new BcryptPasswordHasher();
@@ -22,11 +24,13 @@ const providers: NextAuthConfig["providers"] = [
     credentials: {
       email: { label: "Email", type: "email" },
       password: { label: "Password", type: "password" },
+      mfaCode: { label: "MFA Code", type: "text" },
     },
     async authorize(raw) {
       const email =
         typeof raw?.email === "string" ? raw.email.toLowerCase().trim() : "";
       const password = typeof raw?.password === "string" ? raw.password : "";
+      const mfaCode = typeof raw?.mfaCode === "string" ? raw.mfaCode : "";
       if (!email || !password) return null;
 
       const account = await accounts.findByEmail(email);
@@ -34,6 +38,13 @@ const providers: NextAuthConfig["providers"] = [
 
       const valid = await hasher.compare(password, account.passwordHash);
       if (!valid) return null;
+
+      if (isSuperAdmin(email)) {
+        const code = mfaCode.trim();
+        if (!code) return null;
+        const consumed = await consumeVerificationCode(email, "mfa", code);
+        if (!consumed) return null;
+      }
 
       return {
         id: account.id,

@@ -45,5 +45,13 @@ export {
   registerAction,
   signOutAction,
   oauthSignInAction,
+  requestPasswordResetAction,
+  resetPasswordAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";
+export { isSuperAdmin, ensureSuperAdmin } from "./infrastructure/super-admin";
+export {
+  createVerificationCode,
+  consumeVerificationCode,
+} from "./infrastructure/verification";
+export { createEmailSender, type EmailSender } from "./infrastructure/email";

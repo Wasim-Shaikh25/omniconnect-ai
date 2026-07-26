@@ -17,6 +17,7 @@ type OAuthAction = (formData: FormData) => Promise<void>;
 interface AuthFormProps {
   mode: "login" | "register";
   action: FormAction;
+  showForgotPassword?: boolean;
   oauthProviders?: OAuthProvider[];
   oauthAction?: OAuthAction;
 }

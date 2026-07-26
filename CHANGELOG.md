@@ -68,6 +68,17 @@ All notable changes to **OmniConnect AI** are documented here.
   - `UniqueId` now uses Web Crypto (`globalThis.crypto`) — edge/runtime-agnostic.
   - Verified end-to-end: register → org auto-created + linked → store created (tenant-scoped);
     lint + typecheck + build pass; 0 audit vulns.
+
+### 🚧 In Progress
+
+- **TASK-375 — Super-Admin Dashboard, Workspaces/Projects, and Auth Improvements** (spec `0051`):
+  - Spec finalized: super-admin env config (`SUPER_ADMIN_EMAIL/PHONE/PASSWORD`), email/SMTP
+    settings, MFA/reset token expiry, workspace/project data model, and `ProjectMember` role.
+  - Prisma migration adds `User.phone` and `Project`/`ProjectMember` tables (conceptually a
+    **Workspace** layer under the existing `Organization` table).
+  - Implementation deferred to next session: super-admin seed, MFA login, forgot-password,
+    `/admin` dashboard, and project UI.
+
 - **TASK-040 — eCommerce connector framework + Shopify** (spec `0002`):
   - Provider-agnostic **`EcommerceConnector`** contract (`getProducts`/`getOrders`/
     `getCustomers`/`generateCoupon`/`disableCoupon`/`fetchDiscounts`/`fetchStoreInfo`) with
