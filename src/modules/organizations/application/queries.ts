@@ -1,8 +1,11 @@
 import { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
+import { Plan } from "../domain/plan";
 
 export interface OrganizationOverview {
   id: string;
   name: string;
+  plan: Plan;
+  subscriptionStatus: string | null;
   stores: StoreRecord[];
 }
 
@@ -17,7 +20,13 @@ export function makeOrganizationQueries(deps: {
       const org = await deps.organizations.findById(organizationId);
       if (!org) return null;
       const stores = await deps.stores.listByOrganization(organizationId);
-      return { id: org.id, name: org.name, stores };
+      return {
+        id: org.id,
+        name: org.name,
+        plan: org.plan,
+        subscriptionStatus: org.subscriptionStatus,
+        stores,
+      };
     },
     async listStores(organizationId: string): Promise<StoreRecord[]> {
       return deps.stores.listByOrganization(organizationId);

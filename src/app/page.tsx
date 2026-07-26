@@ -7,77 +7,117 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { PricingCards } from "@/components/pricing-cards";
+import {
+  MessageCircle,
+  ShoppingBag,
+  BarChart3,
+  Users,
+  Zap,
+  TrendingUp,
+} from "lucide-react";
 
-const modules: { name: string; description: string }[] = [
-  { name: "Authentication", description: "Email + Google login, JWT, RBAC (Admin/Owner/Staff)." },
-  { name: "eCommerce Connectors", description: "Provider-agnostic framework; Shopify first." },
-  { name: "Meta Integration", description: "Instagram & Facebook webhooks, messages, comments." },
-  { name: "AI Assistant", description: "Per-page configurable, multi-model-ready assistant." },
-  { name: "Follower Campaigns", description: "Auto personalized welcome coupons for new followers." },
-  { name: "Customer Memory (CRM)", description: "Unified profiles for personalized conversations." },
-  { name: "Marketing Insights", description: "AI reports, trends, and growth recommendations." },
-  { name: "Human Takeover", description: "Pause AI and take over any conversation, then resume." },
-  { name: "Notifications", description: "Real-time in-app + email alerts across events." },
+const capabilities = [
+  {
+    icon: MessageCircle,
+    title: "DM & comment automation",
+    description: "AI replies to Instagram and Facebook messages, mentions, and comments 24/7.",
+  },
+  {
+    icon: ShoppingBag,
+    title: "Shopify + Meta commerce",
+    description: "Sync products, push shoppable posts, and track which content drives orders.",
+  },
+  {
+    icon: BarChart3,
+    title: "Marketing analytics",
+    description: "Content, audience, product, and campaign views built around growth questions.",
+  },
+  {
+    icon: Users,
+    title: "Competitor intelligence",
+    description: "Benchmark competitors, detect content changes, and adapt your strategy.",
+  },
+  {
+    icon: Zap,
+    title: "First-time follower campaigns",
+    description: "Auto-welcome new followers with personalized coupons and conversation starters.",
+  },
+  {
+    icon: TrendingUp,
+    title: "AI content ideas",
+    description: "Generate Reels, captions, and hashtags grounded in your best posts and trends.",
+  },
 ];
 
 export default function Home() {
   return (
-    <main className="container mx-auto flex min-h-screen flex-col px-4 py-8">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="OmniConnect AI" className="h-8 w-8" />
-          <span className="text-lg font-semibold">OmniConnect AI</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button asChild size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
-        </div>
-      </header>
-
-      <section className="flex flex-1 flex-col items-center justify-center py-16 text-center">
+    <main className="flex min-h-screen flex-col">
+      <section className="container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
         <span className="mb-4 rounded-full border px-3 py-1 text-xs text-muted-foreground">
-          Prototype · Phase 1
+          AI Marketing & Commerce for Instagram and Facebook Businesses
         </span>
-        <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-          The intelligent bridge between{" "}
-          <span className="text-primary">Meta</span> and your{" "}
-          <span className="text-primary">store</span>.
+        <h1 className="max-w-4xl text-balance text-5xl font-bold tracking-tight sm:text-6xl">
+          Turn every follower interaction into a{" "}
+          <span className="text-primary">marketing decision</span>
         </h1>
-        <p className="mt-4 max-w-2xl text-pretty text-muted-foreground">
-          OmniConnect AI monitors Instagram & Facebook conversations, replies with a
-          configurable AI assistant, onboards new followers with personalized discounts, and
-          surfaces AI-driven marketing insights — connected to Shopify and beyond.
+        <p className="mt-6 max-w-2xl text-balance text-lg text-muted-foreground">
+          OmniConnect AI connects your Shopify store, Meta pages, and customer conversations into
+          one daily marketing workflow: content ideas, competitor insights, DM automation, and
+          post-to-order attribution.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg">
-            <Link href="/dashboard">Open dashboard</Link>
+            <Link href="/register">Start free</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link href="/login">Get started</Link>
+            <Link href="/pricing">See pricing</Link>
           </Button>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 pb-12 sm:grid-cols-2 lg:grid-cols-3">
-        {modules.map((m) => (
-          <Card key={m.name}>
-            <CardHeader>
-              <CardTitle>{m.name}</CardTitle>
-              <CardDescription>{m.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Loosely-coupled module · DDD layered · event-driven
-            </CardContent>
-          </Card>
-        ))}
+      <section className="container mx-auto px-4 py-16">
+        <h2 className="mb-10 text-center text-3xl font-semibold">
+          Built for the jobs you do every day
+        </h2>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {capabilities.map((c) => (
+            <Card key={c.title}>
+              <CardHeader>
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg border">
+                  <c.icon className="h-5 w-5 text-primary" />
+                </div>
+                <CardTitle className="text-lg">{c.title}</CardTitle>
+                <CardDescription>{c.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Included across all plans
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
-      <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        OmniConnect AI — built spec-first with a loosely-coupled, DDD architecture.
+      <section className="container mx-auto px-4 py-16">
+        <h2 className="mb-10 text-center text-3xl font-semibold">Simple, transparent pricing</h2>
+        <PricingCards showFree={true} ctaTarget="signup" />
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          No credit card required for the free plan. Upgrade in settings at any time.
+        </p>
+      </section>
+
+      <section className="container mx-auto px-4 py-16 text-center">
+        <h2 className="text-3xl font-semibold">Ready to grow on Meta?</h2>
+        <p className="mt-4 text-muted-foreground">
+          Join businesses using OmniConnect AI to convert followers into customers.
+        </p>
+        <Button asChild size="lg" className="mt-6">
+          <Link href="/register">Create your free account</Link>
+        </Button>
+      </section>
+
+      <footer className="border-t py-8 text-center text-sm text-muted-foreground">
+        OmniConnect AI — AI Marketing & Commerce Platform for Instagram and Facebook Businesses.
       </footer>
     </main>
   );

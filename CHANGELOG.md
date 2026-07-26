@@ -477,6 +477,27 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `tenantGuard` to the `organizations` module and hardened tenant isolation for `coupons` (`updateCampaignAction`, `simulateFirstTimeFollower`) and `users` (`changeUserRole` now enforces same-organization target); added explicit store-ownership checks to `intelligence` read actions (`getUnifiedContextAction`, `getKnowledgeGraphAction`, `getFeatureProfileAction`).
   - Built post-to-order attribution foundation: `getMarketingPerformance` now fetches own Meta media, computes richer per-post metrics (likes, comments, shares, plays, reach, impressions), attributes orders to the nearest preceding post within a 7-day window, and exposes `orders`/`revenue` per post in the Content analytics subpage.
   - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup all pass; `npm audit` reports 0 vulnerabilities.
+- **TASK-372 — SaaS landing page, pricing, payments, and onboarding docs** (spec `0049`):
+  - Replaced the generic feature-card landing page with a marketing-focused `/` page: hero,
+    positioning, capability grid, and transparent pricing.
+  - Added `/pricing` with Free, Starter ($4.99/mo), and Pro ($9.99/mo) tiers plus FAQ.
+  - Added Stripe Checkout integration behind `/api/stripe/checkout` and webhook handling at
+    `/api/stripe/webhook` (signature verified, plan updated via `OrganizationRepository`).
+  - Added `Plan` enum + `plan`, `subscriptionId`, `subscriptionStatus` columns to `Organization`
+    with a Prisma migration.
+  - Extended `OrganizationRecord`, `OrganizationOverview`, and `billingService` in the `organizations`
+    module; exposed `PLAN_FEATURES` from the public barrel.
+  - Updated `/settings/billing` to show the current plan and upgrade cards (Stripe-disabled state
+    when keys are missing).
+  - Expanded `/help` with pricing, Marketing Brain, analytics/attribution, security, and deployment
+    sections.
+  - Rewrote `README.md` with SaaS positioning, quick start, plans, and env templates.
+  - Rewrote `docs/deployment.md` with local → test → production steps for Vercel, Fly.io, and Docker,
+    plus Stripe webhook and production checklist.
+  - Created `.env.local`, `.env.test`, and `.env.production` templates (gitignored) and updated
+    `.env.example` with Stripe variables.
+  - `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` startup pass; screenshots
+    of landing, pricing, help, dashboard, billing, and stores captured.
 
 ### ⏭️ Next (proposed build order)
 

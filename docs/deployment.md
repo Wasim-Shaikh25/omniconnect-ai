@@ -1,77 +1,139 @@
 # OmniConnect AI — Deployment & SaaS Guide
 
-This guide covers how to deploy OmniConnect AI as a multi-tenant SaaS product on Vercel, Fly.io, or any Docker host. The repo includes a `deploy.sh` one-command build-and-deploy script.
+This guide covers how to deploy OmniConnect AI from a local development machine to a production
+environment on Vercel, Fly.io, or any Docker host.
 
 ## Architecture overview
 
 - **Application:** Next.js 15 app router (TypeScript, Tailwind, ShadCN UI).
-- **Auth:** NextAuth.js with organization-scoped RBAC.
+- **Auth:** NextAuth.js v5 with organization-scoped RBAC.
 - **Database:** PostgreSQL via Prisma.
 - **Queue / cache:** Redis for BullMQ and future job workers.
+- **Payments:** Stripe Checkout + webhooks for subscriptions.
 - **Object storage:** S3-compatible provider for media backups.
 - **AI:** OpenAI GPT models for assistant replies and content generation.
 - **Observability:** Sentry and OpenTelemetry (optional).
 
-## Prerequisites
+## Local development
 
-1. Node.js 20+ and npm.
-2. PostgreSQL 15+ and Redis 7+.
-3. A configured `.env` file (see `.env.example`).
-4. (Optional) `flyctl` for Fly.io or `vercel` CLI for Vercel.
+1. **Install prerequisites:**
+   - Node.js 20+ and npm 10+
+   - PostgreSQL 15+ (local or Docker)
+   - Redis 7+ (local or Docker)
 
-## One-command deployment (`deploy.sh`)
+2. **Start Postgres and Redis locally:**
+   ```bash
+   docker run -d --name omniconnect-postgres \
+     -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres \
+     -e POSTGRES_DB=omniconnect -p 5432:5432 postgres:15
 
-```bash
-# Deploy to Fly.io (requires flyctl and fly.toml)
-./deploy.sh
+   docker run -d --name omniconnect-redis -p 6379:6379 redis:7
+   ```
 
-# Deploy to Vercel
-TARGET=vercel ./deploy.sh
+3. **Clone and install:**
+   ```bash
+   git clone <repo-url>
+   cd omniconnect-ai
+   npm install
+   ```
 
-# Build a Docker image locally
-TARGET=docker ./deploy.sh
-```
+4. **Configure `.env.local`:**
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   Edit `.env.local` and set at minimum:
+   - `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/omniconnect?schema=public`
+   - `REDIS_URL=redis://localhost:6379`
+   - `NEXTAUTH_SECRET` — a random 32+ character string
+   - `NEXTAUTH_URL=http://localhost:3000`
+   - `OPENAI_API_KEY`
+   - `META_APP_SECRET` and `META_WEBHOOK_VERIFY_TOKEN` (for live Meta webhooks)
+   - Optional: `GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET` for Google OAuth
 
-The script:
-1. Runs `npm ci`.
-2. Generates the Prisma client.
-3. Runs `npm run build` (Next.js `output: "standalone"`).
-4. Invokes the chosen deployment target (`flyctl deploy`, `vercel --prod`, or `docker build`).
+5. **Run database migrations and generate the Prisma client:**
+   ```bash
+   npx prisma migrate dev
+   npx prisma generate
+   ```
 
-> **Important:** Run `npx prisma migrate deploy` against your production database before the first deploy.
+6. **Run the Next.js dev server and worker:**
+   ```bash
+   npm run dev
+   # in another terminal
+   npm run worker
+   ```
 
-## Vercel deployment
+7. **Open** [http://localhost:3000](http://localhost:3000) and register an account.
+
+## Test environment
+
+Use `.env.test` for CI or a throwaway test environment.
+
+1. Use an isolated test database:
+   ```bash
+   createdb omniconnect_test
+   ```
+2. Set `DATABASE_URL` to the test database and `NODE_ENV=test`.
+3. Run migrations:
+   ```bash
+   npx prisma migrate deploy
+   npm run build
+   npm run typecheck
+   ```
+
+## Production deployment
+
+### Before you deploy
+
+1. Provision managed **PostgreSQL** and **Redis** services.
+2. Create a **Stripe** account and configure:
+   - Products and prices for Starter ($4.99/mo) and Pro ($9.99/mo).
+   - `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`.
+   - `STRIPE_PRICE_STARTER` and `STRIPE_PRICE_PRO` price IDs.
+   - Webhook endpoint: `https://your-domain.com/api/stripe/webhook`, listening to
+     `checkout.session.completed`.
+3. Create or configure Meta, Google, OpenAI, and S3 credentials.
+4. Set a strong `NEXTAUTH_SECRET` and point `NEXTAUTH_URL` to your public domain.
+
+### Vercel
 
 1. Create a project in the Vercel dashboard or run `npx vercel`.
-2. Add all environment variables from `.env.example`.
-3. Set the build command to `npm run build` and the install command to `npm ci`.
-4. Add a `postinstall` step to run `npx prisma generate` or keep it in the build command.
-5. For migrations, add a separate CI step or Vercel hook that runs `npx prisma migrate deploy`.
+2. Add all environment variables from `.env.production`.
+3. Set the build command to `npm run build` and install command to `npm ci`.
+4. Add a `postinstall` script or build step: `npx prisma generate`.
+5. Run migrations in a separate CI step or Vercel hook:
+   ```bash
+   npx prisma migrate deploy
+   ```
+6. Add a `vercel.json` if you want the worker to run separately, or run BullMQ workers on a
+   separate service/container pointed at the same Redis.
 
-## Fly.io deployment
+### Fly.io
 
 1. Install `flyctl` and authenticate:
    ```bash
    fly auth signup
    fly auth login
    ```
-2. Launch the app (or use the included `fly.toml`):
+2. Launch the app or use the included `fly.toml`:
    ```bash
    fly launch
    ```
 3. Set secrets:
    ```bash
-   fly secrets set DATABASE_URL="..." REDIS_URL="..." NEXTAUTH_SECRET="..."
+   fly secrets set DATABASE_URL="..." REDIS_URL="..." NEXTAUTH_SECRET="..." \
+     STRIPE_SECRET_KEY="..." STRIPE_WEBHOOK_SECRET="..." STRIPE_PRICE_STARTER="..." \
+     STRIPE_PRICE_PRO="..." OPENAI_API_KEY="..." META_APP_SECRET="..."
    ```
-4. Create the Postgres and Redis addons, or connect external services.
-5. Deploy:
+4. Create Postgres and Redis addons, or connect external services.
+5. The `fly.toml` should run `npx prisma migrate deploy` as a release command before starting the
+   web server.
+6. Deploy:
    ```bash
    ./deploy.sh
    ```
 
-The `fly.toml` runs `npx prisma migrate deploy` as a release command before starting the web server.
-
-## Docker / self-hosted
+### Docker / self-hosted
 
 Build and run with Docker:
 
@@ -80,23 +142,26 @@ docker build -t omniconnect-ai .
 docker run -p 3000:3000 --env-file .env.production omniconnect-ai
 ```
 
-`.env.production` should contain the same keys as `.env.example` but with production values.
+`.env.production` should contain the same keys as `.env.example` but with production values. Make
+sure Redis and Postgres are reachable from the container and migrations have been applied.
 
 ## Multi-tenant SaaS checklist
 
 - [ ] Use a unique PostgreSQL schema or `organizationId` column isolation per tenant. Currently rows are scoped by `organizationId`.
-- [ ] Add Stripe billing and per-seat or usage-based pricing.
-- [ ] Configure a custom domain per tenant with wildcard DNS.
+- [ ] Stripe billing is configured and webhook endpoint is registered.
+- [ ] Configure a custom domain with wildcard DNS if offering per-tenant subdomains.
 - [ ] Set up SSL certificates and HTTP/2.
 - [ ] Use a managed Redis provider for queues and caching.
 - [ ] Enable backups for Postgres and S3 media.
 - [ ] Set up Sentry and OpenTelemetry for observability.
 - [ ] Add rate limiting on API routes and webhooks.
 - [ ] Configure webhooks in Meta and Shopify dashboards with the public production URL.
+- [ ] Run the BullMQ worker in a separate process or container for background jobs.
 
 ## Environment variables
 
-See `.env.example` for a full list. At minimum production needs:
+See `.env.example`, `.env.local`, `.env.test`, and `.env.production` for templates. At minimum
+production needs:
 
 | Variable | Purpose |
 |----------|---------|
@@ -105,19 +170,21 @@ See `.env.example` for a full list. At minimum production needs:
 | `NEXTAUTH_SECRET` | Random secret for JWT signing |
 | `NEXTAUTH_URL` | Public app URL |
 | `OPENAI_API_KEY` | AI replies and content generation |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth sign-up/login |
-| `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | Facebook OAuth sign-up/login |
-| `APPLE_CLIENT_ID` / `APPLE_CLIENT_SECRET` | Apple OAuth sign-up/login |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | GitHub OAuth sign-up/login |
 | `META_APP_SECRET` | Webhook HMAC verification |
 | `META_WEBHOOK_VERIFY_TOKEN` | Meta webhook subscription token |
+| `STRIPE_SECRET_KEY` | Stripe API secret key |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for client-side |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook endpoint secret |
+| `STRIPE_PRICE_STARTER` | Stripe price ID for Starter plan |
+| `STRIPE_PRICE_PRO` | Stripe price ID for Pro plan |
 
 ## Health checks
 
-The app exposes the standard Next.js server on port `3000`. For load balancers, use `GET /` as a health check.
+The app exposes the standard Next.js server on port `3000`. For load balancers, use `GET /` as a
+health check. If the worker is separate, monitor Redis queue depth as an additional health signal.
 
 ## Next steps
 
-- Configure a CI pipeline to run `npm run lint`, `npx tsc --noEmit`, and `npm run build` on every pull request.
-- Use Terraform or Pulumi to provision Postgres, Redis, and DNS in production.
-- Add a staging environment and promote deployments from staging to production.
+- Configure the first store and Meta integration.
+- Run the Marketing Brain daily brief.
+- Review `docs/specs/` and `CHANGELOG.md` for the roadmap.

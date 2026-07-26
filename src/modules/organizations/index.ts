@@ -13,6 +13,7 @@ export {
   isEcommerceProvider,
 } from "./domain/provider";
 export type { EcommerceProvider } from "./domain/provider";
+export { Plan, isPlan, parsePlan, PLAN_FEATURES } from "./domain/plan";
 export {
   OrganizationError,
   OrganizationNotFoundError,
@@ -34,7 +35,7 @@ export type {
 export type { OrganizationOverview } from "./application/queries";
 
 // Queries + use-cases (composed)
-export { organizationQueries, createStore, tenantGuard } from "./infrastructure/container";
+export { organizationQueries, createStore, tenantGuard, billingService } from "./infrastructure/container";
 
 // Presentation + bootstrap wiring
 export { createStoreAction } from "./presentation/actions";

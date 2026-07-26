@@ -76,11 +76,20 @@ model VerificationToken {
 }
 
 // ── organizations ───────────────────────────────────────────────────────────
+enum Plan {
+  FREE
+  STARTER
+  PRO
+}
+
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  plan              Plan     @default(FREE)
+  subscriptionId    String?
+  subscriptionStatus String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   users     User[]
   stores    Store[]
