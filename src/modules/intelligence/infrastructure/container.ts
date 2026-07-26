@@ -1,13 +1,36 @@
 import { organizationQueries } from "@/modules/organizations";
 import { eventBus } from "@/shared/events";
-import { ecommerceQueries, executeEcommerceAction, detectCommerceInsights } from "@/modules/ecommerce";
-import { conversationQueries, executeConversationAction, detectConversationInsights } from "@/modules/conversations";
-import { crmQueries, customerDirectory, detectCrmInsights } from "@/modules/crm";
+import {
+  ecommerceQueries,
+  executeEcommerceAction,
+  detectCommerceInsights,
+  StoreNotConnectedError,
+} from "@/modules/ecommerce";
+import {
+  conversationQueries,
+  executeConversationAction,
+  detectConversationInsights,
+} from "@/modules/conversations";
+import {
+  crmQueries,
+  customerDirectory,
+  detectCrmInsights,
+} from "@/modules/crm";
 import { analyticsQueries, getAccountMedia } from "@/modules/analytics/server";
 import { socialQueries } from "@/modules/social";
-import { growthQueries, executeGrowthAction, detectGrowthInsights } from "@/modules/growth";
-import { brandDealQueries, detectBrandDealInsights } from "@/modules/branddeals";
-import { notificationService, notificationQueries } from "@/modules/notifications";
+import {
+  growthQueries,
+  executeGrowthAction,
+  detectGrowthInsights,
+} from "@/modules/growth";
+import {
+  brandDealQueries,
+  detectBrandDealInsights,
+} from "@/modules/branddeals";
+import {
+  notificationService,
+  notificationQueries,
+} from "@/modules/notifications";
 import { makeSignalIngestionService } from "../application/signal-ingestion";
 import { makeEntityResolutionService } from "../application/entity-resolution";
 import { makeTimelineService } from "../application/timeline";
@@ -115,7 +138,8 @@ const actionOutcomes = new PrismaActionOutcomeRepository();
 const journeys = new PrismaJourneyRepository();
 
 const metricProvider: MetricSourceProvider = {
-  getWorkspaceOverview: organizationQueries.getOrganizationOverview.bind(organizationQueries),
+  getWorkspaceOverview:
+    organizationQueries.getOrganizationOverview.bind(organizationQueries),
   getConversationCount: async (storeId: string) => {
     const rows = await conversationQueries.listConversations(storeId, 1000);
     return rows.length;
@@ -133,7 +157,10 @@ const metricProvider: MetricSourceProvider = {
     return rows.length;
   },
   getLastMessageAt: async (storeId: string) => {
-    const conversations = await conversationQueries.listConversations(storeId, 500);
+    const conversations = await conversationQueries.listConversations(
+      storeId,
+      500,
+    );
     const details = await Promise.all(
       conversations.map((c) => conversationQueries.getConversation(c.id)),
     );
@@ -141,7 +168,10 @@ const metricProvider: MetricSourceProvider = {
     for (const detail of details) {
       if (!detail) continue;
       for (const message of detail.messages) {
-        if (message.sender === "CUSTOMER" && (!latest || message.createdAt > latest)) {
+        if (
+          message.sender === "CUSTOMER" &&
+          (!latest || message.createdAt > latest)
+        ) {
           latest = message.createdAt;
         }
       }
@@ -149,23 +179,41 @@ const metricProvider: MetricSourceProvider = {
     return latest;
   },
   getRevenue: async (storeId: string, days: number) => {
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const orders = await ecommerceQueries.listOrders(storeId, 500);
-    return orders
-      .filter((o) => new Date(o.createdAt) >= cutoff)
-      .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    try {
+      const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const orders = await ecommerceQueries.listOrders(storeId, 500);
+      return orders
+        .filter((o) => new Date(o.createdAt) >= cutoff)
+        .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    } catch (error) {
+      if (error instanceof StoreNotConnectedError) return 0;
+      throw error;
+    }
   },
   getOrderCount: async (storeId: string, days: number) => {
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const orders = await ecommerceQueries.listOrders(storeId, 500);
-    return orders.filter((o) => new Date(o.createdAt) >= cutoff).length;
+    try {
+      const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const orders = await ecommerceQueries.listOrders(storeId, 500);
+      return orders.filter((o) => new Date(o.createdAt) >= cutoff).length;
+    } catch (error) {
+      if (error instanceof StoreNotConnectedError) return 0;
+      throw error;
+    }
   },
   getAverageOrderValue: async (storeId: string, days: number) => {
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const orders = await ecommerceQueries.listOrders(storeId, 500);
-    const recent = orders.filter((o) => new Date(o.createdAt) >= cutoff);
-    if (recent.length === 0) return 0;
-    return recent.reduce((sum, o) => sum + (Number(o.total) || 0), 0) / recent.length;
+    try {
+      const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const orders = await ecommerceQueries.listOrders(storeId, 500);
+      const recent = orders.filter((o) => new Date(o.createdAt) >= cutoff);
+      if (recent.length === 0) return 0;
+      return (
+        recent.reduce((sum, o) => sum + (Number(o.total) || 0), 0) /
+        recent.length
+      );
+    } catch (error) {
+      if (error instanceof StoreNotConnectedError) return 0;
+      throw error;
+    }
   },
 };
 
@@ -174,9 +222,15 @@ export const entityResolutionService = makeEntityResolutionService(links);
 export const timelineService = makeTimelineService(signals, links);
 export const metricService = makeMetricService(metrics, metricProvider);
 export const dataQualityService = makeDataQualityService(issues, metrics);
-export const dataQualityGateService = makeDataQualityGateService({ signals, metrics, links });
+export const dataQualityGateService = makeDataQualityGateService({
+  signals,
+  metrics,
+  links,
+});
 export const customerSummaryService = makeCustomerSummaryService();
-export const diagnosisService = makeDiagnosisService({ detectCommerceInsights });
+export const diagnosisService = makeDiagnosisService({
+  detectCommerceInsights,
+});
 export const detectionService = makeDetectionService({
   signals,
   insights,
@@ -200,8 +254,16 @@ const actionExecutor = makeWorkspaceActionExecutor({
   growth: { execute: executeGrowthAction },
 });
 
-export const recommendationService = makeRecommendationService({ insights, recommendations, ecommerce: ecommerceQueries });
-export const recommendationLifecycleService = makeRecommendationLifecycleService({ recommendations, conflicts: recommendationConflicts });
+export const recommendationService = makeRecommendationService({
+  insights,
+  recommendations,
+  ecommerce: ecommerceQueries,
+});
+export const recommendationLifecycleService =
+  makeRecommendationLifecycleService({
+    recommendations,
+    conflicts: recommendationConflicts,
+  });
 export const journeyService = makeJourneyService({ journeys });
 export const actionOutcomeService = makeActionOutcomeService({
   actionOutcomes,
@@ -214,9 +276,13 @@ export const dailyActionService = makeDailyActionService({
   recommendations,
   prioritize: recommendationLifecycleService.prioritizeRecommendations,
   metrics: metricService,
-  getMemory: (organizationId, storeId) => updateMarketingMemory(organizationId, storeId),
+  getMemory: (organizationId, storeId) =>
+    updateMarketingMemory(organizationId, storeId),
   enqueueMeasurement: async (outcomeId: string) => {
-    await getQueue(INTELLIGENCE_QUEUE).add<MeasureActionOutcomeData>(JOB_MEASURE_ACTION_OUTCOME, { outcomeId });
+    await getQueue(INTELLIGENCE_QUEUE).add<MeasureActionOutcomeData>(
+      JOB_MEASURE_ACTION_OUTCOME,
+      { outcomeId },
+    );
   },
 });
 export const readModelRefresher = makeReadModelRefresher({
@@ -234,11 +300,14 @@ export const businessBrainContextService = makeBusinessBrainContextService({
   goals,
   dailyActions,
   journeys,
-  getMemory: (organizationId, storeId) => updateMarketingMemory(organizationId, storeId),
+  getMemory: (organizationId, storeId) =>
+    updateMarketingMemory(organizationId, storeId),
 });
 export const decisionPolicyService = makeDecisionPolicyService();
 export const outcomeService = makeOutcomeService({ outcomes });
-export const businessLearningService = makeBusinessLearningService({ learning: learnings });
+export const businessLearningService = makeBusinessLearningService({
+  learning: learnings,
+});
 export const actionPlanService = makeActionPlanService({
   actionPlans,
   recommendations,
@@ -262,24 +331,34 @@ export const predictionService = makePredictionService({
   metrics: metricService,
   listCustomers: crmQueries.listCustomers.bind(crmQueries),
 });
-export const hypothesisService = makeHypothesisService({ insights, hypotheses });
+export const hypothesisService = makeHypothesisService({
+  insights,
+  hypotheses,
+});
 export const portfolioService = makePortfolioService({
   snapshots: portfolioSnapshots,
   predictions,
   recommendations,
   getStores: async (organizationId: string) => {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
+    const overview =
+      await organizationQueries.getOrganizationOverview(organizationId);
     return overview?.stores.map((s) => ({ id: s.id, name: s.name })) ?? [];
   },
 });
 export const competitorIntelligenceService = makeCompetitorIntelligenceService({
   insights: competitorInsights,
   getStoreFollowerCount: async (organizationId: string, storeId: string) => {
-    const snapshot = await metricService.getMetric("follower_count", organizationId, storeId);
+    const snapshot = await metricService.getMetric(
+      "follower_count",
+      organizationId,
+      storeId,
+    );
     return typeof snapshot?.value === "number" ? snapshot.value : 0;
   },
 });
-export const costLatencyMonitor = makeCostLatencyMonitor({ metrics: systemMetrics });
+export const costLatencyMonitor = makeCostLatencyMonitor({
+  metrics: systemMetrics,
+});
 export const nextBestActionService = makeNextBestActionService({
   ecommerce: ecommerceQueries,
   crmQueries,
@@ -329,20 +408,33 @@ export const generateDailyBrief = makeGenerateDailyBrief({
   updateMarketingMemory,
   eventBus,
 });
-export const generateMarketingInsightsFromMemory = makeGenerateMarketingInsightsFromMemory({
-  insights,
-  eventBus,
-});
+export const generateMarketingInsightsFromMemory =
+  makeGenerateMarketingInsightsFromMemory({
+    insights,
+    eventBus,
+  });
 
-export const unifiedContextService = makeUnifiedContextService({ signals, insights, links, metrics });
-export const knowledgeGraphService = makeKnowledgeGraphService({ signals, ecommerce: ecommerceQueries });
-export const featureService = makeFeatureService({ ecommerce: ecommerceQueries });
+export const unifiedContextService = makeUnifiedContextService({
+  signals,
+  insights,
+  links,
+  metrics,
+});
+export const knowledgeGraphService = makeKnowledgeGraphService({
+  signals,
+  ecommerce: ecommerceQueries,
+});
+export const featureService = makeFeatureService({
+  ecommerce: ecommerceQueries,
+});
 export const goalPlanGenerationService = makeGoalPlanGenerationService();
 export const learningEvidenceService = makeLearningEvidenceService();
 export const modelOpsService = makeModelOpsService();
-export const predictionPrioritizationService = makePredictionPrioritizationService();
+export const predictionPrioritizationService =
+  makePredictionPrioritizationService();
 export const intelligenceFeedbackService = makeIntelligenceFeedbackService();
-export const intelligenceFeedInteractionService = makeIntelligenceFeedInteractionService({ insights });
+export const intelligenceFeedInteractionService =
+  makeIntelligenceFeedInteractionService({ insights });
 export const chartAcceptanceService = makeChartAcceptanceService();
 
 registerIntelligenceQueueHandlers({
@@ -354,4 +446,25 @@ registerIntelligenceQueueHandlers({
   actionOutcomeMeasurer: actionOutcomeService,
 });
 
-export { signals, links, issues, metrics, insights, recommendations, actionPlans, decisions, outcomes, goals, predictions, hypotheses, learnings, competitorInsights, portfolioSnapshots, systemMetrics, kpis, dailyActions, actionOutcomes, journeys };
+export {
+  signals,
+  links,
+  issues,
+  metrics,
+  insights,
+  recommendations,
+  actionPlans,
+  decisions,
+  outcomes,
+  goals,
+  predictions,
+  hypotheses,
+  learnings,
+  competitorInsights,
+  portfolioSnapshots,
+  systemMetrics,
+  kpis,
+  dailyActions,
+  actionOutcomes,
+  journeys,
+};

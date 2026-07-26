@@ -31,7 +31,7 @@ This spec turns the **Marketing Brain** into the central product identity, makes
 
 - As a **store owner**, when I open OmniConnect I see the 3–5 most important actions for today ranked by expected business impact, so I know where to start.
 - As a **store owner**, I can mark an action done (or skipped), and the AI remembers that feedback, so tomorrow’s suggestions improve.
-- As a **store owner**, I can see *why* a recommendation matters: which objective it supports, the confidence level, and the signals behind it.
+- As a **store owner**, I can see _why_ a recommendation matters: which objective it supports, the confidence level, and the signals behind it.
 - As a **store owner**, I can ask “What changed in my market this week?” and the Brain explains market trends, competitor moves, and my own performance in context.
 - As a **store owner**, I can see the full journey from a post to a purchase, not just the last click.
 - As a **developer**, I can run a CI pipeline that validates lint, typecheck, tests, and migrations before merge.
@@ -140,6 +140,7 @@ No new integrations. Existing ones are used more deeply:
 ## 10. Edge Cases & Failure Modes
 
 - No actions generated today → show a “Nothing needs attention” state with suggestions to connect more integrations or ask the Brain.
+- Store has no eCommerce integration → order/revenue/AOV metrics fall back to `0`; `completeDailyActionAction` still records the action as done and creates an `ActionOutcome`.
 - Action completed but outcome cannot be measured within the window → mark `PENDING` and retry; after max window, mark `NO_CHANGE`.
 - Multiple actions target the same customer/content → conflict resolver picks the higher-confidence / higher-objective-priority action; others are deferred.
 - User marks many actions skipped → learn from skipped reasons and re-rank next day.

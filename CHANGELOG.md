@@ -386,6 +386,7 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🔨 In Progress
 
 - **TASK-370 — Intelligence Domain Ownership Refactor** (spec `0046`):
+
   - Architecture review identified `intelligence` becoming a decision monolith.
   - Plan: move domain-specific detection/recommendation into `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`; reframe `intelligence` as cross-domain prioritizer/scorer/conflict resolver; add recommendation lifecycle and expiration; connect `Business Brain` to intelligence outputs; harden security (token encryption, AI data consent, webhook rate limiting, production env validation).
   - **Phase 0 (security hardening) implemented:**
@@ -506,6 +507,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - **Daily rhythm:** `dailyActionService.generate/complete/skip` (objective + confidence
     prioritization, idempotent per day, Marketing-Memory-fed) and `actionOutcomeService.measure`
     with a configurable observation window; completing an action schedules a measured outcome.
+  - **Resilience fix:** metric provider catches `StoreNotConnectedError` and returns `0` for order/revenue/AOV reads, so `completeDailyActionAction` works for stores without a connected eCommerce integration.
   - **Decision quality:** objective tagging, `recalculateConfidence`, objective+confidence
     conflict resolution, and market-trend vs competitor-advantage vs self-mistake diagnosis.
   - **Journey attribution:** `journeyService.appendTouchpoint/getJourney`, with Meta post

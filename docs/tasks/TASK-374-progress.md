@@ -3,6 +3,7 @@
 Spec: `docs/specs/0050-daily-marketing-operating-rhythm.md`
 
 ## Behavioral cohesion
+
 - [x] Extend `MarketingMemory` to produce `Journey` touchpoints and feed `DailyAction` generation.
       (Memory winning-times/top-product feed `dailyActionService.generate`; journey touchpoints
       are produced from Meta/coupon/referral domain events.)
@@ -15,14 +16,17 @@ Spec: `docs/specs/0050-daily-marketing-operating-rhythm.md`
       push is follow-up.)
 
 ## Operational workflow
+
 - [x] Add `DailyAction` and `ActionOutcome` Prisma models and migration.
 - [x] Implement `dailyActionService.generate`, `complete`, `skip`.
 - [x] Implement `actionOutcomeService.measure` with configurable window.
+- [x] Make `dailyActionService.complete` resilient to stores without eCommerce integration (metric provider maps `StoreNotConnectedError` to `0` so completion succeeds).
 - [x] Surface the **Today** feed on the dashboard (`TodayFeed`, `TodayActionCard`, objective/confidence UI).
 - [x] Wire `completeDailyActionAction` and `skipDailyActionAction` server actions.
 - [x] Make `/business-brain` the central ask-anything surface with source citations.
 
 ## Decision quality
+
 - [x] Add `BusinessObjective` enum and objective tagging to `Recommendation`.
 - [x] Add `confidence`, `reasoning`, `marketContext`, `competitorContext`, `selfContext` to `Recommendation`.
 - [x] Implement `recommendationService.recalculateConfidence` triggered by new signals.
@@ -30,12 +34,14 @@ Spec: `docs/specs/0050-daily-marketing-operating-rhythm.md`
 - [x] Add market-trend vs competitor-advantage vs self-mistake diagnosis in competitor/analytics.
 
 ## Journey-level attribution
+
 - [x] Add `Journey` and `JourneyStep` Prisma models and migration.
 - [x] Implement `journeyService.appendTouchpoint` for `POST_VIEW`, `PROFILE_VISIT`, `DM`, `COUPON_SENT`, `ORDER`.
 - [x] Link Meta media views, DMs, coupon sends, and orders into a single journey (via domain-event subscribers).
 - [x] Add `/analytics/journeys` explorer UI.
 
 ## Production maturity
+
 - [x] Add Vitest setup and domain unit tests (objective, daily-action, journey, billing).
 - [x] Add service/server-action tests via in-memory fakes (daily-action, journey, create-store).
       (True DB-backed repository integration tests remain follow-up; CI runs a migration dry-run.)
