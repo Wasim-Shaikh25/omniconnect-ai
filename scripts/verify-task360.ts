@@ -95,9 +95,9 @@ async function main() {
   console.log("alternative product recommendation:", altRec?.title ?? "none");
 
   if (altRec) {
-    const plan = await actionPlanService.createFromRecommendation(altRec.id, "user-admin");
-    await actionPlanService.approve(plan.id, "user-admin", "ADMIN");
-    const result = await actionPlanService.execute(plan.id, "user-admin", "ADMIN");
+    const plan = await actionPlanService.createFromRecommendation(altRec.id, org.id, "user-admin");
+    await actionPlanService.approve(plan.id, org.id, "user-admin", "ADMIN");
+    const result = await actionPlanService.execute(plan.id, org.id, "user-admin", "ADMIN");
     console.log("action plan executed:", { status: result.plan.status, outcome: result.outcome.status });
 
     const campaign = await prisma.dmCampaign.findFirst({ where: { storeId: store.id, campaignType: "ALTERNATIVE_PRODUCT" } });

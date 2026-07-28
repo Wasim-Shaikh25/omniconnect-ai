@@ -1,6 +1,6 @@
 # Task 0053: Audit Fixes — Production Readiness
 
-- **Status:** In Progress (PR-7 complete; PR-6 and remaining intelligence scoping pending)
+- **Status:** Done
 - **Spec:** `docs/specs/0053-audit-fixes-production-readiness.md`
 - **Module(s):** Auth, Users, Organizations, eCommerce, Meta, AI, CRM, Conversations, Growth, Intelligence, Support, Shared Infrastructure
 - **Owner:** Devin
@@ -40,18 +40,19 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [x] Scope `growth` repository mutations (`updateRights`, `markSent`, `markNotified`, `markReferred`, `incrementEarnings`) by `storeId`
   - [x] Scope `intelligence` `BusinessInsight`, `EntityLink`, and `DailyAction` mutations by `organizationId`
   - [x] Update presentation actions to pass `storeId`/`organizationId`
-  - [ ] Remaining `intelligence` repository mutations (`Recommendation`, `ActionPlan`, `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `CompetitorInsight`, `DataQualityIssue`)
+  - [x] Scope `intelligence` `Recommendation` and `ActionPlan` mutations by `organizationId`
+  - [x] Scope remaining `intelligence` repository mutations (`Outcome`, `Goal`, `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`, `Journey`) by `organizationId`
 - [x] PR-5: External API Security
   - [x] Validate Shopify `shopDomain` and add request timeout
   - [x] Encode Meta Graph API dynamic values and add request timeout
   - [x] Add `AbortSignal` timeout and defensive system prompt to OpenAI fetch
   - [x] Escape `commentUnlock` keyword before building regex
-- [~] PR-6: In-Memory State Persistence
+- [x] PR-6: In-Memory State Persistence
   - [x] Restrict `setRolloutGateAction` to `requireSuperAdmin()`
-  - [ ] Replace `IntelligenceFeedbackService` with Prisma repository
-  - [ ] Replace `IntelligenceFeedInteractionService` dismissal map with Prisma repository
-  - [ ] Replace `GoalPlanGenerationService` map with `GoalPlanVersion` repository
-  - [ ] Replace global `RolloutGate` with per-organization persisted setting
+  - [x] Replace `IntelligenceFeedbackService` with Prisma repository
+  - [x] Replace `IntelligenceFeedInteractionService` dismissal map with Prisma repository
+  - [x] Replace `GoalPlanGenerationService` map with `GoalPlanVersion` repository
+  - [x] Replace global `RolloutGate` with per-organization persisted setting
 - [x] PR-7: Infrastructure & Security Hardening
   - [x] Add CSP header and `poweredByHeader: false`
   - [x] Fix header sign-out to use `signOut` action
@@ -69,12 +70,12 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
 
 ## Acceptance Criteria
 
-- [ ] Matches `docs/specs/0053-audit-fixes-production-readiness.md` acceptance criteria.
-- [ ] All CI-quality gates pass.
-- [ ] `CHANGELOG.md` updated with the completed work.
+- [x] Matches `docs/specs/0053-audit-fixes-production-readiness.md` acceptance criteria.
+- [x] All CI-quality gates pass.
+- [x] `CHANGELOG.md` updated with the completed work.
 
 ## Notes / Blockers
 
-- PR-1 through PR-5 core fixes are implemented and pass lint/typecheck/tests/build.
-- Growth tenant scoping and core Prisma indexes added in follow-up branch `devin/audit-followup-2026-07-26`.
-- Remaining intelligence repository scoping, full in-memory persistence, and `npm audit` cleanup are deferred to a third pass.
+- PR-1 through PR-6 core fixes are implemented and pass lint/typecheck/tests/build.
+- Growth tenant scoping and core Prisma indexes added in PR #60.
+- Remaining `npm audit` cleanup is tracked in PR #61.

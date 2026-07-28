@@ -112,11 +112,11 @@ export async function runWeek4ThinSlice(input: {
     };
   }
 
-  const plan = await actionPlanService.createFromRecommendation(altRec.id, userId);
-  const approved = await actionPlanService.approve(plan.id, userId, userRole);
-  const executed = await actionPlanService.execute(approved.id, userId, userRole);
+  const plan = await actionPlanService.createFromRecommendation(altRec.id, organizationId, userId);
+  const approved = await actionPlanService.approve(plan.id, organizationId, userId, userRole);
+  const executed = await actionPlanService.execute(approved.id, organizationId, userId, userRole);
 
-  const measured = await outcomeService.measure(executed.outcome.id, 0, 1, "SUCCESS");
+  const measured = await outcomeService.measure(executed.outcome.id, organizationId, 0, 1, "SUCCESS");
 
   return {
     revenueInsightId: revenueInsight?.id ?? null,

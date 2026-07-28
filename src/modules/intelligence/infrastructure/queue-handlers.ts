@@ -16,10 +16,11 @@ export const JOB_MEASURE_ACTION_OUTCOME = "MEASURE_ACTION_OUTCOME";
 
 export interface MeasureActionOutcomeData {
   outcomeId: string;
+  organizationId: string;
 }
 
 export interface ActionOutcomeMeasurer {
-  measureById(outcomeId: string): Promise<unknown>;
+  measureById(outcomeId: string, organizationId: string): Promise<unknown>;
 }
 
 export interface RefreshReadModelsData {
@@ -35,6 +36,7 @@ export interface RefreshPredictionsData {
 export interface LearnFromOutcomeData {
   recommendationId: string;
   outcomeId: string;
+  organizationId: string;
 }
 
 export interface IntelligenceQueueHandlersInput {
@@ -61,13 +63,17 @@ export function registerIntelligenceQueueHandlers(deps: IntelligenceQueueHandler
   });
 
   jobRegistry.register<MeasureActionOutcomeData>(JOB_MEASURE_ACTION_OUTCOME, async ({ data }) => {
-    await deps.actionOutcomeMeasurer.measureById(data.outcomeId);
+    await deps.actionOutcomeMeasurer.measureById(data.outcomeId, data.organizationId);
   });
 
   jobRegistry.register<LearnFromOutcomeData>(JOB_LEARN_FROM_OUTCOME, async ({ data }) => {
-    const recommendation = await deps.recommendations.findById(data.recommendationId);
-    const outcome = await deps.outcomes.findById(data.outcomeId);
-    if (recommendation && outcome) {
+    const outcome = await deps.outcomes.findById(data.outcomeId, data.organizationId);
+    if (!outcome) {
+      logger.warn("queue.learnFromOutcome.missingOutcome", { outcomeId: data.outcomeId });
+      return;
+    }
+    const recommendation = await deps.recommendations.findById(data.recommendationId, data.organizationId);
+    if (recommendation) {
       await deps.businessLearning.learnFromOutcome(recommendation, outcome);
     } else {
       logger.warn("queue.learnFromOutcome.missing", {

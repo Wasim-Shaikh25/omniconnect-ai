@@ -64,9 +64,9 @@ async function main() {
   const recommendations = await recommendationService.listOpen(org.id, store.id);
   const noOrdersRec = recommendations.find((r) => r.actionType === "GENERATE_COUPON");
   if (noOrdersRec) {
-    const plan = await actionPlanService.createFromRecommendation(noOrdersRec.id, "user-admin");
-    await actionPlanService.approve(plan.id, "user-admin", "ADMIN");
-    const result = await actionPlanService.execute(plan.id, "user-admin", "ADMIN");
+    const plan = await actionPlanService.createFromRecommendation(noOrdersRec.id, org.id, "user-admin");
+    await actionPlanService.approve(plan.id, org.id, "user-admin", "ADMIN");
+    const result = await actionPlanService.execute(plan.id, org.id, "user-admin", "ADMIN");
     console.log("action plan executed:", { status: result.plan.status, outcome: result.outcome.status, before: result.outcome.beforeValue, after: result.outcome.afterValue });
   }
 

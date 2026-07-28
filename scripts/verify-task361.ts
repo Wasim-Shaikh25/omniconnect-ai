@@ -138,9 +138,9 @@ async function main() {
   console.log("recommendation:", rec ? { title: rec.title, actionType: rec.actionType } : "none");
 
   if (rec) {
-    const plan = await actionPlanService.createFromRecommendation(rec.id, "user-admin");
-    await actionPlanService.approve(plan.id, "user-admin", "ADMIN");
-    const result = await actionPlanService.execute(plan.id, "user-admin", "ADMIN");
+    const plan = await actionPlanService.createFromRecommendation(rec.id, org.id, "user-admin");
+    await actionPlanService.approve(plan.id, org.id, "user-admin", "ADMIN");
+    const result = await actionPlanService.execute(plan.id, org.id, "user-admin", "ADMIN");
     console.log("action plan executed:", { status: result.plan.status, outcome: result.outcome.status });
   }
 

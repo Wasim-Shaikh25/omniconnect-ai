@@ -276,8 +276,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
 
     const c3 = await runCheck("outcome linkage", "action", async () => {
       const outcome = await input.outcomes.create(ctx.organizationId, "qa-plan", ctx.storeId, "order_count", 0, 0.5);
-      const measured = await input.outcomes.measure(outcome.id, 0, 1, "SUCCESS");
-      const linked = await input.outcomeRepo.findByActionPlan("qa-plan");
+      const measured = await input.outcomes.measure(outcome.id, ctx.organizationId, 0, 1, "SUCCESS");
+      const linked = await input.outcomeRepo.findByActionPlan("qa-plan", ctx.organizationId);
       return {
         passed: measured.status === "SUCCESS" && linked != null,
         reason: `Outcome status=${measured.status}, linked=${linked != null}`,

@@ -114,6 +114,12 @@ import {
   PrismaActionOutcomeRepository,
   PrismaJourneyRepository,
 } from "./repositories";
+import {
+  PrismaIntelligenceFeedbackRepository,
+  PrismaIntelligenceDismissalRepository,
+  PrismaGoalPlanRepository,
+  PrismaRolloutGateRepository,
+} from "./repositories_extended";
 
 const signals = new PrismaSignalRepository();
 const links = new PrismaEntityLinkRepository();
@@ -136,6 +142,10 @@ const kpis = new PrismaKpiRepository();
 const dailyActions = new PrismaDailyActionRepository();
 const actionOutcomes = new PrismaActionOutcomeRepository();
 const journeys = new PrismaJourneyRepository();
+const feedbacks = new PrismaIntelligenceFeedbackRepository();
+const dismissals = new PrismaIntelligenceDismissalRepository();
+const goalPlans = new PrismaGoalPlanRepository();
+const rolloutGates = new PrismaRolloutGateRepository();
 
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview:
@@ -278,10 +288,10 @@ export const dailyActionService = makeDailyActionService({
   metrics: metricService,
   getMemory: (organizationId, storeId) =>
     updateMarketingMemory(organizationId, storeId),
-  enqueueMeasurement: async (outcomeId: string) => {
+  enqueueMeasurement: async (outcomeId: string, organizationId: string) => {
     await getQueue(INTELLIGENCE_QUEUE).add<MeasureActionOutcomeData>(
       JOB_MEASURE_ACTION_OUTCOME,
-      { outcomeId },
+      { outcomeId, organizationId },
     );
   },
 });
@@ -392,7 +402,7 @@ export const qualityAssuranceService = makeQualityAssuranceService({
   outcomes: outcomeService,
   outcomeRepo: outcomes,
 });
-export const rolloutService = makeRolloutService();
+export const rolloutService = makeRolloutService({ gates: rolloutGates });
 export const riskMitigationRegistry = makeRiskMitigationRegistry();
 export const operatingModelService = makeOperatingModelService();
 export const updateMarketingMemory = makeUpdateMarketingMemory({
@@ -427,14 +437,14 @@ export const knowledgeGraphService = makeKnowledgeGraphService({
 export const featureService = makeFeatureService({
   ecommerce: ecommerceQueries,
 });
-export const goalPlanGenerationService = makeGoalPlanGenerationService();
+export const goalPlanGenerationService = makeGoalPlanGenerationService({ plans: goalPlans });
 export const learningEvidenceService = makeLearningEvidenceService();
 export const modelOpsService = makeModelOpsService();
 export const predictionPrioritizationService =
   makePredictionPrioritizationService();
-export const intelligenceFeedbackService = makeIntelligenceFeedbackService();
+export const intelligenceFeedbackService = makeIntelligenceFeedbackService({ feedback: feedbacks });
 export const intelligenceFeedInteractionService =
-  makeIntelligenceFeedInteractionService({ insights });
+  makeIntelligenceFeedInteractionService({ insights, dismissals });
 export const chartAcceptanceService = makeChartAcceptanceService();
 
 registerIntelligenceQueueHandlers({

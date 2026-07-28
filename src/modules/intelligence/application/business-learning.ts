@@ -37,7 +37,7 @@ export function makeBusinessLearningService(input: BusinessLearningServiceInput)
           lastOutcomeAt: now,
         });
       } else {
-        record = await input.learning.updateOutcome(record.id, success, weightDelta, now);
+        record = await input.learning.updateOutcome(record.id, record.organizationId, success, weightDelta, now);
       }
 
       await eventBus.publish(new BusinessLearningUpdated(record.id, { learning: record }));

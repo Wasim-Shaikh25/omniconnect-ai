@@ -46,6 +46,7 @@ export function makeJourneyService(input: JourneyServiceInput) {
 
     const updated = await input.journeys.appendStep(
       journey.id,
+      journey.organizationId,
       {
         type: touchpoint.step.type,
         externalId: touchpoint.step.externalId ?? null,
@@ -73,8 +74,8 @@ export function makeJourneyService(input: JourneyServiceInput) {
     return updated;
   }
 
-  async function getJourney(id: string): Promise<JourneyRecord | null> {
-    return input.journeys.findById(id);
+  async function getJourney(id: string, organizationId: string): Promise<JourneyRecord | null> {
+    return input.journeys.findById(id, organizationId);
   }
 
   async function listJourneys(organizationId: string, storeId?: string, limit = 50): Promise<JourneyRecord[]> {

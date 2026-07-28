@@ -36,8 +36,8 @@ function makeFakeJourneys(): JourneyRepository & { store: JourneyRecord[] } {
       store.push(record);
       return record;
     },
-    async appendStep(journeyId, step, update) {
-      const j = store.find((x) => x.id === journeyId)!;
+    async appendStep(journeyId, organizationId, step, update) {
+      const j = store.find((x) => x.id === journeyId && x.organizationId === organizationId)!;
       j.steps.push({
         ...step,
         id: nextId("step"),
@@ -53,8 +53,8 @@ function makeFakeJourneys(): JourneyRepository & { store: JourneyRecord[] } {
       }
       return j;
     },
-    async findById(id) {
-      return store.find((j) => j.id === id) ?? null;
+    async findById(id, organizationId) {
+      return store.find((j) => j.id === id && j.organizationId === organizationId) ?? null;
     },
     async list(organizationId, storeId) {
       return store.filter(

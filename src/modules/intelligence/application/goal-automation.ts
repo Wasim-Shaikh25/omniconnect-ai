@@ -311,7 +311,7 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
       });
 
       // Update goal with the action plan reference if the repository supports it; otherwise leave it.
-      const updatedGoal = await input.goals.findById(goal.id) ?? goal;
+      const updatedGoal = await input.goals.findById(goal.id, goal.organizationId) ?? goal;
 
       const guard = evaluateAutomationGuard({
         audienceEstimate: opts.audienceEstimate ?? 0,

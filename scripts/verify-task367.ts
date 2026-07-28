@@ -49,10 +49,10 @@ async function main() {
 
   console.log("Quality report:", JSON.stringify(report, null, 2));
 
-  const gates = rolloutService.getGates();
+  const gates = await rolloutService.getGates(org.id);
   console.log("Rollout gates:", JSON.stringify(gates, null, 2));
 
-  const ga = rolloutService.canExecute("GA", "production", "TIER_2");
+  const ga = await rolloutService.canExecute("GA", org.id, "production", "TIER_2");
   console.log("GA TIER_2 production:", ga);
 
   const mitigations = riskMitigationRegistry.list();

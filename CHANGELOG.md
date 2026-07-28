@@ -603,8 +603,8 @@ All notable changes to **OmniConnect AI** are documented here.
     `CouponUsage.couponId`/`customerId`, `Report.storeId`+`generatedAt`) in migration
     `20260728081713_audit_fixes_additional_indexes`.
   - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
-  - **Still deferred:** remaining `intelligence` repository tenant scoping, full DB persistence
-    for in-memory intelligence/goal/feedback/rollout state, and `npm audit` dev-dependency cleanup.
+  - **Still deferred:** remaining `intelligence` repository tenant scoping and full DB persistence
+    for in-memory intelligence/goal/feedback/rollout state.
 
 - **TASK-0053-follow-up-2 — Dev Dependency Security Cleanup** (spec `0053`):
   - Updated `vitest` to `^3.2.6` and added `npm` overrides for `esbuild` (`^0.25.0`) and `vite`
@@ -612,8 +612,39 @@ All notable changes to **OmniConnect AI** are documented here.
     `vitest` vulnerability reported by `npm audit`.
   - `npm audit` now reports 0 vulnerabilities; `npm run lint`, `typecheck`, `test`, and `build`
     still pass.
-  - **Still deferred:** remaining `intelligence` repository tenant scoping and full DB persistence
-    for in-memory intelligence/goal/feedback/rollout state.
+
+- **TASK-0053-follow-up-3 — Intelligence IDOR scoping** (spec `0053`):
+  - `PrismaRecommendationRepository` and `PrismaActionPlanRepository` mutations (`findById`,
+    `updateStatus`, `updateObjective`, `updateConfidence`, `invalidate`) now require
+    `organizationId` and use `where: { id, organizationId }`.
+  - `recommendationService` (`dismiss`, `tagObjective`, `recalculateConfidence`) and
+    `actionPlanService` (`createFromRecommendation`, `approve`, `execute`) updated to thread
+    `organizationId` through to repositories.
+  - Remaining `intelligence` repository mutations (`Outcome`, `Goal`, `Prediction`,
+    `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`,
+    `Journey`) now require `organizationId` for `findById`, `updateStatus`, `updateMeasured`,
+    `updatePacing`, `expire`, `updateOutcome`, and `appendStep`.
+  - `OutcomeService.measure`, `GoalService.updatePacing`, `JourneyService.getJourney`,
+    `ActionOutcomeService` queue handler, and `BusinessLearningService.learnFromOutcome` updated
+    to pass `organizationId`.
+  - Presentation actions (`approveRecommendationAction`, `executeActionPlanAction`,
+    `dismissRecommendationAction`, `getJourneyAction`) pass `user.organizationId`;
+    `queue-handlers.ts` uses the persisted `outcome.organizationId` to scope lookups.
+  - Verification scripts and unit-test fakes updated to pass the tenant context.
+  - `npm run lint`, `typecheck`, `test`, and `build` pass.
+
+- **TASK-0053-follow-up-4 — Intelligence in-memory state persistence** (spec `0053`):
+  - Added Prisma models `IntelligenceFeedback`, `IntelligenceDismissal`, `GoalPlanVersion`, and `RolloutGate`,
+    plus migration `20260728085245_audit_fixes_intelligence_state_persistence`.
+  - Added repository ports and Prisma implementations in `src/modules/intelligence/infrastructure/repositories_extended.ts`.
+  - Rewrote `makeIntelligenceFeedbackService`, `makeIntelligenceFeedInteractionService`,
+    `makeGoalPlanGenerationService`, and `makeRolloutService` to use the new repositories and require `organizationId`.
+  - Updated `container.ts`, presentation actions (`submitIntelligenceFeedbackAction`,
+    `getIntelligenceFeedbackKpisAction`, `dismissInsightWithReasonAction`, `createGoalPlanWorkflowAction`,
+    `testGoalPlanWorkflowAction`, `launchGoalPlanWorkflowAction`, `getRolloutGatesAction`, `setRolloutGateAction`),
+    and verification scripts to pass the tenant context.
+  - `RolloutGate` now defaults to organization-scoped persisted settings; super-admin toggles are stored per organization.
+  - `npm run lint`, `typecheck`, `test`, and `build` pass.
 
 ### ⏭️ Next (proposed build order)
 

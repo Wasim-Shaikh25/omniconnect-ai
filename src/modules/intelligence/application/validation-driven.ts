@@ -1,6 +1,19 @@
 import type { EcommerceQueries } from "@/modules/ecommerce";
-import type { BusinessInsightRepository, SignalRepository, MetricRepository, EntityLinkRepository } from "./ports";
-import type { BusinessInsightRecord } from "../domain/types";
+import type {
+  BusinessInsightRepository,
+  SignalRepository,
+  MetricRepository,
+  EntityLinkRepository,
+  IntelligenceFeedbackRepository,
+  IntelligenceDismissalRepository,
+  GoalPlanRepository,
+} from "./ports";
+import type {
+  BusinessInsightRecord,
+  IntelligenceFeedbackRecord,
+  GoalPlanRecord,
+  GoalPlanPostLaunchRecommendation,
+} from "../domain/types";
 
 // 126 — Unified context
 
@@ -266,68 +279,36 @@ export type FeatureService = ReturnType<typeof makeFeatureService>;
 
 // 131 — Goal-plan generation
 
-export interface GoalPlan {
-  goalId: string;
-  version: number;
-  workflowId: string;
-  status: "draft" | "test" | "live" | "paused" | "concluded";
-  testRunResult: { ok: boolean; issues: string[] };
-  holdoutPct: number;
-  postLaunchRecommendation: "continue" | "adjust" | "pause" | "conclude";
+export type { GoalPlanRecord as GoalPlan } from "../domain/types";
+
+export interface GoalPlanGenerationServiceInput {
+  plans: GoalPlanRepository;
 }
 
-export function makeGoalPlanGenerationService() {
-  const plans = new Map<string, GoalPlan>();
-  let version = 0;
-
+export function makeGoalPlanGenerationService(input: GoalPlanGenerationServiceInput) {
   return {
-    createVersionedWorkflow(goalId: string): GoalPlan {
-      version += 1;
-      const plan: GoalPlan = {
-        goalId,
-        version,
-        workflowId: `wf-${goalId}-v${version}`,
-        status: "draft",
-        testRunResult: { ok: true, issues: [] },
-        holdoutPct: 10,
-        postLaunchRecommendation: "continue",
-      };
-      plans.set(plan.workflowId, plan);
-      return plan;
+    async createVersionedWorkflow(goalId: string, organizationId: string): Promise<GoalPlanRecord> {
+      return input.plans.create(goalId, organizationId);
     },
 
-    testRun(workflowId: string): GoalPlan | null {
-      const plan = plans.get(workflowId);
-      if (!plan) return null;
-      plan.status = "test";
-      plan.testRunResult = { ok: true, issues: [] };
-      plans.set(workflowId, plan);
-      return plan;
+    async testRun(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null> {
+      return input.plans.testRun(workflowId, organizationId);
     },
 
-    launchWithHoldout(workflowId: string, holdoutPct: number): GoalPlan | null {
-      const plan = plans.get(workflowId);
-      if (!plan) return null;
-      plan.status = "live";
-      plan.holdoutPct = holdoutPct;
-      plan.postLaunchRecommendation = "continue";
-      plans.set(workflowId, plan);
-      return plan;
+    async launchWithHoldout(workflowId: string, organizationId: string, holdoutPct: number): Promise<GoalPlanRecord | null> {
+      return input.plans.launchWithHoldout(workflowId, organizationId, holdoutPct);
     },
 
-    getPlan(workflowId: string): GoalPlan | null {
-      return plans.get(workflowId) ?? null;
+    async getPlan(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null> {
+      return input.plans.getPlan(workflowId, organizationId);
     },
 
-    postLaunch(workflowId: string, recommendation: GoalPlan["postLaunchRecommendation"]): GoalPlan | null {
-      const plan = plans.get(workflowId);
-      if (!plan) return null;
-      plan.postLaunchRecommendation = recommendation;
-      if (recommendation === "pause" || recommendation === "conclude") {
-        plan.status = recommendation === "pause" ? "paused" : "concluded";
-      }
-      plans.set(workflowId, plan);
-      return plan;
+    async postLaunch(
+      workflowId: string,
+      organizationId: string,
+      recommendation: GoalPlanPostLaunchRecommendation,
+    ): Promise<GoalPlanRecord | null> {
+      return input.plans.postLaunch(workflowId, organizationId, recommendation);
     },
   };
 }
@@ -461,33 +442,24 @@ export type PredictionPrioritizationService = ReturnType<typeof makePredictionPr
 
 // 135 — Intelligence feedback
 
-export interface FeedbackRating {
-  insightId: string;
-  userId: string;
-  understood: boolean;
-  hoursSaved: number;
-  falsePositive: boolean;
-  falseNegative: boolean;
+export type FeedbackRating = Omit<IntelligenceFeedbackRecord, "id" | "organizationId" | "createdAt">;
+
+export interface IntelligenceFeedbackServiceInput {
+  feedback: IntelligenceFeedbackRepository;
 }
 
-export function makeIntelligenceFeedbackService() {
-  const ratings: FeedbackRating[] = [];
-
+export function makeIntelligenceFeedbackService(input: IntelligenceFeedbackServiceInput) {
   return {
-    submitRating(rating: FeedbackRating): FeedbackRating {
-      ratings.push(rating);
-      return rating;
+    async submitRating(
+      rating: FeedbackRating,
+      organizationId: string,
+    ): Promise<IntelligenceFeedbackRecord> {
+      return input.feedback.save(rating, organizationId);
     },
-    getKpis(): { total: number; understoodRate: number; hoursSaved: number; falsePositiveRate: number; falseNegativeRate: number } {
-      const total = ratings.length;
-      if (total === 0) return { total: 0, understoodRate: 0, hoursSaved: 0, falsePositiveRate: 0, falseNegativeRate: 0 };
-      return {
-        total,
-        understoodRate: ratings.filter((r) => r.understood).length / total,
-        hoursSaved: ratings.reduce((s, r) => s + r.hoursSaved, 0),
-        falsePositiveRate: ratings.filter((r) => r.falsePositive).length / total,
-        falseNegativeRate: ratings.filter((r) => r.falseNegative).length / total,
-      };
+    async getKpis(
+      organizationId: string,
+    ): Promise<{ total: number; understoodRate: number; hoursSaved: number; falsePositiveRate: number; falseNegativeRate: number }> {
+      return input.feedback.getKpis(organizationId);
     },
   };
 }
@@ -534,11 +506,10 @@ export interface FeedDismissInput {
 
 export interface IntelligenceFeedInteractionServiceInput {
   insights: BusinessInsightRepository;
+  dismissals: IntelligenceDismissalRepository;
 }
 
 export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedInteractionServiceInput) {
-  const dismissalReasons = new Map<string, string>();
-
   return {
     async getDrillDown(insightId: string, organizationId?: string): Promise<DrillDown | null> {
       const insight = await input.insights.findById(insightId, organizationId);
@@ -553,12 +524,19 @@ export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedIn
 
     async dismissWithReason(payload: FeedDismissInput): Promise<BusinessInsightRecord | null> {
       const updated = await input.insights.updateStatus(payload.id, payload.organizationId, "DISMISSED");
-      if (updated) dismissalReasons.set(payload.id, payload.reason);
+      if (updated) {
+        await input.dismissals.dismiss({
+          insightId: payload.id,
+          organizationId: payload.organizationId,
+          reason: payload.reason,
+          userId: payload.userId,
+        });
+      }
       return updated;
     },
 
-    getDismissalReason(insightId: string): string | null {
-      return dismissalReasons.get(insightId) ?? null;
+    async getDismissalReason(insightId: string, organizationId: string): Promise<string | null> {
+      return input.dismissals.getReason(insightId, organizationId);
     },
   };
 }

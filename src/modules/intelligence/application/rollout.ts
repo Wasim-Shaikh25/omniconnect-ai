@@ -1,13 +1,7 @@
-export type RolloutMode = "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA";
+import type { RolloutGateRecord, RolloutMode, RiskTier } from "../domain/types";
+import type { RolloutGateRepository } from "./ports";
 
-export interface RolloutGate {
-  name: RolloutMode;
-  enabled: boolean;
-  canExecuteOutboundActions: boolean;
-  allowedEnvironments: string[];
-  maxRiskTier: "TIER_1" | "TIER_2" | "TIER_3" | "TIER_4";
-  requiresApproval: boolean;
-}
+export type { RolloutGateRecord as RolloutGate, RolloutMode, RiskTier };
 
 export interface RollbackControl {
   id: string;
@@ -15,51 +9,6 @@ export interface RollbackControl {
   active: boolean;
   description: string;
 }
-
-const DEFAULT_GATES: Record<RolloutMode, RolloutGate> = {
-  SHADOW: {
-    name: "SHADOW",
-    enabled: true,
-    canExecuteOutboundActions: false,
-    allowedEnvironments: ["test"],
-    maxRiskTier: "TIER_1",
-    requiresApproval: true,
-  },
-  INTERNAL: {
-    name: "INTERNAL",
-    enabled: false,
-    canExecuteOutboundActions: false,
-    allowedEnvironments: ["test", "staging"],
-    maxRiskTier: "TIER_2",
-    requiresApproval: true,
-  },
-  PILOT: {
-    name: "PILOT",
-    enabled: false,
-    canExecuteOutboundActions: true,
-    allowedEnvironments: ["staging", "production"],
-    maxRiskTier: "TIER_3",
-    requiresApproval: true,
-  },
-  BETA: {
-    name: "BETA",
-    enabled: false,
-    canExecuteOutboundActions: true,
-    allowedEnvironments: ["production"],
-    maxRiskTier: "TIER_4",
-    requiresApproval: true,
-  },
-  GA: {
-    name: "GA",
-    enabled: false,
-    canExecuteOutboundActions: true,
-    allowedEnvironments: ["production"],
-    maxRiskTier: "TIER_4",
-    requiresApproval: false,
-  },
-};
-
-const gates = new Map(Object.entries(DEFAULT_GATES)) as Map<RolloutMode, RolloutGate>;
 
 const DEFAULT_ROLLBACK: RollbackControl[] = [
   { id: "disable-generator", label: "Disable insight/recommendation generator", active: false, description: "Stop new intelligence generation while preserving existing data." },
@@ -71,31 +20,38 @@ const DEFAULT_ROLLBACK: RollbackControl[] = [
 
 let rollbackControls = [...DEFAULT_ROLLBACK];
 
-export function makeRolloutService() {
+export interface RolloutServiceInput {
+  gates: RolloutGateRepository;
+}
+
+export function makeRolloutService(input: RolloutServiceInput) {
   return {
-    getGates(): RolloutGate[] {
-      return Array.from(gates.values()).sort((a, b) => a.name.localeCompare(b.name));
+    async getGates(organizationId: string): Promise<RolloutGateRecord[]> {
+      return input.gates.getGates(organizationId);
     },
 
-    getGate(name: RolloutMode): RolloutGate | null {
-      return gates.get(name) ?? null;
+    async getGate(name: RolloutMode, organizationId: string): Promise<RolloutGateRecord | null> {
+      return input.gates.getGate(name, organizationId);
     },
 
-    setGate(name: RolloutMode, updates: Partial<RolloutGate>): RolloutGate {
-      const existing = gates.get(name) ?? DEFAULT_GATES[name];
-      const updated = { ...existing, ...updates, name };
-      gates.set(name, updated as RolloutGate);
-      return updated as RolloutGate;
+    async setGate(name: RolloutMode, organizationId: string, updates: Partial<RolloutGateRecord>): Promise<RolloutGateRecord> {
+      return input.gates.setGate(name, organizationId, updates.enabled ?? false);
     },
 
-    canExecute(gateName: RolloutMode, environment: string, riskTier?: string): { allowed: boolean; reason: string } {
-      const gate = gates.get(gateName) ?? DEFAULT_GATES[gateName];
+    async canExecute(
+      gateName: RolloutMode,
+      organizationId: string,
+      environment: string,
+      riskTier?: RiskTier,
+    ): Promise<{ allowed: boolean; reason: string }> {
+      const gate = await input.gates.getGate(gateName, organizationId);
+      if (!gate) return { allowed: false, reason: `${gateName} gate is not configured.` };
       if (!gate.enabled) return { allowed: false, reason: `${gateName} gate is disabled.` };
       if (!gate.allowedEnvironments.includes(environment)) {
         return { allowed: false, reason: `${gateName} does not allow environment ${environment}.` };
       }
       if (!gate.canExecuteOutboundActions) return { allowed: false, reason: `${gateName} is in shadow/internal mode; outbound actions are disabled.` };
-      if (riskTier && ["TIER_1", "TIER_2", "TIER_3", "TIER_4"].indexOf(riskTier) > ["TIER_1", "TIER_2", "TIER_3", "TIER_4"].indexOf(gate.maxRiskTier)) {
+      if (riskTier && (["TIER_1", "TIER_2", "TIER_3", "TIER_4"] as RiskTier[]).indexOf(riskTier) > (["TIER_1", "TIER_2", "TIER_3", "TIER_4"] as RiskTier[]).indexOf(gate.maxRiskTier)) {
         return { allowed: false, reason: `${riskTier} exceeds ${gateName} max risk tier ${gate.maxRiskTier}.` };
       }
       return { allowed: true, reason: "OK" };

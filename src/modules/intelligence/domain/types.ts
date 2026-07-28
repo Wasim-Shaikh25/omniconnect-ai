@@ -548,3 +548,57 @@ export interface JourneyRecord {
   updatedAt: Date;
   steps: JourneyStepRecord[];
 }
+
+// Persisted state for intelligence feedback, dismissals, goal-plan versions, and rollout gates.
+
+export interface IntelligenceFeedbackRecord {
+  id: string;
+  organizationId: string;
+  insightId: string;
+  userId: string;
+  understood: boolean;
+  hoursSaved: number;
+  falsePositive: boolean;
+  falseNegative: boolean;
+  createdAt: Date;
+}
+
+export interface IntelligenceDismissalRecord {
+  id: string;
+  organizationId: string;
+  insightId: string;
+  reason: string;
+  userId: string;
+  dismissedAt: Date;
+}
+
+export type GoalPlanStatus = "draft" | "test" | "live" | "paused" | "concluded";
+export type GoalPlanPostLaunchRecommendation = "continue" | "adjust" | "pause" | "conclude";
+
+export interface GoalPlanRecord {
+  id: string;
+  goalId: string;
+  organizationId: string;
+  version: number;
+  workflowId: string;
+  status: GoalPlanStatus;
+  testRunResult: { ok: boolean; issues: string[] };
+  holdoutPct: number;
+  postLaunchRecommendation: GoalPlanPostLaunchRecommendation;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type RolloutMode = "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA";
+
+export interface RolloutGateRecord {
+  id: string;
+  organizationId: string;
+  name: RolloutMode;
+  enabled: boolean;
+  canExecuteOutboundActions: boolean;
+  allowedEnvironments: string[];
+  maxRiskTier: RiskTier;
+  requiresApproval: boolean;
+  updatedAt: Date;
+}
