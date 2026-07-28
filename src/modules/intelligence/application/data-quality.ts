@@ -46,12 +46,12 @@ export function makeDataQualityService(
       return issue;
     },
 
-    async resolveIssue(id: string): Promise<DataQualityIssueRecord> {
-      return issues.updateStatus(id, "RESOLVED");
+    async resolveIssue(id: string, organizationId: string): Promise<DataQualityIssueRecord> {
+      return issues.updateStatus(id, organizationId, "RESOLVED");
     },
 
-    async ignoreIssue(id: string): Promise<DataQualityIssueRecord> {
-      return issues.updateStatus(id, "IGNORED");
+    async ignoreIssue(id: string, organizationId: string): Promise<DataQualityIssueRecord> {
+      return issues.updateStatus(id, organizationId, "IGNORED");
     },
 
     async getOpenIssues(organizationId: string, storeId?: string): Promise<DataQualityIssueRecord[]> {

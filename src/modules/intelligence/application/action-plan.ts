@@ -164,7 +164,7 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
       const afterValue = afterSnapshot?.value ?? null;
 
       const status: OutcomeRecord["status"] = result.ok ? "SUCCESS" : "FAILURE";
-      const measuredOutcome = await input.outcomeService.measure(outcome.id, beforeValue, afterValue, status);
+      const measuredOutcome = await input.outcomeService.measure(outcome.id, organizationId, beforeValue, afterValue, status);
 
       if (recommendation) {
         await input.businessLearning.learnFromOutcome(recommendation, measuredOutcome);

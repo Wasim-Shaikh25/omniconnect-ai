@@ -22,14 +22,14 @@ function readMetricValue(json: unknown): number | null {
 export function makeActionOutcomeService(input: ActionOutcomeServiceInput) {
   const now = () => input.now?.() ?? new Date();
 
-  async function measureById(outcomeId: string): Promise<ActionOutcomeRecord | null> {
-    const outcome = await input.actionOutcomes.findById(outcomeId);
+  async function measureById(outcomeId: string, organizationId: string): Promise<ActionOutcomeRecord | null> {
+    const outcome = await input.actionOutcomes.findById(outcomeId, organizationId);
     if (!outcome) return null;
     return measureOutcome(outcome);
   }
 
-  async function measure(actionId: string): Promise<ActionOutcomeRecord | null> {
-    const outcome = await input.actionOutcomes.findByAction(actionId);
+  async function measure(actionId: string, organizationId: string): Promise<ActionOutcomeRecord | null> {
+    const outcome = await input.actionOutcomes.findByAction(actionId, organizationId);
     if (!outcome) return null;
     return measureOutcome(outcome);
   }
@@ -58,6 +58,7 @@ export function makeActionOutcomeService(input: ActionOutcomeServiceInput) {
 
     const measured = await input.actionOutcomes.updateMeasured(
       outcome.id,
+      outcome.organizationId,
       after !== null ? { value: after } : null,
       status,
       now(),

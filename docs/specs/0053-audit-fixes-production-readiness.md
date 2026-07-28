@@ -503,10 +503,12 @@ Implemented repository scopes:
 
 - `intelligence` `Recommendation` and `ActionPlan`: `findById`, `updateStatus`, `updateObjective`, `updateConfidence`, and `invalidate` now require `organizationId` and use `where: { id, organizationId }`.
 - `intelligence` application services (`recommendationService`, `actionPlanService`) and presentation actions (`approveRecommendationAction`, `executeActionPlanAction`, `dismissRecommendationAction`) pass `user.organizationId` through to the repositories.
+- `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`, and `Journey` repository mutations (`findById`, `updateStatus`, `updateMeasured`, `updatePacing`, `expire`, `updateOutcome`, `appendStep`) now require `organizationId` and use `where: { id, organizationId }`.
+- `OutcomeService.measure`, `GoalService.updatePacing`, `JourneyService.getJourney`, `ActionOutcomeService` queue handler, and `BusinessLearningService.learnFromOutcome` updated to thread `organizationId` through to repositories.
 
-Still pending (next pass):
+Still pending:
 
-- `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`, and `Journey` repository mutations.
+- Full DB persistence for in-memory intelligence/feedback/dismissal/goal-plan/rollout state (PR-6).
 
 ### 8.5 Shopify / Meta / OpenAI Security
 

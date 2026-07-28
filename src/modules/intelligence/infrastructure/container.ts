@@ -278,10 +278,10 @@ export const dailyActionService = makeDailyActionService({
   metrics: metricService,
   getMemory: (organizationId, storeId) =>
     updateMarketingMemory(organizationId, storeId),
-  enqueueMeasurement: async (outcomeId: string) => {
+  enqueueMeasurement: async (outcomeId: string, organizationId: string) => {
     await getQueue(INTELLIGENCE_QUEUE).add<MeasureActionOutcomeData>(
       JOB_MEASURE_ACTION_OUTCOME,
-      { outcomeId },
+      { outcomeId, organizationId },
     );
   },
 });

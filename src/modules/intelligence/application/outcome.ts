@@ -32,11 +32,12 @@ export function makeOutcomeService(input: OutcomeServiceInput) {
 
     async measure(
       id: string,
+      organizationId: string,
       beforeValue: number | null,
       afterValue: number | null,
       status: OutcomeStatus,
     ): Promise<OutcomeRecord> {
-      return input.outcomes.updateMeasured(id, beforeValue, afterValue, status, new Date());
+      return input.outcomes.updateMeasured(id, organizationId, beforeValue, afterValue, status, new Date());
     },
 
     async list(organizationId: string, storeId?: string, limit = 20): Promise<OutcomeRecord[]> {

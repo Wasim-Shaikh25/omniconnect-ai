@@ -80,14 +80,14 @@ function makeFakeOutcomes(): ActionOutcomeRepository & { store: ActionOutcomeRec
       store.push(record);
       return record;
     },
-    async findByAction(actionId) {
-      return store.find((o) => o.actionId === actionId) ?? null;
+    async findByAction(actionId, organizationId) {
+      return store.find((o) => o.actionId === actionId && o.organizationId === organizationId) ?? null;
     },
-    async findById(id) {
-      return store.find((o) => o.id === id) ?? null;
+    async findById(id, organizationId) {
+      return store.find((o) => o.id === id && o.organizationId === organizationId) ?? null;
     },
-    async updateMeasured(id, metricAfter, status, measuredAt) {
-      const o = store.find((x) => x.id === id)!;
+    async updateMeasured(id, organizationId, metricAfter, status, measuredAt) {
+      const o = store.find((x) => x.id === id && x.organizationId === organizationId)!;
       o.metricAfter = metricAfter;
       o.status = status;
       o.measuredAt = measuredAt;
@@ -102,6 +102,7 @@ function makeFakeOutcomes(): ActionOutcomeRepository & { store: ActionOutcomeRec
 const recommendationRepoStub: RecommendationRepository = {
   save: async () => { throw new Error("not used"); },
   listOpen: async () => [],
+  listActive: async () => [],
   findById: async () => null,
   updateStatus: async () => { throw new Error("not used"); },
   updateObjective: async () => null,
@@ -188,7 +189,7 @@ describe("dailyActionService.complete/skip", () => {
       recommendations: recommendationRepoStub,
       prioritize: async () => [rankedRec({ title: "Sell", businessObjective: "REVENUE" })],
       metrics: { getMetric: async () => ({ value: 250 }) },
-      enqueueMeasurement: async (id) => { enqueued.push(id); },
+      enqueueMeasurement: async (id, organizationId) => { enqueued.push(id); void organizationId; },
     });
 
     const [action] = await svc.generate("org-1", "store-1");

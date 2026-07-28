@@ -48,8 +48,8 @@ export function makeGoalService(input: GoalServiceInput) {
       });
     },
 
-    async updatePacing(id: string): Promise<GoalRecord> {
-      const goal = await input.goals.findById(id);
+    async updatePacing(id: string, organizationId: string): Promise<GoalRecord> {
+      const goal = await input.goals.findById(id, organizationId);
       if (!goal) throw new Error("Goal not found");
 
       const snapshot = await input.metrics.getMetric(goal.targetMetric, goal.organizationId, goal.storeId);
@@ -62,7 +62,7 @@ export function makeGoalService(input: GoalServiceInput) {
       else if (goal.endDate && new Date() > goal.endDate && current < (goal.target ?? 0)) status = "MISSED";
 
       const pacing: GoalPacing = { current, projected, onTrack };
-      const updated = await input.goals.updatePacing(goal.id, pacing, status);
+      const updated = await input.goals.updatePacing(goal.id, organizationId, pacing, status);
 
       await eventBus.publish(new GoalPacingChanged(goal.id, { goal: updated }));
       return updated;

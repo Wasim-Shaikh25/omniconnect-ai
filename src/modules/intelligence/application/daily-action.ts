@@ -37,7 +37,7 @@ export interface DailyActionServiceInput {
   prioritize: (organizationId: string, storeId?: string, limit?: number) => Promise<RankedRecommendationLike[]>;
   metrics: { getMetric: (name: string, organizationId: string, storeId: string | null) => Promise<{ value: number | null } | null> };
   getMemory?: (organizationId: string, storeId: string) => Promise<MarketingMemoryRecord | null>;
-  enqueueMeasurement?: (outcomeId: string, delayMs: number) => Promise<void>;
+  enqueueMeasurement?: (outcomeId: string, organizationId: string, delayMs: number) => Promise<void>;
   now?: () => Date;
   maxActions?: number;
   windowHours?: number;
@@ -208,7 +208,7 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     );
 
     if (input.enqueueMeasurement) {
-      await input.enqueueMeasurement(outcome.id, windowHours * 60 * 60 * 1000);
+      await input.enqueueMeasurement(outcome.id, outcome.organizationId, windowHours * 60 * 60 * 1000);
     }
 
     return outcome;

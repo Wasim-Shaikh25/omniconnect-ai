@@ -326,10 +326,15 @@ export class PrismaDataQualityRepository implements DataQualityRepository {
     return rows as StoredIssue[];
   }
 
-  async updateStatus(id: string, status: DataQualityIssueRecord["status"]): Promise<DataQualityIssueRecord> {
+  async findById(id: string, organizationId: string): Promise<DataQualityIssueRecord | null> {
+    const row = await prisma.dataQualityIssue.findUnique({ where: { id, organizationId } });
+    return (row as StoredIssue) ?? null;
+  }
+
+  async updateStatus(id: string, organizationId: string, status: DataQualityIssueRecord["status"]): Promise<DataQualityIssueRecord> {
     const data: Prisma.DataQualityIssueUpdateInput = { status };
     if (status === "RESOLVED") data.resolvedAt = new Date();
-    const updated = await prisma.dataQualityIssue.update({ where: { id }, data });
+    const updated = await prisma.dataQualityIssue.update({ where: { id, organizationId }, data });
     return updated as StoredIssue;
   }
 }
@@ -743,13 +748,13 @@ export class PrismaOutcomeRepository implements OutcomeRepository {
     return created as StoredOutcome;
   }
 
-  async findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null> {
-    const row = await prisma.outcome.findFirst({ where: { actionPlanId } });
+  async findByActionPlan(actionPlanId: string, organizationId: string): Promise<OutcomeRecord | null> {
+    const row = await prisma.outcome.findFirst({ where: { actionPlanId, organizationId } });
     return (row as StoredOutcome) ?? null;
   }
 
-  async findById(id: string): Promise<OutcomeRecord | null> {
-    const row = await prisma.outcome.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<OutcomeRecord | null> {
+    const row = await prisma.outcome.findUnique({ where: { id, organizationId } });
     return (row as StoredOutcome) ?? null;
   }
 
@@ -767,13 +772,14 @@ export class PrismaOutcomeRepository implements OutcomeRepository {
 
   async updateMeasured(
     id: string,
+    organizationId: string,
     beforeValue: number | null,
     afterValue: number | null,
     status: OutcomeStatus,
     measuredAt: Date,
   ): Promise<OutcomeRecord> {
     const updated = await prisma.outcome.update({
-      where: { id },
+      where: { id, organizationId },
       data: { beforeValue, afterValue, status, measuredAt },
     });
     return updated as StoredOutcome;
@@ -827,17 +833,17 @@ export class PrismaGoalRepository implements GoalRepository {
     return rows.map((r) => toGoalRecord(r as StoredGoal));
   }
 
-  async findById(id: string): Promise<GoalRecord | null> {
-    const row = await prisma.goal.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<GoalRecord | null> {
+    const row = await prisma.goal.findUnique({ where: { id, organizationId } });
     return row ? toGoalRecord(row as StoredGoal) : null;
   }
 
-  async updatePacing(id: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord> {
+  async updatePacing(id: string, organizationId: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord> {
     const data: Prisma.GoalUpdateInput = {
       pacing: (pacing ?? Prisma.JsonNull) as unknown as Prisma.InputJsonValue,
     };
     if (status) data.status = status;
-    const updated = await prisma.goal.update({ where: { id }, data });
+    const updated = await prisma.goal.update({ where: { id, organizationId }, data });
     return toGoalRecord(updated as StoredGoal);
   }
 }
@@ -893,13 +899,13 @@ export class PrismaPredictionRepository implements PredictionRepository {
     return rows.map((r) => toPredictionRecord(r as StoredPrediction));
   }
 
-  async findById(id: string): Promise<PredictionRecord | null> {
-    const row = await prisma.prediction.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<PredictionRecord | null> {
+    const row = await prisma.prediction.findUnique({ where: { id, organizationId } });
     return row ? toPredictionRecord(row as StoredPrediction) : null;
   }
 
-  async expire(id: string): Promise<PredictionRecord> {
-    const updated = await prisma.prediction.update({ where: { id }, data: { status: "EXPIRED" } });
+  async expire(id: string, organizationId: string): Promise<PredictionRecord> {
+    const updated = await prisma.prediction.update({ where: { id, organizationId }, data: { status: "EXPIRED" } });
     return toPredictionRecord(updated as StoredPrediction);
   }
 }
@@ -944,15 +950,15 @@ export class PrismaHypothesisRepository implements HypothesisRepository {
     return rows.map((r) => toHypothesisRecord(r as StoredHypothesis));
   }
 
-  async findById(id: string): Promise<HypothesisRecord | null> {
-    const row = await prisma.hypothesis.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<HypothesisRecord | null> {
+    const row = await prisma.hypothesis.findUnique({ where: { id, organizationId } });
     return row ? toHypothesisRecord(row as StoredHypothesis) : null;
   }
 
-  async updateStatus(id: string, status: HypothesisStatus, validatedAt?: Date | null): Promise<HypothesisRecord> {
+  async updateStatus(id: string, organizationId: string, status: HypothesisStatus, validatedAt?: Date | null): Promise<HypothesisRecord> {
     const data: Prisma.HypothesisUpdateInput = { status };
     if (validatedAt !== undefined) data.validatedAt = validatedAt ?? null;
-    const updated = await prisma.hypothesis.update({ where: { id }, data });
+    const updated = await prisma.hypothesis.update({ where: { id, organizationId }, data });
     return toHypothesisRecord(updated as StoredHypothesis);
   }
 }
@@ -1007,8 +1013,13 @@ export class PrismaBusinessLearningRepository implements BusinessLearningReposit
     return rows.map((r) => toBusinessLearningRecord(r as StoredBusinessLearning));
   }
 
-  async updateOutcome(id: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord> {
-    const existing = await prisma.businessLearning.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<BusinessLearningRecord | null> {
+    const row = await prisma.businessLearning.findUnique({ where: { id, organizationId } });
+    return row ? toBusinessLearningRecord(row as StoredBusinessLearning) : null;
+  }
+
+  async updateOutcome(id: string, organizationId: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord> {
+    const existing = await prisma.businessLearning.findUnique({ where: { id, organizationId } });
     if (!existing) throw new Error("BusinessLearning record not found");
     const data: Prisma.BusinessLearningUpdateInput = {
       weight: existing.weight + weightDelta,
@@ -1016,7 +1027,7 @@ export class PrismaBusinessLearningRepository implements BusinessLearningReposit
       failureCount: existing.failureCount + (success ? 0 : 1),
       lastOutcomeAt,
     };
-    const updated = await prisma.businessLearning.update({ where: { id }, data });
+    const updated = await prisma.businessLearning.update({ where: { id, organizationId }, data });
     return toBusinessLearningRecord(updated as StoredBusinessLearning);
   }
 }
@@ -1060,8 +1071,8 @@ export class PrismaCompetitorInsightRepository implements CompetitorInsightRepos
     return rows.map((r) => toCompetitorInsightRecord(r as StoredCompetitorInsight));
   }
 
-  async findById(id: string): Promise<CompetitorInsightRecord | null> {
-    const row = await prisma.competitorInsight.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<CompetitorInsightRecord | null> {
+    const row = await prisma.competitorInsight.findUnique({ where: { id, organizationId } });
     return row ? toCompetitorInsightRecord(row as StoredCompetitorInsight) : null;
   }
 }
@@ -1457,24 +1468,25 @@ export class PrismaActionOutcomeRepository implements ActionOutcomeRepository {
     return toActionOutcomeRecord(created as StoredActionOutcome);
   }
 
-  async findByAction(actionId: string): Promise<ActionOutcomeRecord | null> {
-    const row = await prisma.actionOutcome.findUnique({ where: { actionId } });
+  async findByAction(actionId: string, organizationId: string): Promise<ActionOutcomeRecord | null> {
+    const row = await prisma.actionOutcome.findUnique({ where: { actionId, organizationId } });
     return row ? toActionOutcomeRecord(row as StoredActionOutcome) : null;
   }
 
-  async findById(id: string): Promise<ActionOutcomeRecord | null> {
-    const row = await prisma.actionOutcome.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<ActionOutcomeRecord | null> {
+    const row = await prisma.actionOutcome.findUnique({ where: { id, organizationId } });
     return row ? toActionOutcomeRecord(row as StoredActionOutcome) : null;
   }
 
   async updateMeasured(
     id: string,
+    organizationId: string,
     metricAfter: unknown,
     status: ActionOutcomeStatus,
     measuredAt: Date,
   ): Promise<ActionOutcomeRecord> {
     const updated = await prisma.actionOutcome.update({
-      where: { id },
+      where: { id, organizationId },
       data: { metricAfter: (metricAfter ?? Prisma.JsonNull) as Prisma.InputJsonValue, status, measuredAt },
     });
     return toActionOutcomeRecord(updated as StoredActionOutcome);
@@ -1566,6 +1578,7 @@ export class PrismaJourneyRepository implements JourneyRepository {
 
   async appendStep(
     journeyId: string,
+    organizationId: string,
     step: Omit<JourneyStepRecord, "id" | "journeyId" | "createdAt">,
     update: { outcome?: JourneyOutcome; attributedRevenue?: number | null; attributedPostId?: string | null },
   ): Promise<JourneyRecord> {
@@ -1580,7 +1593,7 @@ export class PrismaJourneyRepository implements JourneyRepository {
       },
     });
     const updated = await prisma.journey.update({
-      where: { id: journeyId },
+      where: { id: journeyId, organizationId },
       data: {
         ...(update.outcome ? { outcome: update.outcome } : {}),
         ...(update.attributedRevenue !== undefined ? { attributedRevenue: update.attributedRevenue } : {}),
@@ -1591,9 +1604,9 @@ export class PrismaJourneyRepository implements JourneyRepository {
     return toJourneyRecord(updated as StoredJourney);
   }
 
-  async findById(id: string): Promise<JourneyRecord | null> {
+  async findById(id: string, organizationId: string): Promise<JourneyRecord | null> {
     const row = await prisma.journey.findUnique({
-      where: { id },
+      where: { id, organizationId },
       include: { steps: { orderBy: { occurredAt: "asc" } } },
     });
     return row ? toJourneyRecord(row as StoredJourney) : null;

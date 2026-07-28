@@ -606,21 +606,26 @@ All notable changes to **OmniConnect AI** are documented here.
   - **Still deferred:** remaining `intelligence` repository tenant scoping, full DB persistence
     for in-memory intelligence/goal/feedback/rollout state, and `npm audit` dev-dependency cleanup.
 
-- **TASK-0053-follow-up-3 — Intelligence Recommendation/ActionPlan IDOR scoping** (spec `0053`):
+- **TASK-0053-follow-up-3 — Intelligence IDOR scoping** (spec `0053`):
   - `PrismaRecommendationRepository` and `PrismaActionPlanRepository` mutations (`findById`,
     `updateStatus`, `updateObjective`, `updateConfidence`, `invalidate`) now require
     `organizationId` and use `where: { id, organizationId }`.
   - `recommendationService` (`dismiss`, `tagObjective`, `recalculateConfidence`) and
     `actionPlanService` (`createFromRecommendation`, `approve`, `execute`) updated to thread
     `organizationId` through to repositories.
+  - Remaining `intelligence` repository mutations (`Outcome`, `Goal`, `Prediction`,
+    `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`,
+    `Journey`) now require `organizationId` for `findById`, `updateStatus`, `updateMeasured`,
+    `updatePacing`, `expire`, `updateOutcome`, and `appendStep`.
+  - `OutcomeService.measure`, `GoalService.updatePacing`, `JourneyService.getJourney`,
+    `ActionOutcomeService` queue handler, and `BusinessLearningService.learnFromOutcome` updated
+    to pass `organizationId`.
   - Presentation actions (`approveRecommendationAction`, `executeActionPlanAction`,
-    `dismissRecommendationAction`) pass `user.organizationId`; `queue-handlers.ts` uses the
-    persisted `outcome.organizationId` to scope the recommendation lookup.
-  - Verification scripts updated to pass the tenant context.
+    `dismissRecommendationAction`, `getJourneyAction`) pass `user.organizationId`;
+    `queue-handlers.ts` uses the persisted `outcome.organizationId` to scope lookups.
+  - Verification scripts and unit-test fakes updated to pass the tenant context.
   - `npm run lint`, `typecheck`, `test`, and `build` pass.
-  - **Still deferred:** remaining `intelligence` repository scopes (`Outcome`, `Goal`,
-    `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`,
-    `ActionOutcome`, `Journey`) and full in-memory state persistence.
+  - **Still deferred:** full DB persistence for in-memory intelligence/feedback/dismissal/goal-plan/rollout state (PR-6).
 
 ### ⏭️ Next (proposed build order)
 

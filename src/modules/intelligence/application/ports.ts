@@ -96,7 +96,8 @@ export interface DataQualityRepository {
   save(issue: Omit<DataQualityIssueRecord, "id" | "detectedAt" | "resolvedAt">): Promise<DataQualityIssueRecord>;
   listOpen(organizationId: string, storeId?: string): Promise<DataQualityIssueRecord[]>;
   listByStore(storeId: string, limit?: number): Promise<DataQualityIssueRecord[]>;
-  updateStatus(id: string, status: DataQualityStatus): Promise<DataQualityIssueRecord>;
+  findById(id: string, organizationId: string): Promise<DataQualityIssueRecord | null>;
+  updateStatus(id: string, organizationId: string, status: DataQualityStatus): Promise<DataQualityIssueRecord>;
 }
 
 export interface MetricRepository {
@@ -141,10 +142,11 @@ export interface DailyActionRepository {
 
 export interface ActionOutcomeRepository {
   save(outcome: Omit<ActionOutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<ActionOutcomeRecord>;
-  findByAction(actionId: string): Promise<ActionOutcomeRecord | null>;
-  findById(id: string): Promise<ActionOutcomeRecord | null>;
+  findByAction(actionId: string, organizationId: string): Promise<ActionOutcomeRecord | null>;
+  findById(id: string, organizationId: string): Promise<ActionOutcomeRecord | null>;
   updateMeasured(
     id: string,
+    organizationId: string,
     metricAfter: unknown,
     status: ActionOutcomeStatus,
     measuredAt: Date,
@@ -186,10 +188,11 @@ export interface JourneyRepository {
   }): Promise<JourneyRecord>;
   appendStep(
     journeyId: string,
+    organizationId: string,
     step: Omit<JourneyStepRecord, "id" | "journeyId" | "createdAt">,
     update: { outcome?: JourneyOutcome; attributedRevenue?: number | null; attributedPostId?: string | null },
   ): Promise<JourneyRecord>;
-  findById(id: string): Promise<JourneyRecord | null>;
+  findById(id: string, organizationId: string): Promise<JourneyRecord | null>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<JourneyRecord[]>;
   search(
     organizationId: string,
@@ -211,44 +214,45 @@ export interface DecisionRepository {
 
 export interface OutcomeRepository {
   save(outcome: Omit<OutcomeRecord, "id" | "createdAt" | "updatedAt">): Promise<OutcomeRecord>;
-  findByActionPlan(actionPlanId: string): Promise<OutcomeRecord | null>;
-  findById(id: string): Promise<OutcomeRecord | null>;
+  findByActionPlan(actionPlanId: string, organizationId: string): Promise<OutcomeRecord | null>;
+  findById(id: string, organizationId: string): Promise<OutcomeRecord | null>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<OutcomeRecord[]>;
-  updateMeasured(id: string, beforeValue: number | null, afterValue: number | null, status: OutcomeStatus, measuredAt: Date): Promise<OutcomeRecord>;
+  updateMeasured(id: string, organizationId: string, beforeValue: number | null, afterValue: number | null, status: OutcomeStatus, measuredAt: Date): Promise<OutcomeRecord>;
 }
 
 export interface GoalRepository {
   save(goal: Omit<GoalRecord, "id" | "createdAt" | "updatedAt">): Promise<GoalRecord>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<GoalRecord[]>;
-  findById(id: string): Promise<GoalRecord | null>;
-  updatePacing(id: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord>;
+  findById(id: string, organizationId: string): Promise<GoalRecord | null>;
+  updatePacing(id: string, organizationId: string, pacing: GoalRecord["pacing"], status?: GoalStatus): Promise<GoalRecord>;
 }
 
 export interface PredictionRepository {
   save(prediction: Omit<PredictionRecord, "id" | "createdAt" | "updatedAt">): Promise<PredictionRecord>;
   listActive(organizationId: string, storeId?: string, limit?: number): Promise<PredictionRecord[]>;
-  findById(id: string): Promise<PredictionRecord | null>;
-  expire(id: string): Promise<PredictionRecord>;
+  findById(id: string, organizationId: string): Promise<PredictionRecord | null>;
+  expire(id: string, organizationId: string): Promise<PredictionRecord>;
 }
 
 export interface HypothesisRepository {
   save(hypothesis: Omit<HypothesisRecord, "id" | "createdAt" | "updatedAt">): Promise<HypothesisRecord>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<HypothesisRecord[]>;
-  findById(id: string): Promise<HypothesisRecord | null>;
-  updateStatus(id: string, status: HypothesisStatus, validatedAt?: Date | null): Promise<HypothesisRecord>;
+  findById(id: string, organizationId: string): Promise<HypothesisRecord | null>;
+  updateStatus(id: string, organizationId: string, status: HypothesisStatus, validatedAt?: Date | null): Promise<HypothesisRecord>;
 }
 
 export interface BusinessLearningRepository {
   save(record: Omit<BusinessLearningRecord, "id" | "createdAt" | "updatedAt">): Promise<BusinessLearningRecord>;
   findByRule(organizationId: string, ruleName: string, storeId?: string): Promise<BusinessLearningRecord | null>;
+  findById(id: string, organizationId: string): Promise<BusinessLearningRecord | null>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<BusinessLearningRecord[]>;
-  updateOutcome(id: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord>;
+  updateOutcome(id: string, organizationId: string, success: boolean, weightDelta: number, lastOutcomeAt: Date): Promise<BusinessLearningRecord>;
 }
 
 export interface CompetitorInsightRepository {
   save(insight: Omit<CompetitorInsightRecord, "id" | "createdAt" | "updatedAt">): Promise<CompetitorInsightRecord>;
   list(organizationId: string, storeId?: string, limit?: number): Promise<CompetitorInsightRecord[]>;
-  findById(id: string): Promise<CompetitorInsightRecord | null>;
+  findById(id: string, organizationId: string): Promise<CompetitorInsightRecord | null>;
 }
 
 export interface PortfolioSnapshotRepository {

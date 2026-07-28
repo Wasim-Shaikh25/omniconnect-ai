@@ -940,7 +940,7 @@ export async function getJourneyAction(journeyId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { journey: null };
 
-  const journey = await journeyService.getJourney(journeyId);
+  const journey = await journeyService.getJourney(journeyId, user.organizationId);
   if (!journey || journey.organizationId !== user.organizationId) return { journey: null };
   return { journey };
 }
