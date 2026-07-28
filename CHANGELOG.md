@@ -45,7 +45,10 @@ All notable changes to **OmniConnect AI** are documented here.
   - Narrowed CSP `connect-src` to `'self'` and public API allowlist to explicit webhook/auth prefixes.
   - Project management actions now require `STORE_OWNER`, validate target users belong to the workspace, and guard against duplicate memberships.
   - `commerce` and `conversations` store-scoped actions now use `tenantGuard.assertStoreAccess()` for staff store scoping.
-  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (blocked on server-only bundling strategy), BullMQ worker deployment wiring (`fly.toml` / `deploy.sh`), admin pagination, `teamSeats` enforcement (needs invite flow), intelligence store-scoped pages and remaining actions, medium/low polish.
+  - `package.json` declares `sideEffects: ["*.css"]` so webpack can tree-shake server-only module code out of the client bundle, reducing first-load JS and preventing Node-only packages from being bundled for the browser.
+  - `password-hasher.ts` now lazy-loads `bcryptjs` so it is not pulled into the client bundle at build time.
+  - `app/layout.tsx` adds `suppressHydrationWarning` to `<body nonce>` to silence the CSP nonce mismatch between server and client.
+  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (server-only bundling is now enabled; re-land after validation), BullMQ worker deployment wiring (`fly.toml` / `deploy.sh`), admin pagination, `teamSeats` enforcement (needs invite flow), intelligence store-scoped pages and remaining actions, medium/low polish.
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).

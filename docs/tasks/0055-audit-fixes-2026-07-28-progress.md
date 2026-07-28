@@ -56,4 +56,4 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 - Some fixes (C1, C2) require a Redis instance in production/staging to verify.
 - UI pagination for admin lists (C5) may need small shadcn/ui table changes.
 - `teamSeats` enforcement needs an organization invite/add-member flow to be meaningful; `addProjectMemberAction` now validates that the target user already belongs to the organization.
-- Redis-backed runtime state (event bus, rate limiter, webhook dedup) needs a server-only bundling strategy so `ioredis` is not pulled into the client bundle via the auth/organizations barrels.
+- Redis-backed runtime state (event bus, rate limiter, webhook dedup) was blocked by `ioredis` being pulled into the client bundle. `package.json` now declares `sideEffects: ["*.css"]`, enabling tree-shaking of server-only modules; re-land after validation.
