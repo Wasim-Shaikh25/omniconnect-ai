@@ -50,3 +50,7 @@ Implement the remediation plan from `PRODUCTION_READINESS_AUDIT.md` section 5. T
 - No schema changes anticipated.
 - Redis-backed `eventBus` tests may need adjustments once `publish` awaits local handlers.
 - Marketing analytics still loads follower/customer lists up to 500 per store for intent/hashtag analysis; this is intentionally left as a later optimization because it needs actual record content, not just counts.
+- E2E smoke testing surfaced two follow-up items that were fixed:
+  - Credentials registrations now set `UserRegistered.autoProvisionOrganization: false` so new users reach `/onboarding`; OAuth sign-ins keep `autoProvisionOrganization: true`.
+  - `completeOnboardingAction` refreshes the session via `unstable_update({})` after linking the workspace.
+  - Added `/analytics/page.tsx` redirect to `/analytics/journeys` to fix the header 404.

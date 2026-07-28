@@ -79,6 +79,8 @@ All notable changes to **OmniConnect AI** are documented here.
   - Wired `redactValue` into `SystemLog` persistence (`shared/observability/system-log.ts`) and exported it from the public barrel.
   - Made `RedisEventBus.publish` await local event handlers before publishing to Redis to avoid race conditions during provisioning.
   - Replaced stray `process.env.NODE_ENV` checks in store pages with the validated `env` object.
+  - E2E follow-up fixes: credentials registrations now set `UserRegistered.autoProvisionOrganization: false` so new users reach `/onboarding`; OAuth sign-ins keep `autoProvisionOrganization: true` so the JWT callback still provisions synchronously. `completeOnboardingAction` calls `unstable_update({})` after linking the workspace so the refreshed session carries the new `organizationId`/`tokenVersion`.
+  - Added `/analytics/page.tsx` redirect to `/analytics/journeys` so the authenticated header link no longer 404s.
   - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test`, `npm audit` (0 vulnerabilities), and `npm run build`.
 
 - **Project governance & foundation**
