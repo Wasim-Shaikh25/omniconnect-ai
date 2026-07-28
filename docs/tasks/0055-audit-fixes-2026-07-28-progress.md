@@ -32,7 +32,7 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 ### Medium
 
 - [x] **M1** — Use UTC month boundaries for `aiRepliesThisMonth` reset.
-- [x] **M2** — Surface structured server validation errors per-field in forms. Project actions now return `fieldErrors`; `/projects/page.tsx` renders per-field errors with `aria-invalid`/`aria-describedby`.
+- [x] **M2** — Surface structured server validation errors per-field in forms. Implemented for project actions (`createProjectAction` and `addProjectMemberAction`) and `/projects/page.tsx`, using `zod` `flatten().fieldErrors` and `aria-invalid`/`aria-describedby`. Pattern can be extended to other forms.
 - [x] **M3** — Verify new Prisma indexes with `EXPLAIN ANALYZE` and add missing ones. Verified `Organization.subscriptionId`, `Conversation.storeId/customerId`, `Integration.externalId`, and `Message.conversationId` indexes are used; no missing indexes added.
 - [x] **M4** — Remove password reset code from URL query string. Email link now only includes `email`; code is entered manually from the email body.
 - [x] **Audit-log FK bug** — `AuditLog.organizationId` is optional; platform-level admin actions pass `admin.organizationId ?? null` instead of `"platform"`.
