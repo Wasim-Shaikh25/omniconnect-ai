@@ -627,6 +627,20 @@ All notable changes to **OmniConnect AI** are documented here.
   - `npm run lint`, `typecheck`, `test`, and `build` pass.
   - **Still deferred:** full DB persistence for in-memory intelligence/feedback/dismissal/goal-plan/rollout state (PR-6).
 
+- **TASK-0053-follow-up-4 — Intelligence in-memory state persistence** (spec `0053`):
+  - Added Prisma models `IntelligenceFeedback`, `IntelligenceDismissal`, `GoalPlanVersion`, and `RolloutGate`,
+    plus migration `20260728085245_audit_fixes_intelligence_state_persistence`.
+  - Added repository ports and Prisma implementations in `src/modules/intelligence/infrastructure/repositories_extended.ts`.
+  - Rewrote `makeIntelligenceFeedbackService`, `makeIntelligenceFeedInteractionService`,
+    `makeGoalPlanGenerationService`, and `makeRolloutService` to use the new repositories and require `organizationId`.
+  - Updated `container.ts`, presentation actions (`submitIntelligenceFeedbackAction`,
+    `getIntelligenceFeedbackKpisAction`, `dismissInsightWithReasonAction`, `createGoalPlanWorkflowAction`,
+    `testGoalPlanWorkflowAction`, `launchGoalPlanWorkflowAction`, `getRolloutGatesAction`, `setRolloutGateAction`),
+    and verification scripts to pass the tenant context.
+  - `RolloutGate` now defaults to organization-scoped persisted settings; super-admin toggles are stored per organization.
+  - `npm run lint`, `typecheck`, `test`, and `build` pass.
+  - **Still deferred:** `npm audit` dev-dependency cleanup is tracked in PR #61.
+
 ### ⏭️ Next (proposed build order)
 
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

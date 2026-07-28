@@ -251,6 +251,7 @@ async save(identifier: string, token: string, expiresAt: Date): Promise<void> {
 ```prisma
 model IntelligenceFeedback {
   id            String   @id @default(cuid())
+  organizationId String
   insightId     String
   userId        String
   understood    Boolean
@@ -259,17 +260,20 @@ model IntelligenceFeedback {
   falseNegative Boolean  @default(false)
   createdAt     DateTime @default(now())
 
+  @@index([organizationId])
   @@index([insightId])
   @@index([userId])
 }
 
 model IntelligenceDismissal {
   id          String   @id @default(cuid())
+  organizationId String
   insightId   String   @unique
   reason      String
   userId      String
   dismissedAt DateTime @default(now())
 
+  @@index([organizationId])
   @@index([insightId])
   @@index([userId])
 }
@@ -284,6 +288,7 @@ model GoalPlanVersion {
   holdoutPct  Int      @default(10)
   postLaunchRecommendation String @default("continue")
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([goalId])
   @@index([organizationId])
@@ -506,9 +511,25 @@ Implemented repository scopes:
 - `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`, and `Journey` repository mutations (`findById`, `updateStatus`, `updateMeasured`, `updatePacing`, `expire`, `updateOutcome`, `appendStep`) now require `organizationId` and use `where: { id, organizationId }`.
 - `OutcomeService.measure`, `GoalService.updatePacing`, `JourneyService.getJourney`, `ActionOutcomeService` queue handler, and `BusinessLearningService.learnFromOutcome` updated to thread `organizationId` through to repositories.
 
-Still pending:
+### 8.6 In-Memory State (PR-6)
 
-- Full DB persistence for in-memory intelligence/feedback/dismissal/goal-plan/rollout state (PR-6).
+Implemented:
+
+- Added Prisma models: `IntelligenceFeedback`, `IntelligenceDismissal`, `GoalPlanVersion`, `RolloutGate`.
+- Migration `20260728085245_audit_fixes_intelligence_state_persistence` adds the four tables and indexes.
+- Added repository ports and Prisma implementations:
+  - `IntelligenceFeedbackRepository` / `PrismaIntelligenceFeedbackRepository`
+  - `IntelligenceDismissalRepository` / `PrismaIntelligenceDismissalRepository`
+  - `GoalPlanRepository` / `PrismaGoalPlanRepository`
+  - `RolloutGateRepository` / `PrismaRolloutGateRepository`
+- Rewrote domain services to use repositories and require `organizationId`:
+  - `makeIntelligenceFeedbackService` persists ratings and KPIs per organization.
+  - `makeIntelligenceFeedInteractionService` persists dismissal reasons per organization.
+  - `makeGoalPlanGenerationService` creates/test-runs/launches/post-launches goal plan versions per organization.
+  - `makeRolloutService` fetches/sets per-organization gates and enforces environment/risk tier rules.
+- Updated `container.ts` to instantiate the new repositories and wire the services.
+- Updated presentation actions (`submitIntelligenceFeedbackAction`, `getIntelligenceFeedbackKpisAction`, `dismissInsightAction`, `createGoalPlanWorkflowAction`, `testGoalPlanWorkflowAction`, `launchGoalPlanWorkflowAction`, `getRolloutGatesAction`, `setRolloutGateAction`) to pass `organizationId`.
+- Verification scripts `verify-task367.ts` and `verify-task369.ts` updated to the new async/organization-scoped signatures.
 
 ### 8.5 Shopify / Meta / OpenAI Security
 
@@ -567,10 +588,6 @@ function escapePrompt(str: string): string {
   return str.replace(/[<>{}\[\]\\|`]/g, "");
 }
 ```
-
-### 8.6 In-Memory State
-
-Replace `IntelligenceFeedbackService`, `IntelligenceFeedInteractionService` (dismissal reasons), and `GoalPlanGenerationService` with Prisma-backed repositories. `RolloutGate` becomes an organization-scoped persisted setting.
 
 ### 8.7 Infrastructure
 
@@ -695,5 +712,5 @@ function sanitize(fields: LogFields): LogFields {
 
 ## 14. Open Questions
 
-- Should `GoalPlanVersion` be a new table or folded into `ActionPlan`?
-- Should `RolloutGate` be per-organization or super-admin-only platform settings? (Recommended: per-organization DB setting.)
+- Should `GoalPlanVersion` be a new table or folded into `ActionPlan`? (Implemented as a separate `GoalPlanVersion` table.)
+- Should `RolloutGate` be per-organization or super-admin-only platform settings? (Implemented as a per-organization DB setting; super-admin controls the toggle.)

@@ -691,13 +691,14 @@ export async function runQualityChecksAction(storeId: string) {
 
 export async function getRolloutGatesAction() {
   const user = await getCurrentUser();
-  if (!user) return null;
-  return rolloutService.getGates();
+  if (!user || !user.organizationId) return null;
+  return rolloutService.getGates(user.organizationId);
 }
 
 export async function setRolloutGateAction(name: string, enabled: boolean) {
-  await requireSuperAdmin();
-  const gate = rolloutService.setGate(name as "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA", { enabled });
+  const user = await requireSuperAdmin();
+  if (!user.organizationId) throw new Error("Super admin must belong to an organization to set rollout gates");
+  const gate = await rolloutService.setGate(name as "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA", user.organizationId, { enabled });
   return gate;
 }
 
@@ -762,20 +763,20 @@ export async function getFeatureProfileAction(type: "customer" | "product" | "co
 export async function createGoalPlanWorkflowAction(goalId: string) {
   const user = await requireRole("STAFF");
   if (!user.organizationId) return null;
-  const plan = goalPlanGenerationService.createVersionedWorkflow(goalId);
+  const plan = await goalPlanGenerationService.createVersionedWorkflow(goalId, user.organizationId);
   return plan;
 }
 
 export async function testGoalPlanWorkflowAction(workflowId: string) {
   const user = await requireRole("STAFF");
   if (!user.organizationId) return null;
-  return goalPlanGenerationService.testRun(workflowId);
+  return goalPlanGenerationService.testRun(workflowId, user.organizationId);
 }
 
 export async function launchGoalPlanWorkflowAction(workflowId: string, holdoutPct: number) {
   const user = await requireRole("ADMIN");
   if (!user.organizationId) return null;
-  return goalPlanGenerationService.launchWithHoldout(workflowId, holdoutPct);
+  return goalPlanGenerationService.launchWithHoldout(workflowId, user.organizationId, holdoutPct);
 }
 
 export async function getLearningEvidenceAction() {
@@ -805,14 +806,14 @@ export async function submitIntelligenceFeedbackAction(formData: FormData) {
   const falsePositive = formData.get("falsePositive") === "true";
   const falseNegative = formData.get("falseNegative") === "true";
   if (!insightId) return;
-  intelligenceFeedbackService.submitRating({ insightId, userId: user.id, understood, hoursSaved, falsePositive, falseNegative });
+  await intelligenceFeedbackService.submitRating({ insightId, userId: user.id, understood, hoursSaved, falsePositive, falseNegative }, user.organizationId);
   revalidatePath("/business-brain");
 }
 
 export async function getIntelligenceFeedbackKpisAction() {
   const user = await getCurrentUser();
-  if (!user) return null;
-  return intelligenceFeedbackService.getKpis();
+  if (!user || !user.organizationId) return null;
+  return intelligenceFeedbackService.getKpis(user.organizationId);
 }
 
 export async function getInsightDrillDownAction(insightId: string) {

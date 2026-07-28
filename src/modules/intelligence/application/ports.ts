@@ -42,6 +42,13 @@ import type {
   JourneyRecord,
   JourneyStepRecord,
   JourneyOutcome,
+  IntelligenceFeedbackRecord,
+  IntelligenceDismissalRecord,
+  GoalPlanRecord,
+  GoalPlanStatus,
+  GoalPlanPostLaunchRecommendation,
+  RolloutMode,
+  RolloutGateRecord,
 } from "../domain/types";
 
 export interface SignalRepository {
@@ -255,6 +262,33 @@ export interface CompetitorInsightRepository {
   findById(id: string, organizationId: string): Promise<CompetitorInsightRecord | null>;
 }
 
+export interface IntelligenceFeedbackRepository {
+  save(
+    record: Omit<IntelligenceFeedbackRecord, "id" | "organizationId" | "createdAt">,
+    organizationId: string,
+  ): Promise<IntelligenceFeedbackRecord>;
+  getKpis(organizationId: string): Promise<{ total: number; understoodRate: number; hoursSaved: number; falsePositiveRate: number; falseNegativeRate: number }>;
+}
+
+export interface IntelligenceDismissalRepository {
+  dismiss(input: { insightId: string; organizationId: string; userId: string; reason: string }): Promise<IntelligenceDismissalRecord>;
+  getReason(insightId: string, organizationId: string): Promise<string | null>;
+}
+
+export interface GoalPlanRepository {
+  create(goalId: string, organizationId: string): Promise<GoalPlanRecord>;
+  testRun(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null>;
+  launchWithHoldout(workflowId: string, organizationId: string, holdoutPct: number): Promise<GoalPlanRecord | null>;
+  getPlan(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null>;
+  postLaunch(workflowId: string, organizationId: string, recommendation: GoalPlanPostLaunchRecommendation): Promise<GoalPlanRecord | null>;
+}
+
+export interface RolloutGateRepository {
+  getGates(organizationId: string): Promise<RolloutGateRecord[]>;
+  getGate(name: RolloutMode, organizationId: string): Promise<RolloutGateRecord | null>;
+  setGate(name: RolloutMode, organizationId: string, enabled: boolean): Promise<RolloutGateRecord>;
+}
+
 export interface PortfolioSnapshotRepository {
   save(snapshot: Omit<PortfolioSnapshotRecord, "id" | "createdAt" | "updatedAt">): Promise<PortfolioSnapshotRecord>;
   findLatest(organizationId: string): Promise<PortfolioSnapshotRecord | null>;
@@ -341,4 +375,11 @@ export type {
   JourneyRecord,
   JourneyStepRecord,
   JourneyOutcome,
+  IntelligenceFeedbackRecord,
+  IntelligenceDismissalRecord,
+  GoalPlanRecord,
+  GoalPlanStatus,
+  GoalPlanPostLaunchRecommendation,
+  RolloutMode,
+  RolloutGateRecord,
 };

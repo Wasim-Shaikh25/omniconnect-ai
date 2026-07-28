@@ -47,12 +47,12 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [x] Encode Meta Graph API dynamic values and add request timeout
   - [x] Add `AbortSignal` timeout and defensive system prompt to OpenAI fetch
   - [x] Escape `commentUnlock` keyword before building regex
-- [~] PR-6: In-Memory State Persistence
+- [x] PR-6: In-Memory State Persistence
   - [x] Restrict `setRolloutGateAction` to `requireSuperAdmin()`
-  - [ ] Replace `IntelligenceFeedbackService` with Prisma repository
-  - [ ] Replace `IntelligenceFeedInteractionService` dismissal map with Prisma repository
-  - [ ] Replace `GoalPlanGenerationService` map with `GoalPlanVersion` repository
-  - [ ] Replace global `RolloutGate` with per-organization persisted setting
+  - [x] Replace `IntelligenceFeedbackService` with Prisma repository
+  - [x] Replace `IntelligenceFeedInteractionService` dismissal map with Prisma repository
+  - [x] Replace `GoalPlanGenerationService` map with `GoalPlanVersion` repository
+  - [x] Replace global `RolloutGate` with per-organization persisted setting
 - [~] PR-7: Infrastructure & Security Hardening
   - [x] Add CSP header and `poweredByHeader: false`
   - [x] Fix header sign-out to use `signOut` action
@@ -66,7 +66,7 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [x] `npm run test`
   - [x] `npm run build`
   - [ ] `npm audit` clean
-  - [ ] Update `CHANGELOG.md`
+  - [x] Update `CHANGELOG.md` (after this PR)
 
 ## Acceptance Criteria
 
@@ -76,6 +76,6 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
 
 ## Notes / Blockers
 
-- PR-1 through PR-5 core fixes are implemented and pass lint/typecheck/tests/build.
-- Growth tenant scoping and core Prisma indexes added in follow-up branch `devin/audit-followup-2026-07-26`.
-- Remaining intelligence repository scoping, full in-memory persistence, and `npm audit` cleanup are deferred to a third pass.
+- PR-1 through PR-6 core fixes are implemented and pass lint/typecheck/tests/build.
+- Growth tenant scoping and core Prisma indexes added in PR #60.
+- Remaining `npm audit` cleanup is tracked in PR #61.

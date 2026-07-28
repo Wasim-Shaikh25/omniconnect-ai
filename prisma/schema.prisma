@@ -1496,6 +1496,64 @@ model JourneyStep {
   @@index([journeyId, occurredAt])
 }
 
+// ── intelligence state persistence ─────────────────────────────────────────
+
+model IntelligenceFeedback {
+  id             String   @id @default(cuid())
+  organizationId String
+  insightId      String
+  userId         String
+  understood     Boolean
+  hoursSaved     Int      @default(0)
+  falsePositive  Boolean  @default(false)
+  falseNegative  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([insightId])
+  @@index([userId])
+}
+
+model IntelligenceDismissal {
+  id             String   @id @default(cuid())
+  organizationId String
+  insightId      String   @unique
+  reason         String
+  userId         String
+  dismissedAt    DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([insightId])
+  @@index([userId])
+}
+
+model GoalPlanVersion {
+  id                       String   @id @default(cuid())
+  goalId                   String
+  organizationId           String
+  version                  Int
+  workflowId               String   @unique
+  status                   String
+  holdoutPct               Int      @default(10)
+  postLaunchRecommendation String   @default("continue")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([goalId])
+  @@index([organizationId])
+}
+
+model RolloutGate {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  enabled        Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
 // ── platform administration ─────────────────────────────────────────────────
 
 enum TicketStatus {

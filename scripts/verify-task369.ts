@@ -44,13 +44,13 @@ async function main() {
   const customerFeatures = await featureService.getCustomerFeatures(org.id, store.id, customer.igUserId ?? "cust-369");
   if (!["low", "medium", "high"].includes(customerFeatures.churnRisk)) throw new Error("Expected churn risk band");
 
-  const workflow = goalPlanGenerationService.createVersionedWorkflow("goal-1");
+  const workflow = await goalPlanGenerationService.createVersionedWorkflow("goal-1", org.id);
   if (workflow.status !== "draft") throw new Error("Expected draft workflow");
 
-  const tested = goalPlanGenerationService.testRun(workflow.workflowId);
+  const tested = await goalPlanGenerationService.testRun(workflow.workflowId, org.id);
   if (tested?.status !== "test") throw new Error("Expected test status");
 
-  const launched = goalPlanGenerationService.launchWithHoldout(workflow.workflowId, 10);
+  const launched = await goalPlanGenerationService.launchWithHoldout(workflow.workflowId, org.id, 10);
   if (launched?.status !== "live") throw new Error("Expected live status");
 
   const evidence = learningEvidenceService.getHierarchy();
@@ -77,8 +77,8 @@ async function main() {
   });
   if (!withheld.abstain) throw new Error("Expected abstention");
 
-  intelligenceFeedbackService.submitRating({ insightId: "ins-1", userId: "u1", understood: true, hoursSaved: 1.5, falsePositive: false, falseNegative: false });
-  const feedbackKpis = intelligenceFeedbackService.getKpis();
+  await intelligenceFeedbackService.submitRating({ insightId: "ins-1", userId: "u1", understood: true, hoursSaved: 1.5, falsePositive: false, falseNegative: false }, org.id);
+  const feedbackKpis = await intelligenceFeedbackService.getKpis(org.id);
   if (feedbackKpis.total !== 1) throw new Error("Expected one feedback rating");
 
   const chartAccepted = chartAcceptanceService.evaluate({ id: "c1", title: "Revenue by channel", supportsDecision: "Decide next week's ad budget", decisionStatement: "Decide next week's ad budget" });
