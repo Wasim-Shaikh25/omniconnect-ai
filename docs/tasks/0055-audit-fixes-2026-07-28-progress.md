@@ -57,5 +57,6 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 - UI pagination for admin lists (C5) may need small shadcn/ui table changes.
 - `teamSeats` enforcement needs an organization invite/add-member flow to be meaningful; `addProjectMemberAction` now validates that the target user already belongs to the organization.
 - Redis-backed runtime state (event bus, rate limiter, webhook dedup) was blocked by `ioredis` being pulled into the client bundle. `package.json` now declares `sideEffects: ["*.css"]`, enabling tree-shaking of server-only modules; re-land after validation.
+- The `next-themes` script `script-src` violation was fixed by passing the CSP `nonce` from `layout.tsx` through `providers.tsx` to `ThemeProvider`.
 - The CSP `style-src` violation from `next-themes` color-scheme inline styles was fixed by setting `enableColorScheme={false}` in `app/providers.tsx`; `style-src` now allows `'unsafe-inline'` for Next.js runtime inline style attributes (route announcer, dev overlay).
 - The `bcryptjs` `crypto` webpack warning in `npm run dev` was fixed by adding an Edge-only `crypto` fallback in `next.config.ts`.

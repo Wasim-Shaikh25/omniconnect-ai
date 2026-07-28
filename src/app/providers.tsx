@@ -3,7 +3,13 @@
 import * as React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  nonce,
+}: {
+  children: React.ReactNode;
+  nonce?: string;
+}) {
   return (
     <ThemeProvider
       attribute="class"
@@ -11,6 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
       enableColorScheme={false}
+      nonce={nonce}
     >
       {children}
     </ThemeProvider>
