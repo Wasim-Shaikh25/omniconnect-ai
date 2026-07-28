@@ -25,6 +25,8 @@ export interface AccountRepository {
     role: Role;
     phone?: string | null;
     isSuperAdmin?: boolean;
+    organizationId?: string | null;
+    storeId?: string | null;
   }): Promise<AccountRecord>;
 }
 

@@ -17,6 +17,7 @@ type OAuthAction = (formData: FormData) => Promise<void>;
 interface AuthFormProps {
   mode: "login" | "register";
   action: FormAction;
+  inviteToken?: string | null;
   oauthProviders?: OAuthProvider[];
   oauthAction?: OAuthAction;
 }
@@ -24,6 +25,7 @@ interface AuthFormProps {
 export function AuthForm({
   mode,
   action,
+  inviteToken,
   oauthProviders,
   oauthAction,
 }: AuthFormProps) {
@@ -37,7 +39,8 @@ export function AuthForm({
   return (
     <div className="w-full space-y-4">
       <form action={formAction} className="space-y-4">
-        {isRegister && (
+        {inviteToken && <input type="hidden" name="inviteToken" value={inviteToken} />}
+      {isRegister && (
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" placeholder="Jane Doe" autoComplete="name" />

@@ -62,10 +62,8 @@ All notable changes to **OmniConnect AI** are documented here.
   - `package.json` sets `"type": "module"` so Vitest loads Vite's ESM API, eliminating the CJS deprecation warning.
   - `npm run lint` now runs `eslint . --max-warnings=0` instead of the deprecated `next lint`; `eslint.config.mjs` ignores generated declaration files and one-off `scripts/`.
   - `ProjectActionState` now carries `fieldErrors` and project actions (`createProjectAction`, `addProjectMemberAction`) return `zod` `flatten().fieldErrors` instead of a single `error` string. `/projects/page.tsx` renders per-field errors with `aria-invalid`/`aria-describedby` for the create-project and add-member forms.
-  - **Remaining:** `teamSeats` enforcement (needs invite flow), M3 (index verification with `EXPLAIN ANALYZE`), extending per-field validation to other forms.
-
-- **TASK-0054 — Audit fixes continuation (remaining):**
-  - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
+  - Implemented `teamSeats` enforcement with an organization invite flow: `OrganizationInvite` model, `inviteMember` use case with `planLimits(...).teamSeats` guard, `registerWithInviteAction`, `/settings` invite form, and `/register?inviteToken=...` acceptance flow.
+  - Fixed a client-bundle leak caused by `node:crypto` in `organizations/infrastructure/container.ts` by using the global `crypto.randomUUID()` instead.
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

@@ -104,4 +104,8 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     });
     return toProfile(user);
   }
+
+  async countByOrganization(organizationId: string): Promise<number> {
+    return prisma.user.count({ where: { organizationId } });
+  }
 }

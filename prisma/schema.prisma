@@ -111,9 +111,33 @@ model Organization {
   stores    Store[]
   auditLogs AuditLog[]
   projects  Project[]
+  invites   OrganizationInvite[]
 
   @@unique([subscriptionId])
   @@index([aiRepliesResetAt])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model OrganizationInvite {
+  id             String       @id @default(cuid())
+  email          String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role         @default(STAFF)
+  status         InviteStatus @default(PENDING)
+  token          String       @unique
+  createdByUserId String
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime
+
+  @@unique([organizationId, email])
+  @@index([token])
+  @@index([organizationId, status])
 }
 
 // ── projects ────────────────────────────────────────────────────────────────
@@ -903,18 +927,18 @@ model BrandDeal {
 }
 
 model AuditLog {
-  id             String   @id @default(cuid())
-  organizationId String
+  id             String    @id @default(cuid())
+  organizationId String?
   actorId        String?
   actorEmail     String?
   action         String
   resource       String
   resourceId     String?
   details        String?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actor        User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, createdAt])
   @@index([organizationId, action])

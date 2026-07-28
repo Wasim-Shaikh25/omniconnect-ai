@@ -1,0 +1,93 @@
+import { z } from "zod";
+import type { Role } from "@/modules/auth";
+import { Result, ok, err } from "@/shared/kernel";
+import { Plan, planLimits } from "../domain/plan";
+import { OrganizationNotFoundError, SeatLimitError } from "../domain/errors";
+import type {
+  OrganizationInviteRecord,
+  OrganizationInviteRepository,
+  OrganizationRepository,
+} from "./ports";
+
+export const inviteMemberSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(["ADMIN", "STAFF"] as const),
+});
+
+export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
+
+export interface InviteMemberDependencies {
+  organizations: OrganizationRepository;
+  invites: OrganizationInviteRepository;
+  countOrganizationUsers(organizationId: string): Promise<number>;
+  sendInviteEmail(input: {
+    email: string;
+    token: string;
+    organizationName: string;
+  }): Promise<void>;
+  generateToken(): string;
+  now(): Date;
+}
+
+export interface InviteMemberResult {
+  invite: OrganizationInviteRecord;
+}
+
+const INVITE_TTL_DAYS = 7;
+
+export function makeInviteMember(deps: InviteMemberDependencies) {
+  return async function inviteMember(
+    input: InviteMemberInput & { organizationId: string; createdByUserId: string },
+  ): Promise<Result<InviteMemberResult, OrganizationNotFoundError | SeatLimitError | Error>> {
+    const parsed = inviteMemberSchema.safeParse({
+      email: input.email,
+      role: input.role,
+    });
+    if (!parsed.success) {
+      return err(new Error(parsed.error.issues[0]?.message ?? "Invalid input"));
+    }
+
+    const email = parsed.data.email.toLowerCase().trim();
+    const role = parsed.data.role as Role;
+    const organization = await deps.organizations.findById(input.organizationId);
+    if (!organization) {
+      return err(new OrganizationNotFoundError(input.organizationId));
+    }
+
+    const existing = await deps.invites.findPendingByEmail(input.organizationId, email);
+    if (existing) {
+      return err(new Error("An invite is already pending for this email."));
+    }
+
+    const [userCount, pendingInviteCount] = await Promise.all([
+      deps.countOrganizationUsers(input.organizationId),
+      deps.invites.countPendingByOrganization(input.organizationId),
+    ]);
+
+    const { teamSeats } = planLimits(organization.plan as Plan);
+    if (teamSeats !== null && userCount + pendingInviteCount >= teamSeats) {
+      return err(new SeatLimitError(teamSeats));
+    }
+
+    const token = deps.generateToken();
+    const expiresAt = new Date(deps.now());
+    expiresAt.setDate(expiresAt.getDate() + INVITE_TTL_DAYS);
+
+    const invite = await deps.invites.create({
+      email,
+      organizationId: input.organizationId,
+      role,
+      token,
+      createdByUserId: input.createdByUserId,
+      expiresAt,
+    });
+
+    await deps.sendInviteEmail({
+      email,
+      token,
+      organizationName: organization.name,
+    });
+
+    return ok({ invite });
+  };
+}

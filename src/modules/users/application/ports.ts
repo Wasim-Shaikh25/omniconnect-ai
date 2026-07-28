@@ -22,5 +22,6 @@ export interface UserProfileRepository {
   setRole(id: string, role: Role): Promise<UserProfile>;
   listByOrganization(organizationId: string, pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
   listAll(pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
+  countByOrganization(organizationId: string): Promise<number>;
   setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
 }

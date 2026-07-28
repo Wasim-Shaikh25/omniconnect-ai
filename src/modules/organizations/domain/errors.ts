@@ -13,3 +13,10 @@ export class StoreLimitError extends OrganizationError {
     this.name = "StoreLimitError";
   }
 }
+
+export class SeatLimitError extends OrganizationError {
+  constructor(limit: number) {
+    super(`Team seat limit reached (${limit}). Upgrade your plan to add more members.`);
+    this.name = "SeatLimitError";
+  }
+}

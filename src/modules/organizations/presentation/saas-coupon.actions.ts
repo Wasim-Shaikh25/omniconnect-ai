@@ -39,7 +39,7 @@ export async function createSaaSCouponAction(
   if (!result.ok) return { error: result.error.message };
 
   await auditCommands.create({
-    organizationId: "platform",
+    organizationId: admin.organizationId ?? null,
     actorId: admin.id,
     actorEmail: admin.email,
     action: "SAAS_COUPON_CREATED",

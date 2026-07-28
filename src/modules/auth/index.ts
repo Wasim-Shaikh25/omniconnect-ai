@@ -27,7 +27,12 @@ export type {
 
 // Application — use-cases
 export { registerUserSchema } from "./application/register-user";
-export type { RegisterUserInput, RegisteredUser } from "./application/register-user";
+export type {
+  RegisterUserInput,
+  RegisteredUser,
+  RegisterUserOptions,
+} from "./application/register-user";
+export { registerUser } from "./infrastructure/container";
 
 // Session accessors (RBAC entry points for other modules' presentation layers)
 export {

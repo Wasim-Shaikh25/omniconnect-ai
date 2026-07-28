@@ -24,6 +24,11 @@ export interface RegisteredUser {
  * Registers a new user with email + password. Emits `UserRegistered` so other
  * modules (e.g. notifications, analytics) can react without coupling.
  */
+export interface RegisterUserOptions {
+  organizationId?: string | null;
+  role?: Role;
+}
+
 export function makeRegisterUser(deps: {
   accounts: AccountRepository;
   hasher: PasswordHasher;
@@ -31,6 +36,7 @@ export function makeRegisterUser(deps: {
 }) {
   return async function registerUser(
     raw: RegisterUserInput,
+    options?: RegisterUserOptions,
   ): Promise<Result<RegisteredUser, EmailAlreadyInUseError>> {
     const input = registerUserSchema.parse(raw);
     const email = input.email.toLowerCase().trim();
@@ -39,11 +45,13 @@ export function makeRegisterUser(deps: {
     if (existing) return err(new EmailAlreadyInUseError(email));
 
     const passwordHash = await deps.hasher.hash(input.password);
+    const role = options?.role ?? "STORE_OWNER";
     const account = await deps.accounts.create({
       email,
       name: input.name ?? null,
       passwordHash,
-      role: "STORE_OWNER",
+      role,
+      organizationId: options?.organizationId ?? null,
     });
 
     await deps.eventBus.publish(

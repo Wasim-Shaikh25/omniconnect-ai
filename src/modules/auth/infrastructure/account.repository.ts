@@ -62,6 +62,8 @@ export class PrismaAccountRepository implements AccountRepository {
     role: Role;
     phone?: string | null;
     isSuperAdmin?: boolean;
+    organizationId?: string | null;
+    storeId?: string | null;
   }): Promise<AccountRecord> {
     const user = await prisma.user.create({
       data: {
@@ -71,6 +73,8 @@ export class PrismaAccountRepository implements AccountRepository {
         role: input.role,
         phone: input.phone ?? null,
         isSuperAdmin: input.isSuperAdmin ?? false,
+        organizationId: input.organizationId ?? null,
+        storeId: input.storeId ?? null,
       },
     });
     return mapUser(user);
