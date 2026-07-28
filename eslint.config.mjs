@@ -3,7 +3,15 @@ import nextPlugin from "@next/eslint-plugin-next";
 
 export default tseslint.config(
   {
-    ignores: ["node_modules/**", ".next/**", "dist/**"],
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "dist/**",
+      "**/*.d.ts",
+      "scripts/**",
+      "test-plan*.md",
+      "test-report*.md",
+    ],
   },
   ...tseslint.configs.recommended,
   nextPlugin.flatConfig.coreWebVitals,

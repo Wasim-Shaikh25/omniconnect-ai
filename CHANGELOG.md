@@ -58,7 +58,10 @@ All notable changes to **OmniConnect AI** are documented here.
   - `next.config.ts` aliases `ioredis` to `false` in client/edge chunks and lists it in `serverExternalPackages`, keeping the Node-only Redis client out of the browser bundle.
   - `register-user.ts` now receives `eventBus` via dependency injection instead of importing it directly, preventing the public `auth` barrel from pulling `ioredis` into client chunks.
   - `getQueue()` now throws in production if `REDIS_URL` is missing.
-  - **Remaining:** `teamSeats` enforcement (needs invite flow), medium/low polish (M2, M3, M4, L1, L2).
+  - Password reset email no longer includes the 6-digit reset code in the URL; the link only carries `email`, and the user enters the code from the email body.
+  - `package.json` sets `"type": "module"` so Vitest loads Vite's ESM API, eliminating the CJS deprecation warning.
+  - `npm run lint` now runs `eslint . --max-warnings=0` instead of the deprecated `next lint`; `eslint.config.mjs` ignores generated declaration files and one-off `scripts/`.
+  - **Remaining:** `teamSeats` enforcement (needs invite flow), M2 (per-field form errors), M3 (index verification).
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
