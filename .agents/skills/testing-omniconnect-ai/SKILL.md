@@ -1,0 +1,59 @@
+---
+name: Testing OmniConnect AI locally
+---
+
+# Testing OmniConnect AI locally
+
+## When to use
+
+Use this skill before running end-to-end or integration tests against the OmniConnect AI Next.js app.
+
+## One-time per-session setup
+
+1. Start PostgreSQL and Redis containers:
+   ```bash
+   docker run -d --name omniconnect-postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=omniconnect --rm postgres:16
+   docker run -d --name omniconnect-redis -p 6379:6379 --rm redis:7
+   ```
+
+2. Create a `.env` file from `.env.example` in the repo root.
+   - Fill in `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/omniconnect?schema=public`
+   - Fill in `REDIS_URL=redis://localhost:6379`
+   - Fill in `NEXTAUTH_SECRET`, `NEXTAUTH_URL=http://localhost:3000`, `APP_URL=http://localhost:3000`
+   - Fill in `ENCRYPTION_KEY` with at least 32 characters.
+   - Set `EMAIL_PROVIDER=console`.
+   - Leave all real third-party credentials (Stripe, Meta, Shopify, OpenAI, SMTP) blank/commented out for basic smoke tests.
+   - Comment out or remove `SUPER_ADMIN_EMAIL` and `SMTP_FROM` lines; empty strings fail Zod email validation.
+
+3. Install dependencies and prepare the database:
+   ```bash
+   npm install
+   npx prisma generate
+   npx prisma migrate deploy
+   ```
+
+4. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+   The app should be available at `http://localhost:3000`.
+
+## Common gotchas
+
+- `npm run lint`, `npm run typecheck`, and `npm run build` should all pass before claiming the code is healthy.
+- `/analytics` is a server-side redirect to `/analytics/journeys` for authenticated users; unauthenticated requests redirect to `/login`.
+- The local `.env` must comment out or remove empty optional email fields (`SUPER_ADMIN_EMAIL`, `SMTP_FROM`) so Zod validation passes.
+
+## Useful smoke checks
+
+```bash
+# Server health
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
+
+# DB check for a newly onboarded user
+docker exec -e PGPASSWORD=postgres omniconnect-postgres psql -U postgres -d omniconnect -c "SELECT u.email, o.name AS org, s.name AS store FROM \"User\" u LEFT JOIN \"Organization\" o ON u.\"organizationId\" = o.id LEFT JOIN \"Store\" s ON s.\"organizationId\" = o.id WHERE u.email = '<test-email>';"
+```
+
+## Devin secrets needed
+
+None for basic local smoke tests; a minimal `.env` with local Docker DB/Redis and a random `NEXTAUTH_SECRET`/`ENCRYPTION_KEY` is sufficient.
