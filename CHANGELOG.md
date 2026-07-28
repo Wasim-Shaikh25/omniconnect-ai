@@ -51,7 +51,8 @@ All notable changes to **OmniConnect AI** are documented here.
   - `app/providers.tsx` now accepts and forwards the CSP `nonce` to `next-themes` `ThemeProvider` so its injected script tag satisfies `script-src`.
   - `app/providers.tsx` disables `next-themes` color-scheme inline styles (`enableColorScheme={false}`) to avoid `style-src` CSP violations.
   - `next.config.ts` provides a no-op `crypto` fallback for the Edge runtime so the dev server stops warning about `bcryptjs` requiring Node `crypto` in the middleware bundle.
-  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (server-only bundling is now enabled; re-land after validation), BullMQ worker deployment wiring (`fly.toml` / `deploy.sh`), admin pagination, `teamSeats` enforcement (needs invite flow), intelligence store-scoped pages and remaining actions, medium/low polish.
+  - `fly.toml` now defines `app` and `worker` process groups, and `npm run build` bundles `src/jobs/worker.ts` into `.next/standalone/worker.cjs` so the BullMQ worker deploys alongside the web service.
+  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (server-only bundling is now enabled; re-land after validation), admin pagination, `teamSeats` enforcement (needs invite flow), intelligence store-scoped pages and remaining actions, medium/low polish.
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).

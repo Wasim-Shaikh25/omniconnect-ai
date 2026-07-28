@@ -15,7 +15,7 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 ### Critical
 
 - [ ] **C1** — Replace in-memory event bus, rate limiter, and webhook dedup with Redis-backed implementations (or fail fast in production). **Partial:** `REDIS_URL` is now required in production and a shared `src/shared/redis/client.ts` helper exists. Redis-backed stores were attempted but reverted because `ioredis` was pulled into the client bundle by the auth/organizations barrels; needs a server-only bundling strategy before re-landing.
-- [ ] **C2** — Wire `npm run worker` into `fly.toml` / `deploy.sh` / production runbook.
+- [x] **C2** — Wire `npm run worker` into `fly.toml` / `deploy.sh` / production runbook. (`npm run build` now emits `.next/standalone/worker.cjs`; `fly.toml` has `app` and `worker` process groups.)
 - [x] **C3** — Add RBAC and target-user validation to project management actions. (`teamSeats` enforcement deferred; it requires an organization invite/add-member flow.)
 - [x] **C4** — Standardize store-scoped authorization: use `tenantGuard.assertStoreAccess` across all store-scoped server actions and components. (Applied to commerce and conversations actions; remaining intelligence pages/actions tracked.)
 - [ ] **C5** — Add pagination to admin list endpoints (organizations, users, coupons, tickets).
