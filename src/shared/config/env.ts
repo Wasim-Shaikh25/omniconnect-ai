@@ -80,6 +80,7 @@ export const env: Env = parsed.data;
 
 const PRODUCTION_REQUIRED: Array<keyof Env> = [
   "DATABASE_URL",
+  "REDIS_URL",
   "NEXTAUTH_SECRET",
   "ENCRYPTION_KEY",
   "META_APP_SECRET",
@@ -98,6 +99,25 @@ export function validateProductionSecrets(): void {
     throw new Error(
       `Missing required production environment variables: ${missing.join(", ")}`,
     );
+  }
+  if (env.EMAIL_PROVIDER === "console") {
+    throw new Error(
+      "EMAIL_PROVIDER cannot be 'console' in production. Configure SMTP or another transactional email provider.",
+    );
+  }
+  if (env.EMAIL_PROVIDER === "smtp") {
+    const smtpMissing = ([
+      "SMTP_HOST",
+      "SMTP_PORT",
+      "SMTP_USER",
+      "SMTP_PASSWORD",
+      "SMTP_FROM",
+    ] as const).filter((key) => !env[key]);
+    if (smtpMissing.length > 0) {
+      throw new Error(
+        `SMTP is selected but missing environment variables: ${smtpMissing.join(", ")}`,
+      );
+    }
   }
 }
 

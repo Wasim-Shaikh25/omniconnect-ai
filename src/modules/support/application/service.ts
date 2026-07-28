@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { PaginationInput } from "@/shared/kernel";
 import type { SupportTicketRecord, SupportTicketRepository, TicketCategory, TicketPriority, TicketStatus } from "./ports";
 
 export const createTicketSchema = z.object({
@@ -40,8 +41,9 @@ export function makeListAllTickets(deps: { tickets: SupportTicketRepository }) {
       priority?: TicketPriority;
       category?: TicketCategory;
     },
-  ): Promise<SupportTicketRecord[]> {
-    return deps.tickets.listAll(organizationId, filters);
+    pagination?: PaginationInput,
+  ) {
+    return deps.tickets.listAll(organizationId, filters, pagination);
   };
 }
 

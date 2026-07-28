@@ -1,5 +1,6 @@
 import { prisma } from "@/shared/database";
 import { logger } from "@/shared/observability";
+import { PaginationInput, paginatedResult, toSkip } from "@/shared/kernel";
 import { Plan, parsePlan } from "../domain/plan";
 import {
   OrganizationRecord,
@@ -35,9 +36,26 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return org ? mapOrg(org) : null;
   }
 
-  async listAll(): Promise<OrganizationRecord[]> {
-    const orgs = await prisma.organization.findMany({ orderBy: { createdAt: "desc" } });
-    return orgs.map(mapOrg);
+  async findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null> {
+    const org = await prisma.organization.findUnique({ where: { subscriptionId } });
+    return org ? mapOrg(org) : null;
+  }
+
+  async listAll(pagination?: PaginationInput) {
+    const [orgs, total] = await Promise.all([
+      prisma.organization.findMany({
+        orderBy: { createdAt: "desc" },
+        ...(pagination
+          ? { skip: toSkip(pagination), take: pagination.limit }
+          : {}),
+      }),
+      prisma.organization.count(),
+    ]);
+    return paginatedResult(
+      orgs.map(mapOrg),
+      total,
+      pagination ?? { page: 1, limit: total || 1 },
+    );
   }
 
   async updatePlan(
@@ -53,7 +71,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
 
   async incrementAIReplies(id: string, limit: number | null): Promise<boolean> {
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
     try {
       return await prisma.$transaction(
@@ -67,7 +85,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
             used = 0;
             await tx.organization.update({
               where: { id },
-              data: { aiRepliesThisMonth: 0, aiRepliesResetAt: now },
+              data: { aiRepliesThisMonth: 0, aiRepliesResetAt: monthStart },
             });
           }
 

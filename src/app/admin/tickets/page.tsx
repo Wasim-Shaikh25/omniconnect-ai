@@ -2,13 +2,25 @@ import { listAllTicketsAction, getTicketByIdAction, updateTicketAction, addTicke
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TicketStatusForm, TicketCommentForm } from "@/components/ticket-detail-forms";
 
-export default async function AdminTicketsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ id?: string }>;
-}) {
+interface AdminTicketsPageProps {
+  searchParams: Promise<{ id?: string; page?: string; limit?: string }>;
+}
+
+function parsePage(raw: string | undefined) {
+  const n = Number.parseInt(raw ?? "1", 10);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+function parseLimit(raw: string | undefined) {
+  const n = Number.parseInt(raw ?? "20", 10);
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : 20;
+}
+
+export default async function AdminTicketsPage({ searchParams }: AdminTicketsPageProps) {
   const params = await searchParams;
-  const tickets = await listAllTicketsAction();
+  const page = parsePage(params.page);
+  const limit = parseLimit(params.limit);
+  const result = await listAllTicketsAction(undefined, page, limit);
   const selected = params.id ? await getTicketByIdAction(params.id) : null;
 
   return (
@@ -16,23 +28,48 @@ export default async function AdminTicketsPage({
       <Card className="lg:col-span-1">
         <CardHeader>
           <CardTitle>Tickets</CardTitle>
-          <CardDescription>{tickets.length} total</CardDescription>
+          <CardDescription>{result.total} total</CardDescription>
         </CardHeader>
         <CardContent>
-          {tickets.length === 0 ? (
+          {result.items.length === 0 ? (
             <p className="text-sm text-muted-foreground">No tickets yet.</p>
           ) : (
-            <ul className="divide-y">
-              {tickets.map((ticket) => (
-                <li key={ticket.id} className="py-2">
-                  <a href={`/admin/tickets?id=${ticket.id}`} className="block text-sm hover:underline">
-                    <span className="font-medium">{ticket.title}</span>
-                    <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">{ticket.status}</span>
-                    <span className="block text-xs text-muted-foreground">{ticket.userEmail}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="divide-y">
+                {result.items.map((ticket) => (
+                  <li key={ticket.id} className="py-2">
+                    <a href={`/admin/tickets?id=${ticket.id}&page=${page}&limit=${limit}`} className="block text-sm hover:underline">
+                      <span className="font-medium">{ticket.title}</span>
+                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs">{ticket.status}</span>
+                      <span className="block text-xs text-muted-foreground">{ticket.userEmail}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <nav aria-label="Ticket pagination" className="mt-4 flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Page {result.page} of {result.totalPages}
+                </span>
+                <div className="flex gap-2">
+                  {page > 1 && (
+                    <a
+                      href={`/admin/tickets?page=${page - 1}&limit=${limit}`}
+                      className="rounded-md border px-3 py-1 hover:bg-muted"
+                    >
+                      Previous
+                    </a>
+                  )}
+                  {page < result.totalPages && (
+                    <a
+                      href={`/admin/tickets?page=${page + 1}&limit=${limit}`}
+                      className="rounded-md border px-3 py-1 hover:bg-muted"
+                    >
+                      Next
+                    </a>
+                  )}
+                </div>
+              </nav>
+            </>
           )}
         </CardContent>
       </Card>

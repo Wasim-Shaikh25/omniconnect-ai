@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getQueue } from "@/shared/queue";
-import { getCurrentUser, requireRole, requireSuperAdmin } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { getCurrentUser, requireRole, requireSuperAdmin, ForbiddenError, type SessionUser } from "@/modules/auth";
+import { organizationQueries, tenantGuard } from "@/modules/organizations";
 import { customerDirectory } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
 import {
@@ -85,6 +85,31 @@ async function assertCustomerInOrg(
   return !!customer;
 }
 
+/**
+ * Resolves the effective store scope for the current user and validates it.
+ * - Staff members are restricted to their assigned `user.storeId`.
+ * - Owners/admins may request any store in their organization.
+ * - When no store is requested, non-staff users can operate across all org stores.
+ * Throws `ForbiddenError` when the requested store is outside the user's scope.
+ */
+async function resolveStoreScope(
+  user: SessionUser,
+  requestedStoreId?: string | null,
+): Promise<string | null> {
+  if (user.role === "STAFF") {
+    if (!user.storeId) throw new ForbiddenError("No store assigned to staff user.");
+    if (requestedStoreId && requestedStoreId !== user.storeId) throw new ForbiddenError();
+    return user.storeId;
+  }
+
+  if (requestedStoreId) {
+    await tenantGuard.assertStoreAccess(user, requestedStoreId);
+    return requestedStoreId;
+  }
+
+  return null;
+}
+
 export async function getCustomerTimelineAction(customerId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { events: [] };
@@ -124,17 +149,19 @@ export async function getDataQualityIssuesAction(storeId?: string) {
   if (!user || !user.organizationId) return { issues: [] };
   const organizationId = user.organizationId;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { issues: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { issues: [] };
   }
 
   const definitions = await metricService.getDefinitions();
   await Promise.all(
-    definitions.map((d) => dataQualityService.inspectMetric(d.name, organizationId, storeId ?? null)),
+    definitions.map((d) => dataQualityService.inspectMetric(d.name, organizationId, effectiveStoreId)),
   );
 
-  const issues = await dataQualityService.getOpenIssues(organizationId, storeId);
+  const issues = await dataQualityService.getOpenIssues(organizationId, effectiveStoreId ?? undefined);
   return { issues };
 }
 
@@ -148,15 +175,15 @@ export async function getMetricAction(formData: FormData) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { name, storeId } = parsed.data;
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) {
-      return { error: "Store not found" };
-    }
+  const { name, storeId: requestedStoreId } = parsed.data;
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, requestedStoreId ?? null);
+  } catch {
+    return { error: "Store not found" };
   }
 
-  const snapshot = await metricService.getMetric(name, organizationId, storeId ?? null);
+  const snapshot = await metricService.getMetric(name, organizationId, effectiveStoreId);
   return { snapshot };
 }
 
@@ -165,18 +192,20 @@ export async function getIntelligenceFeedAction(storeId?: string) {
   if (!user || !user.organizationId) return { insights: [] };
   const organizationId = user.organizationId;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { insights: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { insights: [] };
   }
 
-  const storeIds = storeId
-    ? [storeId]
+  const storeIds = effectiveStoreId
+    ? [effectiveStoreId]
     : (await organizationQueries.getOrganizationOverview(organizationId))?.stores.map((s) => s.id) ?? [];
 
   await Promise.all(storeIds.map((id) => detectionService.analyzeStore(organizationId, id)));
 
-  const insights = await intelligenceFeedService.getFeed(organizationId, storeId, 20);
+  const insights = await intelligenceFeedService.getFeed(organizationId, effectiveStoreId ?? undefined, 20);
   return { insights };
 }
 
@@ -213,13 +242,15 @@ export async function getRecommendationsAction(storeId?: string) {
   if (!user || !user.organizationId) return { recommendations: [] };
   const organizationId = user.organizationId;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { recommendations: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { recommendations: [] };
   }
 
-  await recommendationService.generateFromOpenInsights(organizationId, storeId);
-  const recommendations = await recommendationService.listOpen(organizationId, storeId, 20);
+  await recommendationService.generateFromOpenInsights(organizationId, effectiveStoreId ?? undefined);
+  const recommendations = await recommendationService.listOpen(organizationId, effectiveStoreId ?? undefined, 20);
   return { recommendations };
 }
 
@@ -228,12 +259,14 @@ export async function getRecommendationConflictsAction(storeId?: string) {
   if (!user || !user.organizationId) return { conflicts: [] };
   const organizationId = user.organizationId;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { conflicts: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { conflicts: [] };
   }
 
-  const conflicts = await recommendationLifecycleService.getRecentConflicts(organizationId, storeId, 5);
+  const conflicts = await recommendationLifecycleService.getRecentConflicts(organizationId, effectiveStoreId ?? undefined, 5);
   return { conflicts };
 }
 
@@ -246,9 +279,16 @@ export async function refreshReadModelsAction(storeId?: string): Promise<{
   if (!user.organizationId) return { ok: false, error: "Unauthorized" };
   const organizationId = user.organizationId;
 
-  const overview = await organizationQueries.getOrganizationOverview(organizationId);
-  const storeIds = storeId ? [storeId] : overview?.stores.map((s) => s.id) ?? [];
-  if (storeId && !overview?.stores.some((s) => s.id === storeId)) return { ok: false, error: "Store not found" };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { ok: false, error: "Store not found" };
+  }
+
+  const storeIds = effectiveStoreId
+    ? [effectiveStoreId]
+    : (await organizationQueries.getOrganizationOverview(organizationId))?.stores.map((s) => s.id) ?? [];
 
   try {
     const queue = getQueue(INTELLIGENCE_QUEUE);
@@ -318,12 +358,14 @@ export async function getGoalsAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { goals: [] };
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { goals: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { goals: [] };
   }
 
-  const goals = await goalService.list(user.organizationId, storeId, 20);
+  const goals = await goalService.list(user.organizationId, effectiveStoreId ?? undefined, 20);
   return { goals };
 }
 
@@ -342,15 +384,17 @@ export async function createGoalAction(formData: FormData): Promise<void> {
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return;
 
-  const { storeId, name, targetMetric, target, endDate } = parsed.data;
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return;
+  const { storeId: requestedStoreId, name, targetMetric, target, endDate } = parsed.data;
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, requestedStoreId ?? null);
+  } catch {
+    return;
   }
 
-  await goalService.create(user.organizationId, storeId, name, targetMetric, target ?? null, endDate ?? null, user.id);
+  await goalService.create(user.organizationId, effectiveStoreId ?? undefined, name, targetMetric, target ?? null, endDate ?? null, user.id);
   revalidatePath("/dashboard");
-  if (storeId) revalidatePath(`/stores/${storeId}`);
+  if (effectiveStoreId) revalidatePath(`/stores/${effectiveStoreId}`);
 }
 
 export async function splitEntityAction(formData: FormData): Promise<void> {
@@ -371,13 +415,15 @@ export async function getPredictionsAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { predictions: [] };
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { predictions: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { predictions: [] };
   }
 
-  await predictionService.generateForStore(user.organizationId, storeId);
-  const predictions = await predictionService.listActive(user.organizationId, storeId, 20);
+  await predictionService.generateForStore(user.organizationId, effectiveStoreId ?? undefined);
+  const predictions = await predictionService.listActive(user.organizationId, effectiveStoreId ?? undefined, 20);
   return { predictions };
 }
 
@@ -385,13 +431,15 @@ export async function getHypothesesAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { hypotheses: [] };
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { hypotheses: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { hypotheses: [] };
   }
 
-  await hypothesisService.generateFromOpenInsights(user.organizationId, storeId);
-  const hypotheses = await hypothesisService.list(user.organizationId, storeId, 20);
+  await hypothesisService.generateFromOpenInsights(user.organizationId, effectiveStoreId ?? undefined);
+  const hypotheses = await hypothesisService.list(user.organizationId, effectiveStoreId ?? undefined, 20);
   return { hypotheses };
 }
 
@@ -399,12 +447,14 @@ export async function getBusinessLearningAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { learning: [] };
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { learning: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { learning: [] };
   }
 
-  const learning = await businessLearningService.list(user.organizationId, storeId, 20);
+  const learning = await businessLearningService.list(user.organizationId, effectiveStoreId ?? undefined, 20);
   return { learning };
 }
 
@@ -412,12 +462,20 @@ export async function getAgencyPortfolioAction() {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { snapshot: null };
 
-  const start = Date.now();
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview) return { snapshot: null };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, null);
+  } catch {
+    return { snapshot: null };
+  }
 
-  for (const store of overview.stores) {
-    await predictionService.generateForStore(user.organizationId, store.id);
+  const start = Date.now();
+  const storeIds = effectiveStoreId
+    ? [effectiveStoreId]
+    : (await organizationQueries.getOrganizationOverview(user.organizationId))?.stores.map((s) => s.id) ?? [];
+
+  for (const id of storeIds) {
+    await predictionService.generateForStore(user.organizationId, id);
   }
 
   await portfolioService.generateSnapshot(user.organizationId);
@@ -430,13 +488,17 @@ export async function getCompetitorIntelligenceAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { insights: [] };
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { insights: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { insights: [] };
   }
 
   const start = Date.now();
-  const storeIds = storeId ? [storeId] : (await organizationQueries.getOrganizationOverview(user.organizationId))?.stores.map((s) => s.id) ?? [];
+  const storeIds = effectiveStoreId
+    ? [effectiveStoreId]
+    : (await organizationQueries.getOrganizationOverview(user.organizationId))?.stores.map((s) => s.id) ?? [];
 
   for (const id of storeIds) {
     const accounts = await listTrackedCompetitorsAction(id);
@@ -445,7 +507,7 @@ export async function getCompetitorIntelligenceAction(storeId?: string) {
     }
   }
 
-  const insights = await competitorIntelligenceService.list(user.organizationId, storeId, 20);
+  const insights = await competitorIntelligenceService.list(user.organizationId, effectiveStoreId ?? undefined, 20);
   await costLatencyMonitor.record(user.organizationId, "getCompetitorIntelligenceAction", "intelligence", Date.now() - start, 0.25, "OK");
   return { insights };
 }
@@ -462,9 +524,12 @@ export async function getInboxNextBestActionAction(conversationId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { action: null };
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
   const conversation = await conversationQueries.getConversation(conversationId);
-  if (!conversation || !overview?.stores.some((s) => s.id === conversation.conversation.storeId)) {
+  if (!conversation) return { action: null };
+
+  try {
+    await resolveStoreScope(user, conversation.conversation.storeId);
+  } catch {
     return { action: null };
   }
 
@@ -480,8 +545,11 @@ export async function getOrdersNextBestActionAction(storeId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { action: null };
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+  try {
+    await resolveStoreScope(user, storeId);
+  } catch {
+    return { action: null };
+  }
 
   const action = await nextBestActionService.forStoreOrders(user.organizationId, storeId);
   return { action };
@@ -499,8 +567,11 @@ export async function getContentNextBestActionAction(storeId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { action: null };
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+  try {
+    await resolveStoreScope(user, storeId);
+  } catch {
+    return { action: null };
+  }
 
   const action = await nextBestActionService.forContent(storeId);
   return { action };
@@ -510,8 +581,11 @@ export async function getCampaignsNextBestActionAction(storeId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { action: null };
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+  try {
+    await resolveStoreScope(user, storeId);
+  } catch {
+    return { action: null };
+  }
 
   const action = await nextBestActionService.forCampaigns(storeId);
   return { action };
@@ -521,8 +595,11 @@ export async function getBrandDealsNextBestActionAction(storeId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { action: null };
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+  try {
+    await resolveStoreScope(user, storeId);
+  } catch {
+    return { action: null };
+  }
 
   const action = await nextBestActionService.forBrandDeals(storeId);
   return { action };
@@ -532,8 +609,11 @@ export async function getCompetitorNextBestActionAction(storeId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { action: null };
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === storeId)) return { action: null };
+  try {
+    await resolveStoreScope(user, storeId);
+  } catch {
+    return { action: null };
+  }
 
   const action = await nextBestActionService.forCompetitorIntelligence(user.organizationId, storeId);
   return { action };
@@ -544,14 +624,16 @@ export async function getStoreMetricsAction(storeId?: string) {
   if (!user || !user.organizationId) return { metrics: [] };
   const organizationId = user.organizationId;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return { metrics: [] };
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { metrics: [] };
   }
 
   const definitions = await metricService.getDefinitions();
-  const storeIds = storeId
-    ? [storeId]
+  const storeIds = effectiveStoreId
+    ? [effectiveStoreId]
     : (await organizationQueries.getOrganizationOverview(organizationId))?.stores.map((s) => s.id) ?? [];
 
   const metrics = await Promise.all(
@@ -600,8 +682,9 @@ export async function createGoalAutomationAction(formData: FormData): Promise<vo
   });
   if (!parsed.success) throw new Error(parsed.error.errors[0]?.message ?? "Validation failed");
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === parsed.data.storeId)) {
+  try {
+    await resolveStoreScope(user, parsed.data.storeId);
+  } catch {
     throw new Error("Unauthorized");
   }
 
@@ -618,12 +701,14 @@ export async function getWorkspaceKpisAction(storeId?: string, period: "24h" | "
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return null;
   }
 
-  return kpiService.getWorkspaceSnapshot(user.organizationId, storeId, period);
+  return kpiService.getWorkspaceSnapshot(user.organizationId, effectiveStoreId ?? undefined, period);
 }
 
 export async function formatAiResponseAction(input: {
@@ -684,8 +769,11 @@ export async function validateWorkflowAction(workflow: {
 export async function runQualityChecksAction(storeId: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  try {
+    await resolveStoreScope(user, storeId);
+  } catch {
+    return null;
+  }
   return qualityAssuranceService.runAll({ organizationId: user.organizationId, storeId, userId: user.id, userRole: user.role ?? "STAFF" });
 }
 
@@ -724,40 +812,47 @@ export async function getUnifiedContextAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return null;
   }
 
-  return unifiedContextService.getContext({ organizationId: user.organizationId, storeId });
+  return unifiedContextService.getContext({ organizationId: user.organizationId, storeId: effectiveStoreId ?? undefined });
 }
 
 export async function getKnowledgeGraphAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return null;
   }
 
-  return knowledgeGraphService.query({ organizationId: user.organizationId, storeId });
+  return knowledgeGraphService.query({ organizationId: user.organizationId, storeId: effectiveStoreId ?? undefined });
 }
 
 export async function getFeatureProfileAction(type: "customer" | "product" | "content" | "campaign" | "business", id: string, storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return null;
 
-  if (storeId) {
-    const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-    if (!overview?.stores.some((s) => s.id === storeId)) return null;
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return null;
   }
 
-  if (type === "customer") return featureService.getCustomerFeatures(user.organizationId, storeId ?? "", id);
-  if (type === "product") return featureService.getProductFeatures(user.organizationId, storeId ?? "", id);
+  const scopedStoreId = effectiveStoreId ?? "";
+  if (type === "customer") return featureService.getCustomerFeatures(user.organizationId, scopedStoreId, id);
+  if (type === "product") return featureService.getProductFeatures(user.organizationId, scopedStoreId, id);
   if (type === "content") return featureService.getContentFeatures();
   if (type === "campaign") return featureService.getCampaignFeatures();
-  return featureService.getBusinessFeatures(user.organizationId, storeId ?? "");
+  return featureService.getBusinessFeatures(user.organizationId, scopedStoreId);
 }
 
 export async function createGoalPlanWorkflowAction(goalId: string) {
@@ -864,16 +959,18 @@ export async function getMarketingMemoryAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
-  if (!overview?.stores.some((s) => s.id === parsed.data.storeId)) {
+  let effectiveStoreId: string;
+  try {
+    effectiveStoreId = (await resolveStoreScope(user, parsed.data.storeId)) ?? parsed.data.storeId;
+  } catch {
     return { error: "Store not found in your organization." };
   }
 
   try {
-    const memory = await updateMarketingMemory(user.organizationId, parsed.data.storeId);
+    const memory = await updateMarketingMemory(user.organizationId, effectiveStoreId);
     await generateMarketingInsightsFromMemory(memory);
-    await recommendationService.generateFromOpenInsights(user.organizationId, parsed.data.storeId);
-    const brief = await generateDailyBrief(user.organizationId, parsed.data.storeId, memory);
+    await recommendationService.generateFromOpenInsights(user.organizationId, effectiveStoreId);
+    const brief = await generateDailyBrief(user.organizationId, effectiveStoreId, memory);
     return { memory, brief };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not generate marketing memory" };
@@ -882,19 +979,19 @@ export async function getMarketingMemoryAction(
 
 // ── Daily operating rhythm (spec 0050) ──────────────────────────────────────
 
-async function assertStoreInOrg(organizationId: string, storeId?: string): Promise<boolean> {
-  if (!storeId) return true;
-  const overview = await organizationQueries.getOrganizationOverview(organizationId);
-  return !!overview?.stores.some((s) => s.id === storeId);
-}
-
 export async function getTodayActionsAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { actions: [] };
   const organizationId = user.organizationId;
-  if (!(await assertStoreInOrg(organizationId, storeId))) return { actions: [] };
 
-  const actions = await dailyActionService.listToday(organizationId, storeId);
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { actions: [] };
+  }
+
+  const actions = await dailyActionService.listToday(organizationId, effectiveStoreId ?? undefined);
   return { actions };
 }
 
@@ -931,9 +1028,15 @@ export async function getJourneysAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { journeys: [] };
   const organizationId = user.organizationId;
-  if (!(await assertStoreInOrg(organizationId, storeId))) return { journeys: [] };
 
-  const journeys = await journeyService.listJourneys(organizationId, storeId, 50);
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { journeys: [] };
+  }
+
+  const journeys = await journeyService.listJourneys(organizationId, effectiveStoreId ?? undefined, 50);
   return { journeys };
 }
 
@@ -950,9 +1053,15 @@ export async function getBusinessBrainContextAction(storeId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { context: null };
   const organizationId = user.organizationId;
-  if (!(await assertStoreInOrg(organizationId, storeId))) return { context: null };
 
-  const context = await businessBrainContextService.getContext(organizationId, storeId);
+  let effectiveStoreId: string | null;
+  try {
+    effectiveStoreId = await resolveStoreScope(user, storeId ?? null);
+  } catch {
+    return { context: null };
+  }
+
+  const context = await businessBrainContextService.getContext(organizationId, effectiveStoreId ?? undefined);
   return { context };
 }
 

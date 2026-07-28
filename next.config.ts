@@ -16,6 +16,15 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   serverExternalPackages: ["bullmq", "ioredis"],
+  webpack: (config, { nextRuntime }) => {
+    // Edge middleware bundles `bcryptjs` transitively via `NextAuth` providers
+    // but never calls its hashing functions; provide a no-op `crypto` fallback
+    // so the dev server stops warning about the Node `crypto` module.
+    if (nextRuntime === "edge") {
+      config.resolve.fallback = { ...config.resolve.fallback, crypto: false };
+    }
+    return config;
+  },
   async headers() {
     return [
       {

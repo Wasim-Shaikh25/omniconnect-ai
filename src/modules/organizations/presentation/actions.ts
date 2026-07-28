@@ -41,7 +41,25 @@ export async function createStoreAction(
   return { ok: true };
 }
 
-export async function listAllOrganizationsAction() {
+const DEFAULT_PAGE_LIMIT = 20;
+
+function parsePage(raw: string | number | undefined) {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : typeof raw === "number" ? raw : 1;
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+function parseLimit(raw: string | number | undefined) {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : typeof raw === "number" ? raw : DEFAULT_PAGE_LIMIT;
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : DEFAULT_PAGE_LIMIT;
+}
+
+export async function listAllOrganizationsAction(
+  page?: string | number,
+  limit?: string | number,
+) {
   await requireSuperAdmin();
-  return organizationQueries.listAllOrganizations();
+  return organizationQueries.listAllOrganizations({
+    page: parsePage(page),
+    limit: parseLimit(limit),
+  });
 }

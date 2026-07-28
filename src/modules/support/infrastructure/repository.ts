@@ -1,4 +1,6 @@
 import { prisma } from "@/shared/database";
+import type { PaginationInput } from "@/shared/kernel";
+import { paginatedResult, toSkip } from "@/shared/kernel";
 import type {
   SupportTicketRecord,
   SupportTicketRepository,
@@ -59,16 +61,28 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
       priority?: TicketPriority;
       category?: TicketCategory;
     },
-  ): Promise<SupportTicketRecord[]> {
-    const tickets = await prisma.supportTicket.findMany({
-      where: {
-        ...(organizationId ? { organizationId } : {}),
-        ...filters,
-      },
-      orderBy: { createdAt: "desc" },
-      include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
-    });
-    return tickets.map((t) => this.mapTicket(t));
+    pagination?: PaginationInput,
+  ) {
+    const where = {
+      ...(organizationId ? { organizationId } : {}),
+      ...filters,
+    };
+    const [tickets, total] = await Promise.all([
+      prisma.supportTicket.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        ...(pagination
+          ? { skip: toSkip(pagination), take: pagination.limit }
+          : {}),
+        include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
+      }),
+      prisma.supportTicket.count({ where }),
+    ]);
+    return paginatedResult(
+      tickets.map((t) => this.mapTicket(t)),
+      total,
+      pagination ?? { page: 1, limit: total || 1 },
+    );
   }
 
   async update(

@@ -32,8 +32,8 @@ export default async function RootLayout({
 
   return (
     <html lang="en" nonce={nonce} suppressHydrationWarning>
-      <body className="min-h-screen antialiased" nonce={nonce}>
-        <Providers>
+      <body className="min-h-screen antialiased" nonce={nonce} suppressHydrationWarning>
+        <Providers nonce={nonce}>
           <AppHeader />
           {children}
         </Providers>

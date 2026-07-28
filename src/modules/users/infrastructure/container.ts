@@ -1,3 +1,4 @@
+import { PaginationInput } from "@/shared/kernel";
 import { makeUpdateProfile } from "../application/update-profile";
 import { makeChangeUserRole } from "../application/change-role";
 import {
@@ -30,12 +31,13 @@ export async function getUserProfile(id: string): Promise<UserProfile | null> {
 
 export async function listOrganizationUsers(
   organizationId: string,
-): Promise<UserProfile[]> {
-  return users.listByOrganization(organizationId);
+  pagination?: PaginationInput,
+) {
+  return users.listByOrganization(organizationId, pagination);
 }
 
-export async function listAllUsers(): Promise<UserProfile[]> {
-  return users.listAll();
+export async function listAllUsers(pagination?: PaginationInput) {
+  return users.listAll(pagination);
 }
 
 export async function setUserSuperAdmin(

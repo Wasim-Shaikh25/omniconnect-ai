@@ -14,7 +14,7 @@ export default async function AdminDashboardPage() {
     listSystemLogs({ limit: 5 }),
   ]);
 
-  const openTickets = tickets.filter((t) => t.status !== "CLOSED").length;
+  const openTickets = tickets.items.filter((t) => t.status !== "CLOSED").length;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
           <CardTitle className="text-sm font-medium">Organizations</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{organizations.length}</p>
+          <p className="text-3xl font-bold">{organizations.total}</p>
         </CardContent>
       </Card>
       <Card>
@@ -31,7 +31,7 @@ export default async function AdminDashboardPage() {
           <CardTitle className="text-sm font-medium">Users</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{users.length}</p>
+          <p className="text-3xl font-bold">{users.total}</p>
         </CardContent>
       </Card>
       <Card>
@@ -39,7 +39,7 @@ export default async function AdminDashboardPage() {
           <CardTitle className="text-sm font-medium">Coupons</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{coupons.length}</p>
+          <p className="text-3xl font-bold">{coupons.total}</p>
         </CardContent>
       </Card>
       <Card>

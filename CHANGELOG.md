@@ -38,6 +38,24 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
+- **TASK-0055 — Production Readiness Audit fixes (spec `0055`):**
+  - `REDIS_URL` and a non-console `EMAIL_PROVIDER` (with complete SMTP config) are now required in production.
+  - Added `@@unique([subscriptionId])` and `@@index([aiRepliesResetAt])` on `Organization`; Stripe billing webhook now looks up the org by indexed `subscriptionId` instead of scanning all rows.
+  - `aiRepliesThisMonth` reset now uses UTC month boundaries.
+  - Narrowed CSP `connect-src` to `'self'` and public API allowlist to explicit webhook/auth prefixes; `style-src` now allows `'unsafe-inline'` so Next.js dev/runtime inline style attributes (route announcer, dev overlay) do not violate the policy.
+  - Project management actions now require `STORE_OWNER`, validate target users belong to the workspace, and guard against duplicate memberships.
+  - `commerce` and `conversations` store-scoped actions now use `tenantGuard.assertStoreAccess()` for staff store scoping.
+  - `package.json` declares `sideEffects: ["*.css"]` so webpack can tree-shake server-only module code out of the client bundle, reducing first-load JS and preventing Node-only packages from being bundled for the browser.
+  - `password-hasher.ts` now lazy-loads `bcryptjs` so it is not pulled into the client bundle at build time.
+  - `app/layout.tsx` adds `suppressHydrationWarning` to `<body nonce>` to silence the CSP nonce mismatch between server and client.
+  - `app/providers.tsx` now accepts and forwards the CSP `nonce` to `next-themes` `ThemeProvider` so its injected script tag satisfies `script-src`.
+  - `app/providers.tsx` disables `next-themes` color-scheme inline styles (`enableColorScheme={false}`) to avoid `style-src` CSP violations.
+  - `next.config.ts` provides a no-op `crypto` fallback for the Edge runtime so the dev server stops warning about `bcryptjs` requiring Node `crypto` in the middleware bundle.
+  - `fly.toml` now defines `app` and `worker` process groups, and `npm run build` bundles `src/jobs/worker.ts` into `.next/standalone/worker.cjs` so the BullMQ worker deploys alongside the web service.
+  - Added `PaginationInput`/`PaginatedResult` to the shared kernel and paginated all admin list endpoints (organizations, users, coupons, tickets) with Prisma `skip`/`take` + count and previous/next controls on the admin pages.
+  - Added `resolveStoreScope` helper in `intelligence/presentation/actions.ts` and standardized store-scoped authorization across intelligence actions (metrics, feed, recommendations, predictions, goals, daily actions, business brain context, next-best-actions, quality checks, feature profiles, etc.). Staff are restricted to `user.storeId`; owners/admins use `tenantGuard.assertStoreAccess`.
+  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (server-only bundling is now enabled; re-land after validation), `teamSeats` enforcement (needs invite flow), medium/low polish.
+
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
 

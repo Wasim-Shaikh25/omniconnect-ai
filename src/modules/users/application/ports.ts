@@ -1,4 +1,5 @@
 import type { Role } from "@/modules/auth";
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
 export interface UserProfile {
   id: string;
@@ -19,7 +20,7 @@ export interface UserProfileRepository {
   ): Promise<UserProfile>;
   setOrganization(id: string, organizationId: string): Promise<void>;
   setRole(id: string, role: Role): Promise<UserProfile>;
-  listByOrganization(organizationId: string): Promise<UserProfile[]>;
-  listAll(): Promise<UserProfile[]>;
+  listByOrganization(organizationId: string, pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
+  listAll(pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
   setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
 }

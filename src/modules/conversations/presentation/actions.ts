@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getCurrentUser, requireRole } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { getCurrentUser, requireRole, ForbiddenError } from "@/modules/auth";
+import { tenantGuard } from "@/modules/organizations";
 import { conversationCommands, unifiedInboxQueries } from "../infrastructure/container";
 import type { UnifiedInboxFilter } from "../application/unified-inbox";
 
@@ -11,17 +11,6 @@ export interface ConversationActionState {
   error?: string;
   ok?: boolean;
   message?: string;
-}
-
-async function assertStoreInOrg(
-  organizationId: string | null,
-  storeId: string,
-): Promise<boolean> {
-  if (!organizationId) return false;
-  const overview = await organizationQueries.getOrganizationOverview(
-    organizationId,
-  );
-  return overview?.stores.some((s) => s.id === storeId) ?? false;
 }
 
 export async function getUnifiedInboxAction(filter?: UnifiedInboxFilter) {
@@ -49,8 +38,13 @@ export async function takeOverConversationAction(
   }
 
   const { storeId, conversationId } = parsed.data;
-  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
-    return { error: "Store not found in your organization." };
+  try {
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return { error: "Store not found in your organization." };
+    }
+    throw error;
   }
 
   await conversationCommands.takeOver({
@@ -78,8 +72,13 @@ export async function resumeAIConversationAction(
   }
 
   const { storeId, conversationId } = parsed.data;
-  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
-    return { error: "Store not found in your organization." };
+  try {
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return { error: "Store not found in your organization." };
+    }
+    throw error;
   }
 
   await conversationCommands.resumeAI({ conversationId, storeId });

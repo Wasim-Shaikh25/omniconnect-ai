@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { requireRole, ForbiddenError } from "@/modules/auth";
+import { tenantGuard } from "@/modules/organizations";
 import { updateMarketingMemory } from "@/modules/intelligence";
 import type { ProductScoreRecord } from "@/modules/intelligence";
 import { commerceQueries, commerceService } from "../infrastructure/container";
@@ -27,31 +27,26 @@ export interface CommerceCatalogView {
   productScores: ProductScoreRecord[];
 }
 
-async function requireStoreAccess(storeId: string) {
-  const user = await getCurrentUser();
-  if (!user) return { user: null, organizationId: null, ok: false };
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) return { user, organizationId: user.organizationId, ok: false };
-  return { user, organizationId: user.organizationId, ok: true };
-}
-
 export async function listCommerceCatalogAction(
   storeId: string,
 ): Promise<CommerceCatalogView> {
-  const access = await requireStoreAccess(storeId);
-  if (!access.ok) return { sync: null, mappings: [], media: [], products: [], productScores: [] };
+  let user: Awaited<ReturnType<typeof requireRole>> | null = null;
+  try {
+    user = await requireRole("STAFF");
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return { sync: null, mappings: [], media: [], products: [], productScores: [] };
+    }
+    throw error;
+  }
 
   const [sync, mappings, media, products, memory] = await Promise.all([
     commerceQueries.getLatestCatalogSync(storeId),
     commerceQueries.listProductMappings(storeId),
     commerceQueries.listShoppableMedia(storeId),
     (await import("@/modules/ecommerce")).ecommerceQueries.listProducts(storeId, 100),
-    access.organizationId
-      ? updateMarketingMemory(access.organizationId, storeId)
-      : Promise.resolve(null),
+    updateMarketingMemory(user.organizationId ?? "", storeId),
   ]);
 
   return { sync, mappings, media, products, productScores: memory?.productScores ?? [] };
@@ -64,14 +59,16 @@ export async function syncMetaCatalogAction(
   const parsed = syncSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
-  const access = await requireStoreAccess(parsed.data.storeId);
-  if (!access.ok) return { ok: false, error: "Not authorized" };
-
   try {
+    const user = await requireRole("STORE_OWNER");
+    await tenantGuard.assertStoreAccess(user, parsed.data.storeId);
     await commerceService.syncProductCatalog(parsed.data.storeId);
     revalidatePath(`/stores/${parsed.data.storeId}/commerce/catalog`);
     return { ok: true };
   } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return { ok: false, error: "Not authorized" };
+    }
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Sync failed",
@@ -90,14 +87,16 @@ export async function createShoppableMediaAction(
   });
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
-  const access = await requireStoreAccess(parsed.data.storeId);
-  if (!access.ok) return { ok: false, error: "Not authorized" };
-
   try {
+    const user = await requireRole("STORE_OWNER");
+    await tenantGuard.assertStoreAccess(user, parsed.data.storeId);
     await commerceService.createShoppableMedia(parsed.data.storeId, parsed.data);
     revalidatePath(`/stores/${parsed.data.storeId}/commerce/catalog`);
     return { ok: true };
   } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return { ok: false, error: "Not authorized" };
+    }
     return {
       ok: false,
       error: error instanceof Error ? error.message : "Publish failed",

@@ -1,3 +1,4 @@
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { EcommerceProvider } from "../domain/provider";
 import { Plan } from "../domain/plan";
 
@@ -44,7 +45,8 @@ export interface ProjectMemberRecord {
 export interface OrganizationRepository {
   create(input: { name: string }): Promise<OrganizationRecord>;
   findById(id: string): Promise<OrganizationRecord | null>;
-  listAll(): Promise<OrganizationRecord[]>;
+  findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null>;
+  listAll(pagination?: PaginationInput): Promise<PaginatedResult<OrganizationRecord>>;
   updatePlan(
     id: string,
     input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
