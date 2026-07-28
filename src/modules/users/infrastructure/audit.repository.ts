@@ -7,7 +7,7 @@ import type {
 
 function toRecord(row: {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
   actorId: string | null;
   actorEmail: string | null;
   action: string;

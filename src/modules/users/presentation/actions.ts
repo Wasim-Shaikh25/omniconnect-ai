@@ -119,7 +119,7 @@ export async function toggleUserSuperAdminAction(
   const user = await setUserSuperAdmin(userId, isSuperAdmin);
 
   await auditCommands.create({
-    organizationId: "platform",
+    organizationId: admin.organizationId ?? null,
     actorId: admin.id,
     actorEmail: admin.email,
     action: isSuperAdmin ? "USER_PROMOTED_SUPER_ADMIN" : "USER_DEMOTED_SUPER_ADMIN",

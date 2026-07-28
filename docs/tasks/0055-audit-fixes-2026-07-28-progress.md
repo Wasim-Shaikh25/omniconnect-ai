@@ -33,7 +33,7 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 
 - [x] **M1** — Use UTC month boundaries for `aiRepliesThisMonth` reset.
 - [ ] **M2** — Surface structured server validation errors per-field in forms.
-- [ ] **M3** — Verify new Prisma indexes with `EXPLAIN ANALYZE` and add missing ones.
+- [x] **M3** — Verify new Prisma indexes with `EXPLAIN ANALYZE` and add missing ones. Verified `Organization.subscriptionId`, `Conversation.storeId/customerId`, `Integration.externalId`, and `Message.conversationId` indexes are used; no missing indexes added.
 - [x] **M4** — Remove password reset code from URL query string. Email link now only includes `email`; code is entered manually from the email body.
 
 ### Low

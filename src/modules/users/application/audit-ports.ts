@@ -1,6 +1,6 @@
 export interface AuditLogRecord {
   id: string;
-  organizationId: string;
+  organizationId: string | null;
   actorId: string | null;
   actorEmail: string | null;
   action: string;
@@ -11,7 +11,7 @@ export interface AuditLogRecord {
 }
 
 export interface CreateAuditLogInput {
-  organizationId: string;
+  organizationId: string | null;
   actorId?: string;
   actorEmail?: string;
   action: string;
