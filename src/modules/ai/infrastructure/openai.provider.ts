@@ -1,5 +1,5 @@
 import { env } from "@/shared/config";
-import { logger } from "@/shared/observability";
+import { logger, redactValue } from "@/shared/observability";
 import type { AIMessage, AIProvider } from "../application/ports";
 
 const OPENAI_API_BASE = "https://api.openai.com/v1/chat/completions";
@@ -8,6 +8,14 @@ const MAX_USER_CONTENT_LENGTH = 4000;
 
 const DEFAULT_REPLY =
   "Hello! I'm your AI assistant. How can I help you today?";
+
+const ALLOWED_MODELS = new Set([
+  "gpt-4o-mini",
+  "gpt-4o",
+  "gpt-4-turbo",
+  "gpt-4",
+  "gpt-3.5-turbo",
+]);
 
 interface OpenAIResponse {
   choices: { message: { content: string } }[];
@@ -43,8 +51,18 @@ function sanitize(messages: AIMessage[]): AIMessage[] {
     // used to smuggle role markers or instructions.
     let content = m.content.slice(0, MAX_USER_CONTENT_LENGTH);
     content = content.replace(/[\x00-\x08\x0b-\x0c\x0e-\x1f]/g, "");
+    // Wrap user content in delimiters so the model cannot confuse it with
+    // system instructions or prior assistant turns.
+    content = `<<<USER_MESSAGE>>>\n${content}\n<<</USER_MESSAGE>>>`;
     return { ...m, content };
   });
+}
+
+function sanitizeOutput(content: string): string {
+  // Redact any PII (emails/phones) the model may have emitted before it is
+  // sent to the customer or stored.
+  const redacted = redactValue(content);
+  return typeof redacted === "string" ? redacted : String(content);
 }
 
 export class OpenAIProvider implements AIProvider {
@@ -56,6 +74,11 @@ export class OpenAIProvider implements AIProvider {
     if (!apiKey) {
       logger.info("ai.openai.skipped", { reason: "no-api-key" });
       return config.fallback ?? buildDevReply(messages);
+    }
+
+    if (!ALLOWED_MODELS.has(config.model)) {
+      logger.warn("ai.openai.disallowedModel", { model: config.model });
+      throw new Error(`AI model "${config.model}" is not allowed`);
     }
 
     const safeMessages = sanitize(messages);
@@ -100,7 +123,7 @@ export class OpenAIProvider implements AIProvider {
         return DEFAULT_REPLY;
       }
 
-      return payload.choices[0].message.content.trim();
+      return sanitizeOutput(payload.choices[0].message.content.trim());
     } catch (error) {
       logger.error("ai.openai.requestFailed", {
         error: error instanceof Error ? error.message : "unknown",

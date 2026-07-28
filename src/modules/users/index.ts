@@ -32,6 +32,7 @@ export {
   listAllUsers,
   countOrganizationUsers,
   updateProfile,
+  setUserOrganization,
   auditQueries,
   auditCommands,
 } from "./infrastructure/container";

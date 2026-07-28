@@ -7,19 +7,13 @@ import { z } from "zod";
 import { registerUser, verificationCodeService, accounts, hasher } from "../infrastructure/container";
 import { signIn, signOut } from "../infrastructure/auth";
 import { registerUserSchema } from "../application/register-user";
-import { rateLimit } from "@/shared/security/rate-limit";
+import { clientIp, rateLimit } from "@/shared/security/rate-limit";
 
 export interface ActionState {
   error?: string;
   mfaRequired?: boolean;
   message?: string;
   ok?: boolean;
-}
-
-async function clientIpFromHeaders(): Promise<string> {
-  const h = await headers();
-  const forwarded = h.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "unknown";
 }
 
 function redirectPathForUser(
@@ -91,7 +85,7 @@ export async function loginAction(
 
   const email = parsed.data.email.toLowerCase().trim();
 
-  const ip = await clientIpFromHeaders();
+  const ip = clientIp(await headers());
   const limit = await rateLimit({
     key: `login-action:${email}:${ip}`,
     limit: 5,
@@ -140,7 +134,7 @@ export async function requestPasswordResetAction(
   });
   if (!parsed.success) return { error: "Enter a valid email address." };
 
-  const ip = await clientIpFromHeaders();
+  const ip = clientIp(await headers());
   const limit = await rateLimit({
     key: `reset-request:${parsed.data.email}:${ip}`,
     limit: 3,
@@ -179,7 +173,7 @@ export async function resetPasswordAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  const ip = await clientIpFromHeaders();
+  const ip = clientIp(await headers());
   const limit = await rateLimit({
     key: `reset-action:${parsed.data.email}:${ip}`,
     limit: 5,

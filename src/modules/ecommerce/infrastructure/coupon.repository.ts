@@ -54,4 +54,8 @@ export class PrismaCouponRepository implements CouponRepository {
     });
     return rows.map(toRecord);
   }
+
+  async countByStore(storeId: string): Promise<number> {
+    return prisma.coupon.count({ where: { storeId } });
+  }
 }

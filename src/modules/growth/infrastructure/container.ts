@@ -1,3 +1,4 @@
+import { crmQueries } from "@/modules/crm";
 import { metaService } from "@/modules/meta/server";
 import {
   PrismaUgcRepository,
@@ -26,6 +27,10 @@ export const growthService = makeGrowthService({
   backInStock,
   commentUnlocks,
   meta: metaService,
+  getCustomerConsent: async (input) => {
+    const profile = await crmQueries.getCustomerProfile(input);
+    return profile?.customer.consent ?? null;
+  },
 });
 
 export const growthQueries = makeGrowthQueries({

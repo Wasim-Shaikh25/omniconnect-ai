@@ -70,8 +70,39 @@ export async function rateLimit(options: RateLimitOptions): Promise<RateLimitRes
   };
 }
 
-/** Best-effort client IP extraction from proxy headers. */
-export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() ?? request.headers.get("x-real-ip") ?? "unknown";
+interface ClientIpSource {
+  get(name: string): string | null;
+}
+
+function safeIp(value: string | null): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+/** Best-effort client IP extraction from proxy headers.
+ *
+ * In production, set RATE_LIMIT_IP_HEADER to the trusted header supplied by your
+ * CDN/proxy (e.g. `Fly-Client-IP`, `CF-Connecting-IP`). If that header is absent,
+ * we fall back to the rightmost `x-forwarded-for` hop, which is harder to spoof
+ * than the leftmost value when the request has passed through trusted proxies.
+ */
+export function clientIp(source: ClientIpSource): string {
+  const trustedHeader = env.RATE_LIMIT_IP_HEADER;
+  if (trustedHeader) {
+    const trusted = safeIp(source.get(trustedHeader));
+    if (trusted) return trusted;
+  }
+
+  const forwarded = source.get("x-forwarded-for");
+  if (forwarded) {
+    const hops = forwarded
+      .split(",")
+      .map((h) => h.trim())
+      .filter(Boolean);
+    const rightmost = hops[hops.length - 1];
+    if (rightmost) return rightmost;
+  }
+
+  return safeIp(source.get("x-real-ip")) ?? "unknown";
 }

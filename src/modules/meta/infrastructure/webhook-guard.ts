@@ -46,7 +46,7 @@ function ensureProductionRedis(): void {
 export const webhookGuard = {
   async isRateLimited(request: Request): Promise<boolean> {
     ensureProductionRedis();
-    const ip = extractClientIp(request);
+    const ip = extractClientIp(request.headers);
     const result = await rateLimit({
       key: `meta:webhook:rate:${ip}`,
       limit: MAX_REQUESTS_PER_MINUTE,

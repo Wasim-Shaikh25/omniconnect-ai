@@ -65,6 +65,22 @@ All notable changes to **OmniConnect AI** are documented here.
   - Implemented `teamSeats` enforcement with an organization invite flow: `OrganizationInvite` model, `inviteMember` use case with `planLimits(...).teamSeats` guard, `registerWithInviteAction`, `/settings` invite form, and `/register?inviteToken=...` acceptance flow.
   - Fixed a client-bundle leak caused by `node:crypto` in `organizations/infrastructure/container.ts` by using the global `crypto.randomUUID()` instead.
 
+- **TASK-0056 — Production Readiness Audit remediation** (spec `0056`):
+  - Enforced `Customer.consent === DECLINED` before outbound AI replies (`ai/application/generate-reply.ts`), welcome/first-follower DMs (`coupons/application/welcome-first-follower.ts`), and comment-unlock rewards (`growth/application/service.ts`).
+  - Hardened `clientIp` extraction (`shared/security/rate-limit.ts`): configurable `RATE_LIMIT_IP_HEADER` and rightmost untrusted `X-Forwarded-For` hop; updated all callers (`auth/presentation/actions.ts`, `auth/infrastructure/auth.ts`, `meta/infrastructure/webhook-guard.ts`, `app/api/stripe/checkout/route.ts`).
+  - Classified Stripe webhook errors (`organizations/application/billing.ts`) and route (`app/api/stripe/webhook/route.ts`) to return `400` for signature/configuration errors, `500` for transient failures, and `503` when billing service is absent.
+  - Replaced `Math.random()` with Web Crypto (`crypto.getRandomValues` / `crypto.randomUUID`) for coupon codes and job IDs (`shared/security/random.ts`).
+  - Expanded production env validation (`shared/config/env.ts`) to include `NEXTAUTH_URL`, `APP_URL`, Meta/Stripe/super-admin credentials, and `RATE_LIMIT_IP_HEADER`.
+  - Added `/onboarding` route and `completeOnboardingAction` so new users without an organization can create their workspace synchronously (`organizations/application/create-organization.ts`, `app/onboarding/page.tsx`, `components/onboarding-form.tsx`).
+  - Made `growth/presentation/actions.ts` `parseForm` safe against non-string `FormData` values and duplicate keys.
+  - Validated support ticket `assignedTo` against the user repository and organization membership.
+  - Hardened the OpenAI provider (`ai/infrastructure/openai.provider.ts`) with allowed-model allowlist, user-message delimiters, and output PII redaction.
+  - Converted dashboard/reports/media-kit/AI workspace context to database `count` queries (`countProducts`, `countCoupons`, `countConversations`, `countFollowers`) instead of loading large lists into memory.
+  - Wired `redactValue` into `SystemLog` persistence (`shared/observability/system-log.ts`) and exported it from the public barrel.
+  - Made `RedisEventBus.publish` await local event handlers before publishing to Redis to avoid race conditions during provisioning.
+  - Replaced stray `process.env.NODE_ENV` checks in store pages with the validated `env` object.
+  - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test`, `npm audit` (0 vulnerabilities), and `npm run build`.
+
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.
   - Tool-specific rule files pointing back to `AGENTS.md`: `.cursorrules`, `.cursor/rules/*.mdc`,

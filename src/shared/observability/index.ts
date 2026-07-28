@@ -1,4 +1,4 @@
-export { logger } from "./logger";
+export { logger, redactValue } from "./logger";
 export {
   logSystem,
   logSystemError,

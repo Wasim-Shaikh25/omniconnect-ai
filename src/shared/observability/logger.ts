@@ -12,7 +12,7 @@ const SENSITIVE_KEYS = new RegExp(
 const EMAIL_PATTERN = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
 const PHONE_PATTERN = /\b\+?\d{1,3}[-.\s]?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/g;
 
-function redactValue(value: unknown): unknown {
+export function redactValue(value: unknown): unknown {
   if (typeof value === "string") {
     return value.replace(EMAIL_PATTERN, "[REDACTED_EMAIL]").replace(PHONE_PATTERN, "[REDACTED_PHONE]");
   }

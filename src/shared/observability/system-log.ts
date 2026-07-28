@@ -1,5 +1,6 @@
 import { prisma } from "@/shared/database";
 import { Prisma } from "@prisma/client";
+import { redactValue } from "./logger";
 
 type SystemLogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL";
 
@@ -76,7 +77,7 @@ export async function logSystem(
   } = {},
 ): Promise<void> {
   // Avoid logging secrets / tokens / PII in metadata.
-  const safeMetadata = fields.metadata
+  const filteredMetadata = fields.metadata
     ? Object.fromEntries(
         Object.entries(fields.metadata).filter(
           ([key]) =>
@@ -85,6 +86,9 @@ export async function logSystem(
             ),
         ),
       )
+    : undefined;
+  const safeMetadata = filteredMetadata
+    ? (redactValue(filteredMetadata) as Record<string, unknown>)
     : undefined;
 
   try {

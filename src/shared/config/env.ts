@@ -56,6 +56,8 @@ const envSchema = z.object({
   SUPER_ADMIN_PHONE: z.string().optional(),
   SUPER_ADMIN_PASSWORD: z.string().optional(),
 
+  RATE_LIMIT_IP_HEADER: z.string().optional(),
+
   EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
@@ -82,9 +84,20 @@ const PRODUCTION_REQUIRED: Array<keyof Env> = [
   "DATABASE_URL",
   "REDIS_URL",
   "NEXTAUTH_SECRET",
+  "NEXTAUTH_URL",
+  "APP_URL",
   "ENCRYPTION_KEY",
+  "META_APP_ID",
   "META_APP_SECRET",
+  "META_WEBHOOK_VERIFY_TOKEN",
   "OPENAI_API_KEY",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_PUBLISHABLE_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "STRIPE_PRICE_STARTER",
+  "STRIPE_PRICE_PRO",
+  "SUPER_ADMIN_EMAIL",
+  "SUPER_ADMIN_PASSWORD",
 ];
 
 /**

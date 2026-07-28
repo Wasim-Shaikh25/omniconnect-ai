@@ -1,3 +1,4 @@
+import { randomAlphanumeric } from "@/shared/security/random";
 import { generateCoupon } from "../infrastructure/container";
 
 export interface ActionResult {
@@ -6,7 +7,7 @@ export interface ActionResult {
 }
 
 function generateCouponCode(): string {
-  const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const suffix = randomAlphanumeric(6);
   return `OMNI-${suffix}`;
 }
 

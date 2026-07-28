@@ -1,5 +1,5 @@
 import { generateWelcome } from "@/modules/ai/server";
-import { crmCommands } from "@/modules/crm";
+import { crmCommands, crmQueries } from "@/modules/crm";
 import { conversationCommands } from "@/modules/conversations";
 import { generateCoupon } from "@/modules/ecommerce";
 import { metaService } from "@/modules/meta/server";
@@ -24,4 +24,8 @@ export const welcomeFirstFollower = makeWelcomeFirstFollower({
   metaService,
   crmCommands,
   conversationCommands,
+  getCustomerConsent: async (input) => {
+    const profile = await crmQueries.getCustomerProfile(input);
+    return profile?.customer.consent ?? null;
+  },
 });

@@ -7,6 +7,7 @@ import {
   webhookGuard,
 } from "@/modules/meta/server";
 import { ensureSubscribers } from "@/server/subscribers";
+import { clientIp } from "@/shared/security/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -33,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
   ensureSubscribers();
 
   if (await webhookGuard.isRateLimited(request)) {
-    logger.warn("meta.webhook.rateLimited", { ip: request.headers.get("x-forwarded-for") });
+    logger.warn("meta.webhook.rateLimited", { ip: clientIp(request.headers) });
     return new NextResponse("Rate limited", { status: 429 });
   }
 

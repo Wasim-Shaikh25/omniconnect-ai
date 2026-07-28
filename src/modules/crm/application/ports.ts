@@ -133,6 +133,8 @@ export interface FollowerRepository {
 
   listByStore(storeId: string, limit?: number): Promise<FollowerRecord[]>;
 
+  countByStore(storeId: string): Promise<number>;
+
   recordCampaignEnrollment(input: {
     followerId: string;
     storeId: string;

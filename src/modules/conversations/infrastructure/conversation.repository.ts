@@ -80,6 +80,10 @@ export class PrismaConversationRepository implements ConversationRepository {
     return rows.map(toRecord);
   }
 
+  async countByStore(storeId: string): Promise<number> {
+    return prisma.conversation.count({ where: { storeId } });
+  }
+
   async listByStoreIds(
     storeIds: string[],
     limit = 100,

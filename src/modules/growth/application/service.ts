@@ -1,4 +1,6 @@
 import { eventBus } from "@/shared/events";
+import { logger } from "@/shared/observability";
+import type { CustomerConsent } from "@/modules/crm";
 import type { MetaService } from "@/modules/meta";
 import type {
   AmbassadorRepository,
@@ -43,6 +45,11 @@ export interface GrowthServiceDeps {
   backInStock: BackInStockRepository;
   commentUnlocks: CommentUnlockRepository;
   meta: MetaService;
+  getCustomerConsent: (input: {
+    storeId: string;
+    externalUserId: string;
+    channel: "INSTAGRAM" | "FACEBOOK";
+  }) => Promise<CustomerConsent | null>;
 }
 
 export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
@@ -234,6 +241,20 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
         input.externalUserId,
       );
       if (existing) return { sent: false, campaignId: campaign.id };
+
+      const consent = await deps.getCustomerConsent({
+        storeId: input.storeId,
+        externalUserId: input.externalUserId,
+        channel: input.channel,
+      });
+      if (consent === "DECLINED") {
+        logger.info("growth.processCommentUnlock.consentDeclined", {
+          storeId: input.storeId,
+          externalUserId: input.externalUserId,
+          campaignId: campaign.id,
+        });
+        return { sent: false, campaignId: campaign.id };
+      }
 
       const redemption = await deps.commentUnlocks.createRedemption({
         campaignId: campaign.id,

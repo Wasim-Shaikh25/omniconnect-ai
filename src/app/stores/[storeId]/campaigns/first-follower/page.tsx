@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { env } from "@/shared/config";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { crmQueries } from "@/modules/crm";
@@ -87,7 +88,7 @@ export default async function FirstTimeFollowerCampaignPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {process.env.NODE_ENV !== "production" && canManage ? (
+            {env.NODE_ENV !== "production" && canManage ? (
               <FirstTimeFollowerSimulator
                 action={simulateFirstTimeFollower}
                 storeId={storeId}

@@ -32,7 +32,7 @@ const providers: NextAuthConfig["providers"] = [
       const mfaCode = typeof raw?.mfaCode === "string" ? raw.mfaCode : "";
       if (!email || !password) return null;
 
-      const ip = request ? clientIp(request) : "unknown";
+      const ip = request ? clientIp(request.headers) : "unknown";
       const limit = await rateLimit({
         key: `credentials:${email}:${ip}`,
         limit: 5,

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     }
 
     const limit = await rateLimit({
-      key: `stripe-checkout:${user.id}:${clientIp(request)}`,
+      key: `stripe-checkout:${user.id}:${clientIp(request.headers)}`,
       limit: 10,
       windowMs: 60_000,
     });

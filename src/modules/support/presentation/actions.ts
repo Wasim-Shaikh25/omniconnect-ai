@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser, requireSuperAdmin } from "@/modules/auth";
-import { auditCommands } from "@/modules/users";
+import { auditCommands, getUserProfile } from "@/modules/users";
 import { PrismaSupportTicketRepository } from "../infrastructure/repository";
 import {
   createTicketSchema,
@@ -104,7 +104,14 @@ export async function updateTicketAction(
   const assignedTo = formData.get("assignedTo");
   if (typeof status === "string" && status) input.status = status as TicketStatus;
   if (typeof priority === "string" && priority) input.priority = priority as TicketPriority;
-  if (typeof assignedTo === "string" && assignedTo) input.assignedTo = assignedTo;
+  if (typeof assignedTo === "string" && assignedTo) {
+    const assignee = await getUserProfile(assignedTo);
+    if (!assignee) return { error: "Assignee not found" };
+    if (existing.organizationId && assignee.organizationId !== existing.organizationId) {
+      return { error: "Assignee does not belong to this organization" };
+    }
+    input.assignedTo = assignedTo;
+  }
 
   const ticket = await updateTicket(ticketId, existing.organizationId, input);
   if (!ticket) return { error: "Ticket not found" };
