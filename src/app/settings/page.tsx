@@ -9,7 +9,9 @@ import {
 } from "@/modules/users";
 import { ProfileForm } from "@/components/profile-form";
 import { RoleSelectForm } from "@/components/role-select-form";
+import { InviteMemberForm } from "@/components/invite-member-form";
 import { Button } from "@/components/ui/button";
+import { inviteOrganizationMemberAction } from "@/modules/organizations";
 import {
   Card,
   CardContent,
@@ -60,7 +62,8 @@ export default async function SettingsPage() {
                 <CardTitle>Team members</CardTitle>
                 <CardDescription>Manage roles in your organization.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                <InviteMemberForm action={inviteOrganizationMemberAction} />
                 {members.length > 0 ? (
                   <ul className="space-y-3">
                     {members.map((member) => (

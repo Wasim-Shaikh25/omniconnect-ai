@@ -40,6 +40,10 @@ export async function listAllUsers(pagination?: PaginationInput) {
   return users.listAll(pagination);
 }
 
+export async function countOrganizationUsers(organizationId: string) {
+  return users.countByOrganization(organizationId);
+}
+
 export async function setUserSuperAdmin(
   id: string,
   isSuperAdmin: boolean,

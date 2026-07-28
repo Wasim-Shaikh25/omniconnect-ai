@@ -1,6 +1,8 @@
+import type { Role } from "@/modules/auth";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { EcommerceProvider } from "../domain/provider";
 import { Plan } from "../domain/plan";
+import type { InviteStatus } from "../domain/invite";
 
 export type ProjectMemberRole = "OWNER" | "ADMIN" | "EDITOR" | "VIEWER";
 
@@ -93,4 +95,25 @@ export interface ProjectRepository {
   }): Promise<ProjectMemberRecord>;
   removeMember(memberId: string, organizationId: string): Promise<void>;
   listMembers(projectId: string, organizationId?: string): Promise<ProjectMemberRecord[]>;
+}
+
+export interface OrganizationInviteRecord {
+  id: string;
+  email: string;
+  organizationId: string;
+  role: Role;
+  status: InviteStatus;
+  token: string;
+  createdByUserId: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
+export interface OrganizationInviteRepository {
+  findByToken(token: string): Promise<OrganizationInviteRecord | null>;
+  findPendingByEmail(organizationId: string, email: string): Promise<OrganizationInviteRecord | null>;
+  create(input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & { status?: InviteStatus }): Promise<OrganizationInviteRecord>;
+  updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord>;
+  countPendingByOrganization(organizationId: string): Promise<number>;
+  listPendingByOrganization(organizationId: string, limit?: number): Promise<OrganizationInviteRecord[]>;
 }

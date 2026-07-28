@@ -18,6 +18,7 @@ export {
   OrganizationError,
   OrganizationNotFoundError,
   StoreLimitError,
+  SeatLimitError,
 } from "./domain/errors";
 export { OrganizationCreated, StoreCreated } from "./domain/events";
 export type {
@@ -36,6 +37,8 @@ export type {
 } from "./application/ports";
 export type { OrganizationOverview } from "./application/queries";
 export { createProjectSchema } from "./application/project";
+export { inviteMemberSchema } from "./application/invite-member";
+export type { InviteMemberInput } from "./application/invite-member";
 
 // Queries + use-cases (composed)
 export {
@@ -47,6 +50,9 @@ export {
   createSaaSCoupon,
   validateSaaSCoupon,
   saasCouponRepository,
+  inviteMember,
+  validateOrganizationInvite,
+  acceptOrganizationInvite,
 } from "./infrastructure/container";
 
 // Presentation + bootstrap wiring
@@ -60,6 +66,11 @@ export {
   listSaaSCouponsAction,
 } from "./presentation/saas-coupon.actions";
 export type { CouponActionState } from "./presentation/saas-coupon.actions";
+export {
+  inviteOrganizationMemberAction,
+  registerWithInviteAction,
+} from "./presentation/invite-member.actions";
+export type { InviteMemberActionState } from "./presentation/invite-member.actions";
 export {
   createProjectAction,
   listProjectsAction,

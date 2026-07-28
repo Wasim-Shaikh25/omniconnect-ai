@@ -30,6 +30,7 @@ export {
   getUserProfile,
   listOrganizationUsers,
   listAllUsers,
+  countOrganizationUsers,
   updateProfile,
   auditQueries,
   auditCommands,

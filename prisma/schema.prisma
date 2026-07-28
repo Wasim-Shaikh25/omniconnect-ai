@@ -111,9 +111,33 @@ model Organization {
   stores    Store[]
   auditLogs AuditLog[]
   projects  Project[]
+  invites   OrganizationInvite[]
 
   @@unique([subscriptionId])
   @@index([aiRepliesResetAt])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model OrganizationInvite {
+  id             String       @id @default(cuid())
+  email          String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role         @default(STAFF)
+  status         InviteStatus @default(PENDING)
+  token          String       @unique
+  createdByUserId String
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime
+
+  @@unique([organizationId, email])
+  @@index([token])
+  @@index([organizationId, status])
 }
 
 // ── projects ────────────────────────────────────────────────────────────────

@@ -61,10 +61,8 @@ All notable changes to **OmniConnect AI** are documented here.
   - Password reset email no longer includes the 6-digit reset code in the URL; the link only carries `email`, and the user enters the code from the email body.
   - `package.json` sets `"type": "module"` so Vitest loads Vite's ESM API, eliminating the CJS deprecation warning.
   - `npm run lint` now runs `eslint . --max-warnings=0` instead of the deprecated `next lint`; `eslint.config.mjs` ignores generated declaration files and one-off `scripts/`.
-  - **Remaining:** `teamSeats` enforcement (in progress — minimal org invite flow).
-
-- **TASK-0054 — Audit fixes continuation (remaining):**
-  - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
+  - Implemented `teamSeats` enforcement with an organization invite flow: `OrganizationInvite` model, `inviteMember` use case with `planLimits(...).teamSeats` guard, `registerWithInviteAction`, `/settings` invite form, and `/register?inviteToken=...` acceptance flow.
+  - Fixed a client-bundle leak caused by `node:crypto` in `organizations/infrastructure/container.ts` by using the global `crypto.randomUUID()` instead.
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

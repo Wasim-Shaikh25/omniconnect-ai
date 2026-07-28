@@ -32,9 +32,11 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 ### Medium
 
 - [x] **M1** — Use UTC month boundaries for `aiRepliesThisMonth` reset.
-- [ ] **M2** — Surface structured server validation errors per-field in forms.
+- [x] **M2** — Surface structured server validation errors per-field in forms. Project actions now return `fieldErrors`; `/projects/page.tsx` renders per-field errors with `aria-invalid`/`aria-describedby`.
 - [x] **M3** — Verify new Prisma indexes with `EXPLAIN ANALYZE` and add missing ones. Verified `Organization.subscriptionId`, `Conversation.storeId/customerId`, `Integration.externalId`, and `Message.conversationId` indexes are used; no missing indexes added.
 - [x] **M4** — Remove password reset code from URL query string. Email link now only includes `email`; code is entered manually from the email body.
+- [x] **Audit-log FK bug** — `AuditLog.organizationId` is optional; platform-level admin actions pass `admin.organizationId ?? null` instead of `"platform"`.
+- [x] **`teamSeats` enforcement** — Added `OrganizationInvite` model, `inviteMember` use case with seat-limit guard, `registerWithInviteAction`, `/settings` invite form, and `/register?inviteToken=...` flow.
 
 ### Low
 
@@ -43,11 +45,11 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 
 ## Acceptance Criteria
 
-- [ ] All critical and high subtasks above are implemented or explicitly deferred with user approval.
+- [x] All critical and high subtasks above are implemented.
 - [x] `npm run typecheck` passes.
 - [x] `npm run lint` passes.
-- [x] `npm run test` passes.
-- [x] `npm run build` passes.
+- [x] `npm run test` passes (31/31).
+- [x] `npm run build` passes and emits `.next/standalone/worker.cjs`.
 - [x] `npx prisma generate` succeeds and generated client is in sync.
 - [x] `CHANGELOG.md` updated.
 
