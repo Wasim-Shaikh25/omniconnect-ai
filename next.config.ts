@@ -16,12 +16,18 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   serverExternalPackages: ["bullmq", "ioredis"],
-  webpack: (config, { nextRuntime }) => {
+  webpack: (config, { isServer, nextRuntime }) => {
     // Edge middleware bundles `bcryptjs` transitively via `NextAuth` providers
     // but never calls its hashing functions; provide a no-op `crypto` fallback
     // so the dev server stops warning about the Node `crypto` module.
     if (nextRuntime === "edge") {
       config.resolve.fallback = { ...config.resolve.fallback, crypto: false };
+    }
+    // `ioredis` is server-only (Redis Pub/Sub / rate limit / webhook dedup).
+    // Server chunks resolve the real package via `serverExternalPackages`;
+    // client and edge chunks resolve it to `false` so it is never bundled.
+    if (!isServer || nextRuntime === "edge") {
+      config.resolve.alias = { ...config.resolve.alias, ioredis: false };
     }
     return config;
   },

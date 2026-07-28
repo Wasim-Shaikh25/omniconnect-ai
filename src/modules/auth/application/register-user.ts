@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eventBus } from "@/shared/events";
+import type { EventBus } from "@/shared/events";
 import { Result, ok, err } from "@/shared/kernel";
 import { EmailAlreadyInUseError } from "../domain/errors";
 import { Role } from "../domain/role";
@@ -27,6 +27,7 @@ export interface RegisteredUser {
 export function makeRegisterUser(deps: {
   accounts: AccountRepository;
   hasher: PasswordHasher;
+  eventBus: EventBus;
 }) {
   return async function registerUser(
     raw: RegisterUserInput,
@@ -45,7 +46,7 @@ export function makeRegisterUser(deps: {
       role: "STORE_OWNER",
     });
 
-    await eventBus.publish(
+    await deps.eventBus.publish(
       new UserRegistered(account.id, {
         userId: account.id,
         email: account.email,

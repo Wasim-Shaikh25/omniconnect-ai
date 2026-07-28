@@ -11,6 +11,10 @@ export function getQueue(name: string): QueueService {
   const existing = queues.get(name);
   if (existing) return existing;
 
+  if (env.NODE_ENV === "production" && !env.REDIS_URL) {
+    throw new Error("REDIS_URL is required for BullMQ queues in production");
+  }
+
   const queue = env.REDIS_URL
     ? new BullMQQueue(name, env.REDIS_URL)
     : new InMemoryQueue(name);

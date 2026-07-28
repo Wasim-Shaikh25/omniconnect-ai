@@ -1,9 +1,11 @@
+import { env } from "@/shared/config";
+import { RedisRateLimitStore } from "./redis-rate-limit-store";
+
 /**
  * Reusable fixed-window rate limiter.
  *
- * In-memory by default so it works in single-instance and local development.
- * The interface is async and store-agnostic so a Redis-backed store can be
- * swapped in for multi-instance deployments without changing callers.
+ * Uses Redis when `REDIS_URL` is configured so rate limits are shared across
+ * instances. Falls back to an in-memory store for local development and tests.
  */
 
 export interface RateLimitResult {
@@ -39,7 +41,14 @@ class InMemoryRateLimitStore implements RateLimitStore {
   }
 }
 
-const defaultStore: RateLimitStore = new InMemoryRateLimitStore();
+let defaultStore: RateLimitStore | null = null;
+
+function getDefaultStore(): RateLimitStore {
+  if (!defaultStore) {
+    defaultStore = env.REDIS_URL ? new RedisRateLimitStore() : new InMemoryRateLimitStore();
+  }
+  return defaultStore;
+}
 
 export interface RateLimitOptions {
   /** Unique bucket key, e.g. `checkout:${userId}`. */
@@ -52,7 +61,7 @@ export interface RateLimitOptions {
 }
 
 export async function rateLimit(options: RateLimitOptions): Promise<RateLimitResult> {
-  const store = options.store ?? defaultStore;
+  const store = options.store ?? getDefaultStore();
   const { count, resetAt } = await store.hit(options.key, options.windowMs);
   return {
     allowed: count <= options.limit,

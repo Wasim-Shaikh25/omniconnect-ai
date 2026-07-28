@@ -1,4 +1,5 @@
 import { createEmailSender } from "@/shared/email";
+import { eventBus } from "@/shared/events";
 import { makeRegisterUser } from "../application/register-user";
 import { makeVerificationCodeService } from "../application/verification";
 import { PrismaAccountRepository } from "./account.repository";
@@ -15,6 +16,7 @@ const emailSender = createEmailSender();
 export const registerUser = makeRegisterUser({
   accounts,
   hasher,
+  eventBus,
 });
 
 export const verificationCodeService = makeVerificationCodeService({
