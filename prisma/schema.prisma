@@ -66,6 +66,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -74,6 +75,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -82,6 +85,8 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@index([identifier])
+  @@index([expires])
 }
 
 // ── organizations ───────────────────────────────────────────────────────────
@@ -164,6 +169,8 @@ model Store {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
+  @@index([organizationId])
+
   integrations             Integration[]
   products                 Product[]
   coupons                  Coupon[]
@@ -206,6 +213,10 @@ model Integration {
   store        Store           @relation(fields: [storeId], references: [id])
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
+
+  @@index([storeId, type])
+  @@index([storeId, type, provider])
+  @@index([externalId])
 
   projects     Project[]
 }
@@ -263,6 +274,9 @@ model CouponUsage {
   customer   Customer? @relation(fields: [customerId], references: [id])
   usedAt     DateTime  @default(now())
   orderRef   String?
+
+  @@index([couponId])
+  @@index([customerId])
 }
 
 // ── crm (customers) ─────────────────────────────────────────────────────────
@@ -294,6 +308,10 @@ model Customer {
   lastActivityAt   DateTime?
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
+
+  @@index([storeId])
+  @@index([igUserId])
+  @@index([fbUserId])
 
   conversations            Conversation[]
   coupons                  Coupon[]
@@ -329,6 +347,11 @@ model Conversation {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
+  @@index([storeId])
+  @@index([storeId, customerId])
+  @@index([customerId])
+  @@index([assignedHumanId])
+
   messages Message[]
 }
 
@@ -345,6 +368,9 @@ model Message {
   sender         MessageSender
   content        String
   createdAt      DateTime      @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
 }
 
 model Follower {
@@ -449,6 +475,8 @@ model Report {
   period      ReportPeriod
   content     Json
   generatedAt DateTime     @default(now())
+
+  @@index([storeId, generatedAt])
 }
 
 // ── analytics / competitor intelligence ─────────────────────────────────────

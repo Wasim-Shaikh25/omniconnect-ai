@@ -77,7 +77,7 @@ export interface UgcRepository {
     caption?: string | null;
   }): Promise<UgcAssetRecord>;
   listByStore(storeId: string, limit?: number): Promise<UgcAssetRecord[]>;
-  updateRights(id: string, status: string, approvedBy?: string | null): Promise<UgcAssetRecord>;
+  updateRights(id: string, storeId: string, status: string, approvedBy?: string | null): Promise<UgcAssetRecord>;
 }
 
 export interface AmbassadorRepository {
@@ -90,8 +90,8 @@ export interface AmbassadorRepository {
     status?: string;
   }): Promise<AmbassadorRecord>;
   listByStore(storeId: string, limit?: number): Promise<AmbassadorRecord[]>;
-  findById(id: string): Promise<AmbassadorRecord | null>;
-  incrementEarnings(id: string, amount: number, referrals: number): Promise<AmbassadorRecord>;
+  findById(id: string, storeId: string): Promise<AmbassadorRecord | null>;
+  incrementEarnings(id: string, storeId: string, amount: number, referrals: number): Promise<AmbassadorRecord>;
 }
 
 export interface ReferralOrderRepository {
@@ -115,7 +115,7 @@ export interface DmCampaignRepository {
     scheduledAt?: Date | null;
   }): Promise<DmCampaignRecord>;
   listByStore(storeId: string, limit?: number): Promise<DmCampaignRecord[]>;
-  markSent(id: string, metrics?: unknown): Promise<DmCampaignRecord>;
+  markSent(id: string, storeId: string, metrics?: unknown): Promise<DmCampaignRecord>;
 }
 
 export interface BackInStockRepository {
@@ -126,7 +126,7 @@ export interface BackInStockRepository {
     customerId?: string | null;
   }): Promise<BackInStockSubscriptionRecord>;
   listByStore(storeId: string, limit?: number): Promise<BackInStockSubscriptionRecord[]>;
-  markNotified(id: string): Promise<BackInStockSubscriptionRecord>;
+  markNotified(id: string, storeId: string): Promise<BackInStockSubscriptionRecord>;
 }
 
 export interface CommentUnlockCampaignRecord {
@@ -173,8 +173,8 @@ export interface CommentUnlockRepository {
     commentId?: string | null;
   }): Promise<CommentUnlockRedemptionRecord>;
   listRedemptionsByCampaign(campaignId: string): Promise<CommentUnlockRedemptionRecord[]>;
-  markSent(id: string): Promise<CommentUnlockRedemptionRecord>;
-  markReferred(id: string): Promise<CommentUnlockRedemptionRecord>;
+  markSent(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord>;
+  markReferred(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord>;
   findExistingRedemption(campaignId: string, externalUserId: string): Promise<CommentUnlockRedemptionRecord | null>;
 }
 
