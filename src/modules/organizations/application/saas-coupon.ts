@@ -36,7 +36,7 @@ export interface SaaSCouponRepository {
   findByCode(code: string): Promise<SaaSCouponRecord | null>;
   findById(id: string): Promise<SaaSCouponRecord | null>;
   list(): Promise<SaaSCouponRecord[]>;
-  incrementUsage(id: string): Promise<void>;
+  incrementUsage(id: string, maxUses: number | null): Promise<boolean>;
 }
 
 export const createSaaSCouponSchema = z.object({

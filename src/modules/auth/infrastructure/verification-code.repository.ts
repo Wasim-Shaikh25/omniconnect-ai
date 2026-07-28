@@ -12,14 +12,14 @@ export class PrismaVerificationCodeRepository implements VerificationCodeReposit
   }
 
   async consume(identifier: string, token: string): Promise<boolean> {
-    const record = await prisma.verificationToken.findUnique({
-      where: { identifier_token: { identifier, token } },
+    // Atomic delete: only succeeds for a matching, non-expired token.
+    const { count } = await prisma.verificationToken.deleteMany({
+      where: {
+        identifier,
+        token,
+        expires: { gt: new Date() },
+      },
     });
-    if (!record) return false;
-    if (record.expires < new Date()) return false;
-    await prisma.verificationToken.delete({
-      where: { identifier_token: { identifier, token } },
-    });
-    return true;
+    return count > 0;
   }
 }

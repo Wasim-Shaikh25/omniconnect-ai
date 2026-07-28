@@ -127,7 +127,11 @@ async function incrementCouponUsage(
     const coupon = await coupons.findByCode(code);
     if (!coupon || !coupon.isActive) return;
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) return;
-    await coupons.incrementUsage(coupon.id);
+    const incremented = await coupons.incrementUsage(coupon.id, coupon.maxUses);
+    if (!incremented) {
+      logger.warn("saasCoupon.usageLimitReached", { code, couponId: coupon.id });
+      return;
+    }
     logger.info("saasCoupon.usageIncremented", { code, couponId: coupon.id });
   } catch (error) {
     logger.error("saasCoupon.incrementUsageFailed", {
