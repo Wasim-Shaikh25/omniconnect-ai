@@ -44,6 +44,7 @@ export interface ProjectMemberRecord {
 export interface OrganizationRepository {
   create(input: { name: string }): Promise<OrganizationRecord>;
   findById(id: string): Promise<OrganizationRecord | null>;
+  findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null>;
   listAll(): Promise<OrganizationRecord[]>;
   updatePlan(
     id: string,

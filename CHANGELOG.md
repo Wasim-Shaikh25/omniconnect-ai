@@ -38,6 +38,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
+- **TASK-0055 — Production Readiness Audit fixes (spec `0055`):**
+  - `REDIS_URL` and a non-console `EMAIL_PROVIDER` (with complete SMTP config) are now required in production.
+  - Added `@@unique([subscriptionId])` and `@@index([aiRepliesResetAt])` on `Organization`; Stripe billing webhook now looks up the org by indexed `subscriptionId` instead of scanning all rows.
+  - `aiRepliesThisMonth` reset now uses UTC month boundaries.
+  - Narrowed CSP `connect-src` to `'self'` and public API allowlist to explicit webhook/auth prefixes.
+  - Project management actions now require `STORE_OWNER`, validate target users belong to the workspace, and guard against duplicate memberships.
+  - `commerce` and `conversations` store-scoped actions now use `tenantGuard.assertStoreAccess()` for staff store scoping.
+  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (blocked on server-only bundling strategy), BullMQ worker deployment wiring (`fly.toml` / `deploy.sh`), admin pagination, `teamSeats` enforcement (needs invite flow), intelligence store-scoped pages and remaining actions, medium/low polish.
+
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
 

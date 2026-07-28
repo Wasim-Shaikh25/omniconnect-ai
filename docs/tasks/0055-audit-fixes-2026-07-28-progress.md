@@ -1,0 +1,59 @@
+# Task 0055: Production Readiness Audit Fixes (2026-07-28)
+
+- **Status:** In Progress
+- **Spec:** `docs/specs/0055-audit-fixes-2026-07-28.md`
+- **Module(s):** shared, auth, organizations, commerce, meta, conversations, intelligence, notifications, users
+- **Owner:** Devin
+- **Changelog entry:** Resolves critical and high findings from 2026-07-28 production-readiness audit.
+
+## Description
+
+Implement the remediation plan from the 2026-07-28 production-readiness audit. The audit found **17 confirmed issues**: 6 critical, 5 high, 4 medium, and 2 low. Residual untested areas (live integrations, load testing, accessibility tooling, backup/DR) are tracked separately and are not part of this task.
+
+## Subtasks
+
+### Critical
+
+- [ ] **C1** — Replace in-memory event bus, rate limiter, and webhook dedup with Redis-backed implementations (or fail fast in production). **Partial:** `REDIS_URL` is now required in production and a shared `src/shared/redis/client.ts` helper exists. Redis-backed stores were attempted but reverted because `ioredis` was pulled into the client bundle by the auth/organizations barrels; needs a server-only bundling strategy before re-landing.
+- [ ] **C2** — Wire `npm run worker` into `fly.toml` / `deploy.sh` / production runbook.
+- [x] **C3** — Add RBAC and target-user validation to project management actions. (`teamSeats` enforcement deferred; it requires an organization invite/add-member flow.)
+- [x] **C4** — Standardize store-scoped authorization: use `tenantGuard.assertStoreAccess` across all store-scoped server actions and components. (Applied to commerce and conversations actions; remaining intelligence pages/actions tracked.)
+- [ ] **C5** — Add pagination to admin list endpoints (organizations, users, coupons, tickets).
+- [x] **C6** — Require `REDIS_URL` and a non-console `EMAIL_PROVIDER` in production.
+
+### High
+
+- [x] **H1** — Add `subscriptionId` index and optimize Stripe billing lookup.
+- [ ] **H2** — Enforce staff store scoping in intelligence daily-action and context actions.
+- [x] **H3** — Restrict `connect-src` CSP directive to `'self'`.
+- [x] **H4** — Harden in-memory queue fallback (Redis required in production; in-memory only for dev/tests).
+- [x] **H5** — Narrow middleware public-API allowlist from `/api/*` to explicit public prefixes.
+
+### Medium
+
+- [x] **M1** — Use UTC month boundaries for `aiRepliesThisMonth` reset.
+- [ ] **M2** — Surface structured server validation errors per-field in forms.
+- [ ] **M3** — Verify new Prisma indexes with `EXPLAIN ANALYZE` and add missing ones.
+- [ ] **M4** — Remove password reset code from URL query string.
+
+### Low
+
+- [ ] **L1** — Migrate from `next lint` to ESLint CLI.
+- [ ] **L2** — Resolve Vitest CJS deprecation warning.
+
+## Acceptance Criteria
+
+- [ ] All critical and high subtasks above are implemented or explicitly deferred with user approval.
+- [x] `npm run typecheck` passes.
+- [x] `npm run lint` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `npx prisma generate` succeeds and generated client is in sync.
+- [x] `CHANGELOG.md` updated.
+
+## Notes / Blockers
+
+- Some fixes (C1, C2) require a Redis instance in production/staging to verify.
+- UI pagination for admin lists (C5) may need small shadcn/ui table changes.
+- `teamSeats` enforcement needs an organization invite/add-member flow to be meaningful; `addProjectMemberAction` now validates that the target user already belongs to the organization.
+- Redis-backed runtime state (event bus, rate limiter, webhook dedup) needs a server-only bundling strategy so `ioredis` is not pulled into the client bundle via the auth/organizations barrels.

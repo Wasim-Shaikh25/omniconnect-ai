@@ -145,7 +145,6 @@ async function findOrganizationBySubscriptionId(
   organizations: OrganizationRepository,
   subscriptionId: string,
 ): Promise<{ id: string; plan: Plan } | null> {
-  const all = await organizations.listAll();
-  const org = all.find((o) => o.subscriptionId === subscriptionId);
+  const org = await organizations.findBySubscriptionId(subscriptionId);
   return org ? { id: org.id, plan: org.plan } : null;
 }

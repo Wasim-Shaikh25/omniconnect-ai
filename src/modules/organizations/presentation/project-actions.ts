@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireUser } from "@/modules/auth";
+import { requireRole, requireUser, ForbiddenError } from "@/modules/auth";
+import { getUserProfile } from "@/modules/users";
 import {
   createProject,
   listProjects,
@@ -20,11 +21,15 @@ export interface ProjectActionState {
   ok?: boolean;
 }
 
+async function requireStoreOwner() {
+  return requireRole("STORE_OWNER");
+}
+
 export async function createProjectAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  const user = await requireUser();
+  const user = await requireStoreOwner();
   if (!user.organizationId) {
     return { error: "No workspace is linked to your account." };
   }
@@ -43,6 +48,7 @@ export async function createProjectAction(
     const result = await createProject(parsed.data);
     if (!result.ok) return { error: result.error.message };
   } catch (error) {
+    if (error instanceof ForbiddenError) return { error: error.message };
     if (error instanceof Error) return { error: error.message };
     throw error;
   }
@@ -76,7 +82,7 @@ export async function archiveProjectAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  const user = await requireUser();
+  const user = await requireStoreOwner();
   if (!user.organizationId) {
     return { error: "No workspace is linked to your account." };
   }
@@ -101,7 +107,7 @@ export async function addProjectMemberAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  const user = await requireUser();
+  const user = await requireStoreOwner();
   if (!user.organizationId) {
     return { error: "No workspace is linked to your account." };
   }
@@ -112,6 +118,19 @@ export async function addProjectMemberAction(
     role: formData.get("role"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const project = await projects.findById(parsed.data.projectId, user.organizationId);
+  if (!project) return { error: "Project not found." };
+
+  const targetUser = await getUserProfile(parsed.data.userId);
+  if (!targetUser || targetUser.organizationId !== user.organizationId) {
+    return { error: "User is not a member of this workspace." };
+  }
+
+  const existingMembers = await listProjectMembers(parsed.data.projectId, user.organizationId);
+  if (existingMembers.some((m) => m.userId === parsed.data.userId)) {
+    return { error: "User is already a member of this project." };
+  }
 
   await addProjectMember({
     projectId: parsed.data.projectId,
@@ -131,7 +150,7 @@ export async function removeProjectMemberAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  const user = await requireUser();
+  const user = await requireStoreOwner();
   if (!user.organizationId) {
     return { error: "No workspace is linked to your account." };
   }

@@ -111,6 +111,9 @@ model Organization {
   stores    Store[]
   auditLogs AuditLog[]
   projects  Project[]
+
+  @@unique([subscriptionId])
+  @@index([aiRepliesResetAt])
 }
 
 // ── projects ────────────────────────────────────────────────────────────────

@@ -35,6 +35,11 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return org ? mapOrg(org) : null;
   }
 
+  async findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null> {
+    const org = await prisma.organization.findUnique({ where: { subscriptionId } });
+    return org ? mapOrg(org) : null;
+  }
+
   async listAll(): Promise<OrganizationRecord[]> {
     const orgs = await prisma.organization.findMany({ orderBy: { createdAt: "desc" } });
     return orgs.map(mapOrg);
@@ -53,7 +58,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
 
   async incrementAIReplies(id: string, limit: number | null): Promise<boolean> {
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
     try {
       return await prisma.$transaction(
@@ -67,7 +72,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
             used = 0;
             await tx.organization.update({
               where: { id },
-              data: { aiRepliesThisMonth: 0, aiRepliesResetAt: now },
+              data: { aiRepliesThisMonth: 0, aiRepliesResetAt: monthStart },
             });
           }
 
