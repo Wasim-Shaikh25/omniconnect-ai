@@ -6,6 +6,7 @@ import { requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { metaService } from "@/modules/meta/server";
 import { analyzeCompetitor } from "@/modules/ai/server";
+import { aiUsageGuard } from "@/modules/ai";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
@@ -178,6 +179,12 @@ export async function analyzeCompetitorAction(
   const posts = account.lastMedia ?? [];
   if (posts.length === 0) {
     return { error: "Fetch competitor posts first before analyzing." };
+  }
+
+  try {
+    await aiUsageGuard.assertAvailable(user.organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
 
   try {

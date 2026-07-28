@@ -56,6 +56,7 @@ export interface MarketingPerformanceView {
   organizationId: string;
   storeId: string;
   generatedAt: Date;
+  dataQuality: "live" | "partial" | "simulated";
   content: ContentPerformanceSection;
   audience: AudienceSection;
   product: ProductPerformanceSection;

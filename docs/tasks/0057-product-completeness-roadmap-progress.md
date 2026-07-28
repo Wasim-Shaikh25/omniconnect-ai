@@ -22,17 +22,17 @@ Implement the full product-completeness roadmap derived from `PRODUCTION_READINE
 ### Phase 2 — Core entity lifecycle (12–18h)
 
 - [x] **P2-1** — Store lifecycle: update, archive, restore, (soft) delete; add `archivedAt`/`deletedAt` migrations. Transfer deferred.
-- [ ] **P2-2** — Product lifecycle: edit product metadata, resync from Shopify, mark deleted products.
-- [ ] **P2-3** — Coupon lifecycle: edit discount/message, delete/disable with audit event.
-- [ ] **P2-4** — Organization-level dashboard for owners with multiple stores.
-- [ ] **P2-5** — Audit log entries for store/product/coupon lifecycle mutations.
+- [x] **P2-2** — Product lifecycle: edit product metadata, resync from Shopify, mark deleted products.
+- [x] **P2-3** — Coupon lifecycle: edit discount/message, delete/disable with audit event.
+- [x] **P2-4** — Organization-level dashboard for owners with multiple stores.
+- [x] **P2-5** — Audit log entries for store/product/coupon lifecycle mutations.
 
 ### Phase 3 — Data, analytics, and AI hardening (18–26h)
 
-- [ ] **P3-1** — Implement `AIUsageGuard` and route all AI calls through it; add "quota exceeded" UX.
-- [ ] **P3-2** — Build Shopify order/customer/product sync worker with idempotency and `lastSyncedAt`.
+- [x] **P3-1** — Implement `AIUsageGuard` and route all AI calls through it; add "quota exceeded" UX.
+- [x] **P3-2** — Build Shopify order/customer/product sync worker with idempotency and `lastSyncedAt`.
 - [ ] **P3-3** — Fetch Meta page/audience/post insights and merge into `getMarketingPerformance`.
-- [ ] **P3-4** — Mark simulated analytics metrics with a data-quality badge until real data backs them.
+- [x] **P3-4** — Mark simulated analytics metrics with a data-quality badge until real data backs them.
 - [ ] **P3-5** — Add server-side pagination, search, and bulk actions to orders, customers, inbox, followers, products, notifications.
 
 ### Phase 4 — Platform, privacy, and operations (16–24h)

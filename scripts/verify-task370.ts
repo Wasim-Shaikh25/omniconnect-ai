@@ -37,9 +37,9 @@ function fakeEcommerce(): EcommerceQueries {
   return {
     getStoreConnection: async () => ({ connected: true, integration: null, productCount: 3 }),
     listProducts: async () => [
-      { id: "p1", externalId: "ext-1", title: "Widget A", price: 99, currency: "INR", inventory: 42, imageUrl: null },
-      { id: "p2", externalId: "ext-2", title: "Widget B", price: 149, currency: "INR", inventory: 18, imageUrl: null },
-      { id: "p3", externalId: "ext-3", title: "Widget C", price: 199, currency: "INR", inventory: 7, imageUrl: null },
+      { id: "p1", storeId: "store-1", externalId: "ext-1", title: "Widget A", description: null, price: 99, currency: "INR", inventory: 42, imageUrl: null, deletedAt: null },
+      { id: "p2", storeId: "store-1", externalId: "ext-2", title: "Widget B", description: null, price: 149, currency: "INR", inventory: 18, imageUrl: null, deletedAt: null },
+      { id: "p3", storeId: "store-1", externalId: "ext-3", title: "Widget C", description: null, price: 199, currency: "INR", inventory: 7, imageUrl: null, deletedAt: null },
     ],
     countProducts: async () => 3,
     listCoupons: async () => [],

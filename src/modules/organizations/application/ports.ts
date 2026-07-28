@@ -23,6 +23,7 @@ export interface StoreRecord {
   organizationId: string;
   archivedAt: Date | null;
   deletedAt: Date | null;
+  lastProductSyncAt: Date | null;
   createdAt: Date;
 }
 

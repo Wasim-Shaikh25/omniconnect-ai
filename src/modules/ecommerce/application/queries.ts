@@ -34,7 +34,7 @@ export function makeEcommerceQueries(deps: {
       storeId: string,
       limit = 50,
     ): Promise<ProductRecord[]> {
-      return deps.products.listByStore(storeId, limit);
+      return deps.products.listByStore(storeId, { limit });
     },
 
     countProducts(storeId: string): Promise<number> {
@@ -42,7 +42,7 @@ export function makeEcommerceQueries(deps: {
     },
 
     async listCoupons(storeId: string, limit = 50): Promise<CouponRecord[]> {
-      return deps.coupons.listByStore(storeId, limit);
+      return deps.coupons.listByStore(storeId, { limit });
     },
 
     countCoupons(storeId: string): Promise<number> {

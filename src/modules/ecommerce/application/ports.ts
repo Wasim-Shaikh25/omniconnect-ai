@@ -36,11 +36,14 @@ export interface IntegrationRepository {
 export interface ProductRecord {
   id: string;
   externalId: string;
+  storeId: string;
   title: string;
+  description: string | null;
   price: number | null;
   currency: string | null;
   inventory: number | null;
   imageUrl: string | null;
+  deletedAt: Date | null;
 }
 
 export interface ProductRepository {
@@ -49,16 +52,47 @@ export interface ProductRepository {
     products: ConnectorProduct[],
   ): Promise<number>;
 
-  listByStore(storeId: string, limit?: number): Promise<ProductRecord[]>;
+  update(
+    id: string,
+    input: {
+      title?: string;
+      description?: string | null;
+      price?: number | null;
+      currency?: string | null;
+      inventory?: number | null;
+      imageUrl?: string | null;
+    },
+  ): Promise<ProductRecord | null>;
+
+  findById(id: string): Promise<ProductRecord | null>;
+
+  listByStore(
+    storeId: string,
+    options?: { limit?: number; includeDeleted?: boolean },
+  ): Promise<ProductRecord[]>;
   countByStore(storeId: string): Promise<number>;
+
+  delete(id: string): Promise<ProductRecord | null>;
+
+  /**
+   * Soft-delete products for a store whose `externalId` is not in the provided set.
+   * Typically called after a sync to remove products no longer returned by the provider.
+   */
+  markDeletedNotInBatch(
+    storeId: string,
+    externalIds: string[],
+    deletedAt: Date,
+  ): Promise<number>;
 }
 
 export interface CouponRecord {
   id: string;
   code: string;
+  storeId: string;
   discountPct: number;
   status: string;
   expiresAt: Date | null;
+  deletedAt: Date | null;
 }
 
 export interface CouponRepository {
@@ -70,8 +104,26 @@ export interface CouponRepository {
     customerId: string | null;
   }): Promise<CouponRecord>;
 
+  findById(id: string): Promise<CouponRecord | null>;
+
+  update(
+    id: string,
+    input: {
+      discountPct?: number;
+      status?: string;
+      expiresAt?: Date | null;
+    },
+  ): Promise<CouponRecord | null>;
+
   disable(storeId: string, code: string): Promise<void>;
-  listByStore(storeId: string, limit?: number): Promise<CouponRecord[]>;
+
+  /** Soft-delete a coupon. */
+  delete(id: string): Promise<CouponRecord | null>;
+
+  listByStore(
+    storeId: string,
+    options?: { limit?: number; includeDeleted?: boolean },
+  ): Promise<CouponRecord[]>;
   countByStore(storeId: string): Promise<number>;
 }
 

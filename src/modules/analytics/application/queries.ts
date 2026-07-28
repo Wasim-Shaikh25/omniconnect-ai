@@ -5,6 +5,14 @@ import type { CrmQueries } from "@/modules/crm";
 import type { NotificationQueries } from "@/modules/notifications";
 import type { TrackedAccountRepository, TrackedAccountRecord } from "./ports";
 
+export interface WorkspaceStoreSnapshot extends StoreRecord {
+  productCount: number;
+  conversationCount: number;
+  followerCount: number;
+  couponCount: number;
+  connected: boolean;
+}
+
 export interface WorkspaceKpiSnapshot {
   organizationId: string;
   organizationName: string;
@@ -15,7 +23,7 @@ export interface WorkspaceKpiSnapshot {
   couponCount: number;
   unreadNotificationCount: number;
   connectedIntegrations: number;
-  stores: StoreRecord[];
+  stores: WorkspaceStoreSnapshot[];
 }
 
 export interface OrganizationOverviewPort {
@@ -86,7 +94,7 @@ export function makeAnalyticsQueries(deps: {
         couponCount: perStore.reduce((sum, s) => sum + s.couponCount, 0),
         unreadNotificationCount,
         connectedIntegrations: perStore.filter((s) => s.connected).length,
-        stores,
+        stores: stores.map((store, index) => ({ ...store, ...perStore[index] })),
       };
     },
 

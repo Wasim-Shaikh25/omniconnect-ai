@@ -14,7 +14,7 @@ export function makeSyncProducts(deps: {
 }) {
   return async function syncProducts(
     storeId: string,
-  ): Promise<Result<{ count: number }, StoreNotConnectedError | ConnectorError>> {
+  ): Promise<Result<{ count: number; deleted: number }, StoreNotConnectedError | ConnectorError>> {
     let connector;
     try {
       connector = await deps.connectors.forStore(storeId);
@@ -44,6 +44,12 @@ export function makeSyncProducts(deps: {
 
     const count = await deps.products.upsertMany(storeId, normalized);
 
+    const deletedCount = await deps.products.markDeletedNotInBatch(
+      storeId,
+      normalized.map((p) => p.externalId),
+      new Date(),
+    );
+
     await eventBus.publish(
       new ProductsSynced(storeId, {
         storeId,
@@ -61,8 +67,9 @@ export function makeSyncProducts(deps: {
       storeId,
       provider: connector.provider,
       count,
+      deleted: deletedCount,
     });
 
-    return ok({ count });
+    return ok({ count, deleted: deletedCount });
   };
 }

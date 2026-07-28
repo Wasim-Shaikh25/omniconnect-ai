@@ -1,6 +1,10 @@
 import { makeConnectStore } from "../application/connect-store";
 import { makeSyncProducts } from "../application/sync-products";
 import { makeGenerateCoupon } from "../application/generate-coupon";
+import { makeUpdateProduct } from "../application/update-product";
+import { makeDeleteProduct } from "../application/delete-product";
+import { makeUpdateCoupon } from "../application/update-coupon";
+import { makeDeleteCoupon } from "../application/delete-coupon";
 import { makeEcommerceQueries } from "../application/queries";
 import { makeDetectCommerceInsights } from "../application/detect-insights";
 import { PrismaIntegrationRepository } from "./integration.repository";
@@ -17,6 +21,10 @@ const connectors = new IntegrationConnectorFactory(integrations);
 export const connectStore = makeConnectStore({ integrations });
 export const syncProducts = makeSyncProducts({ connectors, products });
 export const generateCoupon = makeGenerateCoupon({ connectors, coupons });
+export const updateProduct = makeUpdateProduct({ products });
+export const deleteProduct = makeDeleteProduct({ products });
+export const updateCoupon = makeUpdateCoupon({ coupons });
+export const deleteCoupon = makeDeleteCoupon({ coupons });
 export const ecommerceQueries = makeEcommerceQueries({
   integrations,
   products,

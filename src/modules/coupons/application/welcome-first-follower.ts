@@ -8,6 +8,7 @@ import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability/logger";
 import { randomAlphanumeric } from "@/shared/security/random";
 import type { Result } from "@/shared/kernel";
+import { aiUsageGuard } from "@/modules/ai";
 import type { GenerateWelcome } from "@/modules/ai";
 import type { CrmCommands, CustomerConsent } from "@/modules/crm";
 import type { ConversationCommands } from "@/modules/conversations";
@@ -34,6 +35,9 @@ export interface WelcomeFirstFollowerDeps {
     externalUserId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
   }) => Promise<CustomerConsent | null>;
+  organizationQueries: {
+    getOrganizationIdByStoreId(storeId: string): Promise<string | null>;
+  };
 }
 
 function sanitizeUsername(username: string | null): string {
@@ -116,6 +120,18 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
         expiresAt,
       }),
     );
+
+    const organizationId = await deps.organizationQueries.getOrganizationIdByStoreId(
+      input.storeId,
+    );
+    if (organizationId) {
+      try {
+        await aiUsageGuard.assertAvailable(organizationId);
+      } catch {
+        logger.warn("coupons.firstTimeFollower.aiQuotaExceeded", { storeId: input.storeId });
+        return;
+      }
+    }
 
     const messageText = await deps.generateWelcome(input.storeId, {
       username: input.username,

@@ -3,6 +3,7 @@ import { crmCommands, crmQueries } from "@/modules/crm";
 import { conversationCommands } from "@/modules/conversations";
 import { generateCoupon } from "@/modules/ecommerce";
 import { metaService } from "@/modules/meta/server";
+import { organizationQueries } from "@/modules/organizations";
 import { makeGetCampaign } from "../application/get-campaign";
 import { makeUpdateCampaign } from "../application/update-campaign";
 import { makeWelcomeFirstFollower } from "../application/welcome-first-follower";
@@ -28,4 +29,5 @@ export const welcomeFirstFollower = makeWelcomeFirstFollower({
     const profile = await crmQueries.getCustomerProfile(input);
     return profile?.customer.consent ?? null;
   },
+  organizationQueries,
 });

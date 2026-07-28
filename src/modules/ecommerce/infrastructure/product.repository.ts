@@ -5,23 +5,33 @@ import type { ProductRecord, ProductRepository } from "../application/ports";
 type PrismaProduct = {
   id: string;
   externalId: string;
+  storeId: string;
   title: string;
+  description: string | null;
   price: { toString(): string } | null;
   currency: string | null;
   inventory: number | null;
   imageUrl: string | null;
+  deletedAt: Date | null;
 };
 
 function toRecord(p: PrismaProduct): ProductRecord {
   return {
     id: p.id,
     externalId: p.externalId,
+    storeId: p.storeId,
     title: p.title,
+    description: p.description,
     price: p.price !== null ? Number(p.price.toString()) : null,
     currency: p.currency,
     inventory: p.inventory,
     imageUrl: p.imageUrl,
+    deletedAt: p.deletedAt,
   };
+}
+
+function notDeleted() {
+  return { deletedAt: null };
 }
 
 export class PrismaProductRepository implements ProductRepository {
@@ -52,6 +62,7 @@ export class PrismaProductRepository implements ProductRepository {
             currency: p.currency,
             inventory: p.inventory,
             imageUrl: p.imageUrl,
+            deletedAt: null,
           },
         }),
       ),
@@ -59,16 +70,82 @@ export class PrismaProductRepository implements ProductRepository {
     return products.length;
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<ProductRecord[]> {
+  async update(
+    id: string,
+    input: {
+      title?: string;
+      description?: string | null;
+      price?: number | null;
+      currency?: string | null;
+      inventory?: number | null;
+      imageUrl?: string | null;
+    },
+  ): Promise<ProductRecord | null> {
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        ...(input.title !== undefined ? { title: input.title } : {}),
+        ...(input.description !== undefined
+          ? { description: input.description }
+          : {}),
+        ...(input.price !== undefined ? { price: input.price } : {}),
+        ...(input.currency !== undefined ? { currency: input.currency } : {}),
+        ...(input.inventory !== undefined ? { inventory: input.inventory } : {}),
+        ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
+      },
+    });
+    return product ? toRecord(product) : null;
+  }
+
+  async findById(id: string): Promise<ProductRecord | null> {
+    const product = await prisma.product.findFirst({
+      where: { id, ...notDeleted() },
+    });
+    return product ? toRecord(product) : null;
+  }
+
+  async listByStore(
+    storeId: string,
+    options: { limit?: number; includeDeleted?: boolean } = {},
+  ): Promise<ProductRecord[]> {
     const rows = await prisma.product.findMany({
-      where: { storeId },
+      where: {
+        storeId,
+        ...(options.includeDeleted ? {} : notDeleted()),
+      },
       orderBy: { title: "asc" },
-      take: limit,
+      take: options.limit ?? 50,
     });
     return rows.map(toRecord);
   }
 
   async countByStore(storeId: string): Promise<number> {
-    return prisma.product.count({ where: { storeId } });
+    return prisma.product.count({
+      where: { storeId, ...notDeleted() },
+    });
+  }
+
+  async delete(id: string): Promise<ProductRecord | null> {
+    const product = await prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    return product ? toRecord(product) : null;
+  }
+
+  async markDeletedNotInBatch(
+    storeId: string,
+    externalIds: string[],
+    deletedAt: Date,
+  ): Promise<number> {
+    const result = await prisma.product.updateMany({
+      where: {
+        storeId,
+        externalId: { notIn: externalIds },
+        deletedAt: null,
+      },
+      data: { deletedAt },
+    });
+    return result.count;
   }
 }

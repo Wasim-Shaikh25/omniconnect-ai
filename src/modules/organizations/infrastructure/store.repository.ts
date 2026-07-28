@@ -11,6 +11,7 @@ type PrismaStore = {
   organizationId: string;
   archivedAt: Date | null;
   deletedAt: Date | null;
+  lastProductSyncAt: Date | null;
   createdAt: Date;
 };
 
@@ -23,6 +24,7 @@ function toRecord(store: PrismaStore): StoreRecord {
     organizationId: store.organizationId,
     archivedAt: store.archivedAt,
     deletedAt: store.deletedAt,
+    lastProductSyncAt: store.lastProductSyncAt,
     createdAt: store.createdAt,
   };
 }

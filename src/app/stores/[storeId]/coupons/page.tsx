@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CouponActions } from "@/components/coupon-actions";
 
 function formatExpiresAt(date: Date | null): string {
   if (!date) return "No expiry";
@@ -61,16 +62,22 @@ export default async function StoreCouponsPage({
           {coupons.map((coupon) => (
             <Card key={coupon.id}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">{coupon.code}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">{coupon.code}</CardTitle>
+                  <span className="text-xs text-muted-foreground">
+                    Expires {formatExpiresAt(coupon.expiresAt)}
+                  </span>
+                </div>
                 <CardDescription>
-                  {coupon.status} · Expires {formatExpiresAt(coupon.expiresAt)}
+                  {coupon.status}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">
+                <p className="text-sm mb-4">
                   <span className="text-muted-foreground">Discount</span>{" "}
                   <span className="font-medium">{coupon.discountPct}%</span>
                 </p>
+                <CouponActions coupon={coupon} storeId={storeId} />
               </CardContent>
             </Card>
           ))}

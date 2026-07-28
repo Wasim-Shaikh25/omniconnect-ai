@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataQualityBadge } from "@/components/data-quality-badge";
 
 function formatCurrency(value: number, currency: string | null): string {
   return `${currency ?? "$"}${value.toFixed(2)}`;
@@ -50,6 +51,16 @@ export default async function StoreAnalyticsPage({
 
       {view && (
         <>
+          <div className="mb-2 flex items-center gap-2">
+            <DataQualityBadge quality={view.dataQuality} />
+            <span className="text-xs text-muted-foreground">
+              {view.dataQuality === "simulated"
+                ? "Social metrics are estimated until a Meta account is connected."
+                : view.dataQuality === "partial"
+                  ? "Some real-time data sources are not connected yet."
+                  : "Metrics are based on connected data sources."}
+            </span>
+          </div>
           <p className="mb-6 text-sm text-muted-foreground">{view.summary}</p>
 
           <div className="mb-6 flex flex-wrap gap-2">

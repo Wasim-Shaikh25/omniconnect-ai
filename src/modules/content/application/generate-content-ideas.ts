@@ -1,3 +1,4 @@
+import { aiUsageGuard } from "@/modules/ai";
 import type { GeneratePostIdeas, GeneratePostIdeasInput, GeneratePostIdeasResult } from "@/modules/ai";
 import type { EventBus } from "@/shared/events";
 import { ContentIdeasGenerated } from "../domain/events";
@@ -15,8 +16,12 @@ export function makeGenerateContentIdeas(deps: {
   getOrganizationIdByStoreId: (storeId: string) => Promise<string | null>;
 }): GenerateContentIdeas {
   return async function generateContentIdeas(input): Promise<GenerateContentIdeasResult> {
-    const result = await deps.generatePostIdeas(input);
     const organizationId = await deps.getOrganizationIdByStoreId(input.storeId);
+    if (organizationId) {
+      await aiUsageGuard.assertAvailable(organizationId);
+    }
+
+    const result = await deps.generatePostIdeas(input);
 
     await deps.eventBus.publish(
       new ContentIdeasGenerated(input.storeId, {

@@ -109,11 +109,13 @@ export function makeGetMarketingPerformance(deps: {
       ]);
 
     let ownMedia: MetaMediaItem[] = [];
+    let mediaSourceError = !deps.getAccountMedia;
     if (deps.getAccountMedia) {
       try {
         ownMedia = await deps.getAccountMedia(storeId, 25);
       } catch {
         ownMedia = [];
+        mediaSourceError = true;
       }
     }
 
@@ -243,10 +245,14 @@ export function makeGetMarketingPerformance(deps: {
 
     const summary = `Followers: ${followers.length} (${newFollowersThisWeek} new this week). Conversations: ${conversations.length}. Orders: ${orders.length}, revenue ${formatCurrency(revenue, currency)}. Post-attributed orders: ${postOrders} (${formatCurrency(postRevenue, currency)}). Top hashtags: ${topHashtags.map((h) => `#${h}`).join(", ") || "none"}.`;
 
+    const dataQuality =
+      ownMedia.length > 0 ? "live" : mediaSourceError ? "simulated" : "partial";
+
     const view: MarketingPerformanceView = {
       organizationId: input.organizationId,
       storeId,
       generatedAt: new Date(),
+      dataQuality,
       content: {
         totalPosts,
         published: ownMedia.length,

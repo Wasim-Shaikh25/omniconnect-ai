@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getCurrentUser, requireRole, ForbiddenError } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
+import { aiUsageGuard } from "../application/usage-guard";
 import { updateAIConfiguration, generateCaptions, generateTrends, generatePostIdeas, askBusinessBrain } from "../infrastructure/container";
 import { updateAIConfigSchema } from "../application/update-config";
 import type { GeneratedCaption } from "../application/generate-captions";
@@ -107,6 +108,12 @@ export async function generateCaptionsAction(
     return { error: "Store not found in your organization." };
   }
 
+  try {
+    await aiUsageGuard.assertAvailable(user.organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
+  }
+
   const products = await ecommerceQueries.listProducts(parsed.data.storeId, 100);
   const selected = products.filter((p) => parsed.data.productTagIds.includes(p.id));
 
@@ -147,6 +154,12 @@ export async function generateTrendsAction(
 
   if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
     return { error: "Store not found in your organization." };
+  }
+
+  try {
+    await aiUsageGuard.assertAvailable(user.organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
 
   try {
@@ -197,6 +210,12 @@ export async function generatePostIdeasAction(
 
   if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
     return { error: "Store not found in your organization." };
+  }
+
+  try {
+    await aiUsageGuard.assertAvailable(user.organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
 
   const hashtagList = parsed.data.hashtags
@@ -257,6 +276,12 @@ export async function askBusinessBrainAction(
     !(await assertStoreInOrg(user.organizationId, parsed.data.storeId))
   ) {
     return { error: "Store not found in your organization." };
+  }
+
+  try {
+    await aiUsageGuard.assertAvailable(user.organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
 
   try {

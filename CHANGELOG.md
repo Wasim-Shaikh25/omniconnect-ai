@@ -104,7 +104,21 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `updateStore`, `archiveStore`, `restoreStore`, `deleteStore` use cases and server actions guarded by `tenantGuard.assertStoreAccess`.
     - Added `/stores/[storeId]/settings/page.tsx` and `StoreSettingsForm` component for owners to update, archive, restore, or delete a store.
     - Added a settings link on the store detail page header.
-  - In progress: Phase 2 — product and coupon lifecycle (edit/resync/delete).
+  - Phase 2 — product and coupon lifecycle:
+    - `Product` and `Coupon` now have `deletedAt` for soft-delete; `Store` has `lastProductSyncAt` (migration `20260728193000_product_coupon_lifecycle`).
+    - `ProductRepository` supports `update`, `findById`, `delete`, and `markDeletedNotInBatch`; `listByStore` filters deleted products by default.
+    - `CouponRepository` supports `findById`, `update`, `delete`, and status-correct `listByStore` filtering.
+    - New use-cases `updateProduct`, `deleteProduct`, `updateCoupon`, `deleteCoupon` with store-ownership guard.
+    - Server actions `updateProductAction`, `deleteProductAction`, `updateCouponAction`, `deleteCouponAction` write audit logs (`PRODUCT_UPDATED`, `PRODUCT_DELETED`, `COUPON_UPDATED`, `COUPON_DELETED`) via `auditCommands`.
+    - New `/stores/[storeId]/products/page.tsx` with inline edit/delete; new `/stores/[storeId]/coupons/page.tsx` with edit/delete; added `Product` and `Coupons` links on the store detail page.
+  - Phase 3 — AI guard and sync hardening:
+    - Added `AIUsageGuard` (`src/modules/ai/application/usage-guard.ts`) and routed all AI calls (`generateCaptionsAction`, `generateTrendsAction`, `generatePostIdeasAction`, `askBusinessBrainAction`, `analyzeCompetitorAction`, `content idea generation`, `welcome-first-follower`) through `aiUsageGuard.assertAvailable(organizationId)`.
+    - `welcome-first-follower` now asserts AI quota before generating the welcome message text.
+    - Product sync marks products not present in the provider as `deletedAt = now` and returns `{ count, deleted }`; `ProductsSynced` subscriber updates `Store.lastProductSyncAt`.
+    - `MarketingPerformanceView` now carries `dataQuality` (`live`/`partial`/`simulated`) based on whether live Meta media data was available; the analytics page renders a `DataQualityBadge`.
+  - Phase 2 — organization-level dashboard for owners with multiple stores:
+    - `WorkspaceKpiSnapshot.stores` is now `WorkspaceStoreSnapshot[]` with per-store product/follower/conversation/coupon counts and connection status.
+    - `/dashboard` “Your stores” card now shows each store’s KPIs, integration status, and last product sync date, giving owners with multiple stores a single overview.
   - Phase 4 (operations readiness):
     - Added public `/api/health` (liveness) and `/api/ready` (readiness) route handlers.
     - `/api/ready` checks PostgreSQL (`$queryRaw SELECT 1`) and Redis (`PING`) before returning `200 OK`; returns `503` with per-check diagnostics when a dependency is unreachable.

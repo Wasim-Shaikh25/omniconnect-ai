@@ -3,6 +3,7 @@ import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import { prisma } from "@/shared/database";
 import type { UserRegisteredPayload } from "@/modules/auth";
+import type { ProductsSyncedPayload } from "@/modules/ecommerce";
 import { OrganizationCreated } from "../domain/events";
 import { PrismaOrganizationRepository } from "./organization.repository";
 
@@ -42,7 +43,25 @@ const onUserRegistered: EventHandler = async (event) => {
   logger.info("organizations.provisioned", { organizationId: org.id, userId });
 };
 
+const onProductsSynced: EventHandler = async (event) => {
+  const { storeId, count } = event.payload as ProductsSyncedPayload;
+
+  try {
+    await prisma.store.update({
+      where: { id: storeId },
+      data: { lastProductSyncAt: new Date() },
+    });
+    logger.info("organizations.productsSyncRecorded", { storeId, count });
+  } catch (error) {
+    logger.error("organizations.productsSyncRecordFailed", {
+      storeId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 /** Wires the organizations module's event subscribers. Call once at startup. */
 export function registerOrganizationSubscribers(bus: EventBus = eventBus): void {
   bus.subscribe("UserRegistered", onUserRegistered);
+  bus.subscribe("ProductsSynced", onProductsSynced);
 }
