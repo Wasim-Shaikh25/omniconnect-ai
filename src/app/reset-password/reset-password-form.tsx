@@ -18,7 +18,6 @@ import {
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? "";
-  const code = searchParams.get("code") ?? "";
 
   const [state, formAction, pending] = useActionState<ActionState, FormData>(
     resetPasswordAction,
@@ -33,7 +32,9 @@ export function ResetPasswordForm() {
             OmniConnect AI
           </Link>
           <CardTitle className="text-2xl">New password</CardTitle>
-          <CardDescription>Enter the code and your new password</CardDescription>
+          <CardDescription>
+            Enter the reset code from your email and your new password
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">
@@ -56,7 +57,6 @@ export function ResetPasswordForm() {
                 name="code"
                 type="text"
                 required
-                defaultValue={code}
                 placeholder="123456"
               />
             </div>

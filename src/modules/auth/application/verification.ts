@@ -39,10 +39,10 @@ function buildEmail(email: string, code: string, purpose: VerificationPurpose): 
       text: `Your verification code is: ${code}\n\nThis code expires in 10 minutes.`,
     };
   }
-  const resetUrl = `${env.APP_URL}/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
+  const resetUrl = `${env.APP_URL}/reset-password?email=${encodeURIComponent(email)}`;
   return {
     subject: "Reset your OmniConnect password",
-    text: `You requested a password reset. Your code is: ${code}\n\nOr use this link: ${resetUrl}\n\nThis code expires in 1 hour.`,
+    text: `You requested a password reset.\n\nYour reset code is: ${code}\n\nTo reset your password, enter the code on the reset page:\n${resetUrl}\n\nThis code expires in 1 hour.`,
   };
 }
 
