@@ -61,7 +61,8 @@ All notable changes to **OmniConnect AI** are documented here.
   - Password reset email no longer includes the 6-digit reset code in the URL; the link only carries `email`, and the user enters the code from the email body.
   - `package.json` sets `"type": "module"` so Vitest loads Vite's ESM API, eliminating the CJS deprecation warning.
   - `npm run lint` now runs `eslint . --max-warnings=0` instead of the deprecated `next lint`; `eslint.config.mjs` ignores generated declaration files and one-off `scripts/`.
-  - **Remaining:** `teamSeats` enforcement (needs invite flow), M2 (per-field form errors), M3 (index verification).
+  - `ProjectActionState` now carries `fieldErrors` and project actions (`createProjectAction`, `addProjectMemberAction`) return `zod` `flatten().fieldErrors` instead of a single `error` string. `/projects/page.tsx` renders per-field errors with `aria-invalid`/`aria-describedby` for the create-project and add-member forms.
+  - **Remaining:** `teamSeats` enforcement (needs invite flow), M3 (index verification with `EXPLAIN ANALYZE`), extending per-field validation to other forms.
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
