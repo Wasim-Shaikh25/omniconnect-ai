@@ -9,6 +9,8 @@ import {
   inviteMember,
   validateOrganizationInvite,
   acceptOrganizationInvite,
+  tenantGuard,
+  organizationQueries,
 } from "../infrastructure/container";
 
 export interface InviteMemberActionState {
@@ -37,11 +39,21 @@ export async function inviteOrganizationMemberAction(
   const raw = {
     email: formData.get("email"),
     role: formData.get("role") ?? "STAFF",
+    storeId: formData.get("storeId") ?? undefined,
   };
 
   const parsed = inviteMemberSchema.safeParse(raw);
   if (!parsed.success) {
     return validationState(parsed.error);
+  }
+
+  const storeId = parsed.data.storeId?.trim();
+  if (storeId) {
+    try {
+      await tenantGuard.assertStoreAccess(user, storeId);
+    } catch {
+      return { error: "Selected store does not belong to your organization." };
+    }
   }
 
   const result = await inviteMember({
@@ -63,6 +75,7 @@ export async function registerWithInviteAction(
   formData: FormData,
 ): Promise<{ error?: string; message?: string; ok?: boolean }> {
   const token = formData.get("inviteToken");
+  const storeId = formData.get("storeId");
   const raw = {
     name: formData.get("name") || undefined,
     email: formData.get("email"),
@@ -89,9 +102,19 @@ export async function registerWithInviteAction(
     return { error: "Email does not match the invite." };
   }
 
+  let assignedStoreId: string | null = null;
+  if (typeof storeId === "string" && storeId.trim()) {
+    const storeOrganizationId = await organizationQueries.getOrganizationIdByStoreId(storeId);
+    if (storeOrganizationId !== invite.organizationId) {
+      return { error: "Selected store does not belong to the inviting organization." };
+    }
+    assignedStoreId = storeId;
+  }
+
   const registerResult = await registerUser(parsed.data, {
     organizationId: invite.organizationId,
     role: invite.role,
+    storeId: assignedStoreId,
   });
   if (!registerResult.ok) {
     return { error: registerResult.error.message };

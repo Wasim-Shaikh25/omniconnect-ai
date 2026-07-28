@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser, requireRole, requireSuperAdmin } from "@/modules/auth";
+import { tenantGuard } from "@/modules/organizations";
 import { updateProfileSchema } from "../application/update-profile";
 import { changeRoleSchema } from "../application/change-role";
 import {
@@ -10,6 +11,8 @@ import {
   auditCommands,
   listAllUsers,
   setUserSuperAdmin,
+  setUserStore,
+  userRepository,
 } from "../infrastructure/container";
 
 export interface ProfileActionState {
@@ -66,6 +69,50 @@ export async function changeUserRoleAction(
       resource: "User",
       resourceId: parsed.data.userId,
       details: `Role changed to ${parsed.data.role}`,
+    });
+  }
+
+  revalidatePath("/settings");
+  revalidatePath("/settings/audit");
+  return { ok: true };
+}
+
+export async function changeUserStoreAction(
+  _prev: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  const admin = await requireRole("STORE_OWNER");
+  const userId = formData.get("userId");
+  const storeId = formData.get("storeId");
+  if (typeof userId !== "string" || !userId) {
+    return { error: "User ID is required" };
+  }
+
+  const target = await userRepository.findById(userId);
+  if (!target || target.organizationId !== admin.organizationId) {
+    return { error: "User not found in your organization." };
+  }
+
+  const assignedStoreId = typeof storeId === "string" && storeId.trim() ? storeId.trim() : null;
+  if (assignedStoreId) {
+    try {
+      await tenantGuard.assertStoreAccess(admin, assignedStoreId);
+    } catch {
+      return { error: "Selected store does not belong to your organization." };
+    }
+  }
+
+  await setUserStore(userId, assignedStoreId);
+
+  if (admin.organizationId) {
+    await auditCommands.create({
+      organizationId: admin.organizationId,
+      actorId: admin.id,
+      actorEmail: admin.email ?? undefined,
+      action: "USER_STORE_CHANGED",
+      resource: "User",
+      resourceId: userId,
+      details: `Store assignment changed to ${assignedStoreId ?? "none"}`,
     });
   }
 

@@ -14,7 +14,7 @@ Implement the full product-completeness roadmap derived from `PRODUCTION_READINE
 
 ### Phase 1 — Critical staff and tenant isolation (8–12h)
 
-- [ ] **P1-1** — Add `storeId` to invite flow and user settings for `STAFF`/`ADMIN` users.
+- [x] **P1-1** — Add `storeId` to invite flow and user settings for `STAFF`/`ADMIN` users.
 - [x] **P1-2** — Implement `requireStoreAccess` helper and apply to every `app/stores/[storeId]/**/page.tsx` and server action.
 - [x] **P1-3** — Update `unifiedInboxQueries` and `listCustomersByOrganization` to accept `storeId` filter for staff.
 - [x] **P1-4** — Add integration/E2E test proving a staff user cannot read another store's data.

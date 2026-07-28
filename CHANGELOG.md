@@ -91,7 +91,14 @@ All notable changes to **OmniConnect AI** are documented here.
     - Updated `getOrganizationOverview` to accept an optional `SessionUser` and filter `stores` to `user.storeId` for `STAFF` roles.
     - Updated `getUnifiedInbox` and `listCustomersByOrganization` to scope store IDs by staff assignment.
     - Added `src/modules/organizations/application/queries.test.ts` proving staff only see their assigned store and cannot read another store via `getOrganizationOverview`.
-  - In progress: add `storeId` to the invite flow and user settings so `STAFF`/`ADMIN` users can be assigned to a store on invitation and reassigned later.
+  - Added `storeId` to the invite flow and user settings:
+    - `inviteMemberSchema` accepts an optional `storeId` and `sendInviteEmail` appends it to the `/register?inviteToken=...&storeId=...` link.
+    - `/register` reads `storeId` from the query string and `AuthForm` forwards it as a hidden field.
+    - `registerWithInviteAction` validates the `storeId` belongs to the inviting organization before creating the user with `User.storeId` set.
+    - `/settings` fetches the organization stores and shows a store dropdown in the invite form and per-member store assignment form.
+    - `changeUserStoreAction` lets owners/admins reassign a team member to a store and writes an audit log entry.
+    - Added `UserProfileRepository.setStore` and `setUserStore` container helper.
+  - In progress: Phase 2 — core entity lifecycle (store/product/coupon update, archive, transfer).
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

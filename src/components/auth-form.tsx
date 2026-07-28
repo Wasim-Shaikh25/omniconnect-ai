@@ -18,6 +18,7 @@ interface AuthFormProps {
   mode: "login" | "register";
   action: FormAction;
   inviteToken?: string | null;
+  inviteStoreId?: string | null;
   oauthProviders?: OAuthProvider[];
   oauthAction?: OAuthAction;
 }
@@ -26,6 +27,7 @@ export function AuthForm({
   mode,
   action,
   inviteToken,
+  inviteStoreId,
   oauthProviders,
   oauthAction,
 }: AuthFormProps) {
@@ -40,6 +42,7 @@ export function AuthForm({
     <div className="w-full space-y-4">
       <form action={formAction} className="space-y-4">
         {inviteToken && <input type="hidden" name="inviteToken" value={inviteToken} />}
+      {inviteStoreId && <input type="hidden" name="storeId" value={inviteStoreId} />}
       {isRegister && (
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>

@@ -22,9 +22,9 @@ import {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ inviteToken?: string }>;
+  searchParams: Promise<{ inviteToken?: string; storeId?: string }>;
 }) {
-  const { inviteToken } = await searchParams;
+  const { inviteToken, storeId } = await searchParams;
   const user = await getCurrentUser();
   if (user) redirect(user.organizationId ? "/dashboard" : "/onboarding");
 
@@ -55,6 +55,7 @@ export default async function RegisterPage({
             mode="register"
             action={inviteToken ? registerWithInviteAction : registerAction}
             inviteToken={inviteToken}
+            inviteStoreId={storeId}
             oauthProviders={oauthProviders}
             oauthAction={oauthSignInAction}
           />

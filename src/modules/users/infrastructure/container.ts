@@ -57,3 +57,10 @@ export async function setUserOrganization(
 ): Promise<void> {
   return users.setOrganization(id, organizationId);
 }
+
+export async function setUserStore(
+  id: string,
+  storeId: string | null,
+): Promise<UserProfile> {
+  return users.setStore(id, storeId);
+}

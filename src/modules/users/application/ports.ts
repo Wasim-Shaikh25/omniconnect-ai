@@ -20,6 +20,7 @@ export interface UserProfileRepository {
   ): Promise<UserProfile>;
   setOrganization(id: string, organizationId: string): Promise<void>;
   setRole(id: string, role: Role): Promise<UserProfile>;
+  setStore(id: string, storeId: string | null): Promise<UserProfile>;
   listByOrganization(organizationId: string, pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
   listAll(pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
   countByOrganization(organizationId: string): Promise<number>;

@@ -53,8 +53,12 @@ function sendInviteEmail(input: {
   email: string;
   token: string;
   organizationName: string;
+  storeId?: string;
 }): Promise<void> {
-  const link = `${env.APP_URL}/register?inviteToken=${encodeURIComponent(input.token)}`;
+  const storeParam = input.storeId
+    ? `&storeId=${encodeURIComponent(input.storeId)}`
+    : "";
+  const link = `${env.APP_URL}/register?inviteToken=${encodeURIComponent(input.token)}${storeParam}`;
   const text = `You have been invited to join ${input.organizationName} on OmniConnect AI.\n\nAccept the invite:\n${link}\n\nThis link expires in 7 days.`;
   const html = `<p>You have been invited to join <strong>${input.organizationName}</strong> on OmniConnect AI.</p><p><a href="${link}">Accept the invite</a></p><p>This link expires in 7 days.</p>`;
   return emailSender.send(input.email, `Invite to ${input.organizationName}`, text, html);

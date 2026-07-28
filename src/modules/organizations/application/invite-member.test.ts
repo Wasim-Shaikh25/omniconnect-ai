@@ -100,6 +100,7 @@ function makeSut(userCount = 0) {
   const organizations = new InMemoryOrganizations();
   const invites = new InMemoryInvites();
   const emails: { email: string; token: string }[] = [];
+  const emailInputs: Parameters<Parameters<typeof makeInviteMember>[0]["sendInviteEmail"]>[0][] = [];
   let now = new Date("2026-07-28T00:00:00.000Z");
   let tokenCounter = 0;
 
@@ -109,6 +110,7 @@ function makeSut(userCount = 0) {
     countOrganizationUsers: () => Promise.resolve(userCount),
     sendInviteEmail: (input) => {
       emails.push({ email: input.email, token: input.token });
+      emailInputs.push(input);
       return Promise.resolve();
     },
     generateToken: () => {
@@ -118,7 +120,7 @@ function makeSut(userCount = 0) {
     now: () => now,
   });
 
-  return { organizations, invites, emails, inviteMember, getNow: () => now, setNow: (d: Date) => { now = d; } };
+  return { organizations, invites, emails, emailInputs, inviteMember, getNow: () => now, setNow: (d: Date) => { now = d; } };
 }
 
 describe("makeInviteMember", () => {
@@ -177,6 +179,23 @@ describe("makeInviteMember", () => {
     if (second.ok) return;
     expect(second.error.message).toContain("Team seat limit reached");
     expect(emails).toHaveLength(1);
+  });
+
+  it("includes the selected storeId in the invite email", async () => {
+    const { organizations, inviteMember, emailInputs } = makeSut(0);
+    const org = await organizations.create({ name: "Test Org" });
+
+    const result = await inviteMember({
+      email: "staff@example.com",
+      role: "STAFF",
+      storeId: "store-a",
+      organizationId: org.id,
+      createdByUserId: "owner-1",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(emailInputs).toHaveLength(1);
+    expect(emailInputs[0]?.storeId).toBe("store-a");
   });
 
   it("rejects duplicate pending invite for the same email", async () => {
