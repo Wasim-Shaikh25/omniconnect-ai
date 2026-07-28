@@ -43,7 +43,7 @@ Implement the full product-completeness roadmap derived from `PRODUCTION_READINE
 - [ ] **P4-4** — Encrypt `Integration.accessToken`/`refreshToken` at rest with backwards-compatible migration.
 - [ ] **P4-5** — Separate MFA and password-reset code storage/purposes.
 - [ ] **P4-6** — CI: add `npm run build`, `npm run build:worker`, and an E2E/smoke step.
-- [ ] **P4-7** — Add `/api/health` and `/api/ready`; initialize Sentry/OpenTelemetry.
+- [x] **P4-7** — Add `/api/health` and `/api/ready` (Sentry/OpenTelemetry initialization remaining).
 - [ ] **P4-8** — Write backup/DR runbook in `docs/operations.md`.
 
 ## Acceptance Criteria

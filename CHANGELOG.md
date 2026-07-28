@@ -105,6 +105,10 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `/stores/[storeId]/settings/page.tsx` and `StoreSettingsForm` component for owners to update, archive, restore, or delete a store.
     - Added a settings link on the store detail page header.
   - In progress: Phase 2 — product and coupon lifecycle (edit/resync/delete).
+  - Phase 4 (operations readiness):
+    - Added public `/api/health` (liveness) and `/api/ready` (readiness) route handlers.
+    - `/api/ready` checks PostgreSQL (`$queryRaw SELECT 1`) and Redis (`PING`) before returning `200 OK`; returns `503` with per-check diagnostics when a dependency is unreachable.
+    - Updated NextAuth middleware public-path allowlist so the probes are reachable without a session.
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.
