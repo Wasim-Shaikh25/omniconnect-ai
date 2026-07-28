@@ -55,7 +55,7 @@ export function CreateSaaSCouponForm({ action }: { action: Action }) {
         </div>
       </div>
 
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.error && <p className="text-sm text-destructive" role="alert" aria-live="polite">{state.error}</p>}
       {state?.ok && <p className="text-sm text-green-600">Coupon {state.coupon?.code} created.</p>}
 
       <Button type="submit" disabled={pending}>

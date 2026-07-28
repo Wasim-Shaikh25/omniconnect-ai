@@ -1,6 +1,7 @@
 import { prisma } from "@/shared/database";
 import { StoreRecord, StoreRepository } from "../application/ports";
 import { EcommerceProvider } from "../domain/provider";
+import { StoreLimitError } from "../domain/errors";
 
 type PrismaStore = {
   id: string;
@@ -23,20 +24,48 @@ function toRecord(store: PrismaStore): StoreRecord {
 }
 
 export class PrismaStoreRepository implements StoreRepository {
-  async create(input: {
-    organizationId: string;
-    name: string;
-    provider: EcommerceProvider;
-    domain: string | null;
-  }): Promise<StoreRecord> {
-    const store = await prisma.store.create({
-      data: {
-        organizationId: input.organizationId,
-        name: input.name,
-        provider: input.provider,
-        domain: input.domain,
-      },
-    });
+  async create(
+    input: {
+      organizationId: string;
+      name: string;
+      provider: EcommerceProvider;
+      domain: string | null;
+    },
+    maxStores?: number | null,
+  ): Promise<StoreRecord> {
+    const shouldEnforce = maxStores !== undefined && maxStores !== null;
+
+    const store = shouldEnforce
+      ? await prisma.$transaction(
+          async (tx) => {
+            const count = await tx.store.count({
+              where: { organizationId: input.organizationId },
+            });
+            if (count >= maxStores) {
+              throw new StoreLimitError(
+                `Your plan allows up to ${maxStores} store(s). Upgrade to add more.`,
+              );
+            }
+            return tx.store.create({
+              data: {
+                organizationId: input.organizationId,
+                name: input.name,
+                provider: input.provider,
+                domain: input.domain,
+              },
+            });
+          },
+          { isolationLevel: "Serializable" },
+        )
+      : await prisma.store.create({
+          data: {
+            organizationId: input.organizationId,
+            name: input.name,
+            provider: input.provider,
+            domain: input.domain,
+          },
+        });
+
     return toRecord(store);
   }
 

@@ -25,23 +25,23 @@ Implement the remaining ship-blocking issues identified in the 2026-07-26 produc
   - [x] Encrypt `Integration.accessToken`/`refreshToken` at rest in repository (already implemented in eCommerce/Meta integration repositories)
   - [x] Decrypt tokens when constructing connectors
   - [x] Meta Graph API uses `Authorization: Bearer <token>` header, not query string
-  - [ ] Shopify connector uses `URL` object and stricter domain validation
+  - [x] Shopify connector uses `URL` object and validates `*.myshopify.com` hostnames
   - [x] `EncryptedPrismaAdapter` covers `linkAccount`/`getAccount`; `updateAccount`/`unlinkAccount`/`getUserByAccount` are not part of the Auth.js `Adapter` interface and are not required
   - [ ] Tighten CSP in `next.config.ts` (remove `unsafe-inline`/`unsafe-eval`, narrow `connect-src`/`img-src`)
 
 - [~] **PR-3: Plan limits & atomic counters**
-  - [ ] Atomic `createStore` plan-limit check (transaction or guarded unique constraint)
+  - [x] Atomic `createStore` plan-limit check (serializable transaction)
   - [ ] Add `Organization` monthly AI reply counter + atomic increment/reset
   - [ ] Enforce `monthlyAiReplies` in `ai` generate-reply flow
   - [ ] Enforce `teamSeats` in role-change/invite flows
   - [x] Make `saas-coupon` usage increment atomic and guarded in `fulfillCheckout`
   - [x] Make `VerificationToken.consume` a single atomic `delete`
 
-- [ ] **PR-4: Global guards & UX resilience**
-  - [ ] Add `src/middleware.ts` for protected route prefixes
-  - [ ] Add `src/app/error.tsx`, `global-error.tsx`, `not-found.tsx`, `loading.tsx`
-  - [ ] Add skeleton/empty/error states for key dynamic routes
-  - [ ] Add accessible form error associations and `aria-live` regions
+- [x] **PR-4: Global guards & UX resilience**
+  - [x] Add `src/middleware.ts` for protected route prefixes
+  - [x] Add `src/app/error.tsx`, `global-error.tsx`, `not-found.tsx`, `loading.tsx`
+  - [x] Add skeleton/empty/error states for key dynamic routes
+  - [x] Add accessible form error associations and `aria-live` regions
 
 - [x] **Final Verification (PR-1/2 batch)**
   - [x] `npm run lint`

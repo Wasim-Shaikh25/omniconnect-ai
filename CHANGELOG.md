@@ -15,23 +15,28 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
-- **TASK-0054 — Audit fixes continuation (PR-1/2):**
+- **TASK-0054 — Audit fixes continuation (PR-1/2/3/4):**
   - `getCurrentUser()` now loads the canonical DB record and verifies `tokenVersion`, so password/role/super-admin changes invalidate existing sessions.
   - `requireRole()` and `requireSuperAdmin()` use the fresh user returned by `getCurrentUser()`.
   - `SessionUser` and next-auth JWT/session types now include `storeId`; `tenantGuard.assertStoreAccess()` enforces staff store scoping.
   - Role/super-admin mutations increment `tokenVersion`.
   - Meta Graph API calls use the `Authorization: Bearer <token>` header and `URL` objects instead of putting `access_token` in the query string.
+  - Shopify connector builds API URLs with `URL` and validates `*.myshopify.com` hostnames.
   - `VerificationToken.consume()` is atomic (`deleteMany` with expiry guard).
   - SaaS coupon usage increment is atomic and guarded by `maxUses`.
+  - `createStore` plan-limit check is now enforced in a serializable Prisma transaction to prevent race-condition overages.
+  - `src/middleware.ts` adds route-level auth guards using NextAuth's `authorized` callback.
+  - `src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/not-found.tsx`, and `src/app/loading.tsx` provide global UX fallbacks.
+  - Form error messages now include `role="alert"` and `aria-live` regions for accessibility.
+  - `node:crypto` replaced with Web Crypto in `verification.ts`, `verify-webhook.ts`, and `webhook-guard.ts` so dev/build bundles are Edge/runtime-agnostic.
+  - Credentials password hasher is lazy-loaded in `auth.ts` to keep `bcryptjs` out of the middleware bundle.
   - Added continuation spec `docs/specs/0054-audit-fixes-continuation.md` and tracker `docs/tasks/0054-audit-fixes-continuation-progress.md`.
 
 ### 🚧 In Progress
 
-- **TASK-0054 — Audit fixes continuation (PR-3/4):**
-  - Atomic plan-limit check for `createStore`.
-  - Enforce `monthlyAiReplies` and `teamSeats` plan limits.
-  - Tighten CSP and remove `unsafe-inline`/`unsafe-eval` from `script-src`.
-  - Add `src/middleware.ts` and route-level error/loading/not-found UI.
+- **TASK-0054 — Audit fixes continuation (remaining):**
+  - Enforce `monthlyAiReplies` and `teamSeats` plan limits (requires `Organization` usage counters and AI/invite flow wiring).
+  - Tighten CSP and remove `unsafe-inline`/`unsafe-eval` from `script-src` (requires a per-request nonce strategy).
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

@@ -86,18 +86,17 @@ export class ShopifyConnector implements EcommerceConnector {
       throw new Error("Invalid API path");
     }
 
-    const res = await fetch(
-      `https://${this.shopDomain}/admin/api/${API_VERSION}/${path}`,
-      {
-        ...init,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        headers: {
-          "X-Shopify-Access-Token": this.accessToken,
-          "Content-Type": "application/json",
-          ...(init?.headers ?? {}),
-        },
+    const url = new URL(path, `https://${this.shopDomain}/admin/api/${API_VERSION}/`);
+
+    const res = await fetch(url.toString(), {
+      ...init,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      headers: {
+        "X-Shopify-Access-Token": this.accessToken,
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
       },
-    );
+    });
     if (!res.ok) {
       throw new Error(`Shopify request failed: ${res.status}`);
     }

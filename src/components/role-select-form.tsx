@@ -46,7 +46,9 @@ export function RoleSelectForm({
         {pending ? "…" : "Update"}
       </Button>
       {state?.error && (
-        <span className="text-xs text-destructive">{state.error}</span>
+        <span className="text-xs text-destructive" role="alert" aria-live="polite">
+          {state.error}
+        </span>
       )}
       {state?.ok && <span className="text-xs text-green-600">Saved</span>}
     </form>
