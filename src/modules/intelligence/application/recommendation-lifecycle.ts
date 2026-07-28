@@ -163,7 +163,7 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
     const allOpen = await input.recommendations.listOpen(organizationId, undefined, 500);
     for (const rec of allOpen) {
       if (isRecommendationExpired(rec, now)) {
-        await input.recommendations.invalidate(rec.id, "RecommendationExpired");
+        await input.recommendations.invalidate(rec.id, organizationId, "RecommendationExpired");
         await eventBus.publish(
           new RecommendationExpired(rec.id, { recommendationId: rec.id, reason: "validUntil elapsed or recommendation invalidated" }),
         );

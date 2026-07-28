@@ -65,9 +65,13 @@ export function registerIntelligenceQueueHandlers(deps: IntelligenceQueueHandler
   });
 
   jobRegistry.register<LearnFromOutcomeData>(JOB_LEARN_FROM_OUTCOME, async ({ data }) => {
-    const recommendation = await deps.recommendations.findById(data.recommendationId);
     const outcome = await deps.outcomes.findById(data.outcomeId);
-    if (recommendation && outcome) {
+    if (!outcome) {
+      logger.warn("queue.learnFromOutcome.missingOutcome", { outcomeId: data.outcomeId });
+      return;
+    }
+    const recommendation = await deps.recommendations.findById(data.recommendationId, outcome.organizationId);
+    if (recommendation) {
       await deps.businessLearning.learnFromOutcome(recommendation, outcome);
     } else {
       logger.warn("queue.learnFromOutcome.missing", {

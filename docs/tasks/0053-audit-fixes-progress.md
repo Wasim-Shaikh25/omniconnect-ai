@@ -40,7 +40,8 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [x] Scope `growth` repository mutations (`updateRights`, `markSent`, `markNotified`, `markReferred`, `incrementEarnings`) by `storeId`
   - [x] Scope `intelligence` `BusinessInsight`, `EntityLink`, and `DailyAction` mutations by `organizationId`
   - [x] Update presentation actions to pass `storeId`/`organizationId`
-  - [ ] Remaining `intelligence` repository mutations (`Recommendation`, `ActionPlan`, `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `CompetitorInsight`, `DataQualityIssue`)
+  - [x] Scope `intelligence` `Recommendation` and `ActionPlan` mutations by `organizationId`
+  - [ ] Remaining `intelligence` repository mutations (`Outcome`, `Goal`, `Prediction`, `Hypothesis`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`, `Journey`)
 - [x] PR-5: External API Security
   - [x] Validate Shopify `shopDomain` and add request timeout
   - [x] Encode Meta Graph API dynamic values and add request timeout

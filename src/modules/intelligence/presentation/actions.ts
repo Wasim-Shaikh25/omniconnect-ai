@@ -275,8 +275,8 @@ export async function approveRecommendationAction(formData: FormData): Promise<v
   const recommendation = await recommendationService.listOpen(user.organizationId).then((rs) => rs.find((r) => r.id === parsed.data.recommendationId));
   if (!recommendation || recommendation.organizationId !== user.organizationId) return;
 
-  const plan = await actionPlanService.createFromRecommendation(recommendation.id, user.id);
-  await actionPlanService.approve(plan.id, user.id, user.role);
+  const plan = await actionPlanService.createFromRecommendation(recommendation.id, user.organizationId, user.id);
+  await actionPlanService.approve(plan.id, user.organizationId, user.id, user.role);
 
   revalidatePath("/dashboard");
   if (plan.storeId) revalidatePath(`/stores/${plan.storeId}`);
@@ -292,9 +292,9 @@ export async function executeActionPlanAction(formData: FormData): Promise<void>
   const recommendation = await recommendationService.listOpen(user.organizationId).then((rs) => rs.find((r) => r.id === parsed.data.recommendationId));
   if (!recommendation || recommendation.organizationId !== user.organizationId) return;
 
-  const plan = await actionPlanService.createFromRecommendation(recommendation.id, user.id);
-  await actionPlanService.approve(plan.id, user.id, user.role);
-  await actionPlanService.execute(plan.id, user.id, user.role);
+  const plan = await actionPlanService.createFromRecommendation(recommendation.id, user.organizationId, user.id);
+  await actionPlanService.approve(plan.id, user.organizationId, user.id, user.role);
+  await actionPlanService.execute(plan.id, user.organizationId, user.id, user.role);
   revalidatePath("/dashboard");
   if (plan.storeId) revalidatePath(`/stores/${plan.storeId}`);
 }
@@ -309,7 +309,7 @@ export async function dismissRecommendationAction(formData: FormData): Promise<v
   const recommendation = await recommendationService.listOpen(user.organizationId).then((rs) => rs.find((r) => r.id === parsed.data.recommendationId));
   if (!recommendation || recommendation.organizationId !== user.organizationId) return;
 
-  await recommendationService.dismiss(recommendation.id);
+  await recommendationService.dismiss(recommendation.id, user.organizationId);
   revalidatePath("/dashboard");
   if (recommendation.storeId) revalidatePath(`/stores/${recommendation.storeId}`);
 }

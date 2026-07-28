@@ -584,47 +584,48 @@ export class PrismaRecommendationRepository implements RecommendationRepository 
     return rows.map((r) => toRecommendationRecord(r as StoredRecommendation));
   }
 
-  async findById(id: string): Promise<RecommendationRecord | null> {
-    const row = await prisma.recommendation.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<RecommendationRecord | null> {
+    const row = await prisma.recommendation.findUnique({ where: { id, organizationId } });
     return row ? toRecommendationRecord(row as StoredRecommendation) : null;
   }
 
-  async updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord> {
+  async updateStatus(id: string, organizationId: string, status: RecommendationStatus): Promise<RecommendationRecord> {
     const data: Prisma.RecommendationUpdateInput = { status };
     if (status === "DISMISSED") data.dismissedAt = new Date();
     if (status !== "SNOOZED") data.snoozedUntil = null;
     if (status === "EXPIRED") data.invalidatedAt = new Date();
-    const updated = await prisma.recommendation.update({ where: { id }, data });
+    const updated = await prisma.recommendation.update({ where: { id, organizationId }, data });
     return toRecommendationRecord(updated as StoredRecommendation);
   }
 
   async updateObjective(
     id: string,
+    organizationId: string,
     objective: RecommendationRecord["businessObjective"],
     reason: string,
   ): Promise<RecommendationRecord | null> {
     const updated = await prisma.recommendation.update({
-      where: { id },
+      where: { id, organizationId },
       data: { businessObjective: objective ?? undefined, reasoning: reason },
     });
     return toRecommendationRecord(updated as StoredRecommendation);
   }
 
-  async updateConfidence(id: string, confidence: number, signals: number): Promise<RecommendationRecord | null> {
+  async updateConfidence(id: string, organizationId: string, confidence: number, signals: number): Promise<RecommendationRecord | null> {
     const updated = await prisma.recommendation.update({
-      where: { id },
+      where: { id, organizationId },
       data: { confidence, confidenceSignals: signals },
     });
     return toRecommendationRecord(updated as StoredRecommendation);
   }
 
-  async invalidate(id: string, eventName: string): Promise<RecommendationRecord> {
+  async invalidate(id: string, organizationId: string, eventName: string): Promise<RecommendationRecord> {
     const data: Prisma.RecommendationUpdateInput = {
       status: "EXPIRED",
       invalidatedAt: new Date(),
       invalidatedByEvent: eventName,
     };
-    const updated = await prisma.recommendation.update({ where: { id }, data });
+    const updated = await prisma.recommendation.update({ where: { id, organizationId }, data });
     return toRecommendationRecord(updated as StoredRecommendation);
   }
 }
@@ -665,13 +666,14 @@ export class PrismaActionPlanRepository implements ActionPlanRepository {
     return toActionPlanRecord(created as StoredActionPlan);
   }
 
-  async findById(id: string): Promise<ActionPlanRecord | null> {
-    const row = await prisma.actionPlan.findUnique({ where: { id } });
+  async findById(id: string, organizationId: string): Promise<ActionPlanRecord | null> {
+    const row = await prisma.actionPlan.findUnique({ where: { id, organizationId } });
     return row ? toActionPlanRecord(row as StoredActionPlan) : null;
   }
 
   async updateStatus(
     id: string,
+    organizationId: string,
     status: ActionPlanStatus,
     approvedBy?: string | null,
     executedAt?: Date | null,
@@ -681,7 +683,7 @@ export class PrismaActionPlanRepository implements ActionPlanRepository {
     if (approvedBy !== undefined) data.approvedBy = approvedBy;
     if (executedAt !== undefined) data.executedAt = executedAt ?? null;
     if (stoppedAt !== undefined) data.stoppedAt = stoppedAt ?? null;
-    const updated = await prisma.actionPlan.update({ where: { id }, data });
+    const updated = await prisma.actionPlan.update({ where: { id, organizationId }, data });
     return toActionPlanRecord(updated as StoredActionPlan);
   }
 }

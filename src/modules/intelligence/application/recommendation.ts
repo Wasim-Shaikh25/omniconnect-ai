@@ -328,23 +328,25 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
       return input.recommendations.listOpen(organizationId, storeId, limit);
     },
 
-    async dismiss(id: string): Promise<RecommendationRecord | null> {
-      return input.recommendations.updateStatus(id, "DISMISSED");
+    async dismiss(id: string, organizationId: string): Promise<RecommendationRecord | null> {
+      return input.recommendations.updateStatus(id, organizationId, "DISMISSED");
     },
 
     async tagObjective(
       recommendationId: string,
+      organizationId: string,
       objective: BusinessObjective,
       reason: string,
     ): Promise<RecommendationRecord | null> {
-      return input.recommendations.updateObjective(recommendationId, objective, reason);
+      return input.recommendations.updateObjective(recommendationId, organizationId, objective, reason);
     },
 
     async recalculateConfidence(
       recommendationId: string,
+      organizationId: string,
       signals?: { supportingSignals?: number; contradictingSignals?: number },
     ): Promise<RecommendationRecord | null> {
-      const rec = await input.recommendations.findById(recommendationId);
+      const rec = await input.recommendations.findById(recommendationId, organizationId);
       if (!rec) return null;
       const next = recalculateConfidence({
         currentConfidence: rec.confidence ?? 0.5,
@@ -352,7 +354,7 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
         supportingSignals: signals?.supportingSignals ?? 1,
         contradictingSignals: signals?.contradictingSignals ?? 0,
       });
-      const updated = await input.recommendations.updateConfidence(recommendationId, next.confidence, next.signals);
+      const updated = await input.recommendations.updateConfidence(recommendationId, organizationId, next.confidence, next.signals);
       if (updated && Math.abs((rec.confidence ?? 0.5) - next.confidence) >= 0.001) {
         await eventBus.publish(
           new ConfidenceChanged(recommendationId, {

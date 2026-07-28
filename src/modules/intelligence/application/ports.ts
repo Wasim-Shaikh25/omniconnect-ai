@@ -122,11 +122,11 @@ export interface RecommendationRepository {
   save(rec: Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt">): Promise<RecommendationRecord>;
   listOpen(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
   listActive(organizationId: string, storeId?: string, limit?: number): Promise<RecommendationRecord[]>;
-  findById(id: string): Promise<RecommendationRecord | null>;
-  updateStatus(id: string, status: RecommendationStatus): Promise<RecommendationRecord>;
-  updateObjective(id: string, objective: BusinessObjective, reason: string): Promise<RecommendationRecord | null>;
-  updateConfidence(id: string, confidence: number, signals: number): Promise<RecommendationRecord | null>;
-  invalidate(id: string, eventName: string): Promise<RecommendationRecord>;
+  findById(id: string, organizationId: string): Promise<RecommendationRecord | null>;
+  updateStatus(id: string, organizationId: string, status: RecommendationStatus): Promise<RecommendationRecord>;
+  updateObjective(id: string, organizationId: string, objective: BusinessObjective, reason: string): Promise<RecommendationRecord | null>;
+  updateConfidence(id: string, organizationId: string, confidence: number, signals: number): Promise<RecommendationRecord | null>;
+  invalidate(id: string, organizationId: string, eventName: string): Promise<RecommendationRecord>;
 }
 
 export interface DailyActionRepository {
@@ -200,8 +200,8 @@ export interface JourneyRepository {
 
 export interface ActionPlanRepository {
   save(plan: Omit<ActionPlanRecord, "id" | "createdAt" | "updatedAt">): Promise<ActionPlanRecord>;
-  findById(id: string): Promise<ActionPlanRecord | null>;
-  updateStatus(id: string, status: ActionPlanStatus, approvedBy?: string | null, executedAt?: Date | null, stoppedAt?: Date | null): Promise<ActionPlanRecord>;
+  findById(id: string, organizationId: string): Promise<ActionPlanRecord | null>;
+  updateStatus(id: string, organizationId: string, status: ActionPlanStatus, approvedBy?: string | null, executedAt?: Date | null, stoppedAt?: Date | null): Promise<ActionPlanRecord>;
 }
 
 export interface DecisionRepository {

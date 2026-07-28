@@ -606,6 +606,22 @@ All notable changes to **OmniConnect AI** are documented here.
   - **Still deferred:** remaining `intelligence` repository tenant scoping, full DB persistence
     for in-memory intelligence/goal/feedback/rollout state, and `npm audit` dev-dependency cleanup.
 
+- **TASK-0053-follow-up-3 — Intelligence Recommendation/ActionPlan IDOR scoping** (spec `0053`):
+  - `PrismaRecommendationRepository` and `PrismaActionPlanRepository` mutations (`findById`,
+    `updateStatus`, `updateObjective`, `updateConfidence`, `invalidate`) now require
+    `organizationId` and use `where: { id, organizationId }`.
+  - `recommendationService` (`dismiss`, `tagObjective`, `recalculateConfidence`) and
+    `actionPlanService` (`createFromRecommendation`, `approve`, `execute`) updated to thread
+    `organizationId` through to repositories.
+  - Presentation actions (`approveRecommendationAction`, `executeActionPlanAction`,
+    `dismissRecommendationAction`) pass `user.organizationId`; `queue-handlers.ts` uses the
+    persisted `outcome.organizationId` to scope the recommendation lookup.
+  - Verification scripts updated to pass the tenant context.
+  - `npm run lint`, `typecheck`, `test`, and `build` pass.
+  - **Still deferred:** remaining `intelligence` repository scopes (`Outcome`, `Goal`,
+    `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`,
+    `ActionOutcome`, `Journey`) and full in-memory state persistence.
+
 ### ⏭️ Next (proposed build order)
 
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

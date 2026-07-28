@@ -57,8 +57,8 @@ function stepsFromRecommendation(rec: RecommendationRecord): unknown {
 
 export function makeActionPlanService(input: ActionPlanServiceInput) {
   return {
-    async createFromRecommendation(recommendationId: string, approvedBy?: string): Promise<ActionPlanRecord> {
-      const recommendation = await input.recommendations.findById(recommendationId);
+    async createFromRecommendation(recommendationId: string, organizationId: string, approvedBy?: string): Promise<ActionPlanRecord> {
+      const recommendation = await input.recommendations.findById(recommendationId, organizationId);
       if (!recommendation) throw new Error("Recommendation not found");
 
       const plan = await input.actionPlans.save({
@@ -76,21 +76,21 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
       });
 
       if (approvedBy) {
-        await input.actionPlans.updateStatus(plan.id, "APPROVED", approvedBy);
+        await input.actionPlans.updateStatus(plan.id, organizationId, "APPROVED", approvedBy);
       }
 
       await eventBus.publish(
         new RecommendationAccepted(plan.id, { recommendation, actionPlan: { ...plan, approvedBy: approvedBy ?? null, status: "DRAFT" } }),
       );
 
-      return input.actionPlans.findById(plan.id) as Promise<ActionPlanRecord>;
+      return input.actionPlans.findById(plan.id, organizationId) as Promise<ActionPlanRecord>;
     },
 
-    async approve(actionPlanId: string, decidedBy: string, userRole: string | null): Promise<ActionPlanRecord> {
-      const plan = await input.actionPlans.findById(actionPlanId);
+    async approve(actionPlanId: string, organizationId: string, decidedBy: string, userRole: string | null): Promise<ActionPlanRecord> {
+      const plan = await input.actionPlans.findById(actionPlanId, organizationId);
       if (!plan) throw new Error("Action plan not found");
 
-      const recommendation = await input.recommendations.findById(plan.recommendationId ?? "");
+      const recommendation = await input.recommendations.findById(plan.recommendationId ?? "", organizationId);
       const riskTier: RiskTier = recommendation?.riskTier ?? "TIER_2";
       if (!input.policy.isApprovedBySufficientAuthority(riskTier, userRole)) {
         throw new Error("Insufficient authority to approve this action plan");
@@ -106,7 +106,7 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
         decidedAt: new Date(),
       });
 
-      const approved = await input.actionPlans.updateStatus(plan.id, "APPROVED", decidedBy);
+      const approved = await input.actionPlans.updateStatus(plan.id, organizationId, "APPROVED", decidedBy);
 
       await eventBus.publish(
         new ActionPlanApproved(plan.id, {
@@ -118,11 +118,11 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
       return approved;
     },
 
-    async execute(actionPlanId: string, userId: string, userRole: string | null): Promise<{ plan: ActionPlanRecord; outcome: OutcomeRecord }> {
-      const plan = await input.actionPlans.findById(actionPlanId);
+    async execute(actionPlanId: string, organizationId: string, userId: string, userRole: string | null): Promise<{ plan: ActionPlanRecord; outcome: OutcomeRecord }> {
+      const plan = await input.actionPlans.findById(actionPlanId, organizationId);
       if (!plan) throw new Error("Action plan not found");
 
-      const recommendation = await input.recommendations.findById(plan.recommendationId ?? "");
+      const recommendation = await input.recommendations.findById(plan.recommendationId ?? "", organizationId);
       const executable = canExecuteRecommendation(recommendation);
       if (!executable.ok) {
         throw new Error(executable.reason ?? "Recommendation cannot be executed");
@@ -138,7 +138,7 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
         const { allowed, requiresApproval } = input.policy.canExecute(recommendation?.actionType ?? "", riskTier, userRole);
         if (!allowed) throw new Error("Not authorized to execute this action plan");
         if (requiresApproval) throw new Error("This action plan requires approval before execution");
-        await input.actionPlans.updateStatus(plan.id, "APPROVED", userId);
+        await input.actionPlans.updateStatus(plan.id, organizationId, "APPROVED", userId);
       }
 
       const beforeSnapshot = await input.metrics.getMetric(plan.targetMetric ?? "conversation_count", plan.organizationId, plan.storeId);
@@ -171,14 +171,14 @@ export function makeActionPlanService(input: ActionPlanServiceInput) {
       }
 
       const planStatus: ActionPlanRecord["status"] = result.ok ? "EXECUTED" : "FAILED";
-      const executed = await input.actionPlans.updateStatus(plan.id, planStatus, undefined, new Date(), null);
+      const executed = await input.actionPlans.updateStatus(plan.id, organizationId, planStatus, undefined, new Date(), null);
 
       await eventBus.publish(
         new ActionPlanExecuted(plan.id, { actionPlan: executed, outcome: measuredOutcome }),
       );
 
       if (recommendation && recommendation.status !== "ACCEPTED") {
-        await input.recommendations.updateStatus(recommendation.id, "ACCEPTED");
+        await input.recommendations.updateStatus(recommendation.id, organizationId, "ACCEPTED");
       }
 
       return { plan: executed, outcome: measuredOutcome };

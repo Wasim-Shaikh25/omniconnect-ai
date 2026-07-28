@@ -499,6 +499,15 @@ async takeOver(input: { id: string; storeId: string; humanUserId: string }): Pro
 
 Apply the same pattern to all mutating repository methods listed in the audit.
 
+Implemented repository scopes:
+
+- `intelligence` `Recommendation` and `ActionPlan`: `findById`, `updateStatus`, `updateObjective`, `updateConfidence`, and `invalidate` now require `organizationId` and use `where: { id, organizationId }`.
+- `intelligence` application services (`recommendationService`, `actionPlanService`) and presentation actions (`approveRecommendationAction`, `executeActionPlanAction`, `dismissRecommendationAction`) pass `user.organizationId` through to the repositories.
+
+Still pending (next pass):
+
+- `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `BusinessLearning`, `CompetitorInsight`, `DataQualityIssue`, `ActionOutcome`, and `Journey` repository mutations.
+
 ### 8.5 Shopify / Meta / OpenAI Security
 
 #### Shopify SSRF
