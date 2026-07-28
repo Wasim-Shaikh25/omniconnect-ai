@@ -65,14 +65,16 @@ The prior audit (`docs/audit/2026-07-26-production-readiness-audit.md`) identifi
 - `IntegrationRepository` encrypts `accessToken`/`refreshToken` on write and decrypts on read.
 - Connector factories receive plaintext tokens; they never persist them.
 - Meta `GraphApiMetaService` moves `access_token` to the `Authorization` header and uses `URL` objects for all Graph API calls.
-- `next.config.ts` CSP removes `unsafe-inline`/`unsafe-eval` from `script-src`, narrows `connect-src` and `img-src` to specific domains, and sets `poweredByHeader: false`.
+- `src/middleware.ts` generates a per-request nonce and sets the `Content-Security-Policy` header with `script-src 'self' 'nonce-<nonce>' 'strict-dynamic'` (plus `unsafe-eval` in dev only). `next.config.ts` removes the static CSP so the nonce-based version is the only one. The nonce is forwarded in an `x-nonce` request header and read by `src/app/layout.tsx` so Next.js can stamp its internal scripts/styles with the matching nonce. Static assets are excluded from middleware.
 - `EncryptedPrismaAdapter` overrides `updateAccount`, `unlinkAccount`, and `getUserByAccount` to encrypt/decrypt token fields consistently.
 
 ### PR-3: Plan limits & atomic counters
 
 - `createStore` plan-limit check becomes atomic (transaction with row lock or unique assertion).
-- Add `monthlyAiReplies` enforcement in `ai` generate-reply flow with atomic `Organization` counter.
-- Add `teamSeats` enforcement in role-change/invite flows.
+- Add `Organization.aiRepliesThisMonth` and `Organization.aiRepliesResetAt` to the schema.
+- Add `OrganizationRepository.incrementAIReplies(id, limit)` to atomically reset/verify/increment the monthly AI reply counter using a serializable transaction.
+- Add `organizationUsage.incrementAIReplies(organizationId)` to the public `organizations` barrel; the `ai` generate-reply flow calls it before invoking the LLM and fails closed when the limit is reached.
+- Add `teamSeats` enforcement when a user is added to an organization (requires an invite/add-member flow that does not yet exist; tracked as future work).
 - `saas-coupon` usage becomes an atomic guarded update in `fulfillCheckout`.
 - `VerificationToken.consume` becomes a single atomic `delete` returning the row.
 
@@ -103,7 +105,8 @@ The prior audit (`docs/audit/2026-07-26-production-readiness-audit.md`) identifi
 - [ ] Demoted user cannot call `requireRole('ADMIN')` or `requireRole('STORE_OWNER')` with an old session.
 - [ ] `Integration.accessToken`/`refreshToken` values in the DB are prefixed/encrypted; connectors still work.
 - [ ] Outbound Meta requests do not contain `access_token` in the URL.
-- [ ] CSP `script-src` does not contain `unsafe-inline` or `unsafe-eval`.
-- [ ] `monthlyAiReplies` and `teamSeats` are enforced for Free/Starter plans.
+- [x] CSP `script-src` uses per-request nonces and does not contain `unsafe-inline` or `unsafe-eval` (dev-only `unsafe-eval` is allowed).
+- [ ] `monthlyAiReplies` is enforced for Free/Starter plans.
+- [ ] `teamSeats` is enforced when adding members to an organization (pending invite flow).
 - [ ] Staff users cannot access stores they are not assigned to.
 - [ ] All CI-quality gates pass.

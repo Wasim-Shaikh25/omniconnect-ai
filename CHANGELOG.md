@@ -25,6 +25,10 @@ All notable changes to **OmniConnect AI** are documented here.
   - `VerificationToken.consume()` is atomic (`deleteMany` with expiry guard).
   - SaaS coupon usage increment is atomic and guarded by `maxUses`.
   - `createStore` plan-limit check is now enforced in a serializable Prisma transaction to prevent race-condition overages.
+  - `src/middleware.ts` generates a per-request nonce and sets `Content-Security-Policy` with `script-src 'nonce-...' 'strict-dynamic'` and `style-src 'nonce-...'`, removing `unsafe-inline`/`unsafe-eval` from production. `next.config.ts` no longer sets CSP statically.
+  - `src/app/layout.tsx` reads `headers()` and the `x-nonce` request header so Next.js stamps its internal scripts/styles with the matching nonce.
+  - `Organization` now tracks `aiRepliesThisMonth` and `aiRepliesResetAt`; `OrganizationRepository.incrementAIReplies()` atomically resets/enforces/increments the monthly quota.
+  - The `ai` generate-reply flow calls `organizationUsage.consumeAIReply()` before invoking the LLM and escalates to a human handoff when the plan limit is reached.
   - `src/middleware.ts` adds route-level auth guards using NextAuth's `authorized` callback.
   - `src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/not-found.tsx`, and `src/app/loading.tsx` provide global UX fallbacks.
   - Form error messages now include `role="alert"` and `aria-live` regions for accessibility.
@@ -35,8 +39,7 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
-  - Enforce `monthlyAiReplies` and `teamSeats` plan limits (requires `Organization` usage counters and AI/invite flow wiring).
-  - Tighten CSP and remove `unsafe-inline`/`unsafe-eval` from `script-src` (requires a per-request nonce strategy).
+  - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

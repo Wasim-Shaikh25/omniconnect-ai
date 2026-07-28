@@ -1,6 +1,7 @@
 import { makeCreateStore } from "../application/create-store";
 import { makeOrganizationQueries } from "../application/queries";
 import { makeTenantGuard } from "../application/tenant";
+import { makeOrganizationUsageService } from "../application/usage";
 import { makeBillingService } from "../application/billing";
 import { makeCreateSaaSCoupon, makeValidateSaaSCoupon } from "../application/saas-coupon";
 import {
@@ -39,6 +40,7 @@ export const organizationQueries = makeOrganizationQueries({
   organizations,
   stores,
 });
+export const organizationUsage = makeOrganizationUsageService({ organizations });
 export const tenantGuard = makeTenantGuard({ queries: organizationQueries });
 export const billingService = paymentGateway
   ? makeBillingService({ organizations, paymentGateway, coupons: saasCouponRepository })

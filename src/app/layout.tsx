@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppHeader } from "@/components/app-header";
@@ -24,12 +25,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const nonce = (await headers()).get("x-nonce") ?? "";
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen antialiased">
+    <html lang="en" nonce={nonce} suppressHydrationWarning>
+      <body className="min-h-screen antialiased" nonce={nonce}>
         <Providers>
           <AppHeader />
           {children}
