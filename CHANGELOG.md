@@ -42,7 +42,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - `REDIS_URL` and a non-console `EMAIL_PROVIDER` (with complete SMTP config) are now required in production.
   - Added `@@unique([subscriptionId])` and `@@index([aiRepliesResetAt])` on `Organization`; Stripe billing webhook now looks up the org by indexed `subscriptionId` instead of scanning all rows.
   - `aiRepliesThisMonth` reset now uses UTC month boundaries.
-  - Narrowed CSP `connect-src` to `'self'` and public API allowlist to explicit webhook/auth prefixes.
+  - Narrowed CSP `connect-src` to `'self'` and public API allowlist to explicit webhook/auth prefixes; `style-src` now allows `'unsafe-inline'` so Next.js dev/runtime inline style attributes (route announcer, dev overlay) do not violate the policy.
   - Project management actions now require `STORE_OWNER`, validate target users belong to the workspace, and guard against duplicate memberships.
   - `commerce` and `conversations` store-scoped actions now use `tenantGuard.assertStoreAccess()` for staff store scoping.
   - `package.json` declares `sideEffects: ["*.css"]` so webpack can tree-shake server-only module code out of the client bundle, reducing first-load JS and preventing Node-only packages from being bundled for the browser.
