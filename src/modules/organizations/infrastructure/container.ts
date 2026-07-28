@@ -9,6 +9,7 @@ import {
   makeArchiveProject,
   makeAddProjectMember,
   makeRemoveProjectMember,
+  makeListProjectMembers,
 } from "../application/project";
 import { PrismaOrganizationRepository } from "./organization.repository";
 import { PrismaStoreRepository } from "./store.repository";
@@ -40,7 +41,7 @@ export const organizationQueries = makeOrganizationQueries({
 });
 export const tenantGuard = makeTenantGuard({ queries: organizationQueries });
 export const billingService = paymentGateway
-  ? makeBillingService({ organizations, paymentGateway })
+  ? makeBillingService({ organizations, paymentGateway, coupons: saasCouponRepository })
   : null;
 export const createSaaSCoupon = makeCreateSaaSCoupon({ coupons: saasCouponRepository });
 export const validateSaaSCoupon = makeValidateSaaSCoupon({ coupons: saasCouponRepository });
@@ -52,3 +53,4 @@ export const listProjects = makeListProjects({ projects });
 export const archiveProject = makeArchiveProject({ projects });
 export const addProjectMember = makeAddProjectMember({ projects });
 export const removeProjectMember = makeRemoveProjectMember({ projects });
+export const listProjectMembers = makeListProjectMembers({ projects });

@@ -55,6 +55,7 @@ export async function takeOverConversationAction(
 
   await conversationCommands.takeOver({
     conversationId,
+    storeId,
     humanUserId: user.id,
   });
 
@@ -81,7 +82,7 @@ export async function resumeAIConversationAction(
     return { error: "Store not found in your organization." };
   }
 
-  await conversationCommands.resumeAI(conversationId);
+  await conversationCommands.resumeAI({ conversationId, storeId });
 
   revalidatePath("/inbox");
   revalidatePath(`/stores/${storeId}/conversations`);

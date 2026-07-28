@@ -559,6 +559,33 @@ All notable changes to **OmniConnect AI** are documented here.
   - Updated `.env.example` with `SUPER_ADMIN_*` and `SMTP_*` variables.
   - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
 
+- **TASK-0053 — Production Readiness Audit Fixes** (spec `0053`, partial):
+  - **Auth & Session Hardening:** OAuth `signIn` event provisions organization synchronously;
+    `NEXTAUTH_SECRET` mapped to `authConfig.secret`; `User.tokenVersion` added with migration;
+    password reset bumps `tokenVersion` to invalidate existing sessions; MFA/reset requests
+    rate-limited; `VerificationToken` limited to one active code per email/purpose.
+  - **RBAC:** Removed `setUserSuperAdmin` and `changeUserRole` from the `users` public barrel;
+    `changeUserRole` enforces hierarchy, self-change guard, and last-admin protection;
+    `requireRole`/`requireSuperAdmin` re-validate against the DB.
+  - **Billing:** Stripe Checkout Session carries top-level `metadata` (`organizationId`, `plan`,
+    `couponCode`); webhook fulfillment updates `Organization.plan`, handles `customer.subscription.deleted`
+    and `invoice.payment_failed`, and increments coupon usage only after successful payment;
+    ungated coupon actions removed from public barrel.
+  - **IDOR / Tenant Scoping:** Mutations in `conversations`, `crm`, `support`, `projects`, and
+    selected `intelligence` repositories (`BusinessInsight`, `EntityLink`, `DailyAction`) now
+    require and scope by `storeId`/`organizationId`.
+  - **External API Security:** `ShopifyConnector` validates `*.myshopify.com` domains, rejects
+    path traversal, and sets request timeouts; Meta Graph API calls encode dynamic values and
+    time out; OpenAI provider adds `AbortSignal` timeout and a defensive system-prompt guard.
+  - **Infrastructure Hardening:** `next.config.ts` adds `Content-Security-Policy`, removes
+    HSTS `preload`, and disables `X-Powered-By`; header/mobile sign-out uses `signOut` from
+    `next-auth/react`; `SmtpEmailSender` enforces TLS 1.2+; `logger` redacts emails, phones,
+    and sensitive keys; `setRolloutGateAction` now requires `requireSuperAdmin()`.
+  - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
+  - **Deferred follow-ups:** remaining `growth` and `intelligence` repository tenant scoping,
+    full DB persistence for in-memory intelligence/goal/feedback state, Prisma index migration,
+    and `npm audit` dev-dependency cleanup.
+
 ### ⏭️ Next (proposed build order)
 
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

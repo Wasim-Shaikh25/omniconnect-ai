@@ -87,9 +87,9 @@ export interface EntityLinkRepository {
     targetType: string,
     targetId: string,
   ): Promise<EntityLinkRecord | null>;
-  findById(id: string): Promise<EntityLinkRecord | null>;
-  updateStatus(id: string, status: LinkStatus): Promise<EntityLinkRecord>;
-  updateConfidence(id: string, confidence: ConfidenceLevel, resolutionMethod: string): Promise<EntityLinkRecord>;
+  findById(id: string, organizationId?: string): Promise<EntityLinkRecord | null>;
+  updateStatus(id: string, organizationId: string, status: LinkStatus): Promise<EntityLinkRecord>;
+  updateConfidence(id: string, organizationId: string, confidence: ConfidenceLevel, resolutionMethod: string): Promise<EntityLinkRecord>;
 }
 
 export interface DataQualityRepository {
@@ -114,8 +114,8 @@ export interface MetricRepository {
 export interface BusinessInsightRepository {
   save(insight: Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt">): Promise<BusinessInsightRecord>;
   listOpen(organizationId: string, storeId?: string, limit?: number): Promise<BusinessInsightRecord[]>;
-  findById(id: string): Promise<BusinessInsightRecord | null>;
-  updateStatus(id: string, status: InsightStatus): Promise<BusinessInsightRecord>;
+  findById(id: string, organizationId?: string): Promise<BusinessInsightRecord | null>;
+  updateStatus(id: string, organizationId: string, status: InsightStatus): Promise<BusinessInsightRecord>;
 }
 
 export interface RecommendationRepository {
@@ -133,10 +133,10 @@ export interface DailyActionRepository {
   save(action: Omit<DailyActionRecord, "id" | "createdAt" | "updatedAt">): Promise<DailyActionRecord>;
   listPending(organizationId: string, storeId?: string, limit?: number): Promise<DailyActionRecord[]>;
   listForDate(organizationId: string, since: Date, storeId?: string, limit?: number): Promise<DailyActionRecord[]>;
-  findById(id: string): Promise<DailyActionRecord | null>;
-  complete(id: string, feedback: string | null, outcomeId: string | null): Promise<DailyActionRecord>;
-  skip(id: string, reason: string | null): Promise<DailyActionRecord>;
-  setOutcome(id: string, outcomeId: string): Promise<DailyActionRecord>;
+  findById(id: string, organizationId?: string): Promise<DailyActionRecord | null>;
+  complete(id: string, organizationId: string, feedback: string | null, outcomeId: string | null): Promise<DailyActionRecord>;
+  skip(id: string, organizationId: string, reason: string | null): Promise<DailyActionRecord>;
+  setOutcome(id: string, organizationId: string, outcomeId: string): Promise<DailyActionRecord>;
 }
 
 export interface ActionOutcomeRepository {

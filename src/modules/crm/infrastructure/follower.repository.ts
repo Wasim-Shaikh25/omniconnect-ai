@@ -69,11 +69,12 @@ export class PrismaFollowerRepository implements FollowerRepository {
 
   async recordCampaignEnrollment(input: {
     followerId: string;
+    storeId: string;
     couponId: string;
     welcomeMessageText: string;
   }): Promise<FollowerRecord> {
     const updated = await prisma.follower.update({
-      where: { id: input.followerId },
+      where: { id: input.followerId, storeId: input.storeId },
       data: {
         couponId: input.couponId,
         campaignEnrolledAt: new Date(),

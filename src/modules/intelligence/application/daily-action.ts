@@ -173,10 +173,8 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     feedback?: string | null,
     organizationId?: string,
   ): Promise<ActionOutcomeRecord | null> {
-    const action = await input.dailyActions.findById(actionId);
+    const action = await input.dailyActions.findById(actionId, organizationId);
     if (!action) return null;
-    // Tenant guard: never mutate an action outside the caller's organization.
-    if (organizationId && action.organizationId !== organizationId) return null;
     if (action.status !== "PENDING") return null;
 
     const metricName = action.metricName;
@@ -196,7 +194,7 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
       status: "PENDING",
     });
 
-    await input.dailyActions.complete(actionId, feedback ?? null, outcome.id);
+    await input.dailyActions.complete(actionId, action.organizationId, feedback ?? null, outcome.id);
 
     await eventBus.publish(
       new DailyActionCompleted(actionId, {
@@ -217,11 +215,10 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
   }
 
   async function skip(actionId: string, reason?: string | null, organizationId?: string): Promise<void> {
-    const action = await input.dailyActions.findById(actionId);
+    const action = await input.dailyActions.findById(actionId, organizationId);
     if (!action) return;
-    if (organizationId && action.organizationId !== organizationId) return;
     if (action.status !== "PENDING") return;
-    await input.dailyActions.skip(actionId, reason ?? null);
+    await input.dailyActions.skip(actionId, action.organizationId, reason ?? null);
     await eventBus.publish(
       new DailyActionSkipped(actionId, {
         actionId,

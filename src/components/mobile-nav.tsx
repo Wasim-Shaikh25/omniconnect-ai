@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "./sign-out-button";
 
 interface NavItem {
   href: string;
@@ -77,11 +78,7 @@ export function MobileNav({ items, email }: MobileNavProps) {
                   {email}
                 </li>
                 <li>
-                  <form action="/api/auth/signout" method="post">
-                    <Button type="submit" variant="ghost" size="sm" className="px-0">
-                      Sign out
-                    </Button>
-                  </form>
+                  <SignOutButton variant="ghost" size="sm" className="px-0" />
                 </li>
               </>
             ) : (

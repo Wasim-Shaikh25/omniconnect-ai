@@ -169,10 +169,11 @@ async function sendReply(
   },
 ): Promise<void> {
   if (input.escalate) {
-    await deps.conversationCommands.setHumanActive(input.conversationId);
+    await deps.conversationCommands.setHumanActive(input.conversationId, input.storeId);
   } else {
     await deps.conversationCommands.appendMessage(
       input.conversationId,
+      input.storeId,
       "AI",
       input.text,
     );

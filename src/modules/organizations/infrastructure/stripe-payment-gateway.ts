@@ -35,6 +35,13 @@ export class StripePaymentGateway implements PaymentGateway {
       success_url: input.successUrl,
       cancel_url: input.cancelUrl,
       client_reference_id: input.organizationId,
+      // Top-level metadata is returned on the checkout session and subsequent
+      // webhook events so fulfillment always has the canonical plan/org/coupon.
+      metadata: {
+        organizationId: input.organizationId,
+        plan: input.plan,
+        couponCode: input.couponCode ?? "",
+      },
       subscription_data: {
         metadata: { organizationId: input.organizationId, plan: input.plan },
       },

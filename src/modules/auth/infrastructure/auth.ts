@@ -10,11 +10,11 @@ import { env } from "@/shared/config";
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import { isRole, type Role } from "../domain/role";
-import { UserLoggedIn } from "../domain/events";
+import { UserLoggedIn, UserRegistered } from "../domain/events";
 import { PrismaAccountRepository } from "./account.repository";
 import { BcryptPasswordHasher } from "./password-hasher";
 import { verifyCode } from "./verification-code";
-import { isSuperAdmin } from "./super-admin";
+import { clientIp, rateLimit } from "@/shared/security/rate-limit";
 
 const accounts = new PrismaAccountRepository();
 const hasher = new BcryptPasswordHasher();
@@ -26,12 +26,20 @@ const providers: NextAuthConfig["providers"] = [
       password: { label: "Password", type: "password" },
       mfaCode: { label: "MFA Code", type: "text" },
     },
-    async authorize(raw) {
+    async authorize(raw, request) {
       const email =
         typeof raw?.email === "string" ? raw.email.toLowerCase().trim() : "";
       const password = typeof raw?.password === "string" ? raw.password : "";
       const mfaCode = typeof raw?.mfaCode === "string" ? raw.mfaCode : "";
       if (!email || !password) return null;
+
+      const ip = request ? clientIp(request) : "unknown";
+      const limit = await rateLimit({
+        key: `credentials:${email}:${ip}`,
+        limit: 5,
+        windowMs: 15 * 60 * 1000,
+      });
+      if (!limit.allowed) return null;
 
       const account = await accounts.findByEmail(email);
       if (!account?.passwordHash) return null;
@@ -39,7 +47,7 @@ const providers: NextAuthConfig["providers"] = [
       const valid = await hasher.compare(password, account.passwordHash);
       if (!valid) return null;
 
-      if (isSuperAdmin(email)) {
+      if (account.isSuperAdmin) {
         if (!mfaCode) return null;
         const codeValid = await verifyCode(email, mfaCode, "mfa");
         if (!codeValid) return null;
@@ -52,6 +60,7 @@ const providers: NextAuthConfig["providers"] = [
         role: account.role,
         isSuperAdmin: account.isSuperAdmin,
         organizationId: account.organizationId,
+        tokenVersion: account.tokenVersion,
       };
     },
   }),
@@ -106,31 +115,58 @@ if (env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET) {
 
 export { oauthProviders };
 
+async function refreshTokenFromDb(
+  token: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  if (typeof token.id !== "string") return token;
+  const fresh = await accounts.findById(token.id);
+  if (!fresh) return null;
+  return {
+    ...token,
+    role: fresh.role,
+    isSuperAdmin: fresh.isSuperAdmin,
+    organizationId: fresh.organizationId,
+    tokenVersion: fresh.tokenVersion,
+  };
+}
+
 export const authConfig: NextAuthConfig = {
   adapter: EncryptedPrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  secret: env.NEXTAUTH_SECRET,
   pages: { signIn: "/login" },
   providers,
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, account, trigger }) {
       if (user) {
         token.id = user.id;
-        const role = (user as { role?: unknown }).role;
-        token.role = isRole(role) ? role : "STORE_OWNER";
-        const isSuperAdmin = (user as { isSuperAdmin?: unknown }).isSuperAdmin;
-        token.isSuperAdmin = typeof isSuperAdmin === "boolean" ? isSuperAdmin : false;
-        const orgId = (user as { organizationId?: unknown }).organizationId;
-        token.organizationId = typeof orgId === "string" ? orgId : null;
-      }
-      // Refresh tenant claim when the session is explicitly updated.
-      if (trigger === "update" && typeof token.id === "string") {
-        const fresh = await accounts.findByEmail(
-          typeof token.email === "string" ? token.email : "",
-        );
-        if (fresh) {
-          token.organizationId = fresh.organizationId;
-          token.isSuperAdmin = fresh.isSuperAdmin;
+        token.email = user.email;
+        token.name = user.name;
+        // OAuth users do not go through the email/password registration flow,
+        // so they may not have an organization. Provision one synchronously
+        // before the JWT is issued so the token carries the tenant claim.
+        if (account?.provider !== "credentials" && typeof user.id === "string") {
+          const existing = await accounts.findById(user.id);
+          if (existing && !existing.organizationId && user.email) {
+            await eventBus.publish(
+              new UserRegistered(user.id, {
+                userId: user.id,
+                email: user.email,
+                role: "STORE_OWNER",
+              }),
+            );
+          }
         }
+        // Always hydrate from the database so the token carries the current
+        // canonical claims (role, organization, tokenVersion).
+        const refreshed = await refreshTokenFromDb(token);
+        if (!refreshed) return token;
+        return refreshed;
+      }
+      if (trigger === "update" && typeof token.id === "string") {
+        const refreshed = await refreshTokenFromDb(token);
+        if (!refreshed) return token;
+        return refreshed;
       }
       return token;
     },
@@ -146,19 +182,22 @@ export const authConfig: NextAuthConfig = {
             : null;
         session.user.isSuperAdmin =
           typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
+        session.user.tokenVersion =
+          typeof token.tokenVersion === "number" ? token.tokenVersion : 0;
       }
       return session;
     },
   },
   events: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
       if (!user?.id || !user.email) return;
       await eventBus.publish(
         new UserLoggedIn(user.id, { userId: user.id, email: user.email }),
       );
-      logger.info("user.signIn", { userId: user.id });
+      logger.info("user.signIn", { userId: user.id, provider: account?.provider });
     },
   },
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+export const { handlers, auth, signIn, signOut, unstable_update } =
+  NextAuth(authConfig);

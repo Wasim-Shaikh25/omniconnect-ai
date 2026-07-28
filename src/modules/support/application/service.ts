@@ -24,37 +24,45 @@ export function makeCreateTicket(deps: { tickets: SupportTicketRepository }) {
 }
 
 export function makeListUserTickets(deps: { tickets: SupportTicketRepository }) {
-  return async function listUserTickets(userId: string): Promise<SupportTicketRecord[]> {
-    return deps.tickets.listByUser(userId);
+  return async function listUserTickets(
+    userId: string,
+    organizationId?: string,
+  ): Promise<SupportTicketRecord[]> {
+    return deps.tickets.listByUser(userId, organizationId);
   };
 }
 
 export function makeListAllTickets(deps: { tickets: SupportTicketRepository }) {
-  return async function listAllTickets(filters?: {
-    status?: TicketStatus;
-    priority?: TicketPriority;
-    category?: TicketCategory;
-  }): Promise<SupportTicketRecord[]> {
-    return deps.tickets.listAll(filters);
+  return async function listAllTickets(
+    organizationId?: string | null,
+    filters?: {
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      category?: TicketCategory;
+    },
+  ): Promise<SupportTicketRecord[]> {
+    return deps.tickets.listAll(organizationId, filters);
   };
 }
 
 export function makeUpdateTicket(deps: { tickets: SupportTicketRepository }) {
   return async function updateTicket(
     id: string,
+    organizationId: string,
     input: Partial<{ status: TicketStatus; priority: TicketPriority; assignedTo: string | null }>,
   ): Promise<SupportTicketRecord | null> {
-    return deps.tickets.update(id, input);
+    return deps.tickets.update(id, organizationId, input);
   };
 }
 
 export function makeAddTicketComment(deps: { tickets: SupportTicketRepository }) {
   return async function addTicketComment(
     ticketId: string,
+    organizationId: string,
     userId: string,
     message: string,
     isInternal: boolean,
   ) {
-    return deps.tickets.addComment({ ticketId, userId, message, isInternal });
+    return deps.tickets.addComment({ ticketId, organizationId, userId, message, isInternal });
   };
 }

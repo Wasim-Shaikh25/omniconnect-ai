@@ -68,6 +68,7 @@ export function ResetPasswordForm() {
                 type="password"
                 required
                 minLength={8}
+                maxLength={200}
                 placeholder="••••••••"
                 autoComplete="new-password"
               />

@@ -62,6 +62,7 @@ const onCouponGenerated: EventHandler = async (event) => {
 
   await customers.recordCouponSent({
     customerId: p.customerId,
+    storeId: p.storeId,
     couponId: p.couponId,
   });
   logger.info("crm.couponSentRecorded", {

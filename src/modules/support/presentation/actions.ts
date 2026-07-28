@@ -56,7 +56,7 @@ export async function createTicketAction(
 
 export async function listMyTicketsAction() {
   const user = await requireUser();
-  return listUserTickets(user.id);
+  return listUserTickets(user.id, user.organizationId ?? undefined);
 }
 
 export async function listAllTicketsAction(filters?: {
@@ -65,7 +65,7 @@ export async function listAllTicketsAction(filters?: {
   category?: TicketCategory;
 }) {
   await requireSuperAdmin();
-  return listAllTickets(filters);
+  return listAllTickets(null, filters);
 }
 
 export async function updateTicketAction(
@@ -76,6 +76,9 @@ export async function updateTicketAction(
   const ticketId = formData.get("ticketId");
   if (typeof ticketId !== "string" || !ticketId) return { error: "Ticket ID is required" };
 
+  const existing = await ticketRepository.findById(ticketId);
+  if (!existing) return { error: "Ticket not found" };
+
   const input: Partial<{ status: TicketStatus; priority: TicketPriority; assignedTo: string | null }> = {};
   const status = formData.get("status");
   const priority = formData.get("priority");
@@ -84,11 +87,11 @@ export async function updateTicketAction(
   if (typeof priority === "string" && priority) input.priority = priority as TicketPriority;
   if (typeof assignedTo === "string" && assignedTo) input.assignedTo = assignedTo;
 
-  const ticket = await updateTicket(ticketId, input);
+  const ticket = await updateTicket(ticketId, existing.organizationId, input);
   if (!ticket) return { error: "Ticket not found" };
 
   await auditCommands.create({
-    organizationId: "platform",
+    organizationId: existing.organizationId,
     actorId: admin.id,
     actorEmail: admin.email,
     action: "SUPPORT_TICKET_UPDATED",
@@ -116,7 +119,10 @@ export async function addTicketCommentAction(
   const admin = user.isSuperAdmin ? user : null;
   if (isInternal && !admin) return { error: "Forbidden" };
 
-  const comment = await addTicketComment(ticketId, user.id, message, isInternal);
+  const ticket = await ticketRepository.findById(ticketId, user.organizationId ?? undefined);
+  if (!ticket || (!user.isSuperAdmin && ticket.userId !== user.id)) return { error: "Ticket not found" };
+
+  const comment = await addTicketComment(ticketId, ticket.organizationId, user.id, message, isInternal);
   revalidatePath("/admin/tickets");
   revalidatePath("/support");
   return { ok: true, comment };
@@ -124,7 +130,7 @@ export async function addTicketCommentAction(
 
 export async function getTicketByIdAction(ticketId: string) {
   const user = await requireUser();
-  const ticket = await ticketRepository.findById(ticketId);
+  const ticket = await ticketRepository.findById(ticketId, user.organizationId ?? undefined);
   if (!ticket) return null;
   if (!user.isSuperAdmin && ticket.userId !== user.id) return null;
   return ticket;

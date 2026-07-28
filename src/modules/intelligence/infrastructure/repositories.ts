@@ -226,8 +226,10 @@ export class PrismaEntityLinkRepository implements EntityLinkRepository {
     return rows as StoredLink[];
   }
 
-  async findById(id: string): Promise<EntityLinkRecord | null> {
-    const row = await prisma.entityLink.findUnique({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<EntityLinkRecord | null> {
+    const row = await prisma.entityLink.findUnique({
+      where: organizationId ? { id, organizationId } : { id },
+    });
     return (row as StoredLink) ?? null;
   }
 
@@ -250,19 +252,30 @@ export class PrismaEntityLinkRepository implements EntityLinkRepository {
     return (row as StoredLink) ?? null;
   }
 
-  async updateStatus(id: string, status: EntityLinkRecord["status"]): Promise<EntityLinkRecord> {
+  async updateStatus(
+    id: string,
+    organizationId: string,
+    status: EntityLinkRecord["status"],
+  ): Promise<EntityLinkRecord> {
     const data: Prisma.EntityLinkUpdateInput = { status };
-    const updated = await prisma.entityLink.update({ where: { id }, data });
+    const updated = await prisma.entityLink.update({
+      where: { id, organizationId },
+      data,
+    });
     return updated as StoredLink;
   }
 
   async updateConfidence(
     id: string,
+    organizationId: string,
     confidence: EntityLinkRecord["confidence"],
     resolutionMethod: string,
   ): Promise<EntityLinkRecord> {
     const data: Prisma.EntityLinkUpdateInput = { confidence, resolutionMethod };
-    const updated = await prisma.entityLink.update({ where: { id }, data });
+    const updated = await prisma.entityLink.update({
+      where: { id, organizationId },
+      data,
+    });
     return updated as StoredLink;
   }
 }
@@ -458,16 +471,25 @@ export class PrismaBusinessInsightRepository implements BusinessInsightRepositor
     return rows.map((r) => toInsightRecord(r as StoredBusinessInsight));
   }
 
-  async findById(id: string): Promise<BusinessInsightRecord | null> {
-    const row = await prisma.businessInsight.findUnique({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<BusinessInsightRecord | null> {
+    const row = await prisma.businessInsight.findUnique({
+      where: organizationId ? { id, organizationId } : { id },
+    });
     return row ? toInsightRecord(row as StoredBusinessInsight) : null;
   }
 
-  async updateStatus(id: string, status: BusinessInsightRecord["status"]): Promise<BusinessInsightRecord> {
+  async updateStatus(
+    id: string,
+    organizationId: string,
+    status: BusinessInsightRecord["status"],
+  ): Promise<BusinessInsightRecord> {
     const data: Prisma.BusinessInsightUpdateInput = { status };
     if (status === "DISMISSED") data.dismissedAt = new Date();
     if (status !== "SNOOZED") data.snoozedUntil = null;
-    const updated = await prisma.businessInsight.update({ where: { id }, data });
+    const updated = await prisma.businessInsight.update({
+      where: { id, organizationId },
+      data,
+    });
     return toInsightRecord(updated as StoredBusinessInsight);
   }
 }
@@ -1369,29 +1391,39 @@ export class PrismaDailyActionRepository implements DailyActionRepository {
     return rows.map((r) => toDailyActionRecord(r as StoredDailyAction));
   }
 
-  async findById(id: string): Promise<DailyActionRecord | null> {
-    const row = await prisma.dailyAction.findUnique({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<DailyActionRecord | null> {
+    const row = await prisma.dailyAction.findUnique({
+      where: organizationId ? { id, organizationId } : { id },
+    });
     return row ? toDailyActionRecord(row as StoredDailyAction) : null;
   }
 
-  async complete(id: string, feedback: string | null, outcomeId: string | null): Promise<DailyActionRecord> {
+  async complete(
+    id: string,
+    organizationId: string,
+    feedback: string | null,
+    outcomeId: string | null,
+  ): Promise<DailyActionRecord> {
     const updated = await prisma.dailyAction.update({
-      where: { id },
+      where: { id, organizationId },
       data: { status: "DONE", completedAt: new Date(), feedback, outcomeId },
     });
     return toDailyActionRecord(updated as StoredDailyAction);
   }
 
-  async skip(id: string, reason: string | null): Promise<DailyActionRecord> {
+  async skip(id: string, organizationId: string, reason: string | null): Promise<DailyActionRecord> {
     const updated = await prisma.dailyAction.update({
-      where: { id },
+      where: { id, organizationId },
       data: { status: "SKIPPED", skippedAt: new Date(), feedback: reason },
     });
     return toDailyActionRecord(updated as StoredDailyAction);
   }
 
-  async setOutcome(id: string, outcomeId: string): Promise<DailyActionRecord> {
-    const updated = await prisma.dailyAction.update({ where: { id }, data: { outcomeId } });
+  async setOutcome(id: string, organizationId: string, outcomeId: string): Promise<DailyActionRecord> {
+    const updated = await prisma.dailyAction.update({
+      where: { id, organizationId },
+      data: { outcomeId },
+    });
     return toDailyActionRecord(updated as StoredDailyAction);
   }
 }

@@ -29,14 +29,18 @@ const consentSchema = z.object({
 async function assertCustomerInOrg(
   organizationId: string | null,
   customerId: string,
-): Promise<boolean> {
-  if (!organizationId) return false;
+): Promise<{ ok: boolean; storeId?: string }> {
+  if (!organizationId) return { ok: false };
   const overview = await organizationQueries.getOrganizationOverview(
     organizationId,
   );
-  const customer = await customers.findById(customerId);
-  if (!customer) return false;
-  return overview?.stores.some((s) => s.id === customer.storeId) ?? false;
+  // Search all stores in the org for this customer first.
+  const storeIds = overview?.stores.map((s) => s.id) ?? [];
+  for (const storeId of storeIds) {
+    const customer = await customers.findById(customerId, storeId);
+    if (customer) return { ok: true, storeId: customer.storeId };
+  }
+  return { ok: false };
 }
 
 export async function updateCustomerLifecycleAction(
@@ -51,13 +55,15 @@ export async function updateCustomerLifecycleAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertCustomerInOrg(user.organizationId, parsed.data.customerId))) {
+  const auth = await assertCustomerInOrg(user.organizationId, parsed.data.customerId);
+  if (!auth.ok || !auth.storeId) {
     return { error: "Customer not found in your organization." };
   }
 
   try {
     await customers.updateLifecycleStage(
       parsed.data.customerId,
+      auth.storeId,
       parsed.data.lifecycleStage as CustomerLifecycleStage,
     );
     revalidatePath("/customers");
@@ -78,13 +84,15 @@ export async function updateCustomerConsentAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertCustomerInOrg(user.organizationId, parsed.data.customerId))) {
+  const auth = await assertCustomerInOrg(user.organizationId, parsed.data.customerId);
+  if (!auth.ok || !auth.storeId) {
     return { error: "Customer not found in your organization." };
   }
 
   try {
     await customers.updateConsent(
       parsed.data.customerId,
+      auth.storeId,
       parsed.data.consent as CustomerConsent,
     );
     revalidatePath("/customers");

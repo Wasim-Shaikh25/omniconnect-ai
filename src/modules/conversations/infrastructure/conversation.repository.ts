@@ -92,17 +92,20 @@ export class PrismaConversationRepository implements ConversationRepository {
     return rows.map(toRecord);
   }
 
-  async findById(id: string): Promise<ConversationRecord | null> {
-    const found = await prisma.conversation.findUnique({ where: { id } });
+  async findById(id: string, storeId?: string): Promise<ConversationRecord | null> {
+    const found = await prisma.conversation.findUnique({
+      where: storeId ? { id, storeId } : { id },
+    });
     return found ? toRecord(found) : null;
   }
 
   async updateStatus(
     id: string,
+    storeId: string,
     status: "AI_ACTIVE" | "HUMAN_ACTIVE",
   ): Promise<ConversationRecord> {
     const updated = await prisma.conversation.update({
-      where: { id },
+      where: { id, storeId },
       data: { status },
     });
     return toRecord(updated);
@@ -110,10 +113,11 @@ export class PrismaConversationRepository implements ConversationRepository {
 
   async takeOver(input: {
     id: string;
+    storeId: string;
     humanUserId: string;
   }): Promise<ConversationRecord> {
     const updated = await prisma.conversation.update({
-      where: { id: input.id },
+      where: { id: input.id, storeId: input.storeId },
       data: {
         status: "HUMAN_ACTIVE",
         assignedHumanId: input.humanUserId,
@@ -122,9 +126,9 @@ export class PrismaConversationRepository implements ConversationRepository {
     return toRecord(updated);
   }
 
-  async resumeAI(id: string): Promise<ConversationRecord> {
+  async resumeAI(id: string, storeId: string): Promise<ConversationRecord> {
     const updated = await prisma.conversation.update({
-      where: { id },
+      where: { id, storeId },
       data: {
         status: "AI_ACTIVE",
         assignedHumanId: null,

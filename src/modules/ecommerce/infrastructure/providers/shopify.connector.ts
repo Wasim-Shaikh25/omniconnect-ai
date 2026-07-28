@@ -10,6 +10,7 @@ import type {
 } from "../../domain/connector";
 
 const API_VERSION = "2024-01";
+const REQUEST_TIMEOUT_MS = 15000;
 
 interface ShopifyProduct {
   id: number;
@@ -41,6 +42,25 @@ interface ShopifyPriceRule {
   status?: string;
 }
 
+function validateShopDomain(raw: string): string {
+  // Strip optional protocol and trailing paths so we can validate the hostname only.
+  const trimmed = raw.trim().replace(/^https?:\/\//, "").split("/")[0] ?? "";
+  if (!trimmed) throw new Error("Shopify shop domain is required");
+
+  const hostname = trimmed.split(":")[0] ?? "";
+  const parts = hostname.toLowerCase().split(".");
+  const isMyShopify =
+    parts.length >= 2 &&
+    parts[parts.length - 2] === "myshopify" &&
+    parts[parts.length - 1] === "com";
+
+  if (!isMyShopify || !/^[a-z0-9][a-z0-9-]*$/.test(parts[0] ?? "")) {
+    throw new Error("Invalid Shopify shop domain: must be a *.myshopify.com hostname");
+  }
+
+  return hostname;
+}
+
 /**
  * Shopify Admin REST API connector.
  *
@@ -49,20 +69,28 @@ interface ShopifyPriceRule {
  */
 export class ShopifyConnector implements EcommerceConnector {
   readonly provider = "SHOPIFY";
+  private readonly shopDomain: string;
 
   constructor(
-    private readonly shopDomain: string,
+    shopDomain: string,
     private readonly accessToken: string,
-  ) {}
+  ) {
+    this.shopDomain = validateShopDomain(shopDomain);
+  }
 
   private async request<T>(
     path: string,
     init?: RequestInit,
   ): Promise<T> {
+    if (path.includes("..") || path.includes("//")) {
+      throw new Error("Invalid API path");
+    }
+
     const res = await fetch(
       `https://${this.shopDomain}/admin/api/${API_VERSION}/${path}`,
       {
         ...init,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         headers: {
           "X-Shopify-Access-Token": this.accessToken,
           "Content-Type": "application/json",
@@ -89,8 +117,9 @@ export class ShopifyConnector implements EcommerceConnector {
   }
 
   async getProducts(limit = 50): Promise<ConnectorProduct[]> {
+    const safeLimit = Math.min(Math.max(limit, 1), 250);
     const data = await this.request<{ products: ShopifyProduct[] }>(
-      `products.json?limit=${limit}`,
+      `products.json?limit=${safeLimit}`,
     );
     return data.products.map((p) => {
       const variant = p.variants[0];
@@ -107,8 +136,9 @@ export class ShopifyConnector implements EcommerceConnector {
   }
 
   async getOrders(limit = 50): Promise<ConnectorOrder[]> {
+    const safeLimit = Math.min(Math.max(limit, 1), 250);
     const data = await this.request<{ orders: ShopifyOrder[] }>(
-      `orders.json?status=any&limit=${limit}`,
+      `orders.json?status=any&limit=${safeLimit}`,
     );
     return data.orders.map((o) => ({
       externalId: String(o.id),
@@ -120,8 +150,9 @@ export class ShopifyConnector implements EcommerceConnector {
   }
 
   async getCustomers(limit = 50): Promise<ConnectorCustomer[]> {
+    const safeLimit = Math.min(Math.max(limit, 1), 250);
     const data = await this.request<{ customers: ShopifyCustomer[] }>(
-      `customers.json?limit=${limit}`,
+      `customers.json?limit=${safeLimit}`,
     );
     return data.customers.map((c) => ({
       externalId: String(c.id),

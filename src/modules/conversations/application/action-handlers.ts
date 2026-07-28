@@ -11,11 +11,14 @@ export async function executeConversationAction(actionType: string, params: unkn
   switch (actionType) {
     case "TAKE_OVER_CONVERSATION": {
       const conversationId = String(typed.conversationId ?? "");
+      const storeId = String(typed.storeId ?? "");
       const humanUserId = String(typed.humanUserId ?? "");
-      if (!conversationId || !humanUserId) return { ok: false, message: "Missing conversationId or humanUserId" };
+      if (!conversationId || !storeId || !humanUserId) {
+        return { ok: false, message: "Missing conversationId, storeId, or humanUserId" };
+      }
 
       try {
-        await conversationCommands.takeOver({ conversationId, humanUserId });
+        await conversationCommands.takeOver({ conversationId, storeId, humanUserId });
         return { ok: true, message: "Conversation taken over" };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Take-over failed";

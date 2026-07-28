@@ -9,6 +9,11 @@ import type {
 } from "../application/ports";
 
 const GRAPH_API_BASE = "https://graph.facebook.com/v21.0";
+const REQUEST_TIMEOUT_MS = 15000;
+
+function withTimeout(init: RequestInit = {}): RequestInit {
+  return { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) };
+}
 
 /**
  * Outbound Graph API adapter. Config-gated: without a stored page token (or in
@@ -32,7 +37,7 @@ export class GraphApiMetaService implements MetaService {
       return;
     }
 
-    const res = await fetch(`${GRAPH_API_BASE}/me/messages`, {
+    const res = await fetch(`${GRAPH_API_BASE}/me/messages`, withTimeout({
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -42,7 +47,7 @@ export class GraphApiMetaService implements MetaService {
         recipient: { id: input.recipientId },
         message: { text: input.text },
       }),
-    });
+    }));
 
     if (!res.ok) {
       logger.warn("meta.sendMessage.failed", {
@@ -71,7 +76,7 @@ export class GraphApiMetaService implements MetaService {
 
     try {
       const url = `${GRAPH_API_BASE}/ig_hashtag_search?user_id=${integration.accountId}&q=${encodeURIComponent(query)}&access_token=${token}`;
-      const res = await fetch(url);
+      const res = await fetch(url, withTimeout());
       if (!res.ok) {
         logger.warn("meta.searchHashtag.failed", { storeId, query, status: res.status });
         return { hashtagId: null, userId: integration.accountId };
@@ -110,7 +115,7 @@ export class GraphApiMetaService implements MetaService {
     const url = `${GRAPH_API_BASE}/${hashtagId}/${kind}?user_id=${integration.accountId}&fields=${encodeURIComponent(fields)}&limit=${limit}&access_token=${token}`;
 
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, withTimeout());
       if (!res.ok) {
         logger.warn("meta.getHashtagMedia.failed", { storeId, hashtagId, status: res.status });
         return [];
@@ -140,7 +145,7 @@ export class GraphApiMetaService implements MetaService {
     const url = `${GRAPH_API_BASE}/${integration.accountId}/media?fields=${encodeURIComponent(fields)}&limit=${Math.min(limit, 25)}&access_token=${token}`;
 
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, withTimeout());
       if (!res.ok) {
         logger.warn("meta.getAccountMedia.failed", { storeId, status: res.status });
         return [];
@@ -174,10 +179,10 @@ export class GraphApiMetaService implements MetaService {
     }
 
     const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
-    const url = `${GRAPH_API_BASE}/${integration.accountId}?fields=business_discovery.username(${handle}){id,media{${fields}}}&access_token=${token}`;
+    const url = `${GRAPH_API_BASE}/${integration.accountId}?fields=business_discovery.username(${encodeURIComponent(handle)}){id,media{${fields}}}&access_token=${token}`;
 
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, withTimeout());
       if (!res.ok) {
         logger.warn("meta.getCompetitorMedia.failed", { storeId, handle, status: res.status });
         return [];

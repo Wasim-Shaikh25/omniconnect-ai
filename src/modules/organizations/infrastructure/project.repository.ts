@@ -80,21 +80,31 @@ export class PrismaProjectRepository implements ProjectRepository {
     return projects.map(mapProject);
   }
 
-  async findById(id: string): Promise<ProjectRecord | null> {
-    const project = await prisma.project.findUnique({ where: { id } });
+  async findById(id: string, organizationId?: string): Promise<ProjectRecord | null> {
+    const project = await prisma.project.findUnique({
+      where: organizationId ? { id, organizationId } : { id },
+    });
     return project ? mapProject(project) : null;
   }
 
-  async archive(id: string): Promise<ProjectRecord | null> {
-    const project = await prisma.project.delete({ where: { id } });
+  async archive(id: string, organizationId: string): Promise<ProjectRecord | null> {
+    const project = await prisma.project.delete({
+      where: { id, organizationId },
+    });
     return project ? mapProject(project) : null;
   }
 
   async addMember(input: {
     projectId: string;
+    organizationId: string;
     userId: string;
     role: ProjectMemberRole;
   }): Promise<ProjectMemberRecord> {
+    const project = await prisma.project.findUnique({
+      where: { id: input.projectId, organizationId: input.organizationId },
+    });
+    if (!project) throw new Error("Project not found");
+
     const member = await prisma.projectMember.create({
       data: {
         projectId: input.projectId,
@@ -105,11 +115,23 @@ export class PrismaProjectRepository implements ProjectRepository {
     return mapMember(member);
   }
 
-  async removeMember(memberId: string): Promise<void> {
+  async removeMember(memberId: string, organizationId: string): Promise<void> {
+    const member = await prisma.projectMember.findUnique({
+      where: { id: memberId },
+      include: { project: { select: { organizationId: true } } },
+    });
+    if (!member || member.project.organizationId !== organizationId) {
+      throw new Error("Project member not found");
+    }
     await prisma.projectMember.delete({ where: { id: memberId } });
   }
 
-  async listMembers(projectId: string): Promise<ProjectMemberRecord[]> {
+  async listMembers(projectId: string, organizationId?: string): Promise<ProjectMemberRecord[]> {
+    const project = await prisma.project.findUnique({
+      where: organizationId ? { id: projectId, organizationId } : { id: projectId },
+    });
+    if (!project) return [];
+
     const members = await prisma.projectMember.findMany({
       where: { projectId },
       orderBy: { createdAt: "desc" },

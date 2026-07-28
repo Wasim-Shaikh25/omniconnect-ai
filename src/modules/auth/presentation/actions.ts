@@ -1,18 +1,31 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { z } from "zod";
 import { registerUser, verificationCodeService, accounts, hasher } from "../infrastructure/container";
 import { signIn, signOut } from "../infrastructure/auth";
 import { registerUserSchema } from "../application/register-user";
-import { isSuperAdmin } from "../infrastructure/super-admin";
+import { rateLimit } from "@/shared/security/rate-limit";
 
 export interface ActionState {
   error?: string;
   mfaRequired?: boolean;
   message?: string;
   ok?: boolean;
+}
+
+async function clientIpFromHeaders(): Promise<string> {
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "unknown";
+}
+
+function redirectPathForUser(
+  organizationId: string | null | undefined,
+): "/dashboard" | "/onboarding" {
+  return organizationId ? "/dashboard" : "/onboarding";
 }
 
 export async function registerAction(
@@ -53,6 +66,9 @@ export async function signOutAction(): Promise<void> {
 export async function oauthSignInAction(formData: FormData): Promise<void> {
   const provider = formData.get("provider");
   if (typeof provider !== "string") return;
+  // OAuth users are provisioned synchronously in the JWT callback, so they can
+  // land on the dashboard immediately. If provisioning fails they are redirected
+  // to /onboarding from /dashboard.
   await signIn(provider, { redirectTo: "/dashboard" });
 }
 
@@ -73,17 +89,34 @@ export async function loginAction(
   });
   if (!parsed.success) return { error: "Invalid email or password" };
 
-  if (isSuperAdmin(parsed.data.email) && !parsed.data.mfaCode) {
-    await verificationCodeService.sendCode(parsed.data.email, "mfa");
+  const email = parsed.data.email.toLowerCase().trim();
+
+  const ip = await clientIpFromHeaders();
+  const limit = await rateLimit({
+    key: `login-action:${email}:${ip}`,
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { error: "Too many attempts. Try again later." };
+  }
+
+  const account = await accounts.findByEmail(email);
+  if (!account?.passwordHash) {
+    return { error: "Invalid email or password." };
+  }
+
+  if (account.isSuperAdmin && !parsed.data.mfaCode) {
+    await verificationCodeService.sendCode(email, "mfa");
     return { mfaRequired: true, message: "A verification code was sent to your email." };
   }
 
   try {
     await signIn("credentials", {
-      email: parsed.data.email,
+      email,
       password: parsed.data.password,
       mfaCode: parsed.data.mfaCode,
-      redirectTo: "/dashboard",
+      redirectTo: redirectPathForUser(account.organizationId),
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -91,7 +124,7 @@ export async function loginAction(
     }
     throw error;
   }
-  redirect("/dashboard");
+  redirect(redirectPathForUser(account.organizationId));
 }
 
 const requestResetSchema = z.object({
@@ -106,6 +139,16 @@ export async function requestPasswordResetAction(
     email: formData.get("email"),
   });
   if (!parsed.success) return { error: "Enter a valid email address." };
+
+  const ip = await clientIpFromHeaders();
+  const limit = await rateLimit({
+    key: `reset-request:${parsed.data.email}:${ip}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { ok: true, message: "If this account exists, a reset code has been sent." };
+  }
 
   // Always appear to succeed to avoid account enumeration.
   try {
@@ -136,6 +179,16 @@ export async function resetPasswordAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
+  const ip = await clientIpFromHeaders();
+  const limit = await rateLimit({
+    key: `reset-action:${parsed.data.email}:${ip}`,
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { error: "Too many attempts. Try again later." };
+  }
+
   const valid = await verificationCodeService.verifyCode(parsed.data.email, parsed.data.code, "reset");
   if (!valid) return { error: "Invalid or expired reset code." };
 
@@ -144,6 +197,7 @@ export async function resetPasswordAction(
 
   const passwordHash = await hasher.hash(parsed.data.password);
   await accounts.updatePassword({ id: account.id, passwordHash });
+  // updatePassword already increments tokenVersion, invalidating existing sessions.
 
   return { ok: true, message: "Password updated. You can now sign in." };
 }

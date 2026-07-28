@@ -61,6 +61,8 @@ export function AuthForm({
             name="password"
             type="password"
             required
+            minLength={8}
+            maxLength={200}
             placeholder="••••••••"
             autoComplete={isRegister ? "new-password" : "current-password"}
           />

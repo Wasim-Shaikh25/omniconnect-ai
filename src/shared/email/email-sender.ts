@@ -6,9 +6,19 @@ export interface EmailSender {
   send(to: string, subject: string, text: string, html?: string): Promise<void>;
 }
 
+function redactEmailBody(text: string): string {
+  return text
+    .replace(/\b\d{6,}\b/g, "***")
+    .replace(/https?:\/\/[^\s]+/g, "<link>");
+}
+
 class ConsoleEmailSender implements EmailSender {
   async send(to: string, subject: string, text: string): Promise<void> {
-    logger.info("email.console", { to, subject, body: text });
+    logger.info("email.console", {
+      to,
+      subject,
+      body: redactEmailBody(text),
+    });
   }
 }
 
@@ -35,12 +45,21 @@ class SmtpEmailSender implements EmailSender {
       "nodemailer"
     );
 
+    const secure = this.config.port === 465;
+    const requireTLS = this.config.port === 587;
+
     this.transporter = nodemailer.createTransport({
       host: this.config.host,
       port: this.config.port,
+      secure,
+      requireTLS,
       auth: {
         user: this.config.user,
         pass: this.config.pass,
+      },
+      tls: {
+        rejectUnauthorized: true,
+        minVersion: "TLSv1.2",
       },
     }) as Transporter;
 

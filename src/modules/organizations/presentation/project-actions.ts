@@ -7,6 +7,9 @@ import {
   createProject,
   listProjects,
   archiveProject,
+  listProjectMembers,
+  addProjectMember,
+  removeProjectMember,
   projects,
 } from "../infrastructure/container";
 import type { ProjectMemberRole } from "../application/ports";
@@ -61,10 +64,11 @@ const projectIdSchema = z.object({
 export async function getProjectAction(projectId: string) {
   const user = await requireUser();
   if (!user.organizationId) return null;
-  const all = await listProjects(user.organizationId);
-  const project = all.find((p) => p.id === projectId);
+
+  const project = await projects.findById(projectId, user.organizationId);
   if (!project) return null;
-  const members = await projects.listMembers(projectId);
+
+  const members = await listProjectMembers(projectId, user.organizationId);
   return { project, members };
 }
 
@@ -72,17 +76,17 @@ export async function archiveProjectAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  await requireUser();
+  const user = await requireUser();
+  if (!user.organizationId) {
+    return { error: "No workspace is linked to your account." };
+  }
+
   const parsed = projectIdSchema.safeParse({
     projectId: formData.get("projectId"),
   });
   if (!parsed.success) return { error: "Invalid project." };
 
-  const existing = await listProjectsAction();
-  const owned = existing.some((p) => p.id === parsed.data.projectId);
-  if (!owned) return { error: "You do not have permission to archive this project." };
-
-  await archiveProject(parsed.data.projectId);
+  await archiveProject(parsed.data.projectId, user.organizationId);
   revalidatePath("/projects");
   return { ok: true };
 }
@@ -97,7 +101,11 @@ export async function addProjectMemberAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  await requireUser();
+  const user = await requireUser();
+  if (!user.organizationId) {
+    return { error: "No workspace is linked to your account." };
+  }
+
   const parsed = addMemberSchema.safeParse({
     projectId: formData.get("projectId"),
     userId: formData.get("userId"),
@@ -105,12 +113,9 @@ export async function addProjectMemberAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  const existing = await listProjectsAction();
-  const owned = existing.some((p) => p.id === parsed.data.projectId);
-  if (!owned) return { error: "Project not found." };
-
-  await projects.addMember({
+  await addProjectMember({
     projectId: parsed.data.projectId,
+    organizationId: user.organizationId,
     userId: parsed.data.userId,
     role: parsed.data.role as ProjectMemberRole,
   });
@@ -126,13 +131,17 @@ export async function removeProjectMemberAction(
   _prev: ProjectActionState,
   formData: FormData,
 ): Promise<ProjectActionState> {
-  await requireUser();
+  const user = await requireUser();
+  if (!user.organizationId) {
+    return { error: "No workspace is linked to your account." };
+  }
+
   const parsed = removeMemberSchema.safeParse({
     memberId: formData.get("memberId"),
   });
   if (!parsed.success) return { error: "Invalid member." };
 
-  await projects.removeMember(parsed.data.memberId);
+  await removeProjectMember(parsed.data.memberId, user.organizationId);
   revalidatePath("/projects");
   return { ok: true };
 }

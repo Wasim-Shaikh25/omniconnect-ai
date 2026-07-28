@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/modules/auth";
-import { billingService, isPlan, validateSaaSCoupon, saasCouponRepository } from "@/modules/organizations";
+import { requireRole, ForbiddenError, UnauthorizedError } from "@/modules/auth";
+import { billingService, isPlan, validateSaaSCoupon } from "@/modules/organizations";
+import { env } from "@/shared/config";
 import { rateLimit, clientIp } from "@/shared/security/rate-limit";
 import { logSystemError } from "@/shared/observability";
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await requireRole("STORE_OWNER");
     if (!user.organizationId) {
       return NextResponse.json({ error: "No organization" }, { status: 400 });
     }
-    if (!["ADMIN", "STORE_OWNER"].includes(user.role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
 
     const limit = await rateLimit({
-      key: `stripe-checkout:${user.id ?? clientIp(request)}`,
+      key: `stripe-checkout:${user.id}:${clientIp(request)}`,
       limit: 10,
       windowMs: 60_000,
     });
@@ -41,8 +36,10 @@ export async function POST(request: Request) {
     }
 
     let promotionCodeId: string | undefined;
+    let couponCode: string | undefined;
     if (body.couponCode) {
-      const couponResult = await validateSaaSCoupon(body.couponCode, body.plan);
+      couponCode = body.couponCode.trim().toUpperCase();
+      const couponResult = await validateSaaSCoupon(couponCode, body.plan);
       if (!couponResult.ok) {
         return NextResponse.json({ error: couponResult.error.message }, { status: 400 });
       }
@@ -53,19 +50,16 @@ export async function POST(request: Request) {
         );
       }
       promotionCodeId = couponResult.value.stripePromotionCodeId;
-      await saasCouponRepository.incrementUsage(couponResult.value.id).catch((error: unknown) => {
-        logSystemError("stripe.checkout.incrementCouponUsage", error, {
-          metadata: { couponId: couponResult.value.id },
-        });
-      });
     }
 
+    const appUrl = env.APP_URL ?? "http://localhost:3000";
     const { url } = await billingService.createCheckoutSession({
       organizationId: user.organizationId,
       plan: body.plan,
-      successUrl: `${process.env.APP_URL ?? "http://localhost:3000"}/settings/billing?success=1`,
-      cancelUrl: `${process.env.APP_URL ?? "http://localhost:3000"}/settings/billing?canceled=1`,
+      successUrl: `${appUrl}/settings/billing?success=1`,
+      cancelUrl: `${appUrl}/settings/billing?canceled=1`,
       promotionCodeId,
+      couponCode,
     });
     if (!url) {
       return NextResponse.json(
@@ -76,7 +70,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url });
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     const message = error instanceof Error ? error.message : "Checkout failed";
+    logSystemError("stripe.checkout", error instanceof Error ? error : new Error(message), {
+      metadata: { path: "/api/stripe/checkout" },
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

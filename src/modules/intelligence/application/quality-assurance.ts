@@ -114,7 +114,7 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     const c4 = await runCheck("entity resolution accuracy", "data", async () => {
-      const updated = await input.entityResolution.merge(link.id);
+      const updated = await input.entityResolution.merge(link.id, link.organizationId);
       return {
         passed: updated.confidence === "VERIFIED" && updated.status === "ACTIVE",
         reason: `Link confidence=${updated.confidence}, status=${updated.status}`,

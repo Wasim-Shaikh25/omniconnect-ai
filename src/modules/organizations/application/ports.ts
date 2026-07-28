@@ -71,9 +71,14 @@ export interface ProjectRepository {
     integrationId?: string | null;
   }): Promise<ProjectRecord>;
   listByOrganization(organizationId: string): Promise<ProjectRecord[]>;
-  findById(id: string): Promise<ProjectRecord | null>;
-  archive(id: string): Promise<ProjectRecord | null>;
-  addMember(input: { projectId: string; userId: string; role: ProjectMemberRole }): Promise<ProjectMemberRecord>;
-  removeMember(memberId: string): Promise<void>;
-  listMembers(projectId: string): Promise<ProjectMemberRecord[]>;
+  findById(id: string, organizationId?: string): Promise<ProjectRecord | null>;
+  archive(id: string, organizationId: string): Promise<ProjectRecord | null>;
+  addMember(input: {
+    projectId: string;
+    organizationId: string;
+    userId: string;
+    role: ProjectMemberRole;
+  }): Promise<ProjectMemberRecord>;
+  removeMember(memberId: string, organizationId: string): Promise<void>;
+  listMembers(projectId: string, organizationId?: string): Promise<ProjectMemberRecord[]>;
 }

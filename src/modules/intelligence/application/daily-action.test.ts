@@ -37,10 +37,11 @@ function makeFakeDailyActions(): DailyActionRepository & { store: DailyActionRec
         (a) => a.organizationId === organizationId && (storeId ? a.storeId === storeId : true),
       );
     },
-    async findById(id) {
-      return store.find((a) => a.id === id) ?? null;
+    async findById(id, organizationId) {
+      return store.find((a) => a.id === id && (organizationId ? a.organizationId === organizationId : true)) ?? null;
     },
-    async complete(id, feedback, outcomeId) {
+    async complete(id, organizationId, feedback, outcomeId) {
+      void organizationId;
       const a = store.find((x) => x.id === id)!;
       a.status = "DONE";
       a.feedback = feedback;
@@ -48,14 +49,16 @@ function makeFakeDailyActions(): DailyActionRepository & { store: DailyActionRec
       a.completedAt = new Date();
       return a;
     },
-    async skip(id, reason) {
+    async skip(id, organizationId, reason) {
+      void organizationId;
       const a = store.find((x) => x.id === id)!;
       a.status = "SKIPPED";
       a.feedback = reason;
       a.skippedAt = new Date();
       return a;
     },
-    async setOutcome(id, outcomeId) {
+    async setOutcome(id, organizationId, outcomeId) {
+      void organizationId;
       const a = store.find((x) => x.id === id)!;
       a.outcomeId = outcomeId;
       return a;
