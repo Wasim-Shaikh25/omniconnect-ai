@@ -83,6 +83,10 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `/analytics/page.tsx` redirect to `/analytics/journeys` so the authenticated header link no longer 404s.
   - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test`, `npm audit` (0 vulnerabilities), and `npm run build`.
 
+- **TASK-0057 — Product Completeness Roadmap** (spec `0057`):
+  - Master spec and task tracker created to close remaining product-completeness gaps from `PRODUCTION_READINESS_AUDIT.md`.
+  - Phases: (1) staff/tenant isolation, (2) store/product/coupon lifecycle, (3) analytics/AI/pagination, (4) privacy/CI/observability.
+
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.
   - Tool-specific rule files pointing back to `AGENTS.md`: `.cursorrules`, `.cursor/rules/*.mdc`,
