@@ -80,9 +80,14 @@ export default async function StoreDetailPage({
             {connection.connected ? " · Connected" : " · Not connected"}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/stores">Back to stores</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/settings`}>Settings</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/stores">Back to stores</Link>
+          </Button>
+        </div>
       </header>
 
       <section className="mt-8">

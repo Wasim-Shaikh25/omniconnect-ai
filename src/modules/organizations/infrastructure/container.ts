@@ -1,5 +1,11 @@
 import { makeCreateStore } from "../application/create-store";
 import { makeOrganizationQueries } from "../application/queries";
+import {
+  makeUpdateStore,
+  makeArchiveStore,
+  makeRestoreStore,
+  makeDeleteStore,
+} from "../application/store-lifecycle";
 import { makeTenantGuard } from "../application/tenant";
 import { makeOrganizationUsageService } from "../application/usage";
 import { makeBillingService } from "../application/billing";
@@ -71,6 +77,10 @@ export const createOrganization = makeCreateOrganization({
   setUserOrganization,
 });
 export const createStore = makeCreateStore({ organizations, stores });
+export const updateStore = makeUpdateStore({ stores });
+export const archiveStore = makeArchiveStore({ stores });
+export const restoreStore = makeRestoreStore({ stores });
+export const deleteStore = makeDeleteStore({ stores });
 export const organizationQueries = makeOrganizationQueries({
   organizations,
   stores,

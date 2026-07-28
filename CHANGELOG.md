@@ -98,7 +98,13 @@ All notable changes to **OmniConnect AI** are documented here.
     - `/settings` fetches the organization stores and shows a store dropdown in the invite form and per-member store assignment form.
     - `changeUserStoreAction` lets owners/admins reassign a team member to a store and writes an audit log entry.
     - Added `UserProfileRepository.setStore` and `setUserStore` container helper.
-  - In progress: Phase 2 — core entity lifecycle (store/product/coupon update, archive, transfer).
+  - Phase 2 (store lifecycle):
+    - Added `archivedAt` and `deletedAt` nullable columns to `Store`; generated and applied Prisma migration `20260728190228_add_store_lifecycle_fields`.
+    - Updated `StoreRepository` and `PrismaStoreRepository` to support `update`, `archive`, `restore`, and soft-delete with `findById`/`listByOrganization` filtering out deleted stores by default.
+    - Added `updateStore`, `archiveStore`, `restoreStore`, `deleteStore` use cases and server actions guarded by `tenantGuard.assertStoreAccess`.
+    - Added `/stores/[storeId]/settings/page.tsx` and `StoreSettingsForm` component for owners to update, archive, restore, or delete a store.
+    - Added a settings link on the store detail page header.
+  - In progress: Phase 2 — product and coupon lifecycle (edit/resync/delete).
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

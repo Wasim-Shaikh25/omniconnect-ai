@@ -15,7 +15,7 @@ Close the product-completeness and operational-readiness gaps surfaced in `PRODU
 
 1. **Staff assignment and scoping** — make `STAFF` users assignable to a store and enforce that scoping on every store-scoped read and write path.
 2. **Organization-level multi-store experience** — add an org dashboard for owners with multiple stores and an aggregated "all stores" view.
-3. **Store / product / coupon lifecycle** — support update, soft-delete, archive, and transfer for stores; enable product edit/resync and coupon edit/delete.
+3. **Store / product / coupon lifecycle** — support update, soft-delete, archive, and (future) transfer for stores; enable product edit/resync and coupon edit/delete.
 4. **Real analytics data** — replace synthesized `getMarketingPerformance` values with real Shopify order and Meta insights connectors, or clearly mark simulated metrics.
 5. **AI usage hard cap** — centralize all AI paths behind an `AIUsageGuard` so plan limits cannot be exceeded.
 6. **Scalable list views** — add server-side pagination, search, and bulk operations to orders, customers, conversations, followers, products, and notifications.
@@ -58,10 +58,12 @@ This spec introduces or extends the following concepts:
 ## 6. Public Contract
 
 - `organizations` module exposes:
-  - `assignUserToStore(userId, storeId)`
-  - `revokeStoreAccess(userId, storeId)`
-  - `transferStore(storeId, targetOrganizationId)`
   - `archiveStore(storeId)` / `restoreStore(storeId)`
+  - `deleteStore(storeId)` (soft-delete)
+  - `updateStore(storeId, { name, provider, domain })`
+  - (future) `assignUserToStore(userId, storeId)` and `transferStore(storeId, targetOrganizationId)`
+- `users` module exposes:
+  - `changeUserStoreAction` / `setUserStore(userId, storeId)` for assigning staff to a store
 - `ecommerce` module exposes:
   - `updateProduct(storeId, productId, patch)`
   - `resyncProducts(storeId)`
@@ -82,9 +84,11 @@ No other module may import these modules' internals; all cross-module access goe
 ## 7. Data / Persistence
 
 - Add `archivedAt`, `deletedAt` nullable timestamps to `Store` and `User`.
+  - `Store.listByOrganization` and `Store.findById` filter out soft-deleted records by default.
+  - Store transfer is deferred until multi-organization billing is supported.
 - Add `dataExportRequestedAt`, `dataExportExpiresAt`, `deletedReason` to `User`.
 - Create `ExportRequest` table: `id`, `userId`, `status`, `expiresAt`, `downloadUrl`, `createdAt`, `completedAt`.
-- Create `AuditLog` table: `id`, `actorId`, `organizationId`, `action`, `resource`, `resourceId`, `metadata` (JSON, redacted), `createdAt` with index on `(organizationId, createdAt)`.
+- `AuditLog` already exists; it records `USER_STORE_CHANGED`, `USER_ROLE_CHANGED`, store lifecycle actions.
 - Create `NotificationPreference` table: `id`, `userId`, `channel`, `eventType`, `enabled`.
 - Add index `@@index([storeId])` on `User` to speed up staff queries.
 - Encrypt `Integration.accessToken` and `refreshToken` using the existing `encryptString`/`decryptString` helpers; migration must decrypt/re-encrypt existing rows or store plaintext behind a compatibility flag.

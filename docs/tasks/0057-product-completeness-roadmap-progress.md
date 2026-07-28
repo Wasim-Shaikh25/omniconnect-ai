@@ -21,7 +21,7 @@ Implement the full product-completeness roadmap derived from `PRODUCTION_READINE
 
 ### Phase 2 — Core entity lifecycle (12–18h)
 
-- [ ] **P2-1** — Store lifecycle: update, archive, restore, transfer; add `archivedAt`/`deletedAt` migrations.
+- [x] **P2-1** — Store lifecycle: update, archive, restore, (soft) delete; add `archivedAt`/`deletedAt` migrations. Transfer deferred.
 - [ ] **P2-2** — Product lifecycle: edit product metadata, resync from Shopify, mark deleted products.
 - [ ] **P2-3** — Coupon lifecycle: edit discount/message, delete/disable with audit event.
 - [ ] **P2-4** — Organization-level dashboard for owners with multiple stores.
