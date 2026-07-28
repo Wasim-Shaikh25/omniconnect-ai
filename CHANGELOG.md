@@ -48,6 +48,8 @@ All notable changes to **OmniConnect AI** are documented here.
   - `package.json` declares `sideEffects: ["*.css"]` so webpack can tree-shake server-only module code out of the client bundle, reducing first-load JS and preventing Node-only packages from being bundled for the browser.
   - `password-hasher.ts` now lazy-loads `bcryptjs` so it is not pulled into the client bundle at build time.
   - `app/layout.tsx` adds `suppressHydrationWarning` to `<body nonce>` to silence the CSP nonce mismatch between server and client.
+  - `app/providers.tsx` disables `next-themes` color-scheme inline styles (`enableColorScheme={false}`) to avoid `style-src` CSP violations.
+  - `next.config.ts` provides a no-op `crypto` fallback for the Edge runtime so the dev server stops warning about `bcryptjs` requiring Node `crypto` in the middleware bundle.
   - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (server-only bundling is now enabled; re-land after validation), BullMQ worker deployment wiring (`fly.toml` / `deploy.sh`), admin pagination, `teamSeats` enforcement (needs invite flow), intelligence store-scoped pages and remaining actions, medium/low polish.
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
