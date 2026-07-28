@@ -40,6 +40,7 @@ export { createProjectSchema } from "./application/project";
 // Queries + use-cases (composed)
 export {
   organizationQueries,
+  organizationUsage,
   createStore,
   tenantGuard,
   billingService,

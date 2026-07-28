@@ -5,7 +5,7 @@ import {
   conversationQueries,
 } from "@/modules/conversations";
 import { ecommerceQueries } from "@/modules/ecommerce";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries, organizationUsage } from "@/modules/organizations";
 import { notificationQueries } from "@/modules/notifications";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
@@ -55,6 +55,7 @@ export const generateReply = makeGenerateReply({
   metaService,
   eventBus,
   getOrganizationIdByStoreId: organizationQueries.getOrganizationIdByStoreId,
+  consumeAIReply: organizationUsage.consumeAIReply,
   auditLogCommands: auditCommands,
 });
 

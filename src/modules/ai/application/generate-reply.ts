@@ -33,6 +33,7 @@ export interface GenerateReplyDeps {
   metaService: MetaService;
   eventBus: EventBus;
   getOrganizationIdByStoreId: (storeId: string) => Promise<string | null>;
+  consumeAIReply: (organizationId: string) => Promise<boolean>;
   auditLogCommands: {
     create(input: {
       organizationId: string;
@@ -246,6 +247,28 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         deps.ecommerceQueries.listCoupons(storeId, MAX_COUPONS),
         deps.getOrganizationIdByStoreId(storeId),
       ]);
+
+    // Enforce monthly AI reply quota before invoking the LLM.
+    const allowed = organizationId
+      ? await deps.consumeAIReply(organizationId)
+      : false;
+    if (!allowed) {
+      logger.warn("ai.generateReply.planLimitExceeded", {
+        conversationId,
+        storeId,
+        organizationId,
+      });
+      const handoff =
+        "I'm connecting you with a human agent who will help you shortly.";
+      await sendReply(deps, {
+        conversationId,
+        storeId,
+        externalUserId,
+        text: handoff,
+        escalate: true,
+      });
+      return { text: handoff, escalate: true };
+    }
 
     // Privacy: do not send customer memory/profile to the AI if consent was declined.
     let profile: CustomerProfile | null = rawProfile;

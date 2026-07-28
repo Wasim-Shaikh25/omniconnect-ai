@@ -1,4 +1,5 @@
 import { prisma } from "@/shared/database";
+import { logger } from "@/shared/observability";
 import { Plan, parsePlan } from "../domain/plan";
 import {
   OrganizationRecord,
@@ -48,5 +49,44 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     if (input.subscriptionStatus !== undefined) data.subscriptionStatus = input.subscriptionStatus;
     const org = await prisma.organization.update({ where: { id }, data });
     return mapOrg(org);
+  }
+
+  async incrementAIReplies(id: string, limit: number | null): Promise<boolean> {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    try {
+      return await prisma.$transaction(
+        async (tx) => {
+          const org = await tx.organization.findUnique({ where: { id } });
+          if (!org) return false;
+
+          let used = org.aiRepliesThisMonth;
+          const resetAt = org.aiRepliesResetAt;
+          if (!resetAt || resetAt < monthStart) {
+            used = 0;
+            await tx.organization.update({
+              where: { id },
+              data: { aiRepliesThisMonth: 0, aiRepliesResetAt: now },
+            });
+          }
+
+          if (limit !== null && used >= limit) return false;
+
+          await tx.organization.update({
+            where: { id },
+            data: { aiRepliesThisMonth: { increment: 1 } },
+          });
+          return true;
+        },
+        { isolationLevel: "Serializable" },
+      );
+    } catch (error) {
+      logger.error("organization.incrementAIReplies.failed", {
+        organizationId: id,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return false;
+    }
   }
 }

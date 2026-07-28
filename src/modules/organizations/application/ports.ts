@@ -49,6 +49,13 @@ export interface OrganizationRepository {
     id: string,
     input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
   ): Promise<OrganizationRecord | null>;
+  /**
+   * Atomically increments the organization's monthly AI reply counter when it is
+   * still below the supplied limit. Resets the counter when crossing into a new
+   * month. Returns true when the increment succeeded, false when the limit is
+   * already reached. A `null` limit means unlimited.
+   */
+  incrementAIReplies(id: string, limit: number | null): Promise<boolean>;
 }
 
 export interface StoreRepository {
