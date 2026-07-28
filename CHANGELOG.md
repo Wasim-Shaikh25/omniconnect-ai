@@ -606,6 +606,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - **Still deferred:** remaining `intelligence` repository tenant scoping, full DB persistence
     for in-memory intelligence/goal/feedback/rollout state, and `npm audit` dev-dependency cleanup.
 
+- **TASK-0053-follow-up-2 — Dev Dependency Security Cleanup** (spec `0053`):
+  - Updated `vitest` to `^3.2.6` and added `npm` overrides for `esbuild` (`^0.25.0`) and `vite`
+    (`^6.2.0`) to remove the SSRF-affected `esbuild` version and the arbitrary-file-read
+    `vitest` vulnerability reported by `npm audit`.
+  - `npm audit` now reports 0 vulnerabilities; `npm run lint`, `typecheck`, `test`, and `build`
+    still pass.
+  - **Still deferred:** remaining `intelligence` repository tenant scoping and full DB persistence
+    for in-memory intelligence/goal/feedback/rollout state.
+
 ### ⏭️ Next (proposed build order)
 
 1. ~~Scaffold the app~~ ✅ done (TASK-010).

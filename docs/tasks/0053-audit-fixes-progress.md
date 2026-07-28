@@ -1,6 +1,6 @@
 # Task 0053: Audit Fixes — Production Readiness
 
-- **Status:** In Progress
+- **Status:** In Progress (PR-7 complete; PR-6 and remaining intelligence scoping pending)
 - **Spec:** `docs/specs/0053-audit-fixes-production-readiness.md`
 - **Module(s):** Auth, Users, Organizations, eCommerce, Meta, AI, CRM, Conversations, Growth, Intelligence, Support, Shared Infrastructure
 - **Owner:** Devin
@@ -52,20 +52,20 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [ ] Replace `IntelligenceFeedInteractionService` dismissal map with Prisma repository
   - [ ] Replace `GoalPlanGenerationService` map with `GoalPlanVersion` repository
   - [ ] Replace global `RolloutGate` with per-organization persisted setting
-- [~] PR-7: Infrastructure & Security Hardening
+- [x] PR-7: Infrastructure & Security Hardening
   - [x] Add CSP header and `poweredByHeader: false`
   - [x] Fix header sign-out to use `signOut` action
   - [x] Enforce TLS in `SmtpEmailSender`
   - [x] Redact sensitive keys in logger
   - [x] Add Prisma indexes migration (core high-cardinality foreign keys)
-  - [ ] Resolve `npm audit` dev-dependency vulnerabilities
-- [x] Final Verification (partial)
+  - [x] Resolve `npm audit` dev-dependency vulnerabilities
+- [x] Final Verification
   - [x] `npm run lint`
   - [x] `npm run typecheck`
   - [x] `npm run test`
   - [x] `npm run build`
-  - [ ] `npm audit` clean
-  - [ ] Update `CHANGELOG.md`
+  - [x] `npm audit` clean
+  - [x] Update `CHANGELOG.md`
 
 ## Acceptance Criteria
 
