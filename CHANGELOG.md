@@ -603,8 +603,15 @@ All notable changes to **OmniConnect AI** are documented here.
     `CouponUsage.couponId`/`customerId`, `Report.storeId`+`generatedAt`) in migration
     `20260728081713_audit_fixes_additional_indexes`.
   - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
-  - **Still deferred:** remaining `intelligence` repository tenant scoping, full DB persistence
-    for in-memory intelligence/goal/feedback/rollout state, and `npm audit` dev-dependency cleanup.
+  - **Still deferred:** remaining `intelligence` repository tenant scoping and full DB persistence
+    for in-memory intelligence/goal/feedback/rollout state.
+
+- **TASK-0053-follow-up-2 — Dev Dependency Security Cleanup** (spec `0053`):
+  - Updated `vitest` to `^3.2.6` and added `npm` overrides for `esbuild` (`^0.25.0`) and `vite`
+    (`^6.2.0`) to remove the SSRF-affected `esbuild` version and the arbitrary-file-read
+    `vitest` vulnerability reported by `npm audit`.
+  - `npm audit` now reports 0 vulnerabilities; `npm run lint`, `typecheck`, `test`, and `build`
+    still pass.
 
 - **TASK-0053-follow-up-3 — Intelligence IDOR scoping** (spec `0053`):
   - `PrismaRecommendationRepository` and `PrismaActionPlanRepository` mutations (`findById`,
@@ -625,7 +632,6 @@ All notable changes to **OmniConnect AI** are documented here.
     `queue-handlers.ts` uses the persisted `outcome.organizationId` to scope lookups.
   - Verification scripts and unit-test fakes updated to pass the tenant context.
   - `npm run lint`, `typecheck`, `test`, and `build` pass.
-  - **Still deferred:** full DB persistence for in-memory intelligence/feedback/dismissal/goal-plan/rollout state (PR-6).
 
 - **TASK-0053-follow-up-4 — Intelligence in-memory state persistence** (spec `0053`):
   - Added Prisma models `IntelligenceFeedback`, `IntelligenceDismissal`, `GoalPlanVersion`, and `RolloutGate`,
@@ -639,7 +645,6 @@ All notable changes to **OmniConnect AI** are documented here.
     and verification scripts to pass the tenant context.
   - `RolloutGate` now defaults to organization-scoped persisted settings; super-admin toggles are stored per organization.
   - `npm run lint`, `typecheck`, `test`, and `build` pass.
-  - **Still deferred:** `npm audit` dev-dependency cleanup is tracked in PR #61.
 
 ### ⏭️ Next (proposed build order)
 
