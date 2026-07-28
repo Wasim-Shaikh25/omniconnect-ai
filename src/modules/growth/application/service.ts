@@ -25,8 +25,14 @@ import {
 
 function generateCode(handle: string | null): string {
   const base = (handle ?? "amb").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
-  const suffix = Math.floor(1000 + Math.random() * 9000);
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const suffix = 1000 + (array[0] % 9000);
   return `${base}${suffix}`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export interface GrowthServiceDeps {
@@ -63,7 +69,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     },
 
     async requestRights(id, storeId) {
-      const asset = await deps.ugc.updateRights(id, "REQUESTED", null);
+      const asset = await deps.ugc.updateRights(id, storeId, "REQUESTED", null);
       await eventBus.publish(
         new UgcRightsRequested(storeId, {
           storeId,
@@ -75,7 +81,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     },
 
     async approveRights(id, storeId, approvedBy) {
-      const asset = await deps.ugc.updateRights(id, "APPROVED", approvedBy);
+      const asset = await deps.ugc.updateRights(id, storeId, "APPROVED", approvedBy);
       await eventBus.publish(
         new UgcRightsApproved(storeId, {
           storeId,
@@ -109,8 +115,9 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     },
 
     async recordReferral(input) {
-      const ambassador = await deps.ambassadors.findById(input.ambassadorId);
+      const ambassador = await deps.ambassadors.findById(input.ambassadorId, input.storeId);
       if (!ambassador) throw new Error("Ambassador not found");
+      if (ambassador.storeId !== input.storeId) throw new Error("Ambassador does not belong to this store");
       const commissionAmount =
         (Number(input.orderAmount) * ambassador.commissionPct) / 100;
       const order = await deps.referrals.create({
@@ -122,6 +129,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       });
       await deps.ambassadors.incrementEarnings(
         input.ambassadorId,
+        input.storeId,
         commissionAmount,
         1,
       );
@@ -157,7 +165,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     },
 
     async sendDmCampaign(id, storeId) {
-      const campaign = await deps.campaigns.markSent(id, { sentCount: 1 });
+      const campaign = await deps.campaigns.markSent(id, storeId, { sentCount: 1 });
       await eventBus.publish(
         new DmCampaignSent(storeId, {
           storeId,
@@ -187,7 +195,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     },
 
     async notifyBackInStock(id, storeId) {
-      const subscription = await deps.backInStock.markNotified(id);
+      const subscription = await deps.backInStock.markNotified(id, storeId);
       await eventBus.publish(
         new BackInStockAlertSent(storeId, {
           storeId,
@@ -216,7 +224,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       const campaign = campaigns.find((c) => {
         if (!c.active) return false;
         const keyword = c.keyword.toLowerCase().trim();
-        const regex = new RegExp(`(?:^|[^\\w])${keyword}(?:[^\\w]|$)`, "i");
+        const regex = new RegExp(`(?:^|[^\\w])${escapeRegExp(keyword)}(?:[^\\w]|$)`, "i");
         return regex.test(lowerText);
       });
       if (!campaign) return { sent: false };
@@ -259,7 +267,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
           recipientId: input.externalUserId,
           text: dm,
         });
-        await deps.commentUnlocks.markSent(redemption.id);
+        await deps.commentUnlocks.markSent(redemption.id, input.storeId);
         await eventBus.publish(
           new CommentUnlockSent(input.storeId, {
             storeId: input.storeId,

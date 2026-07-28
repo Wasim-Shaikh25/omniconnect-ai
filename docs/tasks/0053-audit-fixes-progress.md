@@ -37,15 +37,15 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [x] Scope `support` repository mutations by `organizationId`
   - [x] Scope `crm` repository mutations by `storeId`
   - [x] Scope `projects` archive / member removal by `organizationId`
+  - [x] Scope `growth` repository mutations (`updateRights`, `markSent`, `markNotified`, `markReferred`, `incrementEarnings`) by `storeId`
   - [x] Scope `intelligence` `BusinessInsight`, `EntityLink`, and `DailyAction` mutations by `organizationId`
   - [x] Update presentation actions to pass `storeId`/`organizationId`
-  - [ ] Remaining `growth` repository mutations (`markSent`, `markNotified`, `markReferred`, `incrementEarnings`)
   - [ ] Remaining `intelligence` repository mutations (`Recommendation`, `ActionPlan`, `Outcome`, `Goal`, `Prediction`, `Hypothesis`, `CompetitorInsight`, `DataQualityIssue`)
 - [x] PR-5: External API Security
   - [x] Validate Shopify `shopDomain` and add request timeout
   - [x] Encode Meta Graph API dynamic values and add request timeout
   - [x] Add `AbortSignal` timeout and defensive system prompt to OpenAI fetch
-  - [ ] Escape `commentUnlock` keyword before building regex
+  - [x] Escape `commentUnlock` keyword before building regex
 - [~] PR-6: In-Memory State Persistence
   - [x] Restrict `setRolloutGateAction` to `requireSuperAdmin()`
   - [ ] Replace `IntelligenceFeedbackService` with Prisma repository
@@ -57,7 +57,7 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
   - [x] Fix header sign-out to use `signOut` action
   - [x] Enforce TLS in `SmtpEmailSender`
   - [x] Redact sensitive keys in logger
-  - [ ] Add Prisma indexes migration
+  - [x] Add Prisma indexes migration (core high-cardinality foreign keys)
   - [ ] Resolve `npm audit` dev-dependency vulnerabilities
 - [x] Final Verification (partial)
   - [x] `npm run lint`
@@ -76,4 +76,5 @@ Implement all findings from `docs/audit/2026-07-26-production-readiness-audit.md
 ## Notes / Blockers
 
 - PR-1 through PR-5 core fixes are implemented and pass lint/typecheck/tests/build.
-- PR-6 full persistence and PR-7 Prisma indexes / `npm audit` fixes are deferred to a follow-up pass.
+- Growth tenant scoping and core Prisma indexes added in follow-up branch `devin/audit-followup-2026-07-26`.
+- Remaining intelligence repository scoping, full in-memory persistence, and `npm audit` cleanup are deferred to a third pass.

@@ -64,11 +64,12 @@ export class PrismaUgcRepository implements UgcRepository {
 
   async updateRights(
     id: string,
+    storeId: string,
     status: string,
     approvedBy?: string | null,
   ): Promise<UgcAssetRecord> {
     const updated = await prisma.ugcAsset.update({
-      where: { id },
+      where: { id, storeId },
       data: {
         rightsStatus: status as UgcRightsStatus,
         approvedBy: approvedBy ?? null,
@@ -110,20 +111,19 @@ export class PrismaAmbassadorRepository implements AmbassadorRepository {
     return rows.map(toAmbassadorRecord);
   }
 
-  async findById(id: string): Promise<AmbassadorRecord | null> {
-    const row = await prisma.ambassador.findUnique({ where: { id } });
+  async findById(id: string, storeId: string): Promise<AmbassadorRecord | null> {
+    const row = await prisma.ambassador.findUnique({ where: { id, storeId } });
     return row ? toAmbassadorRecord(row) : null;
   }
 
   async incrementEarnings(
     id: string,
+    storeId: string,
     amount: number,
     referrals: number,
   ): Promise<AmbassadorRecord> {
-    const row = await prisma.ambassador.findUnique({ where: { id } });
-    if (!row) throw new Error("Ambassador not found");
     const updated = await prisma.ambassador.update({
-      where: { id },
+      where: { id, storeId },
       data: {
         totalEarnings: { increment: amount },
         totalReferrals: { increment: referrals },
@@ -200,9 +200,9 @@ export class PrismaDmCampaignRepository implements DmCampaignRepository {
     return rows.map(toDmCampaignRecord);
   }
 
-  async markSent(id: string, metrics?: unknown): Promise<DmCampaignRecord> {
+  async markSent(id: string, storeId: string, metrics?: unknown): Promise<DmCampaignRecord> {
     const updated = await prisma.dmCampaign.update({
-      where: { id },
+      where: { id, storeId },
       data: {
         status: "SENT" as DmCampaignStatus,
         sentAt: new Date(),
@@ -243,9 +243,9 @@ export class PrismaBackInStockRepository implements BackInStockRepository {
     return rows.map(toBackInStockRecord);
   }
 
-  async markNotified(id: string): Promise<BackInStockSubscriptionRecord> {
+  async markNotified(id: string, storeId: string): Promise<BackInStockSubscriptionRecord> {
     const updated = await prisma.backInStockSubscription.update({
-      where: { id },
+      where: { id, storeId },
       data: { notifiedAt: new Date() },
     });
     return toBackInStockRecord(updated);
@@ -414,17 +414,17 @@ export class PrismaCommentUnlockRepository
     return rows.map(toCommentUnlockRedemptionRecord);
   }
 
-  async markSent(id: string): Promise<CommentUnlockRedemptionRecord> {
+  async markSent(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord> {
     const updated = await prisma.commentUnlockRedemption.update({
-      where: { id },
+      where: { id, storeId },
       data: { status: CommentUnlockStatus.SENT, sentAt: new Date() },
     });
     return toCommentUnlockRedemptionRecord(updated);
   }
 
-  async markReferred(id: string): Promise<CommentUnlockRedemptionRecord> {
+  async markReferred(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord> {
     const updated = await prisma.commentUnlockRedemption.update({
-      where: { id },
+      where: { id, storeId },
       data: { status: CommentUnlockStatus.REFERRED },
     });
     return toCommentUnlockRedemptionRecord(updated);

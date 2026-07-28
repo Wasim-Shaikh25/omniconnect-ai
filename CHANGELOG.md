@@ -586,6 +586,26 @@ All notable changes to **OmniConnect AI** are documented here.
     full DB persistence for in-memory intelligence/goal/feedback state, Prisma index migration,
     and `npm audit` dev-dependency cleanup.
 
+- **TASK-0053-follow-up — Audit Fixes Follow-up** (spec `0053`):
+  - **Growth IDOR scoping:** `UgcRepository.updateRights`, `AmbassadorRepository.findById` and
+    `incrementEarnings`, `DmCampaignRepository.markSent`, `BackInStockRepository.markNotified`,
+    and `CommentUnlockRepository.markSent`/`markReferred` now require `storeId` and include it in
+    the `where` clause.
+  - `GrowthService.recordReferral` validates that the ambassador belongs to the provided store
+    before creating a referral and atomically increments earnings using Prisma `update` with `increment`.
+  - `GrowthService.processCommentUnlock` escapes the campaign keyword before building the regex
+    to prevent ReDoS/regex injection.
+  - `Ambassador` code generation switched from `Math.random()` to `crypto.getRandomValues()`.
+  - **Prisma indexes:** added indexes for high-cardinality foreign keys and common filters
+    (`Account.userId`, `Session.userId`, `VerificationToken.identifier`/`expires`, `Store.organizationId`,
+    `Integration.storeId`+`type`+`provider`, `Customer.storeId`+`igUserId`+`fbUserId`,
+    `Conversation.storeId`+`customerId`+`assignedHumanId`, `Message.conversationId`/`createdAt`,
+    `CouponUsage.couponId`/`customerId`, `Report.storeId`+`generatedAt`) in migration
+    `20260728081713_audit_fixes_additional_indexes`.
+  - `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` pass.
+  - **Still deferred:** remaining `intelligence` repository tenant scoping, full DB persistence
+    for in-memory intelligence/goal/feedback/rollout state, and `npm audit` dev-dependency cleanup.
+
 ### ⏭️ Next (proposed build order)
 
 1. ~~Scaffold the app~~ ✅ done (TASK-010).
