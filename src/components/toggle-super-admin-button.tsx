@@ -29,7 +29,7 @@ export function ToggleSuperAdminButton({
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
         {isSuperAdmin ? "Revoke" : "Grant"}
       </Button>
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.error && <p className="text-sm text-destructive" role="alert" aria-live="polite">{state.error}</p>}
     </form>
   );
 }

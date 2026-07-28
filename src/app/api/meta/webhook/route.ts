@@ -40,7 +40,7 @@ export async function POST(request: Request): Promise<Response> {
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
 
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  if (!(await verifyWebhookSignature(rawBody, signature))) {
     logger.warn("meta.webhook.invalidSignature", {});
     return new NextResponse("Invalid signature", { status: 401 });
   }

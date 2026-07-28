@@ -39,12 +39,15 @@ export function makeCreateStore(deps: {
       );
     }
 
-    const store = await deps.stores.create({
-      organizationId: input.organizationId,
-      name: input.name,
-      provider: input.provider,
-      domain: input.domain ?? null,
-    });
+    const store = await deps.stores.create(
+      {
+        organizationId: input.organizationId,
+        name: input.name,
+        provider: input.provider,
+        domain: input.domain ?? null,
+      },
+      maxStores,
+    );
 
     await eventBus.publish(
       new StoreCreated(store.id, {

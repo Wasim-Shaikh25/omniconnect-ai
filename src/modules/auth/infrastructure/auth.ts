@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
@@ -12,12 +13,10 @@ import { logger } from "@/shared/observability";
 import { isRole, type Role } from "../domain/role";
 import { UserLoggedIn, UserRegistered } from "../domain/events";
 import { PrismaAccountRepository } from "./account.repository";
-import { BcryptPasswordHasher } from "./password-hasher";
 import { verifyCode } from "./verification-code";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
 
 const accounts = new PrismaAccountRepository();
-const hasher = new BcryptPasswordHasher();
 
 const providers: NextAuthConfig["providers"] = [
   Credentials({
@@ -44,7 +43,11 @@ const providers: NextAuthConfig["providers"] = [
       const account = await accounts.findByEmail(email);
       if (!account?.passwordHash) return null;
 
-      const valid = await hasher.compare(password, account.passwordHash);
+      const { BcryptPasswordHasher } = await import("./password-hasher");
+      const valid = await new BcryptPasswordHasher().compare(
+        password,
+        account.passwordHash,
+      );
       if (!valid) return null;
 
       if (account.isSuperAdmin) {
@@ -192,6 +195,33 @@ export const authConfig: NextAuthConfig = {
           typeof token.tokenVersion === "number" ? token.tokenVersion : 0;
       }
       return session;
+    },
+    authorized({ request, auth }) {
+      const { pathname } = request.nextUrl;
+      const publicPaths = [
+        "/",
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password",
+        "/pricing",
+        "/support",
+        "/api",
+        "/_next",
+        "/favicon.ico",
+        "/manifest.webmanifest",
+      ];
+      if (
+        publicPaths.some(
+          (p) => pathname === p || pathname.startsWith(`${p}/`),
+        )
+      ) {
+        return true;
+      }
+      if (auth?.user) return true;
+      const login = new URL("/login", request.url);
+      login.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(login);
     },
   },
   events: {

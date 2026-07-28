@@ -47,7 +47,7 @@ export function TicketStatusForm({
           Update
         </Button>
       </div>
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.error && <p className="text-sm text-destructive" role="alert" aria-live="polite">{state.error}</p>}
       {state?.ok && <p className="text-sm text-green-600">Updated.</p>}
     </form>
   );
@@ -76,7 +76,7 @@ export function TicketCommentForm({
       <Button type="submit" disabled={pending}>
         {pending ? "Replying…" : "Reply"}
       </Button>
-      {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state?.error && <p className="text-sm text-destructive" role="alert" aria-live="polite">{state.error}</p>}
       {state?.ok && <p className="text-sm text-green-600">Posted.</p>}
     </form>
   );

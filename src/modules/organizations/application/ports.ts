@@ -52,12 +52,15 @@ export interface OrganizationRepository {
 }
 
 export interface StoreRepository {
-  create(input: {
-    organizationId: string;
-    name: string;
-    provider: EcommerceProvider;
-    domain: string | null;
-  }): Promise<StoreRecord>;
+  create(
+    input: {
+      organizationId: string;
+      name: string;
+      provider: EcommerceProvider;
+      domain: string | null;
+    },
+    maxStores?: number | null,
+  ): Promise<StoreRecord>;
   listByOrganization(organizationId: string): Promise<StoreRecord[]>;
   findById(id: string): Promise<StoreRecord | null>;
 }

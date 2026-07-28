@@ -1,4 +1,3 @@
-import { randomInt } from "node:crypto";
 import { env } from "@/shared/config";
 import { EmailSender } from "@/shared/email";
 import { VerificationCodeRepository } from "./ports";
@@ -15,8 +14,18 @@ const TTL_MINUTES: Record<VerificationPurpose, number> = {
   reset: 60,
 };
 
+function assertCrypto(): Crypto {
+  const globalCrypto = (globalThis as unknown as { crypto?: Crypto }).crypto;
+  if (!globalCrypto?.getRandomValues) {
+    throw new Error("Web Crypto API is not available.");
+  }
+  return globalCrypto;
+}
+
 function generateCode(): string {
-  return randomInt(100000, 999999).toString();
+  const values = new Uint32Array(1);
+  assertCrypto().getRandomValues(values);
+  return (100000 + (values[0] % 900000)).toString();
 }
 
 function buildIdentifier(email: string, purpose: VerificationPurpose): string {

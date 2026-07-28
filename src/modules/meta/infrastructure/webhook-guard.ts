@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+
 
 interface RateLimitBucket {
   count: number;
@@ -23,6 +23,23 @@ function cleanup(): void {
   for (const [key, timestamp] of processedPayloads) {
     if (timestamp < now - IDEMPOTENCY_WINDOW_MS) processedPayloads.delete(key);
   }
+}
+
+function assertCrypto(): Crypto {
+  const globalCrypto = (globalThis as unknown as { crypto?: Crypto }).crypto;
+  if (!globalCrypto?.subtle) {
+    throw new Error("Web Crypto API is not available.");
+  }
+  return globalCrypto;
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hash = await assertCrypto().subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function clientIp(request: Request): string {
@@ -55,7 +72,7 @@ export const webhookGuard = {
 
   async isDuplicate(rawBody: string): Promise<boolean> {
     cleanup();
-    const hash = createHash("sha256").update(rawBody).digest("hex");
+    const hash = await sha256Hex(rawBody);
     if (processedPayloads.has(hash)) return true;
     processedPayloads.set(hash, nowMs());
     return false;

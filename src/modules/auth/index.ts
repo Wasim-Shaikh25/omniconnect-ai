@@ -38,8 +38,8 @@ export {
 } from "./infrastructure/session";
 export type { SessionUser } from "./infrastructure/session";
 
-// Presentation wiring for the app composition root (route handlers + server actions)
-export { handlers, signIn, signOut, unstable_update } from "./infrastructure/auth";
+// Presentation wiring for the app composition root (route handlers + server actions + middleware)
+export { handlers, signIn, signOut, unstable_update, auth } from "./infrastructure/auth";
 export { oauthProviders, type OAuthProvider } from "./infrastructure/auth";
 export {
   loginAction,
