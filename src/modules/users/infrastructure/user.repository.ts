@@ -44,11 +44,17 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
   }
 
   async setOrganization(id: string, organizationId: string): Promise<void> {
-    await prisma.user.update({ where: { id }, data: { organizationId } });
+    await prisma.user.update({
+      where: { id },
+      data: { organizationId, tokenVersion: { increment: 1 } },
+    });
   }
 
   async setRole(id: string, role: Role): Promise<UserProfile> {
-    const user = await prisma.user.update({ where: { id }, data: { role } });
+    const user = await prisma.user.update({
+      where: { id },
+      data: { role, tokenVersion: { increment: 1 } },
+    });
     return toProfile(user);
   }
 
@@ -70,7 +76,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
   async setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile> {
     const user = await prisma.user.update({
       where: { id },
-      data: { isSuperAdmin },
+      data: { isSuperAdmin, tokenVersion: { increment: 1 } },
     });
     return toProfile(user);
   }

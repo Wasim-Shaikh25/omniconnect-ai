@@ -75,8 +75,12 @@ export class GraphApiMetaService implements MetaService {
     }
 
     try {
-      const url = `${GRAPH_API_BASE}/ig_hashtag_search?user_id=${integration.accountId}&q=${encodeURIComponent(query)}&access_token=${token}`;
-      const res = await fetch(url, withTimeout());
+      const url = new URL(`${GRAPH_API_BASE}/ig_hashtag_search`);
+      url.searchParams.set("user_id", integration.accountId);
+      url.searchParams.set("q", query);
+      const res = await fetch(url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
       if (!res.ok) {
         logger.warn("meta.searchHashtag.failed", { storeId, query, status: res.status });
         return { hashtagId: null, userId: integration.accountId };
@@ -112,10 +116,15 @@ export class GraphApiMetaService implements MetaService {
 
     const kind = options.recent ? "recent_media" : "top_media";
     const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
-    const url = `${GRAPH_API_BASE}/${hashtagId}/${kind}?user_id=${integration.accountId}&fields=${encodeURIComponent(fields)}&limit=${limit}&access_token=${token}`;
+    const url = new URL(`${GRAPH_API_BASE}/${hashtagId}/${kind}`);
+    url.searchParams.set("user_id", integration.accountId);
+    url.searchParams.set("fields", fields);
+    url.searchParams.set("limit", String(limit));
 
     try {
-      const res = await fetch(url, withTimeout());
+      const res = await fetch(url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
       if (!res.ok) {
         logger.warn("meta.getHashtagMedia.failed", { storeId, hashtagId, status: res.status });
         return [];
@@ -142,10 +151,14 @@ export class GraphApiMetaService implements MetaService {
     }
 
     const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
-    const url = `${GRAPH_API_BASE}/${integration.accountId}/media?fields=${encodeURIComponent(fields)}&limit=${Math.min(limit, 25)}&access_token=${token}`;
+    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/media`);
+    url.searchParams.set("fields", fields);
+    url.searchParams.set("limit", String(Math.min(limit, 25)));
 
     try {
-      const res = await fetch(url, withTimeout());
+      const res = await fetch(url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
       if (!res.ok) {
         logger.warn("meta.getAccountMedia.failed", { storeId, status: res.status });
         return [];
@@ -179,10 +192,16 @@ export class GraphApiMetaService implements MetaService {
     }
 
     const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
-    const url = `${GRAPH_API_BASE}/${integration.accountId}?fields=business_discovery.username(${encodeURIComponent(handle)}){id,media{${fields}}}&access_token=${token}`;
+    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
+    url.searchParams.set(
+      "fields",
+      `business_discovery.username(${handle}){id,media{${fields}}}`,
+    );
 
     try {
-      const res = await fetch(url, withTimeout());
+      const res = await fetch(url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
       if (!res.ok) {
         logger.warn("meta.getCompetitorMedia.failed", { storeId, handle, status: res.status });
         return [];

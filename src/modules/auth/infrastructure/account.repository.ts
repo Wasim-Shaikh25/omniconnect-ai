@@ -10,6 +10,7 @@ function mapUser(user: {
   role: string;
   isSuperAdmin: boolean;
   organizationId: string | null;
+  storeId: string | null;
   tokenVersion: number;
 }): AccountRecord {
   return {
@@ -20,6 +21,7 @@ function mapUser(user: {
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
     organizationId: user.organizationId,
+    storeId: user.storeId,
     tokenVersion: user.tokenVersion,
   };
 }

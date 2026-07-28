@@ -48,11 +48,16 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
     return coupons.map((c) => this.map(c));
   }
 
-  async incrementUsage(id: string): Promise<void> {
-    await prisma.saaSCoupon.update({
-      where: { id },
+  async incrementUsage(id: string, maxUses: number | null): Promise<boolean> {
+    const where =
+      maxUses !== null
+        ? { id, usedCount: { lt: maxUses } }
+        : { id };
+    const { count } = await prisma.saaSCoupon.updateMany({
+      where,
       data: { usedCount: { increment: 1 } },
     });
+    return count > 0;
   }
 
   private map(c: {

@@ -8,6 +8,7 @@ export interface AccountRecord {
   role: Role;
   isSuperAdmin: boolean;
   organizationId: string | null;
+  storeId: string | null;
   tokenVersion: number;
 }
 

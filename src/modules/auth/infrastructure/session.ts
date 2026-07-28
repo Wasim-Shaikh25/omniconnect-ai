@@ -10,6 +10,7 @@ export interface SessionUser {
   role: Role;
   isSuperAdmin: boolean;
   organizationId: string | null;
+  storeId: string | null;
 }
 
 function toSessionUser(row: {
@@ -19,6 +20,7 @@ function toSessionUser(row: {
   role: string;
   isSuperAdmin: boolean;
   organizationId: string | null;
+  storeId: string | null;
 }): SessionUser {
   const role = isRole(row.role) ? (row.role as Role) : "STORE_OWNER";
   return {
@@ -28,25 +30,37 @@ function toSessionUser(row: {
     role,
     isSuperAdmin: row.isSuperAdmin,
     organizationId: row.organizationId,
+    storeId: row.storeId,
   };
 }
 
-/** Returns the current user or null. Safe to call from server components. */
+/** Returns the current user or null. Always loads the canonical DB record and
+ *  verifies the JWT `tokenVersion` so password/role changes invalidate sessions.
+ *  Safe to call from server components.
+ */
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const session = await auth();
   const user = session?.user;
   if (!user?.id || !user.email) return null;
+
+  const fresh = await loadFreshUser(user.id);
+  if (!fresh) return null;
+  if (user.tokenVersion !== fresh.tokenVersion) return null;
+
   return {
-    id: user.id,
-    email: user.email,
-    name: user.name ?? null,
-    role: user.role,
-    isSuperAdmin: user.isSuperAdmin ?? false,
-    organizationId: user.organizationId ?? null,
+    id: fresh.id,
+    email: fresh.email,
+    name: fresh.name,
+    role: fresh.role,
+    isSuperAdmin: fresh.isSuperAdmin,
+    organizationId: fresh.organizationId,
+    storeId: fresh.storeId,
   };
 }
 
-async function loadFreshUser(id: string): Promise<SessionUser | null> {
+async function loadFreshUser(
+  id: string,
+): Promise<(SessionUser & { tokenVersion: number }) | null> {
   const row = await prisma.user.findUnique({
     where: { id },
     select: {
@@ -56,11 +70,12 @@ async function loadFreshUser(id: string): Promise<SessionUser | null> {
       role: true,
       isSuperAdmin: true,
       organizationId: true,
+      storeId: true,
       tokenVersion: true,
     },
   });
   if (!row) return null;
-  return toSessionUser(row);
+  return { ...toSessionUser(row), tokenVersion: row.tokenVersion };
 }
 
 /** Returns the current user or throws UnauthorizedError. */
@@ -72,17 +87,14 @@ export async function requireUser(): Promise<SessionUser> {
 
 /** Returns the current user if they meet `role`, else throws. */
 export async function requireRole(role: Role): Promise<SessionUser> {
-  const sessionUser = await requireUser();
-  const fresh = await loadFreshUser(sessionUser.id);
-  if (!fresh) throw new UnauthorizedError();
-  if (!roleSatisfies(fresh.role, role)) throw new ForbiddenError();
-  return fresh;
+  const user = await requireUser();
+  if (!roleSatisfies(user.role, role)) throw new ForbiddenError();
+  return user;
 }
 
 /** Returns the current user only if they are a platform super admin. */
 export async function requireSuperAdmin(): Promise<SessionUser> {
-  const sessionUser = await requireUser();
-  const fresh = await loadFreshUser(sessionUser.id);
-  if (!fresh || !fresh.isSuperAdmin) throw new ForbiddenError();
-  return fresh;
+  const user = await requireUser();
+  if (!user.isSuperAdmin) throw new ForbiddenError();
+  return user;
 }

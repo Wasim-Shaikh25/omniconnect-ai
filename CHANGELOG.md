@@ -15,6 +15,24 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **TASK-0054 — Audit fixes continuation (PR-1/2):**
+  - `getCurrentUser()` now loads the canonical DB record and verifies `tokenVersion`, so password/role/super-admin changes invalidate existing sessions.
+  - `requireRole()` and `requireSuperAdmin()` use the fresh user returned by `getCurrentUser()`.
+  - `SessionUser` and next-auth JWT/session types now include `storeId`; `tenantGuard.assertStoreAccess()` enforces staff store scoping.
+  - Role/super-admin mutations increment `tokenVersion`.
+  - Meta Graph API calls use the `Authorization: Bearer <token>` header and `URL` objects instead of putting `access_token` in the query string.
+  - `VerificationToken.consume()` is atomic (`deleteMany` with expiry guard).
+  - SaaS coupon usage increment is atomic and guarded by `maxUses`.
+  - Added continuation spec `docs/specs/0054-audit-fixes-continuation.md` and tracker `docs/tasks/0054-audit-fixes-continuation-progress.md`.
+
+### 🚧 In Progress
+
+- **TASK-0054 — Audit fixes continuation (PR-3/4):**
+  - Atomic plan-limit check for `createStore`.
+  - Enforce `monthlyAiReplies` and `teamSeats` plan limits.
+  - Tighten CSP and remove `unsafe-inline`/`unsafe-eval` from `script-src`.
+  - Add `src/middleware.ts` and route-level error/loading/not-found UI.
+
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.
   - Tool-specific rule files pointing back to `AGENTS.md`: `.cursorrules`, `.cursor/rules/*.mdc`,
