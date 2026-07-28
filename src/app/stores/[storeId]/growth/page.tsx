@@ -1,6 +1,5 @@
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+
+import { requireStoreAccess } from "@/modules/organizations";
 import { StoreWorkflowNav } from "@/components/store-workflow-nav";
 import { WorkflowCard } from "@/components/workflow-cards";
 import { Megaphone, Target, Lightbulb, Zap } from "lucide-react";
@@ -12,14 +11,7 @@ export default async function GrowthPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { store } = await requireStoreAccess(storeId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">

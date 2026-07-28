@@ -27,6 +27,7 @@ export interface RegisteredUser {
 export interface RegisterUserOptions {
   organizationId?: string | null;
   role?: Role;
+  storeId?: string | null;
 }
 
 export function makeRegisterUser(deps: {
@@ -52,6 +53,7 @@ export function makeRegisterUser(deps: {
       passwordHash,
       role,
       organizationId: options?.organizationId ?? null,
+      storeId: options?.storeId ?? null,
     });
 
     await deps.eventBus.publish(

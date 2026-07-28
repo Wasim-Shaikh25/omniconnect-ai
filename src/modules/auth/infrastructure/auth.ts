@@ -210,6 +210,8 @@ export const authConfig: NextAuthConfig = {
         "/api/auth",
         "/api/meta/webhook",
         "/api/stripe/webhook",
+        "/api/health",
+        "/api/ready",
         "/_next",
         "/favicon.ico",
         "/manifest.webmanifest",

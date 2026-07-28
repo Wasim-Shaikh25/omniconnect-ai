@@ -21,6 +21,8 @@ export interface StoreRecord {
   provider: EcommerceProvider;
   domain: string | null;
   organizationId: string;
+  archivedAt: Date | null;
+  deletedAt: Date | null;
   createdAt: Date;
 }
 
@@ -72,8 +74,15 @@ export interface StoreRepository {
     },
     maxStores?: number | null,
   ): Promise<StoreRecord>;
-  listByOrganization(organizationId: string): Promise<StoreRecord[]>;
-  findById(id: string): Promise<StoreRecord | null>;
+  update(
+    id: string,
+    input: { name?: string; provider?: EcommerceProvider; domain?: string | null },
+  ): Promise<StoreRecord | null>;
+  listByOrganization(organizationId: string, includeDeleted?: boolean): Promise<StoreRecord[]>;
+  findById(id: string, includeDeleted?: boolean): Promise<StoreRecord | null>;
+  archive(id: string): Promise<StoreRecord | null>;
+  restore(id: string): Promise<StoreRecord | null>;
+  delete(id: string): Promise<StoreRecord | null>;
 }
 
 export interface ProjectRepository {

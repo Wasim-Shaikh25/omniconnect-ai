@@ -200,7 +200,7 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     const [orders, products, allCustomers] = await Promise.all([
       input.ecommerce.listOrders(storeId, 250),
       input.ecommerce.listProducts(storeId, 100),
-      input.customerDirectory.listCustomersByOrganization(organizationId),
+      input.customerDirectory.listCustomersByOrganization(organizationId, undefined, storeId),
     ]);
 
     const now = Date.now();

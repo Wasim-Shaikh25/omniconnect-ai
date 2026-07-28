@@ -41,6 +41,7 @@ export {
 export {
   updateProfileAction,
   changeUserRoleAction,
+  changeUserStoreAction,
   listAllUsersAction,
   toggleUserSuperAdminAction,
 } from "./presentation/actions";

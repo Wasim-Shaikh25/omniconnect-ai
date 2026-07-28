@@ -1,21 +1,32 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { InviteMemberActionState } from "@/modules/organizations";
+
+interface StoreOption {
+  id: string;
+  name: string;
+}
 
 interface InviteMemberFormProps {
   action: (
     prev: InviteMemberActionState,
     formData: FormData,
   ) => Promise<InviteMemberActionState>;
+  stores: StoreOption[];
   defaultEmail?: string;
 }
 
-export function InviteMemberForm({ action, defaultEmail = "" }: InviteMemberFormProps) {
+export function InviteMemberForm({
+  action,
+  stores,
+  defaultEmail = "",
+}: InviteMemberFormProps) {
   const [state, formAction, pending] = useActionState(action, {});
+  const [role, setRole] = useState<"ADMIN" | "STAFF">("STAFF");
 
   return (
     <form action={formAction} className="space-y-3">
@@ -42,11 +53,28 @@ export function InviteMemberForm({ action, defaultEmail = "" }: InviteMemberForm
         <select
           id="invite-role"
           name="role"
-          defaultValue="STAFF"
+          value={role}
+          onChange={(e) => setRole(e.target.value as "ADMIN" | "STAFF")}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
         >
           <option value="ADMIN">Admin</option>
           <option value="STAFF">Staff</option>
+        </select>
+      </div>
+      <div>
+        <Label htmlFor="invite-store">Store</Label>
+        <select
+          id="invite-store"
+          name="storeId"
+          required={role === "STAFF"}
+          className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+        >
+          <option value="">{role === "STAFF" ? "Select a store" : "No specific store"}</option>
+          {stores.map((store) => (
+            <option key={store.id} value={store.id}>
+              {store.name}
+            </option>
+          ))}
         </select>
       </div>
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

@@ -1,6 +1,5 @@
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { redirect } from "next/navigation";
+import { requireStoreAccess } from "@/modules/organizations";
 import { StoreWorkflowNav } from "@/components/store-workflow-nav";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
 import { RecommendationsPanel } from "@/components/recommendations-panel";
@@ -30,14 +29,7 @@ export default async function DailyMarketingPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { user, store } = await requireStoreAccess(storeId);
 
   if (!user.organizationId) redirect("/stores");
 

@@ -83,6 +83,33 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `/analytics/page.tsx` redirect to `/analytics/journeys` so the authenticated header link no longer 404s.
   - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test`, `npm audit` (0 vulnerabilities), and `npm run build`.
 
+- **TASK-0057 — Product Completeness Roadmap** (spec `0057`):
+  - Master spec and task tracker created to close remaining product-completeness gaps from `PRODUCTION_READINESS_AUDIT.md`.
+  - Phase 1 (staff/tenant isolation):
+    - Created `src/modules/organizations/presentation/require-store-access.ts` to centralize login, tenant-guard, and store lookup for all store-scoped pages.
+    - Applied `requireStoreAccess` across every `app/stores/[storeId]/**/page.tsx` route.
+    - Updated `getOrganizationOverview` to accept an optional `SessionUser` and filter `stores` to `user.storeId` for `STAFF` roles.
+    - Updated `getUnifiedInbox` and `listCustomersByOrganization` to scope store IDs by staff assignment.
+    - Added `src/modules/organizations/application/queries.test.ts` proving staff only see their assigned store and cannot read another store via `getOrganizationOverview`.
+  - Added `storeId` to the invite flow and user settings:
+    - `inviteMemberSchema` accepts an optional `storeId` and `sendInviteEmail` appends it to the `/register?inviteToken=...&storeId=...` link.
+    - `/register` reads `storeId` from the query string and `AuthForm` forwards it as a hidden field.
+    - `registerWithInviteAction` validates the `storeId` belongs to the inviting organization before creating the user with `User.storeId` set.
+    - `/settings` fetches the organization stores and shows a store dropdown in the invite form and per-member store assignment form.
+    - `changeUserStoreAction` lets owners/admins reassign a team member to a store and writes an audit log entry.
+    - Added `UserProfileRepository.setStore` and `setUserStore` container helper.
+  - Phase 2 (store lifecycle):
+    - Added `archivedAt` and `deletedAt` nullable columns to `Store`; generated and applied Prisma migration `20260728190228_add_store_lifecycle_fields`.
+    - Updated `StoreRepository` and `PrismaStoreRepository` to support `update`, `archive`, `restore`, and soft-delete with `findById`/`listByOrganization` filtering out deleted stores by default.
+    - Added `updateStore`, `archiveStore`, `restoreStore`, `deleteStore` use cases and server actions guarded by `tenantGuard.assertStoreAccess`.
+    - Added `/stores/[storeId]/settings/page.tsx` and `StoreSettingsForm` component for owners to update, archive, restore, or delete a store.
+    - Added a settings link on the store detail page header.
+  - In progress: Phase 2 — product and coupon lifecycle (edit/resync/delete).
+  - Phase 4 (operations readiness):
+    - Added public `/api/health` (liveness) and `/api/ready` (readiness) route handlers.
+    - `/api/ready` checks PostgreSQL (`$queryRaw SELECT 1`) and Redis (`PING`) before returning `200 OK`; returns `503` with per-check diagnostics when a dependency is unreachable.
+    - Updated NextAuth middleware public-path allowlist so the probes are reachable without a session.
+
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.
   - Tool-specific rule files pointing back to `AGENTS.md`: `.cursorrules`, `.cursor/rules/*.mdc`,

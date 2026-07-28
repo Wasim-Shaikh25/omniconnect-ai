@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { notFound } from "next/navigation";
+import { requireStoreAccess } from "@/modules/organizations";
 import { type MarketingPerformanceView } from "@/modules/analytics";
 import { getMarketingPerformance } from "@/modules/analytics/server";
 import { Button } from "@/components/ui/button";
@@ -24,14 +23,7 @@ export default async function StoreAnalyticsPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { user, store } = await requireStoreAccess(storeId);
   if (!user.organizationId) notFound();
 
   let view: MarketingPerformanceView | null = null;

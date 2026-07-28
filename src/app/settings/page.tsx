@@ -3,15 +3,20 @@ import Link from "next/link";
 import { ROLES, getCurrentUser } from "@/modules/auth";
 import {
   changeUserRoleAction,
+  changeUserStoreAction,
   getUserProfile,
   listOrganizationUsers,
   updateProfileAction,
 } from "@/modules/users";
 import { ProfileForm } from "@/components/profile-form";
 import { RoleSelectForm } from "@/components/role-select-form";
+import { StoreSelectForm } from "@/components/store-select-form";
 import { InviteMemberForm } from "@/components/invite-member-form";
 import { Button } from "@/components/ui/button";
-import { inviteOrganizationMemberAction } from "@/modules/organizations";
+import {
+  inviteOrganizationMemberAction,
+  organizationQueries,
+} from "@/modules/organizations";
 import {
   Card,
   CardContent,
@@ -29,6 +34,10 @@ export default async function SettingsPage() {
   const members =
     isAdmin && user.organizationId
       ? (await listOrganizationUsers(user.organizationId)).items
+      : [];
+  const stores =
+    isAdmin && user.organizationId
+      ? await organizationQueries.listStores(user.organizationId)
       : [];
 
   return (
@@ -63,7 +72,10 @@ export default async function SettingsPage() {
                 <CardDescription>Manage roles in your organization.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <InviteMemberForm action={inviteOrganizationMemberAction} />
+                <InviteMemberForm
+                  action={inviteOrganizationMemberAction}
+                  stores={stores.map((s) => ({ id: s.id, name: s.name }))}
+                />
                 {members.length > 0 ? (
                   <ul className="space-y-3">
                     {members.map((member) => (
@@ -72,12 +84,20 @@ export default async function SettingsPage() {
                         className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
                       >
                         <span className="font-medium">{member.email}</span>
-                        <RoleSelectForm
-                          action={changeUserRoleAction}
-                          userId={member.id}
-                          currentRole={member.role}
-                          roles={ROLES}
-                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <RoleSelectForm
+                            action={changeUserRoleAction}
+                            userId={member.id}
+                            currentRole={member.role}
+                            roles={ROLES}
+                          />
+                          <StoreSelectForm
+                            action={changeUserStoreAction}
+                            userId={member.id}
+                            stores={stores.map((s) => ({ id: s.id, name: s.name }))}
+                            currentStoreId={member.storeId}
+                          />
+                        </div>
                       </li>
                     ))}
                   </ul>

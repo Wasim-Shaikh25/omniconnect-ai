@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+
+import { requireStoreAccess } from "@/modules/organizations";
 import { crmQueries } from "@/modules/crm";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,14 +26,7 @@ export default async function StoreFollowersPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { store } = await requireStoreAccess(storeId);
 
   const followers = await crmQueries.listFollowers(storeId, 50);
 

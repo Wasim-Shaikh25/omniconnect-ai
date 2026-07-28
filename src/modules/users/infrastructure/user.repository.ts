@@ -59,6 +59,14 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     return toProfile(user);
   }
 
+  async setStore(id: string, storeId: string | null): Promise<UserProfile> {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { storeId, tokenVersion: { increment: 1 } },
+    });
+    return toProfile(user);
+  }
+
   async listByOrganization(
     organizationId: string,
     pagination?: PaginationInput,

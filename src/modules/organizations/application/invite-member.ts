@@ -12,6 +12,7 @@ import type {
 export const inviteMemberSchema = z.object({
   email: z.string().email(),
   role: z.enum(["ADMIN", "STAFF"] as const),
+  storeId: z.string().optional(),
 });
 
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
@@ -24,6 +25,7 @@ export interface InviteMemberDependencies {
     email: string;
     token: string;
     organizationName: string;
+    storeId?: string;
   }): Promise<void>;
   generateToken(): string;
   now(): Date;
@@ -42,6 +44,7 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
     const parsed = inviteMemberSchema.safeParse({
       email: input.email,
       role: input.role,
+      storeId: input.storeId,
     });
     if (!parsed.success) {
       return err(new Error(parsed.error.issues[0]?.message ?? "Invalid input"));
@@ -49,6 +52,7 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
 
     const email = parsed.data.email.toLowerCase().trim();
     const role = parsed.data.role as Role;
+    const storeId = parsed.data.storeId?.trim();
     const organization = await deps.organizations.findById(input.organizationId);
     if (!organization) {
       return err(new OrganizationNotFoundError(input.organizationId));
@@ -86,6 +90,7 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
       email,
       token,
       organizationName: organization.name,
+      storeId,
     });
 
     return ok({ invite });

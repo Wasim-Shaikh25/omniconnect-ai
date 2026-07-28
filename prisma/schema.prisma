@@ -195,10 +195,13 @@ model Store {
   domain         String?
   organizationId String
   organization   Organization      @relation(fields: [organizationId], references: [id])
+  archivedAt     DateTime?
+  deletedAt      DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   @@index([organizationId])
+  @@index([deletedAt])
 
   integrations             Integration[]
   products                 Product[]
