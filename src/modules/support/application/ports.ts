@@ -36,15 +36,16 @@ export interface SupportTicketRepository {
     description: string;
     category: TicketCategory;
   }): Promise<SupportTicketRecord>;
-  findById(id: string): Promise<SupportTicketRecord | null>;
-  listByUser(userId: string): Promise<SupportTicketRecord[]>;
-  listAll(filters?: {
+  findById(id: string, organizationId?: string): Promise<SupportTicketRecord | null>;
+  listByUser(userId: string, organizationId?: string): Promise<SupportTicketRecord[]>;
+  listAll(organizationId?: string | null, filters?: {
     status?: TicketStatus;
     priority?: TicketPriority;
     category?: TicketCategory;
   }): Promise<SupportTicketRecord[]>;
   update(
     id: string,
+    organizationId: string,
     input: Partial<{
       status: TicketStatus;
       priority: TicketPriority;
@@ -53,6 +54,7 @@ export interface SupportTicketRepository {
   ): Promise<SupportTicketRecord | null>;
   addComment(input: {
     ticketId: string;
+    organizationId: string;
     userId: string;
     message: string;
     isInternal: boolean;

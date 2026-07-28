@@ -33,24 +33,27 @@ export interface ConversationRepository {
 
   listByStoreIds(storeIds: string[], limit?: number): Promise<ConversationRecord[]>;
 
-  findById(id: string): Promise<ConversationRecord | null>;
+  findById(id: string, storeId?: string): Promise<ConversationRecord | null>;
 
   updateStatus(
     id: string,
+    storeId: string,
     status: "AI_ACTIVE" | "HUMAN_ACTIVE",
   ): Promise<ConversationRecord>;
 
   takeOver(input: {
     id: string;
+    storeId: string;
     humanUserId: string;
   }): Promise<ConversationRecord>;
 
-  resumeAI(id: string): Promise<ConversationRecord>;
+  resumeAI(id: string, storeId: string): Promise<ConversationRecord>;
 }
 
 export interface MessageRepository {
   append(input: {
     conversationId: string;
+    storeId: string;
     sender: MessageSender;
     content: string;
   }): Promise<MessageRecord>;

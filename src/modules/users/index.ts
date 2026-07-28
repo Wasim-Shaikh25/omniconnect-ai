@@ -30,9 +30,7 @@ export {
   getUserProfile,
   listOrganizationUsers,
   listAllUsers,
-  setUserSuperAdmin,
   updateProfile,
-  changeUserRole,
   auditQueries,
   auditCommands,
 } from "./infrastructure/container";

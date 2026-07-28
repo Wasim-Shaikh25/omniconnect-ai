@@ -66,9 +66,9 @@ export interface CustomerRepository {
 
   listByStoreIds(storeIds: string[], limit?: number): Promise<CustomerRecord[]>;
 
-  findById(id: string): Promise<CustomerRecord | null>;
+  findById(id: string, storeId?: string): Promise<CustomerRecord | null>;
 
-  getActivity(customerId: string): Promise<{
+  getActivity(customerId: string, storeId?: string): Promise<{
     conversationCount: number;
     messageCount: number;
     followerCount: number;
@@ -86,29 +86,34 @@ export interface CustomerRepository {
   /** Merge additional tags/interests onto a customer. */
   tag(input: {
     customerId: string;
+    storeId: string;
     tags?: string[];
     interests?: string[];
   }): Promise<CustomerRecord>;
 
   updateLifecycleStage(
     customerId: string,
+    storeId: string,
     stage: CustomerLifecycleStage,
   ): Promise<CustomerRecord>;
 
   updateConsent(
     customerId: string,
+    storeId: string,
     consent: CustomerConsent,
   ): Promise<CustomerRecord>;
 
   /** Mark a coupon as sent to a customer. */
   recordCouponSent(input: {
     customerId: string;
+    storeId: string;
     couponId: string;
   }): Promise<CustomerRecord>;
 
   /** Record that a customer used a coupon. */
   recordCouponUsed(input: {
     customerId: string;
+    storeId: string;
     couponId: string;
     orderRef?: string;
   }): Promise<CustomerRecord>;
@@ -130,6 +135,7 @@ export interface FollowerRepository {
 
   recordCampaignEnrollment(input: {
     followerId: string;
+    storeId: string;
     couponId: string;
     welcomeMessageText: string;
   }): Promise<FollowerRecord>;

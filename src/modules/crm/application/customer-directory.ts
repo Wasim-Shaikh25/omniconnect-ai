@@ -113,7 +113,7 @@ export function makeCustomerDirectory(deps: {
     customer: CustomerRecord,
     storeNameById: Map<string, string>,
   ): Promise<CustomerListView> {
-    const activity = await deps.customers.getActivity(customer.id);
+    const activity = await deps.customers.getActivity(customer.id, customer.storeId);
 
     const { engagementScore, leadScore } = computeScores(
       activity,
@@ -171,8 +171,12 @@ export function makeCustomerDirectory(deps: {
       const storeIds = overview.stores.map((s) => s.id);
       const storeNameById = new Map(overview.stores.map((s) => [s.id, s.name]));
 
-      const customer = await deps.customers.findById(customerId);
-      if (!customer || !storeIds.includes(customer.storeId)) return null;
+      let customer: CustomerRecord | null = null;
+      for (const storeId of storeIds) {
+        customer = await deps.customers.findById(customerId, storeId);
+        if (customer) break;
+      }
+      if (!customer) return null;
 
       const profile = await deps.customers.getProfile({
         storeId: customer.storeId,

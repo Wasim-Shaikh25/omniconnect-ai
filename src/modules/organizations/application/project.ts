@@ -41,14 +41,18 @@ export function makeListProjects(deps: { projects: ProjectRepository }) {
 }
 
 export function makeArchiveProject(deps: { projects: ProjectRepository }) {
-  return async function archiveProject(id: string): Promise<ProjectRecord | null> {
-    return deps.projects.archive(id);
+  return async function archiveProject(
+    id: string,
+    organizationId: string,
+  ): Promise<ProjectRecord | null> {
+    return deps.projects.archive(id, organizationId);
   };
 }
 
 export function makeAddProjectMember(deps: { projects: ProjectRepository }) {
   return async function addProjectMember(input: {
     projectId: string;
+    organizationId: string;
     userId: string;
     role: ProjectMemberRole;
   }): Promise<ProjectMemberRecord> {
@@ -57,7 +61,19 @@ export function makeAddProjectMember(deps: { projects: ProjectRepository }) {
 }
 
 export function makeRemoveProjectMember(deps: { projects: ProjectRepository }) {
-  return async function removeProjectMember(memberId: string): Promise<void> {
-    return deps.projects.removeMember(memberId);
+  return async function removeProjectMember(
+    memberId: string,
+    organizationId: string,
+  ): Promise<void> {
+    return deps.projects.removeMember(memberId, organizationId);
+  };
+}
+
+export function makeListProjectMembers(deps: { projects: ProjectRepository }) {
+  return async function listProjectMembers(
+    projectId: string,
+    organizationId?: string,
+  ): Promise<ProjectMemberRecord[]> {
+    return deps.projects.listMembers(projectId, organizationId);
   };
 }

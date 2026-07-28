@@ -29,30 +29,42 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
     return this.mapTicket(ticket);
   }
 
-  async findById(id: string): Promise<SupportTicketRecord | null> {
+  async findById(
+    id: string,
+    organizationId?: string,
+  ): Promise<SupportTicketRecord | null> {
     const ticket = await prisma.supportTicket.findUnique({
-      where: { id },
+      where: organizationId ? { id, organizationId } : { id },
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
     });
     return ticket ? this.mapTicket(ticket) : null;
   }
 
-  async listByUser(userId: string): Promise<SupportTicketRecord[]> {
+  async listByUser(
+    userId: string,
+    organizationId?: string,
+  ): Promise<SupportTicketRecord[]> {
     const tickets = await prisma.supportTicket.findMany({
-      where: { userId },
+      where: { userId, ...(organizationId ? { organizationId } : {}) },
       orderBy: { createdAt: "desc" },
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
     });
     return tickets.map((t) => this.mapTicket(t));
   }
 
-  async listAll(filters?: {
-    status?: TicketStatus;
-    priority?: TicketPriority;
-    category?: TicketCategory;
-  }): Promise<SupportTicketRecord[]> {
+  async listAll(
+    organizationId?: string | null,
+    filters?: {
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      category?: TicketCategory;
+    },
+  ): Promise<SupportTicketRecord[]> {
     const tickets = await prisma.supportTicket.findMany({
-      where: filters,
+      where: {
+        ...(organizationId ? { organizationId } : {}),
+        ...filters,
+      },
       orderBy: { createdAt: "desc" },
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
     });
@@ -61,6 +73,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async update(
     id: string,
+    organizationId: string,
     input: Partial<{
       status: TicketStatus;
       priority: TicketPriority;
@@ -68,7 +81,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
     }>,
   ): Promise<SupportTicketRecord | null> {
     const ticket = await prisma.supportTicket.update({
-      where: { id },
+      where: { id, organizationId },
       data: input,
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
     });
@@ -77,10 +90,16 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async addComment(input: {
     ticketId: string;
+    organizationId: string;
     userId: string;
     message: string;
     isInternal: boolean;
   }): Promise<TicketCommentRecord> {
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: input.ticketId, organizationId: input.organizationId },
+    });
+    if (!ticket) throw new Error("Ticket not found");
+
     const comment = await prisma.ticketComment.create({
       data: {
         ticketId: input.ticketId,

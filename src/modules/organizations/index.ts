@@ -57,8 +57,6 @@ export type { StoreActionState } from "./presentation/actions";
 export {
   createSaaSCouponAction,
   listSaaSCouponsAction,
-  applyCouponToCheckoutAction,
-  incrementCouponUsageAction,
 } from "./presentation/saas-coupon.actions";
 export type { CouponActionState } from "./presentation/saas-coupon.actions";
 export {

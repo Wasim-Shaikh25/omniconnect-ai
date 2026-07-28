@@ -3,17 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireSuperAdmin } from "@/modules/auth";
 import { auditCommands } from "@/modules/users";
-import { logger } from "@/shared/observability/logger";
-import {
-  createSaaSCouponSchema,
-  makeCreateSaaSCoupon,
-  makeValidateSaaSCoupon,
-} from "../application/saas-coupon";
+import { createSaaSCouponSchema, makeCreateSaaSCoupon } from "../application/saas-coupon";
 import { PrismaSaaSCouponRepository } from "../infrastructure/saas-coupon.repository";
 
 const couponRepository = new PrismaSaaSCouponRepository();
 const createSaaSCoupon = makeCreateSaaSCoupon({ coupons: couponRepository });
-const validateSaaSCoupon = makeValidateSaaSCoupon({ coupons: couponRepository });
 
 export interface CouponActionState {
   error?: string;
@@ -64,31 +58,4 @@ export async function createSaaSCouponAction(
 export async function listSaaSCouponsAction() {
   await requireSuperAdmin();
   return couponRepository.list();
-}
-
-export async function applyCouponToCheckoutAction(code: string, plan: string) {
-  const result = await validateSaaSCoupon(code, plan);
-  if (!result.ok) return { error: result.error.message };
-
-  const coupon = result.value;
-  if (!coupon.stripePromotionCodeId) {
-    return { error: "Coupon is not backed by a Stripe promotion code" };
-  }
-
-  return {
-    ok: true,
-    promotionCodeId: coupon.stripePromotionCodeId,
-    coupon: { code: coupon.code, discountPct: coupon.discountPct },
-  };
-}
-
-export async function incrementCouponUsageAction(id: string) {
-  try {
-    await couponRepository.incrementUsage(id);
-  } catch (error) {
-    logger.error("saasCoupon.incrementUsageFailed", {
-      id,
-      error: error instanceof Error ? error.message : "Unknown",
-    });
-  }
 }

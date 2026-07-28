@@ -39,7 +39,7 @@ export {
 export type { SessionUser } from "./infrastructure/session";
 
 // Presentation wiring for the app composition root (route handlers + server actions)
-export { handlers } from "./infrastructure/auth";
+export { handlers, signIn, signOut, unstable_update } from "./infrastructure/auth";
 export { oauthProviders, type OAuthProvider } from "./infrastructure/auth";
 export {
   loginAction,
@@ -50,4 +50,3 @@ export {
   resetPasswordAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";
-export { isSuperAdmin } from "./infrastructure/super-admin";

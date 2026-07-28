@@ -60,7 +60,8 @@ function KpiCard({
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  if (!user || !user.organizationId) redirect("/login");
+  if (!user) redirect("/login");
+  if (!user.organizationId) redirect("/onboarding");
 
   const kpis = await analyticsQueries.getWorkspaceKpis(
     user.organizationId,

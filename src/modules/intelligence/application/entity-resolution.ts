@@ -28,7 +28,7 @@ export function makeEntityResolutionService(links: EntityLinkRepository) {
 
       if (existing && existing.status !== "REVOKED") {
         if (existing.confidence === input.confidence) return existing;
-        return links.updateConfidence(existing.id, input.confidence, input.resolutionMethod);
+        return links.updateConfidence(existing.id, input.organizationId, input.confidence, input.resolutionMethod);
       }
 
       const link = await links.save({
@@ -58,12 +58,12 @@ export function makeEntityResolutionService(links: EntityLinkRepository) {
       return link;
     },
 
-    async merge(linkId: string): Promise<EntityLinkRecord> {
-      return links.updateConfidence(linkId, "VERIFIED", "manual");
+    async merge(linkId: string, organizationId: string): Promise<EntityLinkRecord> {
+      return links.updateConfidence(linkId, organizationId, "VERIFIED", "manual");
     },
 
-    async split(linkId: string): Promise<EntityLinkRecord> {
-      return links.updateStatus(linkId, "REVOKED");
+    async split(linkId: string, organizationId: string): Promise<EntityLinkRecord> {
+      return links.updateStatus(linkId, organizationId, "REVOKED");
     },
 
     async getLinkedEntities(
@@ -74,8 +74,8 @@ export function makeEntityResolutionService(links: EntityLinkRepository) {
       return links.findByEntity(organizationId, entityType, entityId, true);
     },
 
-    async getLinkById(id: string): Promise<EntityLinkRecord | null> {
-      return links.findById(id);
+    async getLinkById(id: string, organizationId?: string): Promise<EntityLinkRecord | null> {
+      return links.findById(id, organizationId);
     },
   };
 }

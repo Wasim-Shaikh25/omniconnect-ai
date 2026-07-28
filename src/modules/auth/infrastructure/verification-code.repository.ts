@@ -3,9 +3,12 @@ import { VerificationCodeRepository } from "../application/ports";
 
 export class PrismaVerificationCodeRepository implements VerificationCodeRepository {
   async save(identifier: string, token: string, expiresAt: Date): Promise<void> {
-    await prisma.verificationToken.create({
-      data: { identifier, token, expires: expiresAt },
-    });
+    await prisma.$transaction([
+      prisma.verificationToken.deleteMany({ where: { identifier } }),
+      prisma.verificationToken.create({
+        data: { identifier, token, expires: expiresAt },
+      }),
+    ]);
   }
 
   async consume(identifier: string, token: string): Promise<boolean> {

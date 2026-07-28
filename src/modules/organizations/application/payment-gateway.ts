@@ -6,6 +6,7 @@ export interface CheckoutSessionInput {
   successUrl: string;
   cancelUrl: string;
   promotionCodeId?: string;
+  couponCode?: string;
 }
 
 export interface CheckoutSessionResult {

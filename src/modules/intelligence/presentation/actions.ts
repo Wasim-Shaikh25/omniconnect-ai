@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getQueue } from "@/shared/queue";
-import { getCurrentUser, requireRole } from "@/modules/auth";
+import { getCurrentUser, requireRole, requireSuperAdmin } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { customerDirectory } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
@@ -187,8 +187,8 @@ export async function dismissInsightAction(formData: FormData): Promise<void> {
   const parsed = z.object({ insightId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return;
 
-  const insight = await intelligenceFeedService.dismiss(parsed.data.insightId);
-  if (!insight || insight.organizationId !== user.organizationId) return;
+  const insight = await intelligenceFeedService.dismiss(parsed.data.insightId, user.organizationId);
+  if (!insight) return;
 
   revalidatePath("/dashboard");
   if (insight.storeId) revalidatePath(`/stores/${insight.storeId}`);
@@ -200,10 +200,10 @@ export async function mergeEntityAction(formData: FormData): Promise<void> {
   const parsed = mergeLinkSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return;
 
-  const link = await entityResolutionService.getLinkById(parsed.data.linkId);
-  if (!link || link.organizationId !== user.organizationId) return;
+  const link = await entityResolutionService.getLinkById(parsed.data.linkId, user.organizationId);
+  if (!link) return;
 
-  await entityResolutionService.merge(parsed.data.linkId);
+  await entityResolutionService.merge(parsed.data.linkId, user.organizationId);
   revalidatePath("/customers");
   revalidatePath(`/customers/${link.targetId}`);
 }
@@ -359,10 +359,10 @@ export async function splitEntityAction(formData: FormData): Promise<void> {
   const parsed = linkIdSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return;
 
-  const link = await entityResolutionService.getLinkById(parsed.data.linkId);
-  if (!link || link.organizationId !== user.organizationId) return;
+  const link = await entityResolutionService.getLinkById(parsed.data.linkId, user.organizationId);
+  if (!link) return;
 
-  await entityResolutionService.split(parsed.data.linkId);
+  await entityResolutionService.split(parsed.data.linkId, user.organizationId);
   revalidatePath("/customers");
   revalidatePath(`/customers/${link.targetId}`);
 }
@@ -696,8 +696,7 @@ export async function getRolloutGatesAction() {
 }
 
 export async function setRolloutGateAction(name: string, enabled: boolean) {
-  const user = await getCurrentUser();
-  if (!user || (user.role !== "ADMIN" && user.role !== "STORE_OWNER")) return null;
+  await requireSuperAdmin();
   const gate = rolloutService.setGate(name as "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA", { enabled });
   return gate;
 }
@@ -818,8 +817,8 @@ export async function getIntelligenceFeedbackKpisAction() {
 
 export async function getInsightDrillDownAction(insightId: string) {
   const user = await getCurrentUser();
-  if (!user) return null;
-  return intelligenceFeedInteractionService.getDrillDown(insightId);
+  if (!user || !user.organizationId) return null;
+  return intelligenceFeedInteractionService.getDrillDown(insightId, user.organizationId);
 }
 
 export async function dismissInsightWithReasonAction(formData: FormData) {
@@ -828,7 +827,7 @@ export async function dismissInsightWithReasonAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const reason = String(formData.get("reason") ?? "");
   if (!id) return;
-  await intelligenceFeedInteractionService.dismissWithReason({ id, reason, userId: user.id });
+  await intelligenceFeedInteractionService.dismissWithReason({ id, organizationId: user.organizationId, reason, userId: user.id });
   revalidatePath("/dashboard");
 }
 

@@ -10,6 +10,7 @@ function mapUser(user: {
   role: string;
   isSuperAdmin: boolean;
   organizationId: string | null;
+  tokenVersion: number;
 }): AccountRecord {
   return {
     id: user.id,
@@ -19,10 +20,17 @@ function mapUser(user: {
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
     organizationId: user.organizationId,
+    tokenVersion: user.tokenVersion,
   };
 }
 
 export class PrismaAccountRepository implements AccountRepository {
+  async findById(id: string): Promise<AccountRecord | null> {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return null;
+    return mapUser(user);
+  }
+
   async findByEmail(email: string): Promise<AccountRecord | null> {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return null;
@@ -32,7 +40,15 @@ export class PrismaAccountRepository implements AccountRepository {
   async updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null> {
     const user = await prisma.user.update({
       where: { id: input.id },
-      data: { passwordHash: input.passwordHash },
+      data: { passwordHash: input.passwordHash, tokenVersion: { increment: 1 } },
+    });
+    return mapUser(user);
+  }
+
+  async bumpTokenVersion(id: string): Promise<AccountRecord | null> {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { tokenVersion: { increment: 1 } },
     });
     return mapUser(user);
   }

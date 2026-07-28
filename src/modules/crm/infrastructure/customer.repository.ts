@@ -115,7 +115,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
       const updated =
         input.username && input.username !== existing.username
           ? await prisma.customer.update({
-              where: { id: existing.id },
+              where: { id: existing.id, storeId: input.storeId },
               data: { username: input.username },
             })
           : existing;
@@ -153,18 +153,24 @@ export class PrismaCustomerRepository implements CustomerRepository {
     return rows.map(toRecord);
   }
 
-  async findById(id: string): Promise<CustomerRecord | null> {
-    const found = await prisma.customer.findUnique({ where: { id } });
+  async findById(id: string, storeId?: string): Promise<CustomerRecord | null> {
+    const found = await prisma.customer.findUnique({
+      where: storeId ? { id, storeId } : { id },
+    });
     return found ? toRecord(found) : null;
   }
 
-  async getActivity(customerId: string): Promise<{
+  async getActivity(
+    customerId: string,
+    storeId?: string,
+  ): Promise<{
     conversationCount: number;
     messageCount: number;
     followerCount: number;
     couponUsageCount: number;
     lastMessageAt: Date | null;
   }> {
+    const storeFilter = storeId ? { storeId } : {};
     const [
       conversationCount,
       messageCount,
@@ -172,14 +178,16 @@ export class PrismaCustomerRepository implements CustomerRepository {
       couponUsageCount,
       lastMessage,
     ] = await Promise.all([
-      prisma.conversation.count({ where: { customerId } }),
+      prisma.conversation.count({ where: { customerId, ...storeFilter } }),
       prisma.message.count({
-        where: { conversation: { customerId } },
+        where: { conversation: { customerId, ...storeFilter } },
       }),
-      prisma.follower.count({ where: { customerId } }),
-      prisma.couponUsage.count({ where: { customerId } }),
+      prisma.follower.count({ where: { customerId, ...storeFilter } }),
+      prisma.couponUsage.count({
+        where: { customerId, customer: { ...storeFilter } },
+      }),
       prisma.message.findFirst({
-        where: { conversation: { customerId } },
+        where: { conversation: { customerId, ...storeFilter } },
         orderBy: { createdAt: "desc" },
         select: { createdAt: true },
       }),
@@ -215,16 +223,17 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async tag(input: {
     customerId: string;
+    storeId: string;
     tags?: string[];
     interests?: string[];
   }): Promise<CustomerRecord> {
     const existing = await prisma.customer.findUnique({
-      where: { id: input.customerId },
+      where: { id: input.customerId, storeId: input.storeId },
     });
     if (!existing) throw new Error("Customer not found");
 
     const updated = await prisma.customer.update({
-      where: { id: input.customerId },
+      where: { id: input.customerId, storeId: input.storeId },
       data: {
         tags: unique([...(existing.tags ?? []), ...(input.tags ?? [])]),
         interests: unique([
@@ -241,10 +250,11 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async updateLifecycleStage(
     customerId: string,
+    storeId: string,
     stage: CustomerRecord["lifecycleStage"],
   ): Promise<CustomerRecord> {
     const updated = await prisma.customer.update({
-      where: { id: customerId },
+      where: { id: customerId, storeId },
       data: { lifecycleStage: stage },
     });
     return toRecord(updated);
@@ -252,10 +262,11 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async updateConsent(
     customerId: string,
+    storeId: string,
     consent: CustomerRecord["consent"],
   ): Promise<CustomerRecord> {
     const updated = await prisma.customer.update({
-      where: { id: customerId },
+      where: { id: customerId, storeId },
       data: { consent, consentUpdatedAt: new Date() },
     });
     return toRecord(updated);
@@ -263,15 +274,16 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async recordCouponSent(input: {
     customerId: string;
+    storeId: string;
     couponId: string;
   }): Promise<CustomerRecord> {
     const existing = await prisma.customer.findUnique({
-      where: { id: input.customerId },
+      where: { id: input.customerId, storeId: input.storeId },
     });
     if (!existing) throw new Error("Customer not found");
 
     const updated = await prisma.customer.update({
-      where: { id: input.customerId },
+      where: { id: input.customerId, storeId: input.storeId },
       data: {
         tags: unique([...existing.tags, "coupon-sent"]),
       },
@@ -284,11 +296,12 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async recordCouponUsed(input: {
     customerId: string;
+    storeId: string;
     couponId: string;
     orderRef?: string;
   }): Promise<CustomerRecord> {
     const existing = await prisma.customer.findUnique({
-      where: { id: input.customerId },
+      where: { id: input.customerId, storeId: input.storeId },
     });
     if (!existing) throw new Error("Customer not found");
 
@@ -301,7 +314,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
     });
 
     const updated = await prisma.customer.update({
-      where: { id: input.customerId },
+      where: { id: input.customerId, storeId: input.storeId },
       data: {
         tags: unique([...existing.tags, "coupon-used"]),
       },

@@ -32,9 +32,15 @@ function toRecord(m: PrismaMessage): MessageRecord {
 export class PrismaMessageRepository implements MessageRepository {
   async append(input: {
     conversationId: string;
+    storeId: string;
     sender: MessageSender;
     content: string;
   }): Promise<MessageRecord> {
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: input.conversationId, storeId: input.storeId },
+    });
+    if (!conversation) throw new Error("Conversation not found");
+
     const created = await prisma.message.create({
       data: {
         conversationId: input.conversationId,

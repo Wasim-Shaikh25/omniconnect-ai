@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/modules/auth";
 import { getUnreadNotificationCountAction } from "@/modules/notifications";
 import { ThemeToggle } from "./theme-toggle";
 import { MobileNav } from "./mobile-nav";
-import { Button } from "@/components/ui/button";
+import { SignOutButton } from "./sign-out-button";
 
 export async function AppHeader() {
   const user = await getCurrentUser();
@@ -60,11 +60,7 @@ export async function AppHeader() {
                   )}
                 </Link>
                 <span className="text-muted-foreground">{user.email}</span>
-                <form action="/api/auth/signout" method="post">
-                  <Button type="submit" variant="ghost" size="sm">
-                    Sign out
-                  </Button>
-                </form>
+                <SignOutButton />
               </>
             ) : (
               <>

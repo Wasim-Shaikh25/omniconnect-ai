@@ -120,6 +120,7 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
 
     await deps.crmCommands.recordFollowerCampaignEnrollment({
       followerId: input.followerId,
+      storeId: input.storeId,
       couponId: coupon.id,
       welcomeMessageText: messageText,
     });
@@ -133,6 +134,7 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
 
     await deps.conversationCommands.appendMessage(
       conversation.id,
+      input.storeId,
       "AI",
       messageText,
     );

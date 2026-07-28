@@ -33,8 +33,8 @@ export function makeIntelligenceFeed(input: IntelligenceFeedInput) {
       });
     },
 
-    async dismiss(id: string): Promise<BusinessInsightRecord | null> {
-      return input.insights.updateStatus(id, "DISMISSED");
+    async dismiss(id: string, organizationId: string): Promise<BusinessInsightRecord | null> {
+      return input.insights.updateStatus(id, organizationId, "DISMISSED");
     },
   };
 }

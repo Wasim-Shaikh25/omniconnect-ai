@@ -23,6 +23,7 @@ const onMetaMessageReceived: EventHandler = async (event) => {
   });
   const message = await messages.append({
     conversationId: conversation.id,
+    storeId: p.storeId,
     sender: "CUSTOMER",
     content: p.text,
   });

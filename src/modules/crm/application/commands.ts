@@ -7,6 +7,7 @@ export function makeCrmCommands(deps: {
   return {
     recordFollowerCampaignEnrollment(input: {
       followerId: string;
+      storeId: string;
       couponId: string;
       welcomeMessageText: string;
     }) {

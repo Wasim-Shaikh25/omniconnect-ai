@@ -527,6 +527,7 @@ export interface DrillDown {
 
 export interface FeedDismissInput {
   id: string;
+  organizationId: string;
   reason: string;
   userId: string;
 }
@@ -539,8 +540,8 @@ export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedIn
   const dismissalReasons = new Map<string, string>();
 
   return {
-    async getDrillDown(insightId: string): Promise<DrillDown | null> {
-      const insight = await input.insights.findById(insightId);
+    async getDrillDown(insightId: string, organizationId?: string): Promise<DrillDown | null> {
+      const insight = await input.insights.findById(insightId, organizationId);
       if (!insight) return null;
       return {
         why: insight.description,
@@ -551,7 +552,7 @@ export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedIn
     },
 
     async dismissWithReason(payload: FeedDismissInput): Promise<BusinessInsightRecord | null> {
-      const updated = await input.insights.updateStatus(payload.id, "DISMISSED");
+      const updated = await input.insights.updateStatus(payload.id, payload.organizationId, "DISMISSED");
       if (updated) dismissalReasons.set(payload.id, payload.reason);
       return updated;
     },

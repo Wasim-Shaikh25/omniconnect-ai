@@ -8,12 +8,15 @@ export interface AccountRecord {
   role: Role;
   isSuperAdmin: boolean;
   organizationId: string | null;
+  tokenVersion: number;
 }
 
 /** Persistence port for user accounts (implemented in infrastructure). */
 export interface AccountRepository {
+  findById(id: string): Promise<AccountRecord | null>;
   findByEmail(email: string): Promise<AccountRecord | null>;
   updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
+  bumpTokenVersion(id: string): Promise<AccountRecord | null>;
   create(input: {
     email: string;
     name: string | null;
