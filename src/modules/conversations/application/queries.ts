@@ -22,6 +22,10 @@ export function makeConversationQueries(deps: {
       return deps.conversations.listByStore(storeId, limit);
     },
 
+    countConversations(storeId: string): Promise<number> {
+      return deps.conversations.countByStore(storeId);
+    },
+
     async getConversation(id: string): Promise<ConversationDetail | null> {
       const conversation = await deps.conversations.findById(id);
       if (!conversation) return null;

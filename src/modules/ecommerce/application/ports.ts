@@ -72,6 +72,7 @@ export interface CouponRepository {
 
   disable(storeId: string, code: string): Promise<void>;
   listByStore(storeId: string, limit?: number): Promise<CouponRecord[]>;
+  countByStore(storeId: string): Promise<number>;
 }
 
 /** Resolves the correct provider connector for a store. */

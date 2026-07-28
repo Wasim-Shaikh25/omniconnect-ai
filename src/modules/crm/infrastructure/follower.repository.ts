@@ -67,6 +67,10 @@ export class PrismaFollowerRepository implements FollowerRepository {
     return rows.map(toRecord);
   }
 
+  async countByStore(storeId: string): Promise<number> {
+    return prisma.follower.count({ where: { storeId } });
+  }
+
   async recordCampaignEnrollment(input: {
     followerId: string;
     storeId: string;

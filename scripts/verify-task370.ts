@@ -41,7 +41,9 @@ function fakeEcommerce(): EcommerceQueries {
       { id: "p2", externalId: "ext-2", title: "Widget B", price: 149, currency: "INR", inventory: 18, imageUrl: null },
       { id: "p3", externalId: "ext-3", title: "Widget C", price: 199, currency: "INR", inventory: 7, imageUrl: null },
     ],
+    countProducts: async () => 3,
     listCoupons: async () => [],
+    countCoupons: async () => 0,
     listOrders: async () => [
       { externalId: "ord-prev-1", total: 1000, currency: "INR", createdAt: daysAgo(8), customerRef: "cust-1" },
       { externalId: "ord-prev-2", total: 1000, currency: "INR", createdAt: daysAgo(9), customerRef: "cust-2" },
@@ -53,6 +55,7 @@ function fakeEcommerce(): EcommerceQueries {
 function fakeConversations(): ConversationQueries {
   return {
     listConversations: async () => [],
+    countConversations: async () => 0,
     getConversation: async () => null,
   };
 }
@@ -61,6 +64,7 @@ function fakeCrm(): CrmQueries {
   return {
     listCustomers: async () => [],
     listFollowers: async () => [],
+    countFollowers: async () => 0,
     getCustomerProfile: async () => null,
   };
 }

@@ -6,9 +6,10 @@ import type {
 } from "@/modules/ecommerce";
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability/logger";
+import { randomAlphanumeric } from "@/shared/security/random";
 import type { Result } from "@/shared/kernel";
 import type { GenerateWelcome } from "@/modules/ai";
-import type { CrmCommands } from "@/modules/crm";
+import type { CrmCommands, CustomerConsent } from "@/modules/crm";
 import type { ConversationCommands } from "@/modules/conversations";
 import type { MetaService } from "@/modules/meta";
 import {
@@ -28,13 +29,18 @@ export interface WelcomeFirstFollowerDeps {
   metaService: MetaService;
   crmCommands: CrmCommands;
   conversationCommands: ConversationCommands;
+  getCustomerConsent: (input: {
+    storeId: string;
+    externalUserId: string;
+    channel: "INSTAGRAM" | "FACEBOOK";
+  }) => Promise<CustomerConsent | null>;
 }
 
 function sanitizeUsername(username: string | null): string {
   const base = (username ?? "WELCOME").toUpperCase();
   const cleaned = base.replace(/[^A-Z0-9_-]/g, "").slice(0, 20);
   if (cleaned.length >= 3) return cleaned;
-  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const suffix = randomAlphanumeric(4);
   return `WELCOME${suffix}`;
 }
 
@@ -56,6 +62,20 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
       logger.info("coupons.firstTimeFollower.disabled", {
         storeId: input.storeId,
         followerId: input.followerId,
+      });
+      return;
+    }
+
+    const consent = await deps.getCustomerConsent({
+      storeId: input.storeId,
+      externalUserId: input.externalUserId,
+      channel: input.channel,
+    });
+    if (consent === "DECLINED") {
+      logger.info("coupons.firstTimeFollower.consentDeclined", {
+        storeId: input.storeId,
+        followerId: input.followerId,
+        externalUserId: input.externalUserId,
       });
       return;
     }

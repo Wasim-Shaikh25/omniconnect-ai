@@ -48,18 +48,18 @@ export function makeWorkspaceContext(deps: {
       };
 
       for (const store of stores) {
-        const [products, conversations, followers, coupons, connection] =
+        const [productCount, conversationCount, followerCount, couponCount, connection] =
           await Promise.all([
-            deps.ecommerce.listProducts(store.id, 500),
-            deps.conversations.listConversations(store.id, 500),
-            deps.crm.listFollowers(store.id, 500),
-            deps.ecommerce.listCoupons(store.id, 500),
+            deps.ecommerce.countProducts(store.id),
+            deps.conversations.countConversations(store.id),
+            deps.crm.countFollowers(store.id),
+            deps.ecommerce.countCoupons(store.id),
             deps.ecommerce.getStoreConnection(store.id),
           ]);
-        totals.productCount += products.length;
-        totals.conversationCount += conversations.length;
-        totals.followerCount += followers.length;
-        totals.couponCount += coupons.length;
+        totals.productCount += productCount;
+        totals.conversationCount += conversationCount;
+        totals.followerCount += followerCount;
+        totals.couponCount += couponCount;
         if (connection.connected) totals.connectedIntegrations += 1;
       }
 

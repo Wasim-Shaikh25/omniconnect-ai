@@ -31,6 +31,8 @@ export interface ConversationRepository {
 
   listByStore(storeId: string, limit?: number): Promise<ConversationRecord[]>;
 
+  countByStore(storeId: string): Promise<number>;
+
   listByStoreIds(storeIds: string[], limit?: number): Promise<ConversationRecord[]>;
 
   findById(id: string, storeId?: string): Promise<ConversationRecord | null>;

@@ -31,12 +31,12 @@ export default async function MediaKitPage({
   const store = overview?.stores.find((s) => s.id === storeId);
   if (!store || !overview) notFound();
 
-  const [connection, products, followers, conversations, orders, coupons] =
+  const [connection, products, followerCount, conversationCount, orders, coupons] =
     await Promise.all([
       ecommerceQueries.getStoreConnection(storeId),
       ecommerceQueries.listProducts(storeId, 6),
-      crmQueries.listFollowers(storeId, 500),
-      conversationQueries.listConversations(storeId, 500),
+      crmQueries.countFollowers(storeId),
+      conversationQueries.countConversations(storeId),
       ecommerceQueries.listOrders(storeId, 100),
       ecommerceQueries.listCoupons(storeId, 100),
     ]);
@@ -69,7 +69,7 @@ export default async function MediaKitPage({
           <CardHeader className="pb-2">
             <CardDescription>Followers</CardDescription>
             <CardTitle className="text-3xl">
-              {formatNumber(followers.length)}
+              {formatNumber(followerCount)}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -85,7 +85,7 @@ export default async function MediaKitPage({
           <CardHeader className="pb-2">
             <CardDescription>Conversations</CardDescription>
             <CardTitle className="text-3xl">
-              {formatNumber(conversations.length)}
+              {formatNumber(conversationCount)}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -108,7 +108,7 @@ export default async function MediaKitPage({
             <p className="text-sm leading-relaxed text-muted-foreground">
               {store.name} is a {connection.connected ? "connected" : "growing"}{" "}
               store on OmniConnect AI with {products.length} products and{" "}
-              {followers.length} followers. Engagement is tracked across Instagram,
+              {followerCount} followers. Engagement is tracked across Instagram,
               Facebook, and direct messages, with AI-powered replies and automated
               campaigns.
             </p>
@@ -163,7 +163,7 @@ export default async function MediaKitPage({
           <CardContent>
             <p className="rounded-md bg-muted p-4 text-sm leading-relaxed">
               Hi! I run {store.name} — a creator-led store with{" "}
-              {formatNumber(followers.length)} followers and a catalog of{" "}
+              {formatNumber(followerCount)} followers and a catalog of{" "}
               {connection.productCount} products. I use OmniConnect AI to manage
               conversations, run campaigns, and track affiliate and brand-deal
               performance. I&apos;m open to sponsored content, product

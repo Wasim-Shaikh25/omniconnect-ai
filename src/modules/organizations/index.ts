@@ -29,6 +29,8 @@ export type {
 // Application
 export { createStoreSchema } from "./application/create-store";
 export type { CreateStoreInput } from "./application/create-store";
+export { createOrganizationSchema } from "./application/create-organization";
+export type { CreateOrganizationInput } from "./application/create-organization";
 export type {
   OrganizationRecord,
   StoreRecord,
@@ -40,10 +42,17 @@ export { createProjectSchema } from "./application/project";
 export { inviteMemberSchema } from "./application/invite-member";
 export type { InviteMemberInput } from "./application/invite-member";
 
+// Billing errors for webhook classification
+export {
+  BillingSignatureError,
+  BillingConfigurationError,
+} from "./application/billing";
+
 // Queries + use-cases (composed)
 export {
   organizationQueries,
   organizationUsage,
+  createOrganization,
   createStore,
   tenantGuard,
   billingService,
@@ -58,8 +67,10 @@ export {
 // Presentation + bootstrap wiring
 export {
   createStoreAction,
+  completeOnboardingAction,
   listAllOrganizationsAction,
 } from "./presentation/actions";
+export type { OnboardingActionState } from "./presentation/actions";
 export type { StoreActionState } from "./presentation/actions";
 export {
   createSaaSCouponAction,

@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { env } from "@/shared/config";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import {
@@ -58,7 +59,7 @@ export default async function StoreDetailPage({
   if (!store) notFound();
 
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
-  const isDev = process.env.NODE_ENV !== "production";
+  const isDev = env.NODE_ENV !== "production";
   const [
     connection,
     products,

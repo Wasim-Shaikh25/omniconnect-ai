@@ -1,9 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireRole, requireSuperAdmin, ForbiddenError } from "@/modules/auth";
-import { createStore, organizationQueries } from "../infrastructure/container";
+import {
+  requireRole,
+  requireUser,
+  requireSuperAdmin,
+  ForbiddenError,
+  unstable_update,
+} from "@/modules/auth";
+import { createStore, createOrganization, organizationQueries } from "../infrastructure/container";
 import { createStoreSchema } from "../application/create-store";
+import { createOrganizationSchema } from "../application/create-organization";
 
 export interface StoreActionState {
   error?: string;
@@ -62,4 +69,43 @@ export async function listAllOrganizationsAction(
     page: parsePage(page),
     limit: parseLimit(limit),
   });
+}
+
+export interface OnboardingActionState {
+  error?: string;
+  ok?: boolean;
+}
+
+export async function completeOnboardingAction(
+  _prev: OnboardingActionState,
+  formData: FormData,
+): Promise<OnboardingActionState> {
+  const user = await requireUser();
+  if (user.organizationId) {
+    return { ok: true };
+  }
+
+  const parsed = createOrganizationSchema.safeParse({
+    name: formData.get("name") || undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  try {
+    await createOrganization({
+      userId: user.id,
+      userEmail: user.email,
+      name: parsed.data.name,
+    });
+    // Refresh the JWT/session so the new organizationId and tokenVersion are
+    // reflected immediately; otherwise `getCurrentUser` will reject the stale
+    // session and log the user out.
+    await unstable_update({});
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to create workspace" };
+  }
+
+  revalidatePath("/dashboard");
+  return { ok: true };
 }

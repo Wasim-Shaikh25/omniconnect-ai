@@ -45,19 +45,19 @@ export function makeAnalyticsQueries(deps: {
       const stores = overview.stores;
       const perStore = await Promise.all(
         stores.map(async (store) => {
-          const [products, conversations, followers, coupons, connection] =
+          const [productCount, conversationCount, followerCount, couponCount, connection] =
             await Promise.all([
-              deps.ecommerce.listProducts(store.id, 500),
-              deps.conversations.listConversations(store.id, 500),
-              deps.crm.listFollowers(store.id, 500),
-              deps.ecommerce.listCoupons(store.id, 500),
+              deps.ecommerce.countProducts(store.id),
+              deps.conversations.countConversations(store.id),
+              deps.crm.countFollowers(store.id),
+              deps.ecommerce.countCoupons(store.id),
               deps.ecommerce.getStoreConnection(store.id),
             ]);
           return {
-            productCount: products.length,
-            conversationCount: conversations.length,
-            followerCount: followers.length,
-            couponCount: coupons.length,
+            productCount,
+            conversationCount,
+            followerCount,
+            couponCount,
             connected: connection.connected,
           };
         }),

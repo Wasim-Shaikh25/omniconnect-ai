@@ -11,7 +11,12 @@ const organizations = new PrismaOrganizationRepository();
 // Subscribes by event name so this file never imports another module's
 // infrastructure — only the payload *type* (erased at build time).
 const onUserRegistered: EventHandler = async (event) => {
-  const { userId, email } = event.payload as UserRegisteredPayload;
+  const { userId, email, autoProvisionOrganization } =
+    event.payload as UserRegisteredPayload;
+
+  // Credentials registrations intentionally do not auto-provision, so the
+  // user is routed to `/onboarding` to create the workspace explicitly.
+  if (autoProvisionOrganization === false) return;
 
   // Idempotency: a user may already have an organization (e.g. re-login,
   // onboarding retried) and should not get a second one.

@@ -248,6 +248,21 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         deps.getOrganizationIdByStoreId(storeId),
       ]);
 
+    // Privacy: do not generate or send automated replies if the customer has declined consent.
+    if (rawProfile?.customer.consent === "DECLINED") {
+      logger.info("ai.generateReply.consentDeclined", { conversationId, externalUserId });
+      const handoff =
+        "We're connecting you with a human agent who will help you shortly.";
+      await sendReply(deps, {
+        conversationId,
+        storeId,
+        externalUserId,
+        text: handoff,
+        escalate: true,
+      });
+      return { text: handoff, escalate: true };
+    }
+
     // Enforce monthly AI reply quota before invoking the LLM.
     const allowed = organizationId
       ? await deps.consumeAIReply(organizationId)
@@ -270,15 +285,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
       return { text: handoff, escalate: true };
     }
 
-    // Privacy: do not send customer memory/profile to the AI if consent was declined.
-    let profile: CustomerProfile | null = rawProfile;
-    if (profile?.customer.consent === "DECLINED") {
-      logger.info("ai.generateReply.consentDeclined", {
-        conversationId,
-        externalUserId,
-      });
-      profile = null;
-    }
+    const profile: CustomerProfile | null = rawProfile;
 
     const recentMessages = messages.slice(-MAX_CONTEXT_MESSAGES);
     const systemPrompt = buildSystemPrompt(config, profile, products, coupons);

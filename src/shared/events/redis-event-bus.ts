@@ -50,7 +50,7 @@ export class RedisEventBus implements EventBus {
   }
 
   async publish(event: DomainEvent): Promise<void> {
-    this.dispatchLocal(event);
+    await this.dispatchLocal(event);
     const publisher = this.getPublisher();
     try {
       await publisher.publish(CHANNEL, serialize(event));
@@ -62,14 +62,16 @@ export class RedisEventBus implements EventBus {
     }
   }
 
-  private dispatchLocal(event: DomainEvent): void {
+  private async dispatchLocal(event: DomainEvent): Promise<void> {
     const handlers = this.handlers.get(event.name) ?? [];
-    Promise.all(handlers.map((handler) => handler(event))).catch((err) => {
+    try {
+      await Promise.all(handlers.map((handler) => handler(event)));
+    } catch (err) {
       logger.error("redisEventBus.handlerError", {
         error: String(err),
         eventName: event.name,
       });
-    });
+    }
   }
 
   private getPublisher(): Redis {
@@ -97,7 +99,7 @@ export class RedisEventBus implements EventBus {
       if (channel !== CHANNEL) return;
       try {
         const event = deserialize(message);
-        this.dispatchLocal(event);
+        void this.dispatchLocal(event);
       } catch (err) {
         logger.error("redisEventBus.invalidMessage", {
           error: String(err),

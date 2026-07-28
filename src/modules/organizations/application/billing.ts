@@ -6,6 +6,20 @@ import { OrganizationRepository } from "./ports";
 import { SaaSCouponRepository } from "./saas-coupon";
 import { CheckoutSessionInput, PaymentGateway } from "./payment-gateway";
 
+export class BillingSignatureError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BillingSignatureError";
+  }
+}
+
+export class BillingConfigurationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BillingConfigurationError";
+  }
+}
+
 export interface BillingService {
   createCheckoutSession(input: CheckoutSessionInput): Promise<{ url: string | null }>;
   fulfillCheckout(payload: string | Buffer, signature: string): Promise<void>;
@@ -25,9 +39,19 @@ export function makeBillingService(deps: {
 
     async fulfillCheckout(payload, signature) {
       const secret = env.STRIPE_WEBHOOK_SECRET;
-      if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
+      if (!secret) {
+        throw new BillingConfigurationError("STRIPE_WEBHOOK_SECRET is not configured");
+      }
 
-      const rawEvent = deps.paymentGateway.constructWebhookEvent(payload, signature, secret);
+      let rawEvent: unknown;
+      try {
+        rawEvent = deps.paymentGateway.constructWebhookEvent(payload, signature, secret);
+      } catch (err) {
+        if (err instanceof Stripe.errors.StripeSignatureVerificationError) {
+          throw new BillingSignatureError("Invalid Stripe signature");
+        }
+        throw err;
+      }
       const event = rawEvent as Stripe.Event;
 
       switch (event.type) {

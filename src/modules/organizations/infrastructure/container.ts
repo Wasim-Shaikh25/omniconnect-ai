@@ -5,6 +5,7 @@ import { makeOrganizationUsageService } from "../application/usage";
 import { makeBillingService } from "../application/billing";
 import { makeCreateSaaSCoupon, makeValidateSaaSCoupon } from "../application/saas-coupon";
 import { makeInviteMember } from "../application/invite-member";
+import { makeCreateOrganization } from "../application/create-organization";
 import {
   makeValidateInvite,
   makeAcceptInvite,
@@ -23,7 +24,7 @@ import { PrismaSaaSCouponRepository } from "./saas-coupon.repository";
 import { PrismaProjectRepository } from "./project.repository";
 import { PrismaOrganizationInviteRepository } from "./organization-invite.repository";
 import { StripePaymentGateway } from "./stripe-payment-gateway";
-import { countOrganizationUsers } from "@/modules/users";
+import { countOrganizationUsers, setUserOrganization } from "@/modules/users";
 import { createEmailSender } from "@/shared/email";
 import { env } from "@/shared/config";
 
@@ -61,6 +62,10 @@ function sendInviteEmail(input: {
 
 /** Composition root for the organizations module. */
 export const organizationRepository = organizations;
+export const createOrganization = makeCreateOrganization({
+  organizations,
+  setUserOrganization,
+});
 export const createStore = makeCreateStore({ organizations, stores });
 export const organizationQueries = makeOrganizationQueries({
   organizations,

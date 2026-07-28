@@ -74,20 +74,20 @@ export default async function ReportsPage() {
       : Promise.resolve(null),
     Promise.all(
       overview.stores.map(async (store) => {
-        const [connection, coupons, followers, conversations] =
+        const [connection, couponCount, followerCount, conversationCount] =
           await Promise.all([
             ecommerceQueries.getStoreConnection(store.id),
-            ecommerceQueries.listCoupons(store.id, 500),
-            crmQueries.listFollowers(store.id, 500),
-            conversationQueries.listConversations(store.id, 500),
+            ecommerceQueries.countCoupons(store.id),
+            crmQueries.countFollowers(store.id),
+            conversationQueries.countConversations(store.id),
           ]);
         return {
           id: store.id,
           name: store.name,
           products: connection.productCount,
-          coupons: coupons.length,
-          followers: followers.length,
-          conversations: conversations.length,
+          coupons: couponCount,
+          followers: followerCount,
+          conversations: conversationCount,
           connected: connection.connected,
         } satisfies StoreReportRow;
       }),

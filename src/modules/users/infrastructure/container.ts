@@ -50,3 +50,10 @@ export async function setUserSuperAdmin(
 ): Promise<UserProfile> {
   return users.setSuperAdmin(id, isSuperAdmin);
 }
+
+export async function setUserOrganization(
+  id: string,
+  organizationId: string,
+): Promise<void> {
+  return users.setOrganization(id, organizationId);
+}

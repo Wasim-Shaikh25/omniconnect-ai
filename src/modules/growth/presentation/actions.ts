@@ -11,12 +11,23 @@ export interface GrowthActionState {
   ok?: boolean;
 }
 
+function isEmptyValue(value: FormDataEntryValue): boolean {
+  if (typeof value === "string") return value.trim() === "";
+  return value.size === 0;
+}
+
 function parseForm(formData: FormData): Record<string, unknown> {
-  const entries = Array.from(formData.entries()) as [string, string][];
   const obj: Record<string, unknown> = {};
-  for (const [key, value] of entries) {
-    if (value === "") continue;
-    obj[key] = value;
+  for (const [key, value] of formData.entries()) {
+    if (isEmptyValue(value)) continue;
+    const existing = obj[key];
+    if (existing === undefined) {
+      obj[key] = value;
+    } else if (Array.isArray(existing)) {
+      existing.push(value);
+    } else {
+      obj[key] = [existing, value];
+    }
   }
   return obj;
 }
