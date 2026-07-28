@@ -54,7 +54,11 @@ All notable changes to **OmniConnect AI** are documented here.
   - `fly.toml` now defines `app` and `worker` process groups, and `npm run build` bundles `src/jobs/worker.ts` into `.next/standalone/worker.cjs` so the BullMQ worker deploys alongside the web service.
   - Added `PaginationInput`/`PaginatedResult` to the shared kernel and paginated all admin list endpoints (organizations, users, coupons, tickets) with Prisma `skip`/`take` + count and previous/next controls on the admin pages.
   - Added `resolveStoreScope` helper in `intelligence/presentation/actions.ts` and standardized store-scoped authorization across intelligence actions (metrics, feed, recommendations, predictions, goals, daily actions, business brain context, next-best-actions, quality checks, feature profiles, etc.). Staff are restricted to `user.storeId`; owners/admins use `tenantGuard.assertStoreAccess`.
-  - **Remaining:** Redis-backed event bus/rate-limiter/webhook dedup (server-only bundling is now enabled; re-land after validation), `teamSeats` enforcement (needs invite flow), medium/low polish.
+  - Added `src/shared/redis/client.ts` and implemented Redis-backed `RedisEventBus` (Pub/Sub), `RedisRateLimitStore`, and Redis-backed Meta webhook deduplication. These replace in-memory state for multi-instance deployments; dev/test fall back to in-memory when `REDIS_URL` is not set.
+  - `next.config.ts` aliases `ioredis` to `false` in client/edge chunks and lists it in `serverExternalPackages`, keeping the Node-only Redis client out of the browser bundle.
+  - `register-user.ts` now receives `eventBus` via dependency injection instead of importing it directly, preventing the public `auth` barrel from pulling `ioredis` into client chunks.
+  - `getQueue()` now throws in production if `REDIS_URL` is missing.
+  - **Remaining:** `teamSeats` enforcement (needs invite flow), medium/low polish (M2, M3, M4, L1, L2).
 
 - **TASK-0054 — Audit fixes continuation (remaining):**
   - Enforce `teamSeats` when adding members to an organization (requires an invite/add-member flow that does not yet exist).
