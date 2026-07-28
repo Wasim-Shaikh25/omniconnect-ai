@@ -59,6 +59,7 @@ export function makeRegisterUser(deps: {
         userId: account.id,
         email: account.email,
         role: account.role,
+        autoProvisionOrganization: false,
       }),
     );
 

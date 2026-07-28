@@ -160,6 +160,7 @@ export const authConfig: NextAuthConfig = {
                 userId: user.id,
                 email: user.email,
                 role: "STORE_OWNER",
+                autoProvisionOrganization: true,
               }),
             );
           }

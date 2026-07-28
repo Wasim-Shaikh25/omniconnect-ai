@@ -6,6 +6,7 @@ import {
   requireUser,
   requireSuperAdmin,
   ForbiddenError,
+  unstable_update,
 } from "@/modules/auth";
 import { createStore, createOrganization, organizationQueries } from "../infrastructure/container";
 import { createStoreSchema } from "../application/create-store";
@@ -97,6 +98,10 @@ export async function completeOnboardingAction(
       userEmail: user.email,
       name: parsed.data.name,
     });
+    // Refresh the JWT/session so the new organizationId and tokenVersion are
+    // reflected immediately; otherwise `getCurrentUser` will reject the stale
+    // session and log the user out.
+    await unstable_update({});
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to create workspace" };
   }
