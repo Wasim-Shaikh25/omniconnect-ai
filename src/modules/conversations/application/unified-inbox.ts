@@ -1,3 +1,4 @@
+import type { SessionUser } from "@/modules/auth";
 import type { ConversationChannel, ConversationRepository, MessageRepository, MessageSender } from "./ports";
 
 export interface InboxItem {
@@ -28,6 +29,7 @@ export function makeGetUnifiedInbox(deps: {
   organizations: {
     getOrganizationOverview(
       organizationId: string,
+      user?: SessionUser,
     ): Promise<{ id: string; name: string; stores: { id: string; name: string }[] } | null>;
   };
   customers: {
@@ -37,10 +39,14 @@ export function makeGetUnifiedInbox(deps: {
   messages: MessageRepository;
 }) {
   return async function getUnifiedInbox(
-    organizationId: string,
+    user: SessionUser,
     filter?: UnifiedInboxFilter,
   ): Promise<InboxItem[]> {
-    const overview = await deps.organizations.getOrganizationOverview(organizationId);
+    if (!user.organizationId) return [];
+    const overview = await deps.organizations.getOrganizationOverview(
+      user.organizationId,
+      user,
+    );
     if (!overview) return [];
 
     const stores = overview.stores;

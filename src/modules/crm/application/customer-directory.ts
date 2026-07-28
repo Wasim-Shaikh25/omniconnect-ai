@@ -109,6 +109,13 @@ export function makeCustomerDirectory(deps: {
   customers: CustomerRepository;
   followers: FollowerRepository;
 }) {
+  function filterStoresByScope(
+    stores: { id: string; name: string }[],
+    storeId?: string | null,
+  ) {
+    if (!storeId) return stores;
+    return stores.filter((s) => s.id === storeId);
+  }
   async function enrich(
     customer: CustomerRecord,
     storeNameById: Map<string, string>,
@@ -140,13 +147,14 @@ export function makeCustomerDirectory(deps: {
     async listCustomersByOrganization(
       organizationId: string,
       filter?: CustomerDirectoryFilter,
+      storeId?: string | null,
     ): Promise<CustomerListView[]> {
       const overview = await deps.organizations.getOrganizationOverview(
         organizationId,
       );
       if (!overview) return [];
 
-      const stores = overview.stores;
+      const stores = filterStoresByScope(overview.stores, storeId);
       const storeIds = stores.map((s) => s.id);
       const storeNameById = new Map(stores.map((s) => [s.id, s.name]));
 

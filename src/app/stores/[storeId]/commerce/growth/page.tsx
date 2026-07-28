@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { requireStoreAccess } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import {
   listGrowthAction,
@@ -26,13 +24,7 @@ export default async function GrowthPage({
   params: Promise<{ storeId: string }>;
 }) {
   const { storeId } = await params;
-  const user = await getCurrentUser();
-  if (!user) notFound();
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { user } = await requireStoreAccess(storeId);
 
   const [data, products] = await Promise.all([
     listGrowthAction(storeId),

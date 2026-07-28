@@ -1,7 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { requireStoreAccess } from "@/modules/organizations";
 import { conversationQueries } from "@/modules/conversations";
 import {
   takeOverConversationAction,
@@ -25,14 +24,7 @@ export default async function ConversationDetailPage({
 }) {
   const { storeId, conversationId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { store } = await requireStoreAccess(storeId);
 
   const detail = await conversationQueries.getConversation(conversationId);
   if (!detail || detail.conversation.storeId !== storeId) notFound();

@@ -1,6 +1,5 @@
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+
+import { requireStoreAccess } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { StoreWorkflowNav } from "@/components/store-workflow-nav";
 import { WorkflowCard } from "@/components/workflow-cards";
@@ -14,14 +13,7 @@ export default async function RevenuePage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { store } = await requireStoreAccess(storeId);
 
   const [orders, products, coupons] = await Promise.all([
     ecommerceQueries.listOrders(storeId, 100).catch(() => []),

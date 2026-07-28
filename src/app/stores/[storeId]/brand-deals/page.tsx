@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+
+import { requireStoreAccess } from "@/modules/organizations";
 import { brandDealQueries } from "@/modules/branddeals";
 import { BrandDealsNextBestAction } from "@/components/brand-deals-next-best-action";
 import { formatCurrency } from "@/lib/currency";
@@ -43,14 +42,7 @@ export default async function BrandDealsPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { store } = await requireStoreAccess(storeId);
 
   const deals = await brandDealQueries.listByStore(storeId);
 

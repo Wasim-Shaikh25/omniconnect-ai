@@ -16,7 +16,7 @@ export interface ConversationActionState {
 export async function getUnifiedInboxAction(filter?: UnifiedInboxFilter) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) return { items: [] };
-  const items = await unifiedInboxQueries(user.organizationId, filter);
+  const items = await unifiedInboxQueries(user, filter);
   return { items };
 }
 

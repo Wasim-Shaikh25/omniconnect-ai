@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { notFound } from "next/navigation";
+import { organizationQueries, requireStoreAccess } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { crmQueries } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
@@ -22,14 +21,11 @@ export default async function MediaKitPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
+  const { store, user } = await requireStoreAccess(storeId);
   const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
+    ? await organizationQueries.getOrganizationOverview(user.organizationId, user)
     : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store || !overview) notFound();
+  if (!overview) notFound();
 
   const [connection, products, followerCount, conversationCount, orders, coupons] =
     await Promise.all([

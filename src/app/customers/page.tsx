@@ -37,6 +37,7 @@ export default async function CustomersPage({
 }) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) redirect("/login");
+  if (user.role === "STAFF" && !user.storeId) redirect("/dashboard");
 
   const params = (await searchParams) ?? {};
   const lifecycleStage = LIFECYCLES.includes(
@@ -56,9 +57,11 @@ export default async function CustomersPage({
     ...(params.segment ? { segment: params.segment } : {}),
   };
 
+  const storeId = user.role === "STAFF" ? user.storeId : undefined;
   const customers = await customerDirectory.listCustomersByOrganization(
     user.organizationId,
     Object.keys(filter).length > 0 ? filter : undefined,
+    storeId,
   );
 
   return (

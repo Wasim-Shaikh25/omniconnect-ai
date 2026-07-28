@@ -85,7 +85,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 - **TASK-0057 — Product Completeness Roadmap** (spec `0057`):
   - Master spec and task tracker created to close remaining product-completeness gaps from `PRODUCTION_READINESS_AUDIT.md`.
-  - Phases: (1) staff/tenant isolation, (2) store/product/coupon lifecycle, (3) analytics/AI/pagination, (4) privacy/CI/observability.
+  - Phase 1 (staff/tenant isolation):
+    - Created `src/modules/organizations/presentation/require-store-access.ts` to centralize login, tenant-guard, and store lookup for all store-scoped pages.
+    - Applied `requireStoreAccess` across every `app/stores/[storeId]/**/page.tsx` route.
+    - Updated `getOrganizationOverview` to accept an optional `SessionUser` and filter `stores` to `user.storeId` for `STAFF` roles.
+    - Updated `getUnifiedInbox` and `listCustomersByOrganization` to scope store IDs by staff assignment.
+    - Added `src/modules/organizations/application/queries.test.ts` proving staff only see their assigned store and cannot read another store via `getOrganizationOverview`.
+  - In progress: add `storeId` to the invite flow and user settings so `STAFF`/`ADMIN` users can be assigned to a store on invitation and reassigned later.
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

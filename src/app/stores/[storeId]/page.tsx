@@ -1,8 +1,7 @@
-import { notFound, redirect } from "next/navigation";
+
 import Link from "next/link";
 import { env } from "@/shared/config";
-import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { requireStoreAccess } from "@/modules/organizations";
 import {
   connectStoreAction,
   ecommerceQueries,
@@ -49,14 +48,7 @@ export default async function StoreDetailPage({
 }) {
   const { storeId } = await params;
 
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
-    : null;
-  const store = overview?.stores.find((s) => s.id === storeId);
-  if (!store) notFound();
+  const { user, store } = await requireStoreAccess(storeId);
 
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
   const isDev = env.NODE_ENV !== "production";

@@ -1,4 +1,5 @@
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
+import type { SessionUser } from "@/modules/auth";
 import { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
 import { Plan } from "../domain/plan";
 
@@ -39,10 +40,18 @@ export function makeOrganizationQueries(deps: {
 
     async getOrganizationOverview(
       organizationId: string,
+      user?: SessionUser,
     ): Promise<OrganizationOverview | null> {
       const org = await deps.organizations.findById(organizationId);
       if (!org) return null;
-      const stores = await deps.stores.listByOrganization(organizationId);
+      let stores = await deps.stores.listByOrganization(organizationId);
+      if (user?.role === "STAFF") {
+        if (user.storeId) {
+          stores = stores.filter((s) => s.id === user.storeId);
+        } else {
+          stores = [];
+        }
+      }
       return {
         id: org.id,
         name: org.name,

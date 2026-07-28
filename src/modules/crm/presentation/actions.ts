@@ -111,9 +111,14 @@ export async function getCustomerDirectoryAction(
   if (!user || user.organizationId !== organizationId) {
     return { customers: [] };
   }
+  const storeId = user.role === "STAFF" ? user.storeId : undefined;
+  if (user.role === "STAFF" && !storeId) {
+    return { customers: [] };
+  }
   const customers = await customerDirectory.listCustomersByOrganization(
     organizationId,
     filter,
+    storeId,
   );
   return { customers };
 }
