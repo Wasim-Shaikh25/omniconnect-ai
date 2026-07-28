@@ -104,7 +104,7 @@ export class PrismaIntelligenceDismissalRepository implements IntelligenceDismis
   }
 
   async getReason(insightId: string, organizationId: string): Promise<string | null> {
-    const row = await prisma.intelligenceDismissal.findUnique({
+    const row = await prisma.intelligenceDismissal.findFirst({
       where: { insightId, organizationId },
     });
     return row?.reason ?? null;
