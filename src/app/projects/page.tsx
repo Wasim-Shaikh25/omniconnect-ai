@@ -96,15 +96,49 @@ export default function ProjectsPage() {
           <form action={formAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Project name</Label>
-              <Input id="name" name="name" required placeholder="Summer collection" />
+              <Input
+                id="name"
+                name="name"
+                required
+                placeholder="Summer collection"
+                aria-invalid={!!state?.fieldErrors?.name}
+                aria-describedby={state?.fieldErrors?.name ? "name-error" : undefined}
+              />
+              {state?.fieldErrors?.name && (
+                <p id="name-error" className="text-sm text-destructive" role="alert">
+                  {state.fieldErrors.name.join(", ")}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Input id="description" name="description" placeholder="Optional" />
+              <Input
+                id="description"
+                name="description"
+                placeholder="Optional"
+                aria-invalid={!!state?.fieldErrors?.description}
+                aria-describedby={state?.fieldErrors?.description ? "description-error" : undefined}
+              />
+              {state?.fieldErrors?.description && (
+                <p id="description-error" className="text-sm text-destructive" role="alert">
+                  {state.fieldErrors.description.join(", ")}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="instagramHandle">Instagram handle</Label>
-              <Input id="instagramHandle" name="instagramHandle" placeholder="@yourbrand" />
+              <Input
+                id="instagramHandle"
+                name="instagramHandle"
+                placeholder="@yourbrand"
+                aria-invalid={!!state?.fieldErrors?.instagramHandle}
+                aria-describedby={state?.fieldErrors?.instagramHandle ? "instagramHandle-error" : undefined}
+              />
+              {state?.fieldErrors?.instagramHandle && (
+                <p id="instagramHandle-error" className="text-sm text-destructive" role="alert">
+                  {state.fieldErrors.instagramHandle.join(", ")}
+                </p>
+              )}
             </div>
             {state?.error && (
               <p className="text-sm text-destructive" role="alert">
@@ -171,24 +205,51 @@ export default function ProjectsPage() {
 
                 <form action={addMemberAction} className="flex flex-col gap-2 sm:flex-row">
                   <input type="hidden" name="projectId" value={project.id} />
-                  <Input name="userId" placeholder="User ID" required className="flex-1" />
-                  <select
-                    name="role"
-                    defaultValue="EDITOR"
-                    className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring sm:w-[140px]"
-                  >
-                    {ROLES.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex flex-1 flex-col gap-1">
+                    <Input
+                      id={`userId-${project.id}`}
+                      name="userId"
+                      placeholder="User ID"
+                      required
+                      className="w-full"
+                      aria-invalid={!!addMemberState?.fieldErrors?.userId}
+                      aria-describedby={addMemberState?.fieldErrors?.userId ? `userId-${project.id}-error` : undefined}
+                    />
+                    {addMemberState?.fieldErrors?.userId && (
+                      <p id={`userId-${project.id}-error`} className="text-sm text-destructive" role="alert">
+                        {addMemberState.fieldErrors.userId.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 sm:w-[140px]">
+                    <select
+                      id={`role-${project.id}`}
+                      name="role"
+                      defaultValue="EDITOR"
+                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      aria-invalid={!!addMemberState?.fieldErrors?.role}
+                      aria-describedby={addMemberState?.fieldErrors?.role ? `role-${project.id}-error` : undefined}
+                    >
+                      {ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                    {addMemberState?.fieldErrors?.role && (
+                      <p id={`role-${project.id}-error`} className="text-sm text-destructive" role="alert">
+                        {addMemberState.fieldErrors.role.join(", ")}
+                      </p>
+                    )}
+                  </div>
                   <Button type="submit" size="sm" disabled={addMemberPending}>
                     {addMemberPending ? "…" : "Add"}
                   </Button>
                 </form>
                 {addMemberState?.error && (
-                  <p className="text-sm text-destructive">{addMemberState.error}</p>
+                  <p className="text-sm text-destructive" role="alert">
+                    {addMemberState.error}
+                  </p>
                 )}
               </div>
             </CardContent>

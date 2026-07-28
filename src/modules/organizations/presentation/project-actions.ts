@@ -19,6 +19,15 @@ import { createProjectSchema } from "../application/project";
 export interface ProjectActionState {
   error?: string;
   ok?: boolean;
+  fieldErrors?: Record<string, string[]>;
+}
+
+function validationState(error: z.ZodError): ProjectActionState {
+  const { fieldErrors } = error.flatten();
+  return {
+    error: "Please fix the highlighted fields.",
+    fieldErrors: fieldErrors as Record<string, string[]>,
+  };
 }
 
 async function requireStoreOwner() {
@@ -41,7 +50,7 @@ export async function createProjectAction(
     instagramHandle: formData.get("instagramHandle") || undefined,
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return validationState(parsed.error);
   }
 
   try {
@@ -117,7 +126,7 @@ export async function addProjectMemberAction(
     userId: formData.get("userId"),
     role: formData.get("role"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  if (!parsed.success) return validationState(parsed.error);
 
   const project = await projects.findById(parsed.data.projectId, user.organizationId);
   if (!project) return { error: "Project not found." };

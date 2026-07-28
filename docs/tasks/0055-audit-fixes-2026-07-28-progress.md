@@ -32,7 +32,7 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 ### Medium
 
 - [x] **M1** — Use UTC month boundaries for `aiRepliesThisMonth` reset.
-- [ ] **M2** — Surface structured server validation errors per-field in forms.
+- [x] **M2** — Surface structured server validation errors per-field in forms. Implemented for project actions (`createProjectAction` and `addProjectMemberAction`) and `/projects/page.tsx`, using `zod` `flatten().fieldErrors` and `aria-invalid`/`aria-describedby`. Pattern can be extended to other forms.
 - [ ] **M3** — Verify new Prisma indexes with `EXPLAIN ANALYZE` and add missing ones.
 - [x] **M4** — Remove password reset code from URL query string. Email link now only includes `email`; code is entered manually from the email body.
 
