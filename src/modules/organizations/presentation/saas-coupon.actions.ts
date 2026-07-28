@@ -55,7 +55,25 @@ export async function createSaaSCouponAction(
   };
 }
 
-export async function listSaaSCouponsAction() {
+const DEFAULT_PAGE_LIMIT = 20;
+
+function parsePage(raw: string | number | undefined) {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : typeof raw === "number" ? raw : 1;
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+function parseLimit(raw: string | number | undefined) {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : typeof raw === "number" ? raw : DEFAULT_PAGE_LIMIT;
+  return Number.isFinite(n) && n > 0 && n <= 100 ? n : DEFAULT_PAGE_LIMIT;
+}
+
+export async function listSaaSCouponsAction(
+  page?: string | number,
+  limit?: string | number,
+) {
   await requireSuperAdmin();
-  return couponRepository.list();
+  return couponRepository.list({
+    page: parsePage(page),
+    limit: parseLimit(limit),
+  });
 }

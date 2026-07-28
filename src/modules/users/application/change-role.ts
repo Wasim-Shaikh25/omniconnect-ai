@@ -51,7 +51,7 @@ export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
       roleSatisfies(existing.role, "STORE_OWNER") && !roleSatisfies(input.role, "STORE_OWNER");
     if (isDemotingAdmin) {
       const peers = await deps.users.listByOrganization(existing.organizationId ?? "");
-      const otherAdmins = peers.filter(
+      const otherAdmins = peers.items.filter(
         (p) => p.id !== input.userId && roleSatisfies(p.role, "STORE_OWNER"),
       );
       if (otherAdmins.length === 0) {

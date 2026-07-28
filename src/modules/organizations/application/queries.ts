@@ -1,3 +1,4 @@
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
 import { Plan } from "../domain/plan";
 
@@ -14,10 +15,12 @@ export function makeOrganizationQueries(deps: {
   stores: StoreRepository;
 }) {
   return {
-    async listAllOrganizations(): Promise<OrganizationOverview[]> {
-      const orgs = await deps.organizations.listAll();
-      return Promise.all(
-        orgs.map(async (org) => {
+    async listAllOrganizations(
+      pagination?: PaginationInput,
+    ): Promise<PaginatedResult<OrganizationOverview>> {
+      const orgs = await deps.organizations.listAll(pagination);
+      const overviews = await Promise.all(
+        orgs.items.map(async (org) => {
           const stores = await deps.stores.listByOrganization(org.id);
           return {
             id: org.id,
@@ -28,6 +31,10 @@ export function makeOrganizationQueries(deps: {
           };
         }),
       );
+      return {
+        ...orgs,
+        items: overviews,
+      };
     },
 
     async getOrganizationOverview(

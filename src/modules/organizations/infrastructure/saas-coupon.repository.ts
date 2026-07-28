@@ -1,4 +1,6 @@
 import { prisma } from "@/shared/database";
+import type { PaginationInput } from "@/shared/kernel";
+import { paginatedResult, toSkip } from "@/shared/kernel";
 import type { SaaSCouponRecord, SaaSCouponRepository } from "../application/saas-coupon";
 
 export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
@@ -41,11 +43,21 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
     return coupon ? this.map(coupon) : null;
   }
 
-  async list(): Promise<SaaSCouponRecord[]> {
-    const coupons = await prisma.saaSCoupon.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return coupons.map((c) => this.map(c));
+  async list(pagination?: PaginationInput) {
+    const [coupons, total] = await Promise.all([
+      prisma.saaSCoupon.findMany({
+        orderBy: { createdAt: "desc" },
+        ...(pagination
+          ? { skip: toSkip(pagination), take: pagination.limit }
+          : {}),
+      }),
+      prisma.saaSCoupon.count(),
+    ]);
+    return paginatedResult(
+      coupons.map((c) => this.map(c)),
+      total,
+      pagination ?? { page: 1, limit: total || 1 },
+    );
   }
 
   async incrementUsage(id: string, maxUses: number | null): Promise<boolean> {

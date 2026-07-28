@@ -74,9 +74,36 @@ export async function changeUserRoleAction(
   return { ok: true };
 }
 
-export async function listAllUsersAction() {
+const DEFAULT_PAGE_LIMIT = 20;
+
+function parsePagination(
+  pageRaw: string | number | undefined,
+  limitRaw: string | number | undefined,
+) {
+  const page =
+    typeof pageRaw === "string"
+      ? Number.parseInt(pageRaw, 10)
+      : typeof pageRaw === "number"
+        ? pageRaw
+        : 1;
+  const limit =
+    typeof limitRaw === "string"
+      ? Number.parseInt(limitRaw, 10)
+      : typeof limitRaw === "number"
+        ? limitRaw
+        : DEFAULT_PAGE_LIMIT;
+  return {
+    page: Number.isFinite(page) && page > 0 ? page : 1,
+    limit: Number.isFinite(limit) && limit > 0 ? limit : DEFAULT_PAGE_LIMIT,
+  };
+}
+
+export async function listAllUsersAction(
+  page?: string | number,
+  limit?: string | number,
+) {
   await requireSuperAdmin();
-  return listAllUsers();
+  return listAllUsers(parsePagination(page, limit));
 }
 
 export async function toggleUserSuperAdminAction(

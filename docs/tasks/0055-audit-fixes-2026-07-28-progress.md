@@ -17,14 +17,14 @@ Implement the remediation plan from the 2026-07-28 production-readiness audit. T
 - [ ] **C1** — Replace in-memory event bus, rate limiter, and webhook dedup with Redis-backed implementations (or fail fast in production). **Partial:** `REDIS_URL` is now required in production and a shared `src/shared/redis/client.ts` helper exists. Redis-backed stores were attempted but reverted because `ioredis` was pulled into the client bundle by the auth/organizations barrels; needs a server-only bundling strategy before re-landing.
 - [x] **C2** — Wire `npm run worker` into `fly.toml` / `deploy.sh` / production runbook. (`npm run build` now emits `.next/standalone/worker.cjs`; `fly.toml` has `app` and `worker` process groups.)
 - [x] **C3** — Add RBAC and target-user validation to project management actions. (`teamSeats` enforcement deferred; it requires an organization invite/add-member flow.)
-- [x] **C4** — Standardize store-scoped authorization: use `tenantGuard.assertStoreAccess` across all store-scoped server actions and components. (Applied to commerce and conversations actions; remaining intelligence pages/actions tracked.)
-- [ ] **C5** — Add pagination to admin list endpoints (organizations, users, coupons, tickets).
+- [x] **C4** — Standardize store-scoped authorization: use `tenantGuard.assertStoreAccess` across all store-scoped server actions and components. (Applied to commerce, conversations, and intelligence actions; `resolveStoreScope` helper enforces staff store scoping and replaces manual `getOrganizationOverview` store checks.)
+- [x] **C5** — Add pagination to admin list endpoints (organizations, users, coupons, tickets). Added `PaginationInput`/`PaginatedResult` to the shared kernel, updated repositories, actions, and admin pages.
 - [x] **C6** — Require `REDIS_URL` and a non-console `EMAIL_PROVIDER` in production.
 
 ### High
 
 - [x] **H1** — Add `subscriptionId` index and optimize Stripe billing lookup.
-- [ ] **H2** — Enforce staff store scoping in intelligence daily-action and context actions.
+- [x] **H2** — Enforce staff store scoping in intelligence daily-action and context actions. `resolveStoreScope` restricts staff to `user.storeId` and validates non-staff access via `tenantGuard.assertStoreAccess`.
 - [x] **H3** — Restrict `connect-src` CSP directive to `'self'`.
 - [x] **H4** — Harden in-memory queue fallback (Redis required in production; in-memory only for dev/tests).
 - [x] **H5** — Narrow middleware public-API allowlist from `/api/*` to explicit public prefixes.

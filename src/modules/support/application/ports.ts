@@ -1,3 +1,5 @@
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
+
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 export type TicketCategory = "BILLING" | "TECHNICAL" | "FEATURE_REQUEST" | "OTHER";
@@ -38,11 +40,15 @@ export interface SupportTicketRepository {
   }): Promise<SupportTicketRecord>;
   findById(id: string, organizationId?: string): Promise<SupportTicketRecord | null>;
   listByUser(userId: string, organizationId?: string): Promise<SupportTicketRecord[]>;
-  listAll(organizationId?: string | null, filters?: {
-    status?: TicketStatus;
-    priority?: TicketPriority;
-    category?: TicketCategory;
-  }): Promise<SupportTicketRecord[]>;
+  listAll(
+    organizationId?: string | null,
+    filters?: {
+      status?: TicketStatus;
+      priority?: TicketPriority;
+      category?: TicketCategory;
+    },
+    pagination?: PaginationInput,
+  ): Promise<PaginatedResult<SupportTicketRecord>>;
   update(
     id: string,
     organizationId: string,

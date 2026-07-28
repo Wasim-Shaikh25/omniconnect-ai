@@ -1,5 +1,6 @@
 import { prisma } from "@/shared/database";
 import { logger } from "@/shared/observability";
+import { PaginationInput, paginatedResult, toSkip } from "@/shared/kernel";
 import { Plan, parsePlan } from "../domain/plan";
 import {
   OrganizationRecord,
@@ -40,9 +41,21 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return org ? mapOrg(org) : null;
   }
 
-  async listAll(): Promise<OrganizationRecord[]> {
-    const orgs = await prisma.organization.findMany({ orderBy: { createdAt: "desc" } });
-    return orgs.map(mapOrg);
+  async listAll(pagination?: PaginationInput) {
+    const [orgs, total] = await Promise.all([
+      prisma.organization.findMany({
+        orderBy: { createdAt: "desc" },
+        ...(pagination
+          ? { skip: toSkip(pagination), take: pagination.limit }
+          : {}),
+      }),
+      prisma.organization.count(),
+    ]);
+    return paginatedResult(
+      orgs.map(mapOrg),
+      total,
+      pagination ?? { page: 1, limit: total || 1 },
+    );
   }
 
   async updatePlan(

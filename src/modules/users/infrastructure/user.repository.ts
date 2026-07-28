@@ -1,5 +1,6 @@
 import { prisma } from "@/shared/database";
 import type { Role } from "@/modules/auth";
+import { PaginationInput, paginatedResult, toSkip } from "@/shared/kernel";
 import { UserProfile, UserProfileRepository } from "../application/ports";
 
 type PrismaUser = {
@@ -58,19 +59,42 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     return toProfile(user);
   }
 
-  async listByOrganization(organizationId: string): Promise<UserProfile[]> {
-    const users = await prisma.user.findMany({
-      where: { organizationId },
-      orderBy: { createdAt: "asc" },
-    });
-    return users.map(toProfile);
+  async listByOrganization(
+    organizationId: string,
+    pagination?: PaginationInput,
+  ) {
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: { organizationId },
+        orderBy: { createdAt: "asc" },
+        ...(pagination
+          ? { skip: toSkip(pagination), take: pagination.limit }
+          : {}),
+      }),
+      prisma.user.count({ where: { organizationId } }),
+    ]);
+    return paginatedResult(
+      users.map(toProfile),
+      total,
+      pagination ?? { page: 1, limit: total || 1 },
+    );
   }
 
-  async listAll(): Promise<UserProfile[]> {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-    return users.map(toProfile);
+  async listAll(pagination?: PaginationInput) {
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+        ...(pagination
+          ? { skip: toSkip(pagination), take: pagination.limit }
+          : {}),
+      }),
+      prisma.user.count(),
+    ]);
+    return paginatedResult(
+      users.map(toProfile),
+      total,
+      pagination ?? { page: 1, limit: total || 1 },
+    );
   }
 
   async setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile> {

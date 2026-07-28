@@ -26,7 +26,7 @@ export default async function SettingsPage() {
   const isAdmin = user.role === "ADMIN" || user.role === "STORE_OWNER";
   const members =
     isAdmin && user.organizationId
-      ? await listOrganizationUsers(user.organizationId)
+      ? (await listOrganizationUsers(user.organizationId)).items
       : [];
 
   return (

@@ -2,6 +2,7 @@ import { z } from "zod";
 import Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import { logger } from "@/shared/observability/logger";
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { Result, ok, err } from "@/shared/kernel";
 
 export interface SaaSCouponRecord {
@@ -35,7 +36,7 @@ export interface SaaSCouponRepository {
   }): Promise<SaaSCouponRecord>;
   findByCode(code: string): Promise<SaaSCouponRecord | null>;
   findById(id: string): Promise<SaaSCouponRecord | null>;
-  list(): Promise<SaaSCouponRecord[]>;
+  list(pagination?: PaginationInput): Promise<PaginatedResult<SaaSCouponRecord>>;
   incrementUsage(id: string, maxUses: number | null): Promise<boolean>;
 }
 
