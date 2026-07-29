@@ -131,9 +131,12 @@ export interface FollowerRepository {
     username: string | null;
   }): Promise<{ record: FollowerRecord; isNew: boolean }>;
 
-  listByStore(storeId: string, limit?: number): Promise<FollowerRecord[]>;
+  listByStore(
+    storeId: string,
+    options?: { limit?: number; offset?: number; search?: string },
+  ): Promise<FollowerRecord[]>;
 
-  countByStore(storeId: string): Promise<number>;
+  countByStore(storeId: string, search?: string): Promise<number>;
 
   recordCampaignEnrollment(input: {
     followerId: string;

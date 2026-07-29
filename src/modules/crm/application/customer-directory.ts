@@ -6,6 +6,8 @@ import type {
   FollowerRecord,
   FollowerRepository,
 } from "./ports";
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
+import { paginatedResult, toSkip } from "@/shared/kernel";
 
 export interface CustomerActivity {
   conversationCount: number;
@@ -143,28 +145,44 @@ export function makeCustomerDirectory(deps: {
     };
   }
 
+  async function fetchFiltered(
+    organizationId: string,
+    filter?: CustomerDirectoryFilter,
+    storeId?: string | null,
+  ): Promise<CustomerListView[]> {
+    const overview = await deps.organizations.getOrganizationOverview(organizationId);
+    if (!overview) return [];
+
+    const stores = filterStoresByScope(overview.stores, storeId);
+    const storeIds = stores.map((s) => s.id);
+    const storeNameById = new Map(stores.map((s) => [s.id, s.name]));
+
+    if (storeIds.length === 0) return [];
+
+    const customers = await deps.customers.listByStoreIds(storeIds, 250);
+    const enriched = await Promise.all(customers.map((c) => enrich(c, storeNameById)));
+    return enriched.filter((item) => matchesFilter(item, filter));
+  }
+
   return {
     async listCustomersByOrganization(
       organizationId: string,
       filter?: CustomerDirectoryFilter,
       storeId?: string | null,
     ): Promise<CustomerListView[]> {
-      const overview = await deps.organizations.getOrganizationOverview(
-        organizationId,
-      );
-      if (!overview) return [];
+      return fetchFiltered(organizationId, filter, storeId);
+    },
 
-      const stores = filterStoresByScope(overview.stores, storeId);
-      const storeIds = stores.map((s) => s.id);
-      const storeNameById = new Map(stores.map((s) => [s.id, s.name]));
-
-      if (storeIds.length === 0) return [];
-
-      const customers = await deps.customers.listByStoreIds(storeIds, 250);
-      const enriched = await Promise.all(
-        customers.map((c) => enrich(c, storeNameById)),
-      );
-      return enriched.filter((item) => matchesFilter(item, filter));
+    async listCustomersByOrganizationPaginated(
+      organizationId: string,
+      pagination: PaginationInput,
+      filter?: CustomerDirectoryFilter,
+      storeId?: string | null,
+    ): Promise<PaginatedResult<CustomerListView>> {
+      const all = await fetchFiltered(organizationId, filter, storeId);
+      const skip = toSkip(pagination);
+      const items = all.slice(skip, skip + pagination.limit);
+      return paginatedResult(items, all.length, pagination);
     },
 
     async getCustomerDetail(
@@ -193,7 +211,7 @@ export function makeCustomerDirectory(deps: {
       });
 
       const base = await enrich(customer, storeNameById);
-      const followers = await deps.followers.listByStore(customer.storeId, 50);
+      const followers = await deps.followers.listByStore(customer.storeId, { limit: 50 });
 
       return {
         ...base,

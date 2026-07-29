@@ -8,9 +8,10 @@ import {
   type ConversationChannel,
 } from "@/modules/conversations";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
+import { PaginationControls, ListSearch } from "@/components/pagination-controls";
+import type { PaginationInput } from "@/shared/kernel";
 
 const CHANNELS: { value: ConversationChannel; label: string }[] = [
   { value: "INSTAGRAM", label: "Instagram" },
@@ -38,31 +39,44 @@ function formatTime(date: Date): string {
   }).format(new Date(date));
 }
 
+function parsePagination(
+  rawPage?: string,
+  rawLimit?: string,
+): PaginationInput {
+  const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(rawLimit ?? "10", 10) || 10));
+  return { page, limit };
+}
+
 export default async function InboxPage({
   searchParams,
 }: {
   searchParams?: Promise<{
+    q?: string;
+    page?: string;
+    limit?: string;
     channel?: string;
     status?: string;
-    search?: string;
   }>;
 }) {
   const user = await getCurrentUser();
   if (!user || !user.organizationId) redirect("/login");
 
   const params = (await searchParams) ?? {};
+  const pagination = parsePagination(params.page, params.limit);
+  const search = params.q?.trim();
   const channel = params.channel as ConversationChannel | undefined;
   const status = params.status;
-  const search = params.search;
 
   const filter = {
+    ...(search ? { search } : {}),
     ...(channel ? { channel } : {}),
     ...(status ? { status } : {}),
-    ...(search ? { search } : {}),
   };
 
-  const { items } = await getUnifiedInboxAction(
+  const { items, total, totalPages } = await getUnifiedInboxAction(
     Object.keys(filter).length > 0 ? filter : undefined,
+    pagination,
   );
 
   return (
@@ -88,6 +102,8 @@ export default async function InboxPage({
             method="get"
             className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
           >
+            <input type="hidden" name="q" value={search ?? ""} />
+            <input type="hidden" name="limit" value={pagination.limit} />
             <div className="space-y-2">
               <label
                 htmlFor="channel"
@@ -130,29 +146,18 @@ export default async function InboxPage({
                 ))}
               </select>
             </div>
-            <div className="space-y-2 sm:col-span-2">
-              <label
-                htmlFor="search"
-                className="text-xs font-medium text-muted-foreground"
-              >
-                Search
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  id="search"
-                  name="search"
-                  defaultValue={search ?? ""}
-                  placeholder="Participant or message"
-                />
-                <Button type="submit" variant="secondary">
-                  Filter
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href="/inbox">Reset</Link>
-                </Button>
-              </div>
+            <div className="flex items-end gap-2 sm:col-span-2">
+              <Button type="submit" variant="secondary">
+                Filter
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/inbox">Reset</Link>
+              </Button>
             </div>
           </form>
+          <div className="mt-4">
+            <ListSearch placeholder="Search participant or message..." defaultValue={search} limit={pagination.limit} />
+          </div>
         </CardContent>
       </Card>
 
@@ -168,84 +173,93 @@ export default async function InboxPage({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <Card
-              key={item.conversationId}
-              className={item.unread ? "border-primary" : undefined}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                    {getInitials(item.participantName)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate font-medium">
-                        {item.participantName ?? "Unknown"}
-                      </p>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium">
-                          {item.channel}
-                        </span>
-                        <span
-                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
-                            item.status === "HUMAN_ACTIVE"
-                              ? "bg-primary text-primary-foreground"
-                              : "border"
-                          }`}
-                        >
-                          {item.status === "AI_ACTIVE" ? "AI active" : "Human active"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatTime(item.updatedAt)}
-                        </span>
-                      </div>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            {items.map((item) => (
+              <Card
+                key={item.conversationId}
+                className={item.unread ? "border-primary" : undefined}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                      {getInitials(item.participantName)}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {item.storeName}
-                    </p>
-                    <p className="mt-1 truncate text-sm">
-                      {item.lastMessage ? (
-                        <>
-                          <span className="font-medium">
-                            {item.lastMessage.sender}:
-                          </span>{" "}
-                          {item.lastMessage.content}
-                        </>
-                      ) : (
-                        "No messages yet"
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-                    <Button asChild variant="outline" size="sm">
-                      <Link
-                        href={`/stores/${item.storeId}/conversations/${item.conversationId}`}
-                      >
-                        View
-                      </Link>
-                    </Button>
-                    {item.customerId && (
-                      <Button asChild variant="ghost" size="sm">
-                        <Link href={`/customers/${item.customerId}`}>Profile</Link>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate font-medium">
+                          {item.participantName ?? "Unknown"}
+                        </p>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium">
+                            {item.channel}
+                          </span>
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                              item.status === "HUMAN_ACTIVE"
+                                ? "bg-primary text-primary-foreground"
+                                : "border"
+                            }`}
+                          >
+                            {item.status === "AI_ACTIVE" ? "AI active" : "Human active"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatTime(item.updatedAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {item.storeName}
+                      </p>
+                      <p className="mt-1 truncate text-sm">
+                        {item.lastMessage ? (
+                          <>
+                            <span className="font-medium">
+                              {item.lastMessage.sender}:
+                            </span>{" "}
+                            {item.lastMessage.content}
+                          </>
+                        ) : (
+                          "No messages yet"
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                      <Button asChild variant="outline" size="sm">
+                        <Link
+                          href={`/stores/${item.storeId}/conversations/${item.conversationId}`}
+                        >
+                          View
+                        </Link>
                       </Button>
-                    )}
-                    <ConversationTakeoverButton
-                      action={
-                        item.status === "HUMAN_ACTIVE"
-                          ? resumeAIConversationAction
-                          : takeOverConversationAction
-                      }
-                      storeId={item.storeId}
-                      conversationId={item.conversationId}
-                      isHuman={item.status === "HUMAN_ACTIVE"}
-                    />
+                      {item.customerId && (
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/customers/${item.customerId}`}>Profile</Link>
+                        </Button>
+                      )}
+                      <ConversationTakeoverButton
+                        action={
+                          item.status === "HUMAN_ACTIVE"
+                            ? resumeAIConversationAction
+                            : takeOverConversationAction
+                        }
+                        storeId={item.storeId}
+                        conversationId={item.conversationId}
+                        isHuman={item.status === "HUMAN_ACTIVE"}
+                      />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <PaginationControls
+            page={pagination.page}
+            totalPages={totalPages}
+            total={total}
+            search={search}
+            limit={pagination.limit}
+          />
         </div>
       )}
     </main>

@@ -30,4 +30,5 @@ export {
   listNotificationsAction,
   getUnreadNotificationCountAction,
   markNotificationAsReadAction,
+  markAllNotificationsAsReadAction,
 } from "./presentation/actions";

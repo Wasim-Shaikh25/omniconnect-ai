@@ -68,9 +68,14 @@ export interface ProductRepository {
 
   listByStore(
     storeId: string,
-    options?: { limit?: number; includeDeleted?: boolean },
+    options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      includeDeleted?: boolean;
+    },
   ): Promise<ProductRecord[]>;
-  countByStore(storeId: string): Promise<number>;
+  countByStore(storeId: string, search?: string): Promise<number>;
 
   delete(id: string): Promise<ProductRecord | null>;
 
@@ -122,9 +127,14 @@ export interface CouponRepository {
 
   listByStore(
     storeId: string,
-    options?: { limit?: number; includeDeleted?: boolean },
+    options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      includeDeleted?: boolean;
+    },
   ): Promise<CouponRecord[]>;
-  countByStore(storeId: string): Promise<number>;
+  countByStore(storeId: string, search?: string): Promise<number>;
 }
 
 /** Resolves the correct provider connector for a store. */

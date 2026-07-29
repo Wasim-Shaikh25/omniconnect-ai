@@ -202,6 +202,47 @@ export async function deleteProductAction(
   return { ok: true, message: "Product deleted." };
 }
 
+export async function bulkDeleteProductsAction(
+  _prev: EcommerceActionState,
+  formData: FormData,
+): Promise<EcommerceActionState> {
+  const user = await requireRole("STORE_OWNER");
+  const storeId = String(formData.get("storeId") ?? "");
+  if (!storeId) return { error: "Missing store." };
+
+  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const idsRaw = formData.get("productIds");
+  const ids = typeof idsRaw === "string" ? idsRaw.split(",").filter(Boolean) : [];
+  if (ids.length === 0) return { error: "No products selected." };
+
+  let deleted = 0;
+  for (const productId of ids) {
+    try {
+      await deleteProduct({ productId, storeId });
+      deleted++;
+    } catch {
+      // ignore missing / already deleted
+    }
+  }
+
+  await auditCommands.create({
+    organizationId: user.organizationId ?? null,
+    actorId: user.id,
+    actorEmail: user.email ?? undefined,
+    action: "PRODUCT_BULK_DELETED",
+    resource: "Product",
+    resourceId: ids[0] ?? "",
+    details: `${deleted} product(s) bulk-deleted from store ${storeId}`,
+  });
+
+  revalidatePath(`/stores/${storeId}/products`);
+  revalidatePath(`/stores/${storeId}/commerce/catalog`);
+  return { ok: true, message: `${deleted} product(s) deleted.` };
+}
+
 export async function updateCouponAction(
   _prev: EcommerceActionState,
   formData: FormData,
@@ -281,4 +322,44 @@ export async function deleteCouponAction(
 
   revalidatePath(`/stores/${parsed.data.storeId}/coupons`);
   return { ok: true, message: "Coupon deleted." };
+}
+
+export async function bulkDeleteCouponsAction(
+  _prev: EcommerceActionState,
+  formData: FormData,
+): Promise<EcommerceActionState> {
+  const user = await requireRole("STORE_OWNER");
+  const storeId = String(formData.get("storeId") ?? "");
+  if (!storeId) return { error: "Missing store." };
+
+  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const idsRaw = formData.get("couponIds");
+  const ids = typeof idsRaw === "string" ? idsRaw.split(",").filter(Boolean) : [];
+  if (ids.length === 0) return { error: "No coupons selected." };
+
+  let deleted = 0;
+  for (const couponId of ids) {
+    try {
+      await deleteCoupon({ couponId, storeId });
+      deleted++;
+    } catch {
+      // ignore missing / already deleted
+    }
+  }
+
+  await auditCommands.create({
+    organizationId: user.organizationId ?? null,
+    actorId: user.id,
+    actorEmail: user.email ?? undefined,
+    action: "COUPON_BULK_DELETED",
+    resource: "Coupon",
+    resourceId: ids[0] ?? "",
+    details: `${deleted} coupon(s) bulk-deleted from store ${storeId}`,
+  });
+
+  revalidatePath(`/stores/${storeId}/coupons`);
+  return { ok: true, message: `${deleted} coupon(s) deleted.` };
 }

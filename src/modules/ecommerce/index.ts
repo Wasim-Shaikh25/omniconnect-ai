@@ -92,7 +92,9 @@ export {
   generateCouponAction,
   updateProductAction,
   deleteProductAction,
+  bulkDeleteProductsAction,
   updateCouponAction,
   deleteCouponAction,
+  bulkDeleteCouponsAction,
 } from "./presentation/actions";
 export type { EcommerceActionState } from "./presentation/actions";

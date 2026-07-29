@@ -10,15 +10,36 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ProductList } from "@/components/product-list";
+import { PaginationControls, ListSearch } from "@/components/pagination-controls";
+import type { PaginationInput } from "@/shared/kernel";
+
+function parsePagination(
+  rawPage?: string,
+  rawLimit?: string,
+): PaginationInput {
+  const page = Math.max(1, parseInt(rawPage ?? "1", 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(rawLimit ?? "10", 10) || 10));
+  return { page, limit };
+}
 
 export default async function StoreProductsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ storeId: string }>;
+  searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
   const { storeId } = await params;
   const { store } = await requireStoreAccess(storeId);
-  const products = await ecommerceQueries.listProducts(storeId, 100);
+  const paramsResolved = (await searchParams) ?? {};
+  const pagination = parsePagination(paramsResolved.page, paramsResolved.limit);
+  const search = paramsResolved.q?.trim();
+
+  const { items: products, total, totalPages } = await ecommerceQueries.listProductsPaginated(
+    storeId,
+    pagination,
+    search,
+  );
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -38,13 +59,23 @@ export default async function StoreProductsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Catalog ({products.length})</CardTitle>
+          <CardTitle>Catalog ({total})</CardTitle>
           <CardDescription>
             Edit product details or remove products synced from your eCommerce provider.
           </CardDescription>
+          <div className="pt-2">
+            <ListSearch placeholder="Search by title..." defaultValue={search} limit={pagination.limit} />
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <ProductList products={products} storeId={storeId} />
+          <PaginationControls
+            page={pagination.page}
+            totalPages={totalPages}
+            total={total}
+            search={search}
+            limit={pagination.limit}
+          />
         </CardContent>
       </Card>
     </main>

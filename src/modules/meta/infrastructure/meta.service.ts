@@ -6,6 +6,10 @@ import type {
   MetaService,
   HashtagMediaOptions,
   CompetitorMediaOptions,
+  MetaPageInsights,
+  MetaAudienceInsights,
+  AudienceDemographics,
+  MetaMediaMetrics,
 } from "../application/ports";
 
 const GRAPH_API_BASE = "https://graph.facebook.com/v21.0";
@@ -165,13 +169,187 @@ export class GraphApiMetaService implements MetaService {
       }
       const payload: unknown = await res.json();
       const rows = (payload as { data?: unknown[] }).data ?? [];
-      return rows.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
+      const items = rows.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
+      await Promise.all(
+        items.map(async (item) => {
+          const insights = await this.fetchMediaInsights(item.externalId, token);
+          item.metrics = { ...item.metrics, ...insights };
+        }),
+      );
+      return items;
     } catch (error) {
       logger.error("meta.getAccountMedia.error", {
         storeId,
         error: error instanceof Error ? error.message : "unknown",
       });
       return [];
+    }
+  }
+
+  async getPageInsights(
+    storeId: string,
+    days = 7,
+  ): Promise<MetaPageInsights | null> {
+    const token = await this.integrations.findAccessToken(storeId);
+    const integration = await this.integrations.findByStore(storeId);
+    if (!token || !integration?.accountId) {
+      logger.info("meta.getPageInsights.skipped", { storeId, reason: "not-configured" });
+      return null;
+    }
+
+    try {
+      const accountUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
+      accountUrl.searchParams.set("fields", "username,followers_count,media_count");
+      const accountRes = await fetch(accountUrl.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
+      const account: unknown = accountRes.ok ? await accountRes.json() : {};
+      const accountJson = account as Record<string, unknown>;
+
+      const since = Math.floor(Date.now() / 1000) - days * 86400;
+      const until = Math.floor(Date.now() / 1000);
+      const insightsUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
+      insightsUrl.searchParams.set("metric", "impressions,reach,profile_views");
+      insightsUrl.searchParams.set("period", "day");
+      insightsUrl.searchParams.set("since", String(since));
+      insightsUrl.searchParams.set("until", String(until));
+
+      const insightsRes = await fetch(insightsUrl.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
+      const insights: unknown = insightsRes.ok ? await insightsRes.json() : {};
+      const data = Array.isArray((insights as { data?: unknown[] }).data)
+        ? (insights as { data: unknown[] }).data
+        : [];
+      const summed = sumInsightData(data);
+
+      return {
+        username: typeof accountJson.username === "string" ? accountJson.username : null,
+        followers: typeof accountJson.followers_count === "number" ? accountJson.followers_count : null,
+        mediaCount: typeof accountJson.media_count === "number" ? accountJson.media_count : null,
+        impressions: summed.impressions,
+        reach: summed.reach,
+        profileViews: summed.profileViews,
+      };
+    } catch (error) {
+      logger.error("meta.getPageInsights.error", {
+        storeId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return null;
+    }
+  }
+
+  async getAudienceInsights(
+    storeId: string,
+  ): Promise<MetaAudienceInsights | null> {
+    const token = await this.integrations.findAccessToken(storeId);
+    const integration = await this.integrations.findByStore(storeId);
+    if (!token || !integration?.accountId) {
+      logger.info("meta.getAudienceInsights.skipped", { storeId, reason: "not-configured" });
+      return null;
+    }
+
+    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
+    url.searchParams.set("metric", "audience_gender_age,audience_city,audience_country,audience_locale");
+    url.searchParams.set("period", "lifetime");
+
+    try {
+      const res = await fetch(url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
+      if (!res.ok) {
+        logger.warn("meta.getAudienceInsights.failed", { storeId, status: res.status });
+        return null;
+      }
+      const payload: unknown = await res.json();
+      const data = Array.isArray((payload as { data?: unknown[] }).data)
+        ? (payload as { data: unknown[] }).data
+        : [];
+
+      const demographics: AudienceDemographics = {
+        genderAge: {},
+        cities: {},
+        countries: {},
+        locales: {},
+      };
+
+      for (const metric of data) {
+        if (typeof metric !== "object" || metric === null) continue;
+        const m = metric as Record<string, unknown>;
+        const name = typeof m.name === "string" ? m.name : "";
+        const firstValue = Array.isArray(m.values) ? m.values[0] : null;
+        const value = typeof firstValue === "object" && firstValue !== null
+          ? (firstValue as { value?: unknown }).value
+          : null;
+
+        if (name === "audience_gender_age" && typeof value === "object" && value !== null) {
+          mergeDemographicObject(demographics.genderAge, value);
+        } else if (name === "audience_city" && typeof value === "object" && value !== null) {
+          mergeDemographicObject(demographics.cities, value);
+        } else if (name === "audience_country" && typeof value === "object" && value !== null) {
+          mergeDemographicObject(demographics.countries, value);
+        } else if (name === "audience_locale" && typeof value === "object" && value !== null) {
+          mergeDemographicObject(demographics.locales, value);
+        }
+      }
+
+      return { demographics };
+    } catch (error) {
+      logger.error("meta.getAudienceInsights.error", {
+        storeId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return null;
+    }
+  }
+
+  private async fetchMediaInsights(
+    mediaId: string,
+    token: string,
+  ): Promise<Partial<MetaMediaMetrics>> {
+    const url = new URL(`${GRAPH_API_BASE}/${mediaId}/insights`);
+    url.searchParams.set("metric", "engagement,impressions,reach,saved,profile_views,video_views");
+    url.searchParams.set("period", "lifetime");
+
+    try {
+      const res = await fetch(url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
+      if (!res.ok) {
+        logger.warn("meta.fetchMediaInsights.failed", { mediaId, status: res.status });
+        return {};
+      }
+      const payload: unknown = await res.json();
+      const data = Array.isArray((payload as { data?: unknown[] }).data)
+        ? (payload as { data: unknown[] }).data
+        : [];
+
+      const result: Partial<MetaMediaMetrics> = {};
+      for (const metric of data) {
+        if (typeof metric !== "object" || metric === null) continue;
+        const m = metric as Record<string, unknown>;
+        const name = typeof m.name === "string" ? m.name : "";
+        const firstValue = Array.isArray(m.values) ? m.values[0] : null;
+        const value = typeof firstValue === "object" && firstValue !== null
+          ? (firstValue as { value?: unknown }).value
+          : null;
+        if (typeof value !== "number") continue;
+
+        if (name === "engagement") result.engagement = value;
+        if (name === "impressions") result.impressions = value;
+        if (name === "reach") result.reach = value;
+        if (name === "saved") result.saved = value;
+        if (name === "profile_views") result.profileViews = value;
+        if (name === "video_views") result.videoViews = value;
+      }
+      return result;
+    } catch (error) {
+      logger.warn("meta.fetchMediaInsights.error", {
+        mediaId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return {};
     }
   }
 
@@ -233,7 +411,7 @@ function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaM
   const publishedAt = timestamp ? new Date(timestamp) : null;
   const hashtags = caption ? extractHashtags(caption) : [];
 
-  const metrics: { likes: number; comments: number; shares?: number; plays?: number } = {
+  const metrics: MetaMediaMetrics = {
     likes: typeof item.like_count === "number" ? item.like_count : 0,
     comments: typeof item.comments_count === "number" ? item.comments_count : 0,
   };
@@ -400,4 +578,55 @@ function generateSampleCompetitorMedia(handle: string, limit: number): MetaMedia
     });
   }
   return items;
+}
+
+function sumInsightData(data: unknown[]): {
+  impressions: number | null;
+  reach: number | null;
+  profileViews: number | null;
+} {
+  let impressions = 0;
+  let reach = 0;
+  let profileViews = 0;
+  let hasAny = false;
+
+  for (const metric of data) {
+    if (typeof metric !== "object" || metric === null) continue;
+    const m = metric as Record<string, unknown>;
+    const name = typeof m.name === "string" ? m.name : "";
+    const values = Array.isArray(m.values) ? m.values : [];
+    const total = values.reduce((acc: number, v: unknown) => {
+      const value =
+        typeof v === "object" && v !== null && typeof (v as { value?: unknown }).value === "number"
+          ? (v as { value: number }).value
+          : 0;
+      return acc + value;
+    }, 0);
+
+    if (name === "impressions") {
+      impressions += total;
+      hasAny = true;
+    } else if (name === "reach") {
+      reach += total;
+      hasAny = true;
+    } else if (name === "profile_views") {
+      profileViews += total;
+      hasAny = true;
+    }
+  }
+
+  if (!hasAny) return { impressions: null, reach: null, profileViews: null };
+  return { impressions, reach, profileViews };
+}
+
+function mergeDemographicObject(
+  target: Record<string, number>,
+  source: unknown,
+): void {
+  if (typeof source !== "object" || source === null) return;
+  for (const [key, value] of Object.entries(source)) {
+    if (typeof value === "number") {
+      target[key] = (target[key] ?? 0) + value;
+    }
+  }
 }

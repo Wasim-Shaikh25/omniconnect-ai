@@ -116,6 +116,20 @@ All notable changes to **OmniConnect AI** are documented here.
     - `welcome-first-follower` now asserts AI quota before generating the welcome message text.
     - Product sync marks products not present in the provider as `deletedAt = now` and returns `{ count, deleted }`; `ProductsSynced` subscriber updates `Store.lastProductSyncAt`.
     - `MarketingPerformanceView` now carries `dataQuality` (`live`/`partial`/`simulated`) based on whether live Meta media data was available; the analytics page renders a `DataQualityBadge`.
+  - Phase 3 — Meta insights integration:
+    - `MetaService.getPageInsights` fetches page-level `followers_count`, `posts_impressions`, and `profile_visits` from the Meta Graph API with error handling and logging.
+    - `MetaService.getAudienceInsights` fetches lifetime demographics breakdown by age/gender/city/country.
+    - `MetaService.getAccountMedia` fetches connected-account media and enriches each post with `fetchMediaInsights` (`likes`, `comments`, `shares`, `impressions`, `reach`).
+    - `getMarketingPerformance` merges live media/page/audience data with simulated fallback values and sets `dataQuality` accordingly.
+    - `app/analytics/page.tsx` and `app/stores/[storeId]/analytics/page.tsx` display a `DataQualityBadge` so users can tell when metrics are live versus simulated.
+  - Phase 3 — server-side pagination, search, and bulk actions:
+    - Added `PaginationInput`/`PaginatedResult` helpers to `src/shared/kernel/` and reusable `PaginationControls`/`ListSearch` components in `src/components/pagination-controls.tsx`.
+    - Implemented DB-level pagination with `skip`/`take` and search `where` clauses for: admin organizations/users/coupons/tickets, `/stores/[storeId]/products`, `/stores/[storeId]/coupons`, `/stores/[storeId]/followers`, and `/notifications`.
+    - Added `CustomerDirectory.listCustomersByOrganizationPaginated` (in-memory filter + slice) and wired `/customers` with `ListSearch`, `PaginationControls`, and filter-preserving URLs (`q`, `page`, `limit`, `lifecycleStage`, `consent`, `segment`).
+    - Added `EcommerceQueries.listOrdersPaginated` (fetch from connector, in-memory filter/slice) and wired `/stores/[storeId]/orders` with search + pagination controls.
+    - Added `getUnifiedInboxAction` pagination and wired `/inbox` with search, channel/status filters, and pagination controls.
+    - Implemented bulk actions on `/stores/[storeId]/products` (select/delete selected) and `/stores/[storeId]/coupons` (select/delete selected) using new server actions `deleteSelectedProductsAction`/`deleteSelectedCouponsAction`.
+    - Added `/notifications` “Mark all as read” action and unread badge counter in the shell header.
   - Phase 2 — organization-level dashboard for owners with multiple stores:
     - `WorkspaceKpiSnapshot.stores` is now `WorkspaceStoreSnapshot[]` with per-store product/follower/conversation/coupon counts and connection status.
     - `/dashboard` “Your stores” card now shows each store’s KPIs, integration status, and last product sync date, giving owners with multiple stores a single overview.

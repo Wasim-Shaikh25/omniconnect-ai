@@ -13,6 +13,11 @@ import {
 } from "@/components/ui/card";
 import { DataQualityBadge } from "@/components/data-quality-badge";
 
+function formatNumber(value: number | null): string {
+  if (value === null || value === undefined) return "—";
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
 function formatCurrency(value: number, currency: string | null): string {
   return `${currency ?? "$"}${value.toFixed(2)}`;
 }
@@ -77,6 +82,33 @@ export default async function StoreAnalyticsPage({
               <Link href={`/stores/${storeId}/analytics/campaign`}>Campaign</Link>
             </Button>
           </div>
+
+          {view.audience.pageInsights && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Connected Meta account</CardTitle>
+                <CardDescription>
+                  @{view.audience.pageInsights.username ?? "unknown"} · {formatNumber(view.audience.pageInsights.mediaCount)} media
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                  {[
+                    { label: "Followers", value: view.audience.pageInsights.followers },
+                    { label: "Impressions", value: view.audience.pageInsights.impressions },
+                    { label: "Reach", value: view.audience.pageInsights.reach },
+                    { label: "Profile views", value: view.audience.pageInsights.profileViews },
+                    { label: "Media count", value: view.audience.pageInsights.mediaCount },
+                  ].map((metric) => (
+                    <div key={metric.label}>
+                      <p className="text-xs text-muted-foreground">{metric.label}</p>
+                      <p className="text-xl font-semibold">{formatNumber(metric.value)}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="mb-6">
             <CardHeader>

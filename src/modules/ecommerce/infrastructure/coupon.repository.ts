@@ -95,22 +95,30 @@ export class PrismaCouponRepository implements CouponRepository {
 
   async listByStore(
     storeId: string,
-    options: { limit?: number; includeDeleted?: boolean } = {},
+    options: { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = {},
   ): Promise<CouponRecord[]> {
     const rows = await prisma.coupon.findMany({
       where: {
         storeId,
         ...(options.includeDeleted ? {} : notDeleted()),
+        ...(options.search
+          ? { code: { contains: options.search, mode: "insensitive" } }
+          : {}),
       },
       orderBy: { createdAt: "desc" },
+      skip: options.offset ?? 0,
       take: options.limit ?? 50,
     });
     return rows.map(toRecord);
   }
 
-  async countByStore(storeId: string): Promise<number> {
+  async countByStore(storeId: string, search?: string): Promise<number> {
     return prisma.coupon.count({
-      where: { storeId, ...notDeleted() },
+      where: {
+        storeId,
+        ...notDeleted(),
+        ...(search ? { code: { contains: search, mode: "insensitive" } } : {}),
+      },
     });
   }
 }
