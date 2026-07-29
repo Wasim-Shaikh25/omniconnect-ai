@@ -106,17 +106,17 @@ No new domain entities. Reuses `Customer.consent`, `User`, `Organization`, `Stor
 
 ## 13. Acceptance Criteria
 
-- [ ] AUD-HIGH-01: `Customer.consent = DECLINED` blocks automated welcome DMs, comment-to-DM unlock, and AI replies (or sends a safe handoff only).
-- [ ] AUD-HIGH-02: `clientIp` supports a trusted proxy header and does not trust leftmost `X-Forwarded-For` by default.
-- [ ] AUD-HIGH-03: Stripe webhook returns `500` for transient/internal errors and `400` for signature/validation errors.
-- [ ] AUD-HIGH-04: No `Math.random()` remains in coupon code, username suffix, or job ID generation.
-- [ ] AUD-HIGH-05: `validateProductionSecrets` covers Stripe, Meta webhook, `NEXTAUTH_URL`/`APP_URL`, S3 (if used), and super-admin credentials.
-- [ ] AUD-MED-01: `/onboarding` route exists and auth redirects render correctly.
-- [ ] AUD-MED-02: `growth/presentation/actions.ts` `parseForm` handles `FormData` safely.
-- [ ] AUD-MED-03: `support/updateTicketAction` validates `assignedTo` against the `User` table.
-- [ ] AUD-MED-04: OpenAI provider uses delimiters, model allowlist, and output sanitization.
-- [ ] AUD-MED-05: Dashboard/reports use `count` aggregates instead of loading 500 records per store.
-- [ ] AUD-MED-06: `SystemLog` redacts values, not just keys.
-- [ ] AUD-MED-07: `RedisEventBus.publish` awaits local handlers.
-- [ ] AUD-LOW-01: Direct `process.env.NODE_ENV` reads replaced with `env.NODE_ENV`.
-- [ ] All quality gates pass.
+- [x] AUD-HIGH-01: `Customer.consent = DECLINED` blocks automated welcome DMs, comment-to-DM unlock, and AI replies (or sends a safe handoff only).
+- [x] AUD-HIGH-02: `clientIp` supports a trusted proxy header and does not trust leftmost `X-Forwarded-For` by default.
+- [x] AUD-HIGH-03: Stripe webhook returns `500` for transient/internal errors and `400` for signature/validation errors.
+- [x] AUD-HIGH-04: No `Math.random()` remains in coupon code, username suffix, or job ID generation.
+- [x] AUD-HIGH-05: `validateProductionSecrets` covers Stripe, Meta webhook, `NEXTAUTH_URL`/`APP_URL`, S3 (if used), and super-admin credentials.
+- [x] AUD-MED-01: `/onboarding` route exists and auth redirects render correctly.
+- [x] AUD-MED-02: `growth/presentation/actions.ts` `parseForm` handles `FormData` safely.
+- [x] AUD-MED-03: `support/updateTicketAction` validates `assignedTo` against the `User` table.
+- [x] AUD-MED-04: OpenAI provider uses delimiters, model allowlist, and output sanitization.
+- [x] AUD-MED-05: Dashboard/reports use `count` aggregates instead of loading 500 records per store.
+- [x] AUD-MED-06: `SystemLog` redacts values, not just keys.
+- [x] AUD-MED-07: `RedisEventBus.publish` awaits local handlers.
+- [x] AUD-LOW-01: Direct `process.env.NODE_ENV` reads replaced with `env.NODE_ENV`.
+- [x] All quality gates pass.

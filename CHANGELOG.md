@@ -15,6 +15,14 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **TASK-0066 — Line-by-line audit of all 61 requirements:**
+  - Enhanced `scripts/task-status.ts` to parse and report unchecked acceptance criteria in `REQ-*.md` and subtasks in `TASK-*.md`, not just `TRACKER-*.md`.
+  - Checked every `TASK-*.md` subtask against its parent status and every `REQ-*.md` acceptance criterion against the codebase.
+  - Marked verifiable/done items `[x]` and left only the items with no concrete evidence unchecked.
+  - Created `docs/specs/0066-audit-report.md` with the detailed findings.
+  - Final `npx tsx scripts/task-status.ts --summary`: **62 total | 59 done | 0 cancelled | 3 left** (`REQ-0066` audit in progress, `REQ-0007` 3 gaps, `REQ-0012` 1 gap).
+  - Quality gates: lint, typecheck, tests, build pass.
+
 - **TASK-0065 — Complete remaining intelligence and daily-marketing work:**
   - Removed cancelled out-of-scope Meta-first requirements/tasks/trackers entirely: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.
   - Audited and confirmed the 8 remaining requirements (`0033`, `0034`, `0036`, `0037`, `0046`, `0047`, `0048`, `0050`) are implemented in the intelligence module and supporting UI; updated REQ/TASK/TRACKER statuses to `Implemented`/`Completed`/`Done`.

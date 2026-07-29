@@ -158,7 +158,7 @@ Meta content intelligence turns a connected Instagram/Facebook account into acti
 - [x] "Discover competitors" search by niche/hashtag that ranks influential accounts by engagement and lets users track them.
 - [ ] Full dashboard pages for content performance, trend explorer, reports, and recommendations.
 - [ ] AI-generated "why it worked" analysis and slide-by-slide storyboards.
-- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Open Questions
 1. Do we want to add an Apify/RapidAPI integration now, or start with official Graph API only and add scrapers later?

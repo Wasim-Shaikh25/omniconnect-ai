@@ -148,11 +148,11 @@ This charter does not change module contracts. Implementation specs (e.g. `0060`
 
 ## 11. Acceptance Criteria
 
-- [ ] Product charter is approved and stored in `docs/requirements/REQ-0061-product-charter.md`.
-- [ ] Master progress tracker exists in `docs/trackers/TRACKER-0061-product-charter.md`.
-- [ ] All future specs reference this charter for scope decisions.
-- [ ] Implementation spec `0062` defines universal connectors and advanced analytics.
-- [ ] Out-of-scope UI routes and components are removed per derived implementation spec.
+- [x] Product charter is approved and stored in `docs/requirements/REQ-0061-product-charter.md`.
+- [x] Master progress tracker exists in `docs/trackers/TRACKER-0061-product-charter.md`.
+- [x] All future specs reference this charter for scope decisions.
+- [x] Implementation spec `0062` defines universal connectors and advanced analytics.
+- [x] Out-of-scope UI routes and components are removed per derived implementation spec.
 
 ## 12. Open Questions
 

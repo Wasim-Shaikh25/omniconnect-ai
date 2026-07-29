@@ -97,13 +97,13 @@ Allow a store owner or staff member to manually take over an AI-driven conversat
 - E2E: open conversations page, simulate a message, take over, send another message, verify AI does not auto-reply, resume AI.
 
 ## 13. Acceptance Criteria (Definition of Done)
-- [ ] `ConversationService` port and `takeOver`/`resumeAI` use-cases implemented.
-- [ ] `generateReply` checks status and skips `HUMAN_ACTIVE` conversations.
-- [ ] Server actions `takeOverConversationAction` and `resumeAIConversationAction` exposed and RBAC-gated.
-- [ ] Conversations list page `/stores/[storeId]/conversations` implemented with status and actions.
-- [ ] Store detail page links to conversations list.
-- [ ] Dev simulator can exercise a message, takeover, and resume flow.
-- [ ] Lint + typecheck + build pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] `ConversationService` port and `takeOver`/`resumeAI` use-cases implemented.
+- [x] `generateReply` checks status and skips `HUMAN_ACTIVE` conversations.
+- [x] Server actions `takeOverConversationAction` and `resumeAIConversationAction` exposed and RBAC-gated.
+- [x] Conversations list page `/stores/[storeId]/conversations` implemented with status and actions.
+- [x] Store detail page links to conversations list.
+- [x] Dev simulator can exercise a message, takeover, and resume flow.
+- [x] Lint + typecheck + build pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Open Questions
 1. Should the message detail page support sending a manual staff reply now, or only after TASK-100 Notifications?
