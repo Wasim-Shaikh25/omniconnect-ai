@@ -102,8 +102,13 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `AccountRecord.deletedAt`, `findByEmailIncludingDeleted`, and `restoreAccount` to the auth `AccountRepository` port.
   - Credentials sign-in (`auth.ts` `authorize` and `loginAction`) now restores soft-deleted accounts within a 30-day grace period and bumps `tokenVersion` to invalidate old sessions.
   - Split `<AccountActions />` into `mode="export"` and `mode="delete"` so `/settings/account` no longer renders the component twice.
-  - `ProductList` and `CouponList` bulk-delete toolbars now keep selection for three seconds after success so the success message is visible before the toolbar unmounts.
   - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test` (35), `npm audit` (0 vulnerabilities), `npm run build`, `npm run build:worker`, and `/api/health` smoke.
+
+- **TASK-0059 — Bulk Delete Success Message** (spec `0059`):
+  - Moved bulk-delete success feedback from `BulkDeleteToolbar` into `ProductList` and `CouponList` parents so it survives `router.refresh()` and the empty-list transition.
+  - `BulkDeleteToolbar` now accepts `onSuccess(message)` and removes its local 3-second timer and `state.ok` display.
+  - Success message auto-dismisses after 3 seconds; toolbar errors still render inline.
+  - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test` (35), `npm audit` (0 vulnerabilities), `npm run build`, `npm run build:worker`, and `/api/health` + `/api/ready` smoke.
 
 - **TASK-0057 — Product Completeness Roadmap** (spec `0057`):
   - Master spec and task tracker created to close remaining product-completeness gaps from `PRODUCTION_READINESS_AUDIT.md`.
