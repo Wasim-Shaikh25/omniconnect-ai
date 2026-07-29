@@ -54,6 +54,16 @@ export interface ProductRepository {
     products: ConnectorProduct[],
   ): Promise<number>;
 
+  /**
+   * Atomically upsert the provided products and soft-delete any existing products
+   * for the store whose `externalId` is not in the batch. Returns the number of
+   * products upserted and removed.
+   */
+  sync(
+    storeId: string,
+    products: ConnectorProduct[],
+  ): Promise<{ upserted: number; removed: number }>;
+
   update(
     id: string,
     input: {

@@ -12,6 +12,7 @@ function mapUser(user: {
   organizationId: string | null;
   storeId: string | null;
   tokenVersion: number;
+  deletedAt: Date | null;
 }): AccountRecord {
   return {
     id: user.id,
@@ -23,6 +24,7 @@ function mapUser(user: {
     organizationId: user.organizationId,
     storeId: user.storeId,
     tokenVersion: user.tokenVersion,
+    deletedAt: user.deletedAt,
   };
 }
 
@@ -36,6 +38,20 @@ export class PrismaAccountRepository implements AccountRepository {
   async findByEmail(email: string): Promise<AccountRecord | null> {
     const user = await prisma.user.findUnique({ where: { email, deletedAt: null } });
     if (!user) return null;
+    return mapUser(user);
+  }
+
+  async findByEmailIncludingDeleted(email: string): Promise<AccountRecord | null> {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return null;
+    return mapUser(user);
+  }
+
+  async restoreAccount(id: string): Promise<AccountRecord | null> {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { deletedAt: null, tokenVersion: { increment: 1 } },
+    });
     return mapUser(user);
   }
 

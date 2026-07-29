@@ -30,7 +30,7 @@ export default async function AccountPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AccountActions exports={exports} />
+            <AccountActions mode="export" exports={exports} />
           </CardContent>
         </Card>
 
@@ -38,12 +38,12 @@ export default async function AccountPage() {
           <CardHeader>
             <CardTitle>Delete account</CardTitle>
             <CardDescription>
-              Deleting your account starts a 30-day grace period. You can
-              contact support to restore it before then.
+              Deleting your account starts a 30-day grace period. You can sign
+              back in within 30 days to restore your account.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AccountActions />
+            <AccountActions mode="delete" />
           </CardContent>
         </Card>
       </div>

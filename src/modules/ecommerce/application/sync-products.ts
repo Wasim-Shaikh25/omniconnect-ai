@@ -42,12 +42,9 @@ export function makeSyncProducts(deps: {
       currency: p.currency ?? storeCurrency,
     }));
 
-    const count = await deps.products.upsertMany(storeId, normalized);
-
-    const deletedCount = await deps.products.markDeletedNotInBatch(
+    const { upserted: count, removed: deletedCount } = await deps.products.sync(
       storeId,
-      normalized.map((p) => p.externalId),
-      new Date(),
+      normalized,
     );
 
     await eventBus.publish(

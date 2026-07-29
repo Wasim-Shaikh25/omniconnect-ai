@@ -30,8 +30,27 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/omniconnect?schema=public
-      NEXTAUTH_SECRET: ci-test-secret
+      NEXTAUTH_SECRET: ci-test-secret-ci-test-secret-ci-test-secret-ci-test-secret
       NEXTAUTH_URL: http://localhost:3000
+      REDIS_URL: redis://localhost:6379
+      ENCRYPTION_KEY: ci-test-encryption-key-not-real-at-least-32-chars
+      EMAIL_PROVIDER: smtp
+      SMTP_HOST: localhost
+      SMTP_PORT: 587
+      SMTP_USER: ci@example.com
+      SMTP_PASSWORD: ci-test-password
+      SMTP_FROM: ci@example.com
+      META_APP_ID: ci-test
+      META_APP_SECRET: ci-test-secret
+      META_WEBHOOK_VERIFY_TOKEN: ci-test-token
+      OPENAI_API_KEY: ci-test-key
+      STRIPE_SECRET_KEY: sk_test_ci
+      STRIPE_PUBLISHABLE_KEY: pk_test_ci
+      STRIPE_WEBHOOK_SECRET: whsec_ci
+      STRIPE_PRICE_STARTER: price_ci_starter
+      STRIPE_PRICE_PRO: price_ci_pro
+      SUPER_ADMIN_EMAIL: admin@example.com
+      SUPER_ADMIN_PASSWORD: super-admin-password-at-least-8
 
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +86,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          npm start &
+          node .next/standalone/server.js &
           APP_PID=$!
           for i in {1..30}; do
             if curl -sf http://localhost:3000/api/health; then

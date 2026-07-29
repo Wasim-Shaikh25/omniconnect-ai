@@ -70,6 +70,59 @@ export class PrismaProductRepository implements ProductRepository {
     return products.length;
   }
 
+  async sync(
+    storeId: string,
+    products: ConnectorProduct[],
+  ): Promise<{ upserted: number; removed: number }> {
+    if (products.length === 0) {
+      return { upserted: 0, removed: 0 };
+    }
+
+    const externalIds = products.map((p) => p.externalId);
+    const now = new Date();
+
+    const result = await prisma.$transaction(async (tx) => {
+      const upsertOps = products.map((p) =>
+        tx.product.upsert({
+          where: {
+            storeId_externalId: { storeId, externalId: p.externalId },
+          },
+          create: {
+            storeId,
+            externalId: p.externalId,
+            title: p.title,
+            description: p.description,
+            price: p.price ?? undefined,
+            currency: p.currency,
+            inventory: p.inventory,
+            imageUrl: p.imageUrl,
+          },
+          update: {
+            title: p.title,
+            description: p.description,
+            price: p.price ?? undefined,
+            currency: p.currency,
+            inventory: p.inventory,
+            imageUrl: p.imageUrl,
+            deletedAt: null,
+          },
+        }),
+      );
+      await Promise.all(upsertOps);
+      const removed = await tx.product.updateMany({
+        where: {
+          storeId,
+          externalId: { notIn: externalIds },
+          deletedAt: null,
+        },
+        data: { deletedAt: now },
+      });
+      return removed.count;
+    });
+
+    return { upserted: products.length, removed: result };
+  }
+
   async update(
     id: string,
     input: {

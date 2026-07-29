@@ -96,6 +96,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `/analytics/page.tsx` redirect to `/analytics/journeys` so the authenticated header link no longer 404s.
   - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test`, `npm audit` (0 vulnerabilities), and `npm run build`.
 
+- **TASK-0058 — PR #75 Follow-up Blockers** (spec `0058`):
+  - Hardened CI `quality` smoke step with all required production env vars and the standalone server binary.
+  - Refactored `ProductRepository` to expose `sync()` which atomically upserts fetched products and soft-deletes stale ones in a single Prisma transaction, preventing `syncProducts` from deleting products it just inserted.
+  - Added `AccountRecord.deletedAt`, `findByEmailIncludingDeleted`, and `restoreAccount` to the auth `AccountRepository` port.
+  - Credentials sign-in (`auth.ts` `authorize` and `loginAction`) now restores soft-deleted accounts within a 30-day grace period and bumps `tokenVersion` to invalidate old sessions.
+  - Split `<AccountActions />` into `mode="export"` and `mode="delete"` so `/settings/account` no longer renders the component twice.
+  - `ProductList` and `CouponList` bulk-delete toolbars now keep selection for three seconds after success so the success message is visible before the toolbar unmounts.
+  - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test` (35), `npm audit` (0 vulnerabilities), `npm run build`, `npm run build:worker`, and `/api/health` smoke.
+
 - **TASK-0057 — Product Completeness Roadmap** (spec `0057`):
   - Master spec and task tracker created to close remaining product-completeness gaps from `PRODUCTION_READINESS_AUDIT.md`.
   - Phase 1 (staff/tenant isolation):

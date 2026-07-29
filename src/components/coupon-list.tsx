@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -164,13 +164,19 @@ function BulkDeleteToolbar({
     async (prev: EcommerceActionState, formData: FormData) => {
       const result = await bulkDeleteCouponsAction(prev, formData);
       if (result.ok) {
-        onClear();
         router.refresh();
       }
       return result;
     },
     {},
   );
+
+  useEffect(() => {
+    if (state.ok) {
+      const timer = setTimeout(onClear, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [state.ok, onClear]);
 
   if (selected.length === 0) return null;
 
