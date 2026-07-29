@@ -90,3 +90,17 @@ export interface CommerceRecommendationGeneratedPayload {
 export class CommerceRecommendationGenerated extends BaseDomainEvent<CommerceRecommendationGeneratedPayload> {
   readonly name = "CommerceRecommendationGenerated";
 }
+
+export interface AbandonedCartDetectedPayload {
+  cartToken: string;
+  email: string | null;
+  lineItemTitles: string[];
+  totalPrice: number | null;
+  currency: string | null;
+  recoveredUrl: string | null;
+  detectedAt: Date;
+}
+
+export class AbandonedCartDetected extends BaseDomainEvent<AbandonedCartDetectedPayload> {
+  readonly name = "AbandonedCartDetected";
+}

@@ -82,7 +82,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | Auth | NextAuth.js v5 (Auth.js), JWT sessions, bcrypt, token version invalidation |
 | AI | OpenAI GPT-4o-mini via `AIProvider` interface |
 | Payments | Stripe subscriptions + promotion codes |
-| E-commerce | Shopify Admin REST API (live) + Mock connector (dev) |
+| E-commerce | Shopify Admin REST API (live) + webhooks for catalog/orders/abandoned cart + Mock connector (dev) |
 | Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified) |
 | Observability | JSON logger, `SystemLog`, Sentry, OpenTelemetry |
 | Deployment | Docker multi-stage, standalone Next.js output, Fly.io (`app` + `worker` groups) |
@@ -102,7 +102,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `coupons` | First-follower and DM campaign coupon orchestration. |
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume. |
-| `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard. |
+| `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
 | `support` | Support tickets, admin triage, system logs. |
@@ -120,6 +120,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `Product` / `Order` / `Customer` / `Coupon` — synced from e-commerce connectors; `externalId` + `storeId` uniqueness.
 - `Conversation` / `Message` — DM/comment threads; status `AI_ACTIVE` or `HUMAN_ACTIVE`.
 - `Follower` / `Campaign` — first-follower campaign tracking.
+- `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
 - `ExportRequest` — GDPR data-export jobs.
@@ -173,6 +174,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 1. `getMarketingPerformance(storeId)` fetches live Meta page/media/audience insights and Shopify orders.
 2. `attributeOrdersToMedia` attributes orders to the most recent media within a 7-day window.
 3. Returns `MarketingPerformanceView` with `dataQuality` (`live`/`partial`/`simulated`) badge.
+4. Store-scoped analytics pages (`/stores/[storeId]/analytics/content`, `/trends`, `/reports`, `/recommendations`) list `MediaPost`, `TrendSnapshot`, `Report`, and `ContentRecommendation` records and trigger `syncMediaCatalog`, `searchTrendingHashtags`, `generateReport`, and `createContentRecommendation` actions.
+5. Per-post detail page runs `analyzeMedia` to produce `whyItWorked` and a slide-by-slide storyboard.
 
 ---
 
@@ -180,8 +183,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 ### E-commerce
 - `EcommerceConnector` interface: `fetchStoreInfo`, `getProducts`, `getOrders`, `getCustomers`, `fetchDiscounts`, `generateCoupon`, `disableCoupon`.
-- Implemented: `ShopifyConnector` (Admin REST API v2024-01) and `MockConnector` (deterministic dev data).
-- Planned: WooCommerce REST API v3, BigCommerce v3/v2, Magento 2 REST V1.
+- Implemented: `ShopifyConnector` (Admin REST API v2024-01), `WooCommerceConnector`, `BigCommerceConnector`, and `MockConnector` (deterministic dev data).
+- Shopify webhooks: `POST /api/shopify/webhooks` verifies HMAC-SHA256, maps shop domain to `Integration`, and handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` events. Product/order payloads are normalized and persisted; abandoned carts emit `AbandonedCartDetected` for DM follow-up.
 
 ### Meta
 - Webhook verification: HMAC-SHA256, constant-time compare, 24-hour payload dedup.

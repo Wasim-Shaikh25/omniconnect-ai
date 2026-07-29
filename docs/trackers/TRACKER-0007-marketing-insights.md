@@ -8,7 +8,7 @@
 
 ## 1. Summary
 
-Progress tracker for REQ-0007.
+Progress tracker for REQ-0007. All acceptance criteria are now implemented and verified.
 
 ## 2. Subtasks
 
@@ -16,16 +16,20 @@ Progress tracker for REQ-0007.
 - [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [x] Domain modeled (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `Report`, `TrackedAccount`, `ContentRecommendation`) and events defined.
+- [x] Domain modeled (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `Report`, `TrackedAccount`, `ContentRecommendation`) and events defined (`AccountAnalyticsSynced`, `MediaAnalyticsSynced`, `TrendingHashtagDiscovered`, `CompetitorContentSynced`, `ReportGenerated`, `ContentRecommendationCreated`).
 - [x] `MetaService` extended with `searchHashtag`, `getHashtagMedia`, and `getAccountMedia` Graph API methods, plus a dev fallback for public hashtag top/recent media.
+- [x] `MarketingInsightsRepository` (`PrismaMarketingInsightsRepository`) persists media posts, insights, account insights, trend snapshots, content recommendations, and reports.
+- [x] `marketingInsightsService` orchestrates sync, analysis, report generation, and content recommendations; publishes domain events.
+- [x] `analyzeMedia` (`ai/application/analyze-media.ts`) returns `whyItWorked`, `slideBySlideStoryboard`, and `suggestedImprovements`.
 - [x] Trending posts / competitor search UI at `/stores/[storeId]/commerce/trends` with creator-handle filter.
-- [x] AI-generated content ideas (hook, format, why it works, hashtags, audio suggestion, best time, CTA, predicted engagement score).
-- [x] Inline media previews and "AI idea from this post" generation on the Trends page.
-- [x] Dedicated competitor analysis page with `TrackedAccount` persistence, media fetch, and AI strategy analysis.
-- [x] "Discover competitors" search by niche/hashtag that ranks influential accounts by engagement and lets users track them.
-- [x] Full dashboard pages for content performance, trend explorer, reports, and recommendations.
-- [x] AI-generated "why it worked" analysis and slide-by-slide storyboards.
-- [x] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] Dedicated content performance page at `/stores/[storeId]/analytics/content` with sync button and per-post metrics.
+- [x] Per-post detail page at `/stores/[storeId]/analytics/content/[mediaPostId]` with AI “why it worked” storyboard form.
+- [x] Trend explorer page at `/stores/[storeId]/analytics/trends` with hashtag search and snapshot history.
+- [x] Reports page at `/stores/[storeId]/analytics/reports` with weekly/monthly report generation.
+- [x] Recommendations page at `/stores/[storeId]/analytics/recommendations` with AI content-idea creation.
+- [x] Server actions exposed through `src/modules/analytics/presentation/actions.ts` and types exported from `src/modules/analytics/index.ts`.
+- [x] `analytics` barrel split: server-only queries/services live in `src/modules/analytics/server.ts` so client imports do not bundle Node-only modules.
+- [x] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/specs/current-state.md` updated.
 
 ### Quality Gates
 - [x] `npm run lint` passes.
@@ -42,3 +46,4 @@ Progress tracker for REQ-0007.
 ## 4. Notes / Blockers
 
 - Migrated from legacy spec `docs/specs/0007-marketing-insights.md`.
+- Final gap closure completed in the follow-up pass after the line-by-line audit.

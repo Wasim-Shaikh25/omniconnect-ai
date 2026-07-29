@@ -23,6 +23,8 @@ import { makeGenerateCaptions } from "../application/generate-captions";
 import { makeGenerateTrends } from "../application/generate-trends";
 import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
 import { makeAnalyzeCompetitor } from "../application/analyze-competitor";
+import { makeAnalyzeMedia } from "../application/analyze-media";
+import { makeCreateContentIdea } from "../application/create-content-idea";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
 import { makeBrainMemoryService } from "../application/brain-memory";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
@@ -113,3 +115,6 @@ export const askBusinessBrain = makeAskBusinessBrain({
   businessBrainContext: businessBrainContextService,
   brainMemory: brainMemoryService,
 });
+
+export const analyzeMedia = makeAnalyzeMedia({ aiProvider, aiConfigurationRepository });
+export const createContentIdea = makeCreateContentIdea({ aiProvider, aiConfigurationRepository });

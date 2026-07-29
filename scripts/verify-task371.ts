@@ -2,7 +2,7 @@ import { prisma } from "@/shared/database";
 import { updateMarketingMemory, generateDailyBrief } from "@/modules/intelligence";
 import { askBusinessBrain, generatePostIdeas } from "@/modules/ai/server";
 import { getMarketingPerformance } from "@/modules/analytics/server";
-import { getCompetitorBenchmark } from "@/modules/analytics";
+import { getCompetitorBenchmark } from "@/modules/analytics/server";
 
 async function main() {
   const timestamp = Date.now();

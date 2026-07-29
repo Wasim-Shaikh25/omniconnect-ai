@@ -71,6 +71,46 @@ export class PrismaOrderRepository implements OrderRepository {
     return { upserted, removed: removed.count };
   }
 
+  async upsertMany(storeId: string, orders: ConnectorOrder[]): Promise<number> {
+    const now = new Date();
+    const existing = await prisma.order.findMany({
+      where: { storeId },
+      select: { id: true, externalId: true },
+    });
+    const externalToId = new Map(existing.map((e) => [e.externalId, e.id]));
+
+    let upserted = 0;
+    for (const order of orders) {
+      const existingId = externalToId.get(order.externalId);
+      const isFirst = await this.isFirstTimeCustomer(
+        storeId,
+        order.customerEmail ?? null,
+        order.customerRef ?? null,
+        order.createdAt,
+      );
+      const data = {
+        externalId: order.externalId,
+        storeId,
+        total: order.total,
+        currency: order.currency,
+        orderDate: order.createdAt,
+        couponCode: order.couponCode ?? null,
+        customerRef: order.customerRef,
+        customerEmail: order.customerEmail,
+        isFirstTimeCustomer: isFirst,
+        syncedAt: now,
+      };
+
+      if (existingId) {
+        await prisma.order.update({ where: { id: existingId }, data });
+      } else {
+        await prisma.order.create({ data });
+      }
+      upserted++;
+    }
+    return upserted;
+  }
+
   private async isFirstTimeCustomer(
     storeId: string,
     email: string | null,

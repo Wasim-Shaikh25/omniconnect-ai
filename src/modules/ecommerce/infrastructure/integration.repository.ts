@@ -73,6 +73,15 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     return found ? toRecord(found as PrismaIntegration) : null;
   }
 
+  async findByShopDomain(
+    shopDomain: string,
+  ): Promise<IntegrationRecord | null> {
+    const found = await prisma.integration.findFirst({
+      where: { type: "ECOMMERCE", externalId: { equals: shopDomain, mode: "insensitive" } },
+    });
+    return found ? toRecord(found as PrismaIntegration) : null;
+  }
+
   async findCredentialsByStore(storeId: string): Promise<{
     provider: string;
     shopDomain: string | null;

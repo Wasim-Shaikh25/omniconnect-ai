@@ -1,6 +1,7 @@
 import { makeConnectStore } from "../application/connect-store";
 import { makeSyncProducts } from "../application/sync-products";
 import { makeSyncOrders } from "../application/sync-orders";
+import { makeApplyShopifyWebhook } from "../application/apply-shopify-webhook";
 import { makeGenerateCoupon } from "../application/generate-coupon";
 import { makeUpdateProduct } from "../application/update-product";
 import { makeDeleteProduct } from "../application/delete-product";
@@ -24,6 +25,7 @@ const connectors = new IntegrationConnectorFactory(integrations);
 export const connectStore = makeConnectStore({ integrations });
 export const syncProducts = makeSyncProducts({ connectors, products });
 export const syncOrders = makeSyncOrders({ connectors, orders });
+export const applyShopifyWebhook = makeApplyShopifyWebhook({ integrations, products, orders });
 export const generateCoupon = makeGenerateCoupon({ connectors, coupons });
 export const updateProduct = makeUpdateProduct({ products });
 export const deleteProduct = makeDeleteProduct({ products });

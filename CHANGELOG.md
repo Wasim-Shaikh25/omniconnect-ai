@@ -15,6 +15,16 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **Follow-up to TASK-0007 + TASK-0012 — Close remaining gaps identified in the line-by-line audit:**
+  - Persisted marketing-insights domain (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `ContentRecommendation`, `Report`) with Prisma migration `20260729100209_add_marketing_insights_models`.
+  - Implemented `MarketingInsightsRepository`, `marketingInsightsService`, and server actions for `syncMediaCatalog`, `syncAccountAnalytics`, `searchTrendingHashtags`, `analyzeMedia`, `generateReport`, and `createContentRecommendation`.
+  - Built `/stores/[storeId]/analytics/content` (with sync), `/trends`, `/reports`, and `/recommendations` dashboard pages; added per-post detail page with AI-generated "why it worked" analysis and slide-by-slide storyboard.
+  - Added Shopify webhook handler at `/api/shopify/webhooks` with HMAC-SHA256 verification; handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` by normalizing payloads to `ConnectorProduct`/`ConnectorOrder` and emitting `AbandonedCartDetected`.
+  - Added `IntegrationRepository.findByShopDomain`, `ProductRepository.findByExternalId`, and `OrderRepository.upsertMany` to support idempotent webhook processing.
+  - Split `analytics` public barrel so server-only queries (`analyticsQueries`, `getCompetitorBenchmark`, `marketingInsightsService`, `marketingInsightsRepository`) move to `analytics/server`, preventing client bundles from pulling Node-only dependencies.
+  - Quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck` (0 errors), `npm run test` (43), `npm audit --audit-level moderate` (0 vulnerabilities), `npm run build` + `npm run build:worker`.
+  - Updated `docs/specs/current-state.md`, `REQ-0007`/`TASK-0007`/`TRACKER-0007`, and `REQ-0012`/`TASK-0012`/`TRACKER-0012`.
+
 - **TASK-0065 — Complete remaining intelligence and daily-marketing work:**
   - Removed cancelled out-of-scope Meta-first requirements/tasks/trackers entirely: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.
   - Audited and confirmed the 8 remaining requirements (`0033`, `0034`, `0036`, `0037`, `0046`, `0047`, `0048`, `0050`) are implemented in the intelligence module and supporting UI; updated REQ/TASK/TRACKER statuses to `Implemented`/`Completed`/`Done`.

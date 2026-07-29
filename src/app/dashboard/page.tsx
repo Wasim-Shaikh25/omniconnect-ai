@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ElementType } from "react";
 import { getCurrentUser } from "@/modules/auth";
-import { analyticsQueries } from "@/modules/analytics";
+import { analyticsQueries } from "@/modules/analytics/server";
 import { DataQualityAlerts } from "@/components/data-quality-alerts";
 import { TodayFeed } from "@/components/today-feed";
 import { IntelligencePanel } from "@/components/intelligence-panel";

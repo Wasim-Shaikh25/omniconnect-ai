@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
-import { analyticsQueries } from "@/modules/analytics";
+import { analyticsQueries } from "@/modules/analytics/server";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { crmQueries } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";

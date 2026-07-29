@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireStoreAccess } from "@/modules/organizations";
-import { getMarketingPerformance } from "@/modules/analytics/server";
+import { listMediaPostsAction, syncMediaCatalogAction } from "@/modules/analytics";
+import { SyncMediaForm } from "@/components/sync-media-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { MediaPost } from "@/modules/analytics";
+
+function formatNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  return new Intl.NumberFormat("en-US").format(value);
+}
 
 export default async function ContentAnalyticsPage({
   params,
@@ -15,82 +22,99 @@ export default async function ContentAnalyticsPage({
   const { user, store } = await requireStoreAccess(storeId);
   if (!user.organizationId) notFound();
 
-  const view = await getMarketingPerformance({ organizationId: user.organizationId, storeId });
+  const { posts, error } = await listMediaPostsAction(storeId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Content performance</h1>
-          <p className="text-sm text-muted-foreground">Which content drives attention and revenue for {store.name}.</p>
+          <p className="text-sm text-muted-foreground">Own posts for {store.name}.</p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <SyncMediaForm action={syncMediaCatalogAction} storeId={storeId} />
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
+          </Button>
+        </div>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Why it looks like this</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{view.content.why}</p>
-            <p className="mt-2 text-sm font-medium">{view.content.nextRecommendation}</p>
-          </CardContent>
-        </Card>
+      {error && <p className="mb-4 text-sm text-destructive" role="alert">{error}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Format breakdown</CardTitle>
-            <CardDescription>Own posts by media type.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {Object.entries(view.content.byType).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No own media data yet.</p>
-            ) : (
-              <ul className="divide-y text-sm">
-                {Object.entries(view.content.byType).map(([type, count]) => (
-                  <li key={type} className="flex items-center justify-between py-2">
-                    <span className="capitalize">{type.toLowerCase()}</span>
-                    <span className="font-medium">{count}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Top posts</CardTitle>
-            <CardDescription>Own posts ranked by attributed orders and engagement.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {view.content.topPosts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No own posts captured yet.</p>
-            ) : (
-              <ul className="divide-y text-sm">
-                {view.content.topPosts.map((post, i) => (
-                  <li key={post.id ?? i} className="py-3">
-                    <p className="font-medium">{post.caption || "(no caption)"}</p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      <span className="capitalize">{post.mediaType?.toLowerCase() ?? "post"}</span>
-                      <span>Likes {post.likes}</span>
-                      <span>Comments {post.comments}</span>
-                      <span>Shares {post.shares}</span>
-                      <span>Plays {post.plays}</span>
-                      <span>Reach {post.reach}</span>
-                      <span>Impressions {post.impressions}</span>
-                      <span className="font-medium text-foreground">Orders {post.orders}</span>
-                      <span className="font-medium text-foreground">Revenue {post.revenue}</span>
+      <div className="grid gap-6">
+        {(posts ?? []).length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+              No media posts yet. Connect Meta and sync to see content performance.
+            </CardContent>
+          </Card>
+        ) : (
+          (posts ?? []).map((post: MediaPost) => (
+            <Card key={post.id}>
+              <CardHeader>
+                <CardTitle className="text-base">{post.mediaType}</CardTitle>
+                <CardDescription>
+                  {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : "Draft"}
+                  {post.permalink ? (
+                    <>
+                      {" · "}
+                      <a href={post.permalink} target="_blank" rel="noreferrer" className="underline">
+                        Open on Instagram
+                      </a>
+                    </>
+                  ) : null}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-3 text-sm">{post.caption || "(no caption)"}</p>
+                {post.hashtags.length > 0 && (
+                  <p className="mb-3 text-xs text-muted-foreground">{post.hashtags.join(" ")}</p>
+                )}
+                {post.latestInsight ? (
+                  <div className="mb-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Likes</span>
+                      <p>{formatNumber(post.latestInsight.likes)}</p>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Comments</span>
+                      <p>{formatNumber(post.latestInsight.comments)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Shares</span>
+                      <p>{formatNumber(post.latestInsight.shares)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Saves</span>
+                      <p>{formatNumber(post.latestInsight.saves)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Reach</span>
+                      <p>{formatNumber(post.latestInsight.reach)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Impressions</span>
+                      <p>{formatNumber(post.latestInsight.impressions)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Plays</span>
+                      <p>{formatNumber(post.latestInsight.plays)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Engagement rate</span>
+                      <p>{post.latestInsight.engagementRate ? `${(post.latestInsight.engagementRate * 100).toFixed(2)}%` : "—"}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mb-3 text-sm text-muted-foreground">No insights captured yet.</p>
+                )}
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/stores/${storeId}/analytics/content/${post.id}`}>Analyze why it worked</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </main>
   );
