@@ -47,9 +47,9 @@ this report and a **CONDITIONAL GO** is days of work, not months.
 |----------|-------|------------------|
 | 🔴 Critical | 2 | Yes — both |
 | 🟠 High | 10 | Yes — 8 of 10 |
-| 🟡 Medium | 15 | No (pre-launch recommended) |
-| 🔵 Low | 7 | No |
-| **Total** | **34** | **10 blockers** |
+| 🟡 Medium | 13 | No (pre-launch recommended) |
+| 🔵 Low | 8 | No |
+| **Total** | **33** | **10 blockers** |
 
 ### 1.3 Major technical risks
 
@@ -126,8 +126,8 @@ ideas, and marketing analytics. Free / Starter ($4.99) / Pro ($9.99) plans bille
 ### 2.3 Trust boundaries
 
 ```
-Anonymous ──► /, /login, /register, /pricing, /support, /help, /forgot-password, /reset-password
-                       │   (note: `/support` and `/help` currently redirect to /login — M13, M14)
+Anonymous ──► /, /login, /register, /pricing, /forgot-password, /reset-password
+                       │   (note: product decision — `/support` and `/help` are auth-only; `/support` still listed in `publicPaths` — M13/M14)
 Authenticated ─────────┼──► Organization (tenant root)
                        │        └── Store (sub-tenant; STAFF pinned to one store)
                        │
@@ -175,7 +175,7 @@ All commands run against commit `06395c4` on Node v22.22.2 / npm 10.9.7.
 | 15 | Event bus dedup | Isolated repro against live Redis | ❌ **1 event → 2 handler runs** → C2 |
 | 16 | DB-down boot | Server start with Postgres stopped | ❌ **Total startup failure** → H1 |
 | 17 | Shopify webhook reachability | `POST /api/shopify/webhooks` as anonymous | ❌ **307 to `/login`** → H9 |
-| 18 | Public help page | `GET /help` as anonymous | ❌ **307 to `/login`** → M13 |
+| 18 | Public help page | `GET /help` as anonymous | ✅ Expected 307 (auth-only by design) |
 | 19 | Member invite race | Static analysis + store-limit contrast | ⚠️ Count + create not in one transaction → H10 |
 | 20 | AI escalation marker | `generate-reply.ts` string handling | ⚠️ `.includes("[ESCALATE]")` is case-sensitive → L7 |
 
@@ -241,14 +241,14 @@ Legend: ✅ Implemented · 🟡 Partial · ❌ Missing · 🚫 N/A · ❔ Unveri
 | Notification preferences | 🚫 | ✅ | ✅ | ✅ | ✅ |
 | Data export (GDPR) | 🚫 | ✅ | ✅ | ✅ | ✅ |
 | Account deletion | 🚫 | ✅ | ✅ | ✅ | ✅ |
-| Support tickets (create) | 🟡 | ✅ | ✅ | ✅ | ✅ |
+| Support tickets (create) | 🚫 | ✅ | ✅ | ✅ | ✅ |
 | Support triage | 🚫 | ❌ | ❌ | ❌ | ✅ |
 | Platform org/user admin | 🚫 | ❌ | ❌ | ❌ | ✅ |
 | SaaS coupon management | 🚫 | ❌ | ❌ | ❌ | ✅ |
 | System log inspection | 🚫 | ❌ | ❌ | ❌ | ✅ |
 | **Projects** | 🚫 | ❌ | ❌ **(backend only, no UI)** | ❌ | ❌ |
 
-**Observation:** `STAFF` has no dedicated landing experience — it shares `/dashboard`, which is
+**Observation:** Product decision — `/support` and `/help` are auth-only. `/support` is still in `publicPaths` and should be removed to match the auth-only design (M14). `STAFF` has no dedicated landing experience — it shares `/dashboard`, which is
 built around multi-store selection that a store-pinned staff member cannot use. Not a defect;
 flagged as a product decision (§3.6, Q2).
 
@@ -1463,7 +1463,7 @@ const publicPaths = [
 3. `curl -X POST http://localhost:3000/api/shopify/webhooks` and assert status is not `3xx`.
 4. Trigger a real Shopify `products/create` webhook in staging and assert product is persisted.
 
-**Similar locations to inspect.** `src/modules/auth/infrastructure/auth.ts` for any other public API routes missing from `publicPaths` (e.g., `/help` — see M13).
+**Similar locations to inspect.** `src/modules/auth/infrastructure/auth.ts` for any other public API routes missing from `publicPaths` or any auth-only pages still in `publicPaths` (see M14).
 
 ---
 
@@ -1942,93 +1942,101 @@ backups with a rehearsed restore; add `npm audit` and secret scanning to CI.
 
 ---
 
-### 🟡 M13 — Public help page `/help` is blocked for anonymous users
+### 🟢 M13 — `/help` is auth-only by product decision
 
 | Field | Value |
 |---|---|
-| **Status** | Confirmed Defect (reproduced) |
-| **Severity** | Medium |
+| **Status** | Product Decision (resolved) |
+| **Severity** | — |
 | **Category** | Navigation / UX |
 | **Release-blocking** | No |
 | **Affected roles** | Anonymous users |
 
 **Affected locations**
 - `src/modules/auth/infrastructure/auth.ts:213-243` — `publicPaths` omits `/help`
-- `src/app/help/page.tsx` — public help content, client component
+- `src/app/help/page.tsx` — help content
 
-**Evidence.** `curl http://localhost:3000/help` returns `307` to `/login` for an anonymous user. The `/help/page.tsx` route renders public help content and does not require authentication on the server.
+**Evidence.** `curl http://localhost:3000/help` returns `307` to `/login` for an anonymous user.
 
-**Root cause.** The NextAuth middleware `authorized` callback does not list `/help` as public, so anonymous requests are redirected to `/login` before the page renders.
+**Root cause.** Product decision: `/help` is intended to be auth-only.
 
-**Technical and business impact.** Anonymous visitors cannot access help documentation, increasing support load and hurting conversion. The footer/support links may reference `/help`, leading to a confusing redirect.
+**Technical and business impact.** None — the observed behavior matches the intended design.
 
-**Recommended solution.** Add `"/help"` to `publicPaths` in `auth.ts`.
+**Recommended solution.** No change. If help content must be public later, create a dedicated public `/help` route and add it to `publicPaths`.
 
-```typescript
-const publicPaths = [
-  ...
-  "/help",
-  ...
-];
-```
+**Database, security, or deployment considerations.** None.
 
-**Database, security, or deployment considerations.** None. The page is read-only public content.
-
-**Regression risks.** Negligible.
+**Regression risks.** None.
 
 **Tests to add**
-- Integration: `GET /help` as anonymous returns `200` with help content.
+- Regression: `GET /help` as anonymous returns `307` to `/login`.
 
 **Verification steps**
-1. `curl -s -o /dev/null -w "HTTP=%{http_code}\n" http://localhost:3000/help` → `200`.
+1. `curl -s -o /dev/null -w "HTTP=%{http_code}\n" http://localhost:3000/help` → `307`.
 
 **Similar locations to inspect.** `/support` — see M14.
 
 ---
 
-### 🟡 M14 — Anonymous support ticket creation is impossible despite product matrix
+### 🟡 M14 — `/support` is still listed in `publicPaths` despite auth-only design
 
 | Field | Value |
 |---|---|
-| **Status** | Confirmed Defect / Product Decision (reproduced) |
-| **Severity** | Medium |
-| **Category** | Product completeness / UX |
+| **Status** | Confirmed Defect (reproduced) |
+| **Severity** | Low |
+| **Category** | Routing consistency / UX |
 | **Release-blocking** | No |
 | **Affected roles** | Anonymous users |
 
 **Affected locations**
-- `src/modules/auth/infrastructure/auth.ts:213-243` — `/support` is public but the page redirects
+- `src/modules/auth/infrastructure/auth.ts:213-243` — `/support` is still in `publicPaths`
 - `src/app/support/page.tsx:10` — `if (!user) redirect("/login")`
-- `src/app/support/actions.ts` or server action (likely requires `getCurrentUser`)
+- `src/app/support/actions.ts` (likely requires `getCurrentUser`)
 
-**Evidence.** `publicPaths` includes `/support`, so anonymous requests reach the page. However, `support/page.tsx` immediately calls `getCurrentUser()` and redirects to `/login` if there is no session, returning a `200` HTML page that performs a client-side redirect. The role-to-capability matrix lists "Support tickets (create)" as available to Anonymous.
+**Evidence.** `publicPaths` includes `/support`, so anonymous requests reach the page. `support/page.tsx` then calls `getCurrentUser()` and redirects to `/login`, returning a `200` HTML page that performs a client-side redirect.
 
-**Root cause.** There are two conflicting designs: the middleware treats `/support` as public; the page assumes an authenticated user. There is no anonymous support form or action.
+**Root cause.** The product decision is that `/support` is auth-only, but the middleware `publicPaths` list was not updated to match.
 
-**Technical and business impact.** Anonymous users cannot file support tickets. This is either a product gap (if anonymous support is intended) or an inconsistency (if support is meant to be authenticated-only). It also means the public `/support` route returns a confusing client-side redirect.
+**Technical and business impact.** Minor inconsistency: anonymous users get a `200` with a client-side redirect instead of a clean `307` from the middleware. This also means the role-to-capability matrix still shows support as available to Anonymous.
 
-**Recommended solution.** If anonymous support is intended, build an anonymous form with a CAPTCHA/honeypot and an action that does not require `getCurrentUser()`. If not, remove `/support` from `publicPaths` and update the product matrix. A minimal fix is:
+**Recommended solution.** Remove `/support` from `publicPaths` in `auth.ts` and update the role-to-capability matrix.
 
 ```typescript
-// auth.ts
-// Remove "/support" from publicPaths OR
-// support/page.tsx: do not redirect; render an anonymous form
+// src/modules/auth/infrastructure/auth.ts
+const publicPaths = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/pricing",
+  // "/support", // <-- remove; support is auth-only
+  "/api/auth",
+  "/api/meta/webhook",
+  "/api/stripe/webhook",
+  "/api/shopify/webhooks",
+  "/api/health",
+  "/api/ready",
+  "/_next",
+  "/favicon.ico",
+  "/manifest.webmanifest",
+];
 ```
 
-**Database, security, or deployment considerations.** Anonymous support requires rate limiting and anti-spam to prevent abuse.
+**Database, security, or deployment considerations.** None.
 
-**Regression risks.** Low. Removing `/support` from `publicPaths` simply redirects anonymous users to login, matching current runtime behavior.
+**Regression risks.** Negligible. Removing `/support` from `publicPaths` causes the middleware to redirect anonymous users to `/login` with a `307`, which matches the auth-only intent.
 
 **Tests to add**
-- Integration: anonymous `GET /support` either returns `200` with a support form or `307` to `/login` consistently.
-- Product: update the role-to-capability matrix.
+- Integration: anonymous `GET /support` returns `307` to `/login` from the middleware.
+- Product: update role-to-capability matrix.
 
 **Verification steps**
-1. Decide whether anonymous support tickets are a launch requirement.
-2. Implement the chosen design.
-3. Run the integration test and update the matrix.
+1. Remove `/support` from `publicPaths`.
+2. `curl -s -o /dev/null -w "HTTP=%{http_code}\n" http://localhost:3000/support` → `307`.
+3. Confirm authenticated users can still access `/support`.
 
-**Similar locations to inspect.** `/help` (M13) and any other public-but-restricted pages.
+**Similar locations to inspect.** Any other auth-only pages accidentally listed in `publicPaths`.
 
 ---
 
@@ -2204,8 +2212,8 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | 16 | **M12** — CD workflow, rollback runbook, automated backups + one restore drill | ~3 d |
 | 17 | **H10** — serializable transaction for invite seat-limit enforcement | ~2 h |
 | 18 | **M10** — global per-account login throttle + rate-limit feedback | ~1 d |
-| 19 | **M13** — add `/help` to `publicPaths` | ~15 m |
-| 20 | **M14** — decide and implement anonymous support vs. remove from publicPaths | ~1 h |
+| 19 | **M13** — closed; `/help` auth-only by design | — |
+| 20 | **M14** — remove `/support` from `publicPaths`; update matrix | ~15 m |
 | 21 | **M15** — add prompt-injection defenses and output moderation | ~2 d |
 | 22 | Add a `redis:7-alpine` service to CI | ~15 m |
 
@@ -2280,7 +2288,7 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | Performance & scalability | 🟡 **Partial** | Mostly bounded queries; M4 unbounded; no load test |
 | AI output safety | 🟡 **Partial** | Prompt injection mitigations incomplete; no output moderation (M15) |
 | AI behavior correctness | 🔵 **Low / Fail** | Escalation marker `[ESCALATE]` detection is case-sensitive (L7) |
-| Product completeness | 🟡 **Partial** | Core journeys complete; §3.5 gaps; Projects orphaned; anonymous support/help mismatch (M13, M14) |
+| Product completeness | 🟡 **Partial** | Core journeys complete; §3.5 gaps; Projects orphaned; `/support` publicPaths cleanup (M14) |
 | Load / stress testing | ⬜ **Not Tested** | Out of scope |
 | Penetration testing | ⬜ **Not Tested** | Out of scope |
 | Disaster recovery | ⬜ **Not Tested** | Nothing to test |
