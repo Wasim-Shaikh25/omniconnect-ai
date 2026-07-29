@@ -47,7 +47,7 @@ export default async function StoreProductsPage({
         <div>
           <h1 className="text-2xl font-semibold">Products</h1>
           <p className="text-sm text-muted-foreground">
-            Manage products for {store.name}.
+            Catalog imported from {store.name} for AI insights and Meta campaigns.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export default async function StoreProductsPage({
         <CardHeader>
           <CardTitle>Catalog ({total})</CardTitle>
           <CardDescription>
-            Edit product details or remove products synced from your eCommerce provider.
+            Read-only view of products synced from your connected e-commerce source. Manage the catalog in Shopify (or your provider); use this data for AI content and coupon campaigns.
           </CardDescription>
           <div className="pt-2">
             <ListSearch placeholder="Search by title..." defaultValue={search} limit={pagination.limit} />

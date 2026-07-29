@@ -22,6 +22,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `scripts/task-status.ts` to report which requirements are done and which are left (`npx tsx scripts/task-status.ts --summary`).
   - Updated `AGENTS.md`, `CLAUDE.md`, `.windsurfrules`, and `.cursor/rules/*.mdc` to enforce the new requirement-first, task+tracker workflow.
 
+- **TASK-0061 — Product Charter and Scope Cleanup:**
+  - Replaced top-header navigation with a collapsible hamburger sidebar (`src/components/app-shell.tsx`) grouped Home / Connect / Create / Engage / Analyze / Account.
+  - Deleted out-of-scope routes and files: `projects`, `stores/[storeId]/affiliates`, `media-kit`, `growth`, `revenue`, `daily-marketing`, `engagement`, `brand-deals`, `orders`, `commerce/growth`, and unused `settings/rollout`, `operating-model`, `quality`, `unified-context`.
+  - Kept Meta-relevant pages: `commerce/catalog` (Meta Commerce sync), `commerce/leads`, `commerce/comments`, `commerce/trends`, `commerce/competitors`, `content`, `campaigns`, `conversations`, `followers`, `analytics`, `integrations`.
+  - Simplified `stores/[storeId]/settings` to rename/reconnect only; removed archive/restore/delete actions.
+  - Made `stores/[storeId]/products` read-only and updated empty-state copy to Meta-first positioning.
+  - Removed generic standalone coupon generation from the store page; kept `/stores/[storeId]/coupons` for campaign-generated coupons.
+  - Removed `AgencyPortfolioPanel` (media-kit), `AppHeader`, `MobileNav`, `StoreWorkflowNav` components.
+  - Quality gates: lint, typecheck, tests, build + build:worker all pass.
+
 - **TASK-0054 — Audit fixes continuation (PR-1/2/3/4):**
   - `getCurrentUser()` now loads the canonical DB record and verifies `tokenVersion`, so password/role/super-admin changes invalidate existing sessions.
   - `requireRole()` and `requireSuperAdmin()` use the fresh user returned by `getCurrentUser()`.
@@ -823,14 +833,6 @@ All notable changes to **OmniConnect AI** are documented here.
 > before implementation, per `AGENTS.md` §0.
 
 ### 🎯 Next
-
-- **TASK-0061 — Product Charter and Scope Cleanup** (req `docs/requirements/REQ-0061-product-charter.md`):
-  - Ratify the universal Meta-first growth platform charter (creators + merchants on any e-commerce provider).
-  - Reframe navigation with collapsible hamburger sidebar grouped Connect / Create / Engage / Analyze / Settings.
-  - Delete out-of-scope UI routes and files (affiliates, media-kit, brand-deals, UGC/ambassador growth, projects, revenue, unused settings pages).
-  - Simplify store/product/coupon UI to read-only e-commerce data and Meta campaign coupons.
-  - Update landing, onboarding, dashboard, and empty-state copy to Meta growth positioning.
-  - Quality gates: lint, typecheck, tests, build, build:worker.
 
 - **TASK-0062 — Universal E-commerce Connectors + Meta Business Growth Analytics** (req `docs/requirements/REQ-0062-universal-ecommerce-meta-analytics.md`):
   - Add WooCommerce, BigCommerce, and Magento `EcommerceConnector` providers.

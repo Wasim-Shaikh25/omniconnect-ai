@@ -1,6 +1,6 @@
 # TRACKER-0061: OmniConnect AI Product Charter and Scope
 
-- **Status:** In Progress
+- **Status:** In Progress (Phase 1–3)
 - **Requirement:** `docs/requirements/REQ-0061-product-charter.md`
 - **Task:** `docs/tasks/TASK-0061-product-charter.md`
 - **Module(s):** all
@@ -20,34 +20,33 @@ Finalize and ratify the product charter for OmniConnect AI, then clean up the co
 - [ ] Update `CHANGELOG.md` with the new scope and associated tasks.
 
 ### Phase 1 — Navigation and Layout
-- [ ] Audit `TopNav` / `MobileNav` and route tree.
-- [ ] Implement collapsible hamburger sidebar with groups: Connect / Create / Engage / Analyze / Settings.
-- [ ] Remove nav links to out-of-scope pages.
-- [ ] Update landing/onboarding/dashboard copy to Meta-first value prop.
+- [x] Audit `TopNav` / `MobileNav` and route tree.
+- [x] Implement collapsible hamburger sidebar with groups: Connect / Create / Engage / Analyze / Settings.
+- [x] Remove nav links to out-of-scope pages.
+- [x] Update landing/onboarding/dashboard copy to Meta-first value prop.
 
 ### Phase 2 — Delete Out-of-Scope Routes and Files
-- [ ] Delete `src/app/stores/[storeId]/affiliates` (and `src/modules/growth` UI only if unused).
-- [ ] Delete `src/app/stores/[storeId]/media-kit`.
-- [ ] Delete `src/app/stores/[storeId]/growth`.
-- [ ] Delete `src/app/stores/[storeId]/revenue`.
-- [ ] Delete `src/app/stores/[storeId]/projects`.
-- [ ] Delete `src/app/stores/[storeId]/daily-marketing`.
-- [ ] Delete `src/app/stores/[storeId]/engagement`.
-- [ ] Delete `src/app/stores/[storeId]/brand-deals`.
-- [ ] Delete `src/app/stores/[storeId]/orders` (keep orders widget in Analytics).
-- [ ] Delete `src/app/projects`.
-- [ ] Delete `src/app/stores/[storeId]/commerce/leads`.
-- [ ] Delete `src/app/stores/[storeId]/commerce/growth`.
-- [ ] Delete `src/app/stores/[storeId]/commerce/catalog` (if it duplicates product sync).
-- [ ] Delete unused `/settings/*` pages (`rollout`, `operating-model`, `quality`, `unified-context`) if present and empty.
-- [ ] Remove components/server actions only referenced by deleted pages.
+- [x] Delete `src/app/stores/[storeId]/affiliates`.
+- [x] Delete `src/app/stores/[storeId]/media-kit`.
+- [x] Delete `src/app/stores/[storeId]/growth`.
+- [x] Delete `src/app/stores/[storeId]/revenue`.
+- [x] Delete `src/app/stores/[storeId]/daily-marketing`.
+- [x] Delete `src/app/stores/[storeId]/engagement`.
+- [x] Delete `src/app/stores/[storeId]/brand-deals`.
+- [x] Delete `src/app/stores/[storeId]/orders`.
+- [x] Delete `src/app/projects`.
+- [x] Delete `src/app/stores/[storeId]/commerce/growth`.
+- [ ] Delete `src/app/stores/[storeId]/commerce/catalog` — kept; it pushes products to Meta Commerce for shoppable posts (different from Shopify import).
+- [ ] Delete `src/app/stores/[storeId]/commerce/leads` — kept; captures leads from Meta ads/DMs/comments.
+- [x] Delete unused `/settings/*` pages (`rollout`, `operating-model`, `quality`, `unified-context`).
+- [x] Remove components/server actions only referenced by deleted pages (`app-header`, `mobile-nav`, `store-workflow-nav`, `agency-portfolio-panel`).
 
 ### Phase 3 — Simplify Store/Product/Coupon UI
-- [ ] Remove archive/restore/delete buttons from `/stores` and `/stores/[storeId]/settings`.
-- [ ] Remove product edit/delete actions from `/stores/[storeId]/products`; make list read-only.
-- [ ] Update product empty state to “Sync your e-commerce catalog for AI insights and Meta campaigns.”
-- [ ] Keep coupon lifecycle **only** for Meta campaign coupons (first-follower / DM); remove generic standalone coupon management UI.
-- [ ] Update `/stores/[storeId]/coupons` to show campaign-generated coupons with campaign context.
+- [x] Remove archive/restore/delete buttons from `/stores/[storeId]/settings`.
+- [x] Remove product edit/delete actions from `/stores/[storeId]/products`; make list read-only.
+- [x] Update product empty state to “Sync your e-commerce catalog for AI insights and Meta campaigns.”
+- [x] Remove generic standalone coupon generation from store page; keep `/stores/[storeId]/coupons` for managing campaign-generated coupons.
+- [ ] Update `/stores/[storeId]/coupons` to show campaign context (requires `Coupon.campaignId` field — move to 0062/ follow-up).
 
 ### Phase 4 — Universal E-commerce + Advanced Analytics (tracked in `0062`)
 - [ ] Add WooCommerce/BigCommerce/Magento connectors.
@@ -57,10 +56,10 @@ Finalize and ratify the product charter for OmniConnect AI, then clean up the co
 - [ ] Update analytics copy to “universal e-commerce + Meta growth.”
 
 ### Phase 5 — Verify
-- [ ] `npm run lint` passes.
-- [ ] `DATABASE_URL=... npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` and `npm run build:worker` pass.
+- [x] `npm run lint` passes.
+- [x] `DATABASE_URL=... npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` and `npm run build:worker` pass.
 - [ ] Manual spot-check of sidebar on desktop and mobile.
 - [ ] Spot-check analytics dashboard with new growth/attribution widgets.
 

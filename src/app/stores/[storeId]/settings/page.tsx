@@ -1,12 +1,6 @@
 import { notFound } from "next/navigation";
-import { ECOMMERCE_PROVIDERS } from "@/modules/organizations";
-import { requireStoreAccess } from "@/modules/organizations";
-import {
-  updateStoreAction,
-  archiveStoreAction,
-  restoreStoreAction,
-  deleteStoreAction,
-} from "@/modules/organizations";
+import Link from "next/link";
+import { ECOMMERCE_PROVIDERS, requireStoreAccess, updateStoreAction } from "@/modules/organizations";
 import { StoreSettingsForm } from "@/components/store-settings-form";
 import {
   Card,
@@ -15,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default async function StoreSettingsPage({
   params,
@@ -31,7 +26,7 @@ export default async function StoreSettingsPage({
         <CardHeader>
           <CardTitle>Store settings</CardTitle>
           <CardDescription>
-            Update, archive, or delete {store.name}.
+            Rename or reconnect {store.name}. This store is a Meta marketing data source, not a Shopify admin.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -39,12 +34,18 @@ export default async function StoreSettingsPage({
             store={store}
             providers={ECOMMERCE_PROVIDERS}
             updateAction={updateStoreAction}
-            archiveAction={archiveStoreAction}
-            restoreAction={restoreStoreAction}
-            deleteAction={deleteStoreAction}
           />
         </CardContent>
       </Card>
+
+      <div className="mt-6 flex items-center gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/stores/${storeId}`}>Back to store</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/stores">All stores</Link>
+        </Button>
+      </div>
     </main>
   );
 }

@@ -215,7 +215,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 - Only **Shopify** e-commerce connector is live; WooCommerce/BigCommerce/Magento are planned (REQ-0062).
 - Analytics `couponsUsed` and strict coupon-to-order attribution are not yet implemented (TASK-0062).
-- Some UI pages are placeholders or out of scope and will be removed (TASK-0061).
+- Out-of-scope UI routes (projects, affiliates, media-kit, brand-deals, UGC growth, revenue, daily-marketing, engagement, orders) have been removed. The remaining navigation is grouped in a collapsible sidebar (Home / Connect / Create / Engage / Analyze / Account).
 - Direct Meta content publishing/scheduling is out of scope for MVP.
 - Real load/accessibility/penetration testing has not been performed.
 
