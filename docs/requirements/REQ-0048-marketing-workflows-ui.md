@@ -4,7 +4,7 @@ description: 0048 — Marketing Workflows UI
 
 # REQ-0048: 0048 — Marketing Workflows UI
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** `ui`, `content`, `analytics`, `competitors`, `conversations`, `social`, `ecommerce`, `growth`, `intelligence`, `ai`
 - **Original spec path:** `docs/specs/0048-marketing-workflows-ui.md` (restructured)
@@ -16,7 +16,7 @@ description: 0048 — Marketing Workflows UI
 
 
 - **Module(s):** `ui`, `content`, `analytics`, `competitors`, `conversations`, `social`, `ecommerce`, `growth`, `intelligence`, `ai`
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/TASK-371-marketing-intelligence.md`
 - **Last updated:** 2026-07-25
@@ -245,14 +245,14 @@ No new tables for the UI layer. The UI depends on the data layer defined in spec
 
 ## 13. Acceptance Criteria
 
-- [ ] Four marketing workflows are visible in navigation: Daily Marketing, Engagement, Growth, Revenue.
-- [ ] `/business-brain` is branded as Marketing Brain and shows the daily brief.
-- [ ] `/[storeId]/daily-marketing` exists and surfaces Today’s Brief, Today’s Content, Trending Topics, Competitor Changes, Products To Push, Best Time To Post, DM Opportunities.
-- [ ] Existing module pages are reachable inside the new workflow grouping (via alias or redirect).
-- [ ] Each workflow page answers a concrete business question and has a clear next action.
-- [ ] No existing data or capability is removed.
-- [ ] Lint + typecheck + build pass.
-- [ ] `CHANGELOG.md` and task tracker updated.
+- [x] Four marketing workflows are visible in navigation: Daily Marketing, Engagement, Growth, Revenue.
+- [x] `/business-brain` is branded as Marketing Brain and shows the daily brief.
+- [x] `/[storeId]/daily-marketing` exists and surfaces Today’s Brief, Today’s Content, Trending Topics, Competitor Changes, Products To Push, Best Time To Post, DM Opportunities.
+- [x] Existing module pages are reachable inside the new workflow grouping (via alias or redirect).
+- [x] Each workflow page answers a concrete business question and has a clear next action.
+- [x] No existing data or capability is removed.
+- [x] Lint + typecheck + build pass.
+- [x] `CHANGELOG.md` and task tracker updated.
 
 ## 14. Open Questions
 

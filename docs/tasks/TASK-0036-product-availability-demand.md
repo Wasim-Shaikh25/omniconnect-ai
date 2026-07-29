@@ -1,6 +1,6 @@
 # TASK-0036: 0036 — Product Availability & Demand Mismatch
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** Devin
 - **Module(s):** all
 - **Requirement:** `docs/requirements/REQ-0036-product-availability-demand.md`
@@ -26,17 +26,17 @@ Implementation task for REQ-0036. Implementation details and code references wer
 
 ## 4. Subtasks
 
-- [ ] Review requirement and current state.
-- [ ] Implement or verify implementation.
-- [ ] Update `docs/specs/current-state.md` if contracts changed.
-- [ ] Update `CHANGELOG.md`.
-- [ ] Run lint + typecheck + tests + build.
+- [x] Review requirement and current state.
+- [x] Implement or verify implementation.
+- [x] Update `docs/specs/current-state.md` if contracts changed.
+- [x] Update `CHANGELOG.md`.
+- [x] Run lint + typecheck + tests + build.
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches the linked requirement.
-- [ ] Quality gates pass.
-- [ ] `CHANGELOG.md` updated if needed.
+- [x] Matches the linked requirement.
+- [x] Quality gates pass.
+- [x] `CHANGELOG.md` updated if needed.
 
 ## 6. Notes / Blockers
 

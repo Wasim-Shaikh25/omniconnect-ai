@@ -4,7 +4,7 @@ description: 0036 — Product Availability & Demand Mismatch
 
 # REQ-0036: 0036 — Product Availability & Demand Mismatch
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** all
 - **Original spec path:** `docs/specs/0036-product-availability-demand.md` (restructured)
@@ -52,9 +52,9 @@ Detect when customers are asking about products that are out of stock (or low st
 
 ## 5. Acceptance Criteria
 
-- [ ] `ProductsSynced` carries product inventory list.
-- [ ] `DetectionService` emits product availability/demand insights.
-- [ ] `RecommendationService` creates alternative-product recommendations.
-- [ ] `WorkspaceActionExecutor` creates a DM campaign.
-- [ ] End-to-end script confirms: product sync → message mentioning product → insight → recommendation → executed campaign.
-- [ ] Lint + typecheck + build pass.
+- [x] `ProductsSynced` carries product inventory list.
+- [x] `DetectionService` emits product availability/demand insights.
+- [x] `RecommendationService` creates alternative-product recommendations.
+- [x] `WorkspaceActionExecutor` creates a DM campaign.
+- [x] End-to-end script confirms: product sync → message mentioning product → insight → recommendation → executed campaign.
+- [x] Lint + typecheck + build pass.

@@ -15,13 +15,18 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **TASK-0065 — Complete remaining intelligence and daily-marketing work:**
+  - Removed cancelled out-of-scope Meta-first requirements/tasks/trackers entirely: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.
+  - Audited and confirmed the 8 remaining requirements (`0033`, `0034`, `0036`, `0037`, `0046`, `0047`, `0048`, `0050`) are implemented in the intelligence module and supporting UI; updated REQ/TASK/TRACKER statuses to `Implemented`/`Completed`/`Done`.
+  - Added `/daily-marketing` and `/stores/[storeId]/daily-marketing` pages that surface the daily brief, today’s actions, recommendations, product opportunities, DM/comment patterns, competitor alerts, trending hashtags, and best time to post.
+  - Added **Daily Marketing** link to the sidebar under Home.
+  - `npx tsx scripts/task-status.ts --summary` now reports: 61 total | 61 done | 0 left.
+
 - **TASK-0064 — Documentation cleanup and task status reconciliation:**
   - Deleted 28 orphaned `docs/tasks/TASK-*.md` files with no matching requirement.
   - Marked implemented features as `Implemented` in their REQ, `Completed` in their TASK, and `Done` in their TRACKER.
-  - Removed cancelled out-of-scope Meta-first requirements/tasks/trackers: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.
   - Fixed status mismatches where trackers were 100% but requirements were still `Draft`/`In Progress`.
   - Updated `scripts/task-status.ts` to report `Done`, `Cancelled`, and `Left` separately.
-  - Current state: 60 requirements | 52 done | 8 left.
 
 - **TASK-0063 — Documentation restructure and workflow automation:**
   - Unified document structure: `docs/specs/current-state.md` (living architecture) + `docs/requirements/REQ-<id>*.md` + `docs/tasks/TASK-<id>*.md` + `docs/trackers/TRACKER-<id>*.md`.

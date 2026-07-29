@@ -4,7 +4,7 @@ description: Unified Intelligence Layer (OmniConnect 2.0)
 
 # REQ-0033: Unified Intelligence Layer (OmniConnect 2.0)
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** `intelligence` (new horizontal module) + `analytics`, `crm`, `conversations`, `ecommerce`, `campaigns`, `content`, `branddeals`, `affiliates`, `reports`, `notifications`
 - **Original spec path:** `docs/specs/0033-unified-intelligence-layer.md` (restructured)
@@ -16,7 +16,7 @@ description: Unified Intelligence Layer (OmniConnect 2.0)
 
 
 - **Module(s):** `intelligence` (new horizontal module) + `analytics`, `crm`, `conversations`, `ecommerce`, `campaigns`, `content`, `branddeals`, `affiliates`, `reports`, `notifications`
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/TASK-350-unified-intelligence-layer.md`
 - **Related ADR(s):** —
@@ -185,15 +185,15 @@ The UIL does not introduce new third-party integrations. It consumes signals pro
 
 ## 13. Acceptance Criteria (Definition of Done)
 
-- [ ] Spec 0033 and linked task file are created and committed.
-- [ ] All P0 foundation services (`Signal`, `EntityLink`, `MetricDefinition`, `BusinessInsight`, `Recommendation`, `ActionPlan`, `Decision`, `Outcome`, `DataQualityIssue`) have Prisma models, repositories, and domain logic.
-- [ ] Shared APIs from §8 are implemented and RBAC-scoped.
-- [ ] `IntelligencePanel` and `TodayFeed` are visible on dashboard and embedded in at least CRM, Inbox, Orders, and Analytics.
-- [ ] At least the three initial stories (revenue decline, high-intent conversation, repeat-purchase re-engagement) work end-to-end.
-- [ ] Recommendation ranking, risk tiers, approval workflow, and outcome linkage are implemented.
-- [ ] Learning loop is closed: outcome measured → `BusinessLearning` updated → future ranking adjusted.
-- [ ] Lint + typecheck + build pass; no new `any` or cross-module deep imports.
-- [ ] `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] Spec 0033 and linked task file are created and committed.
+- [x] All P0 foundation services (`Signal`, `EntityLink`, `MetricDefinition`, `BusinessInsight`, `Recommendation`, `ActionPlan`, `Decision`, `Outcome`, `DataQualityIssue`) have Prisma models, repositories, and domain logic.
+- [x] Shared APIs from §8 are implemented and RBAC-scoped.
+- [x] `IntelligencePanel` and `TodayFeed` are visible on dashboard and embedded in at least CRM, Inbox, Orders, and Analytics.
+- [x] At least the three initial stories (revenue decline, high-intent conversation, repeat-purchase re-engagement) work end-to-end.
+- [x] Recommendation ranking, risk tiers, approval workflow, and outcome linkage are implemented.
+- [x] Learning loop is closed: outcome measured → `BusinessLearning` updated → future ranking adjusted.
+- [x] Lint + typecheck + build pass; no new `any` or cross-module deep imports.
+- [x] `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Open Questions
 
