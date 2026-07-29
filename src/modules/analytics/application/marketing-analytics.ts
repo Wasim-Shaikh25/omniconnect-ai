@@ -62,12 +62,20 @@ const ATTRIBUTION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 function attributeOrdersToMedia(
   media: MetaMediaItem[],
-  orders: { createdAt: Date; total: number | null }[],
-): Map<string, { orders: number; revenue: number }> {
-  const result = new Map<string, { orders: number; revenue: number }>();
+  orders: { createdAt: Date; total: number | null; customerEmail?: string | null; customerRef?: string | null; couponCode?: string | null }[],
+): {
+  byMedia: Map<string, { orders: number; revenue: number }>;
+  newCustomersFromMeta: number;
+  ordersByCoupon: Map<string, { used: number; revenue: number }>;
+} {
+  const byMedia = new Map<string, { orders: number; revenue: number }>();
   for (const item of media) {
-    result.set(item.id, { orders: 0, revenue: 0 });
+    byMedia.set(item.id, { orders: 0, revenue: 0 });
   }
+
+  const ordersByCoupon = new Map<string, { used: number; revenue: number }>();
+  const seenCustomers = new Set<string>();
+  let newCustomersFromMeta = 0;
 
   for (const order of orders) {
     const orderDate = new Date(order.createdAt);
@@ -85,15 +93,30 @@ function attributeOrdersToMedia(
       }
     }
     if (best) {
-      const entry = result.get(best.id);
+      const entry = byMedia.get(best.id);
       if (entry) {
         entry.orders += 1;
         entry.revenue += order.total ?? 0;
       }
+      const customerKey = order.customerEmail || order.customerRef || "";
+      if (customerKey && !seenCustomers.has(customerKey)) {
+        seenCustomers.add(customerKey);
+        newCustomersFromMeta += 1;
+      }
     }
+
+    if (order.couponCode) {
+      const couponEntry = ordersByCoupon.get(order.couponCode) ?? { used: 0, revenue: 0 };
+      couponEntry.used += 1;
+      couponEntry.revenue += order.total ?? 0;
+      ordersByCoupon.set(order.couponCode, couponEntry);
+    }
+
+    const customerKey = order.customerEmail || order.customerRef || "";
+    if (customerKey) seenCustomers.add(customerKey);
   }
 
-  return result;
+  return { byMedia, newCustomersFromMeta, ordersByCoupon };
 }
 
 export function makeGetMarketingPerformance(deps: {
@@ -185,6 +208,7 @@ export function makeGetMarketingPerformance(deps: {
       }
     }
     const revenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
+    const aov = orders.length > 0 ? revenue / orders.length : null;
 
     const activeCoupons = coupons.filter((c) => c.status === "ACTIVE");
 
@@ -193,13 +217,29 @@ export function makeGetMarketingPerformance(deps: {
       byType[m.mediaType] = (byType[m.mediaType] ?? 0) + 1;
     }
 
-    const attribution = attributeOrdersToMedia(ownMedia, orders);
-    const postOrders = ownMedia.reduce((sum, m) => sum + (attribution.get(m.id)?.orders ?? 0), 0);
-    const postRevenue = ownMedia.reduce((sum, m) => sum + (attribution.get(m.id)?.revenue ?? 0), 0);
+    const attribution = attributeOrdersToMedia(
+      ownMedia,
+      orders.map((o) => ({
+        createdAt: o.orderDate,
+        total: o.total,
+        customerEmail: o.customerEmail,
+        customerRef: o.customerRef,
+        couponCode: o.couponCode,
+      })),
+    );
 
-    const topContentPosts = topN(ownMedia, (m) => attribution.get(m.id)?.revenue ?? engagementScore(m), 5).map((m) => {
+    const couponsGenerated = coupons.length;
+    const couponsUsed = attribution.ordersByCoupon.size > 0
+      ? Array.from(attribution.ordersByCoupon.values()).reduce((sum, c) => sum + c.used, 0)
+      : orders.filter((o) => o.couponCode).length;
+    const couponRevenue = Array.from(attribution.ordersByCoupon.values()).reduce((sum, c) => sum + c.revenue, 0);
+    const couponConversionRate = couponsGenerated > 0 ? (couponsUsed / couponsGenerated) * 100 : null;
+    const postOrders = ownMedia.reduce((sum, m) => sum + (attribution.byMedia.get(m.id)?.orders ?? 0), 0);
+    const postRevenue = ownMedia.reduce((sum, m) => sum + (attribution.byMedia.get(m.id)?.revenue ?? 0), 0);
+
+    const topContentPosts = topN(ownMedia, (m) => attribution.byMedia.get(m.id)?.revenue ?? engagementScore(m), 5).map((m) => {
       const metrics = m.metrics ?? {};
-      const attr = attribution.get(m.id) ?? { orders: 0, revenue: 0 };
+      const attr = attribution.byMedia.get(m.id) ?? { orders: 0, revenue: 0 };
       return {
         id: m.id,
         caption: m.caption ?? "",
@@ -258,10 +298,15 @@ export function makeGetMarketingPerformance(deps: {
         ? "Feature your highest-engagement product in the next Reel and add a shoppable link."
         : "Run a coupon campaign for your top product to increase average order value.";
 
-    const topCampaigns = activeCoupons.slice(0, 5).map((c) => ({
-      name: `Coupon ${c.code}`,
-      couponsGenerated: 1,
-      couponsUsed: 0,
+    const topCampaigns = topN(
+      Array.from(new Set([...coupons.map((c) => c.code), ...orders.filter((o) => o.couponCode).map((o) => o.couponCode as string)])),
+      (code) => attribution.ordersByCoupon.get(code)?.revenue ?? 0,
+      5,
+    ).map((code) => ({
+      name: `Coupon ${code}`,
+      couponsGenerated: coupons.filter((c) => c.code === code).length || 1,
+      couponsUsed: attribution.ordersByCoupon.get(code)?.used ?? 0,
+      revenue: attribution.ordersByCoupon.get(code)?.revenue ?? 0,
     }));
     const campaignWhy =
       activeCoupons.length === 0
@@ -326,6 +371,8 @@ export function makeGetMarketingPerformance(deps: {
         orders: orders.length,
         revenue,
         currency,
+        aov,
+        newCustomersFromMeta: attribution.newCustomersFromMeta,
         topProductByRevenue,
         why: productWhy,
         nextRecommendation: productNext,
@@ -333,8 +380,10 @@ export function makeGetMarketingPerformance(deps: {
       },
       campaign: {
         activeCampaigns: activeCoupons.length,
-        couponsGenerated: coupons.length,
-        couponsUsed: 0,
+        couponsGenerated,
+        couponsUsed,
+        couponConversionRate,
+        couponRevenue,
         why: campaignWhy,
         nextRecommendation: campaignNext,
         topCampaigns,

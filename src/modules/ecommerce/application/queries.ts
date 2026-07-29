@@ -4,10 +4,11 @@ import type {
   CouponRepository,
   IntegrationRecord,
   IntegrationRepository,
+  OrderRecord,
+  OrderRepository,
   ProductRecord,
   ProductRepository,
 } from "./ports";
-import type { ConnectorOrder } from "../domain/connector";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { paginatedResult, toSkip } from "@/shared/kernel";
 
@@ -15,21 +16,24 @@ export interface StoreConnectionView {
   connected: boolean;
   integration: IntegrationRecord | null;
   productCount: number;
+  orderCount: number;
 }
 
 export function makeEcommerceQueries(deps: {
   integrations: IntegrationRepository;
   products: ProductRepository;
   coupons: CouponRepository;
+  orders: OrderRepository;
   connectors: ConnectorFactory;
 }) {
   return {
     async getStoreConnection(storeId: string): Promise<StoreConnectionView> {
-      const [integration, productCount] = await Promise.all([
+      const [integration, productCount, orderCount] = await Promise.all([
         deps.integrations.findEcommerceByStore(storeId),
         deps.products.countByStore(storeId),
+        deps.orders.countByStore(storeId),
       ]);
-      return { connected: !!integration, integration, productCount };
+      return { connected: !!integration, integration, productCount, orderCount };
     },
 
     async listProducts(
@@ -83,22 +87,21 @@ export function makeEcommerceQueries(deps: {
     async listOrders(
       storeId: string,
       limit = 50,
-    ): Promise<ConnectorOrder[]> {
-      const connector = await deps.connectors.forStore(storeId);
-      return connector.getOrders(limit);
+      since?: Date,
+    ): Promise<OrderRecord[]> {
+      return deps.orders.listByStore(storeId, { limit, since });
     },
 
     async listOrdersPaginated(
       storeId: string,
       pagination: PaginationInput,
       search?: string,
-    ): Promise<PaginatedResult<ConnectorOrder>> {
-      const connector = await deps.connectors.forStore(storeId);
-      const all = await connector.getOrders(250);
+    ): Promise<PaginatedResult<OrderRecord>> {
+      const all = await deps.orders.listByStore(storeId, { since: new Date(0) });
       const q = search?.toLowerCase() ?? "";
       const filtered = q
         ? all.filter((o) =>
-            `${o.externalId} ${o.customerRef ?? ""} ${o.currency ?? ""}`.toLowerCase().includes(q)
+            `${o.externalId} ${o.customerRef ?? ""} ${o.currency ?? ""} ${o.couponCode ?? ""}`.toLowerCase().includes(q)
           )
         : all;
       const skip = toSkip(pagination);

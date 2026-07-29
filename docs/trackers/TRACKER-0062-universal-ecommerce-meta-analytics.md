@@ -1,6 +1,6 @@
 # TRACKER-0062: Universal E-commerce Connectors + Meta Business Growth Analytics
 
-- **Status:** In Progress
+- **Status:** Completed
 - **Requirement:** `docs/requirements/REQ-0062-universal-ecommerce-meta-analytics.md`
 - **Task:** `docs/tasks/TASK-0062-universal-ecommerce-meta-analytics.md`
 - **Module(s):** ecommerce, meta, analytics, coupons, ai, crm, conversations
@@ -14,60 +14,60 @@ Implement the universal e-commerce and advanced analytics capabilities from the 
 ## Subtasks
 
 ### Schema & Attribution Foundation
-- [ ] Add `Order.attributedMediaId`, `Order.attributionSource`, `Order.couponCode`, `Order.isFirstTimeCustomer` with indexes.
-- [ ] Add `Coupon.usageCount`, `Coupon.revenueAttributed`, `Coupon.lastUsedAt`.
-- [ ] Extend `MediaPost`/`MediaInsight` with reel/video/story metrics.
-- [ ] Generate and apply Prisma migration.
-- [ ] Update order-sync logic to attribute orders to media (7-day window) and coupon codes.
-- [ ] Mark first-time customers based on store order history.
+- [x] Add `Order.attributedMediaId`, `Order.attributionSource`, `Order.couponCode`, `Order.isFirstTimeCustomer` with indexes.
+- [x] Add `Coupon.usageCount`, `Coupon.revenueAttributed`, `Coupon.lastUsedAt`.
+- [x] Extend `MediaPost`/`MediaInsight` with reel/video/story metrics.
+- [x] Generate and apply Prisma migration.
+- [x] Update order-sync logic to attribute orders to media (7-day window) and coupon codes.
+- [x] Mark first-time customers based on store order history.
 
 ### Universal E-commerce Connectors
-- [ ] Refactor `ConnectorCredentials` to support provider-specific credential shapes.
-- [ ] Update `getConnector` registry to dispatch WooCommerce/BigCommerce/Magento.
-- [ ] Implement `WooCommerceConnector` (REST v3 products/orders/customers/coupons).
-- [ ] Implement `BigCommerceConnector` (v3 products/orders/customers; v2 promotions).
-- [ ] Implement `MagentoConnector` (REST V1 products/orders/customers) or document as Phase 2.
-- [ ] Add provider-specific connect forms and validation.
-- [ ] Add connector unit tests with mocked HTTP responses.
+- [x] Refactor `ConnectorCredentials` to support provider-specific credential shapes.
+- [x] Update `getConnector` registry to dispatch WooCommerce/BigCommerce/Magento.
+- [x] Implement `WooCommerceConnector` (REST v3 products/orders/customers/coupons).
+- [x] Implement `BigCommerceConnector` (v3 products/orders/customers; v2 promotions).
+- [x] Implement `MagentoConnector` (REST V1 products/orders/customers) or document as Phase 2.
+- [x] Add provider-specific connect forms and validation.
+- [x] Add connector unit tests with mocked HTTP responses.
 
 ### Enhanced Meta Insights
-- [ ] Extend `MetaService.getAccountMedia` to fetch reels/stories/live where available.
-- [ ] Extend `MetaService.getMediaInsights` with video, follows, profile visits, saves, shares.
-- [ ] Add story-insights webhook handling (best-effort).
-- [ ] Add `searchHashtagMedia` / `getTrendingAudio` public API wrappers (with Apify fallback).
+- [x] Extend `MetaService.getAccountMedia` to fetch reels/stories/live where available.
+- [x] Extend `MetaService.getMediaInsights` with video, follows, profile visits, saves, shares.
+- [x] Add story-insights webhook handling (best-effort).
+- [x] Add `searchHashtagMedia` / `getTrendingAudio` public API wrappers (with Apify fallback).
 
 ### Analytics Dashboard
-- [ ] Extend `MarketingPerformanceView` with `newCustomersFromMeta`, `couponsUsed`, `couponConversionRate`, `topContentByRevenue`.
-- [ ] Build `/analytics/growth` page with KPI cards, growth chart, and content-attribution table.
-- [ ] Add coupon effectiveness table.
-- [ ] Add new-customers-from-Meta metric and list.
-- [ ] Add trending content panel (hashtags, audio, competitor posts, AI reuse suggestions).
-- [ ] Add best-time-to-post heatmap.
-- [ ] Add AI content calendar with suggested publish times.
-- [ ] Add data-quality badges and empty states.
+- [x] Extend `MarketingPerformanceView` with `newCustomersFromMeta`, `couponsUsed`, `couponConversionRate`, `topContentByRevenue`.
+- [x] Build `/analytics/growth` page with KPI cards, growth chart, and content-attribution table.
+- [x] Add coupon effectiveness table.
+- [x] Add new-customers-from-Meta metric and list.
+- [x] Add trending content panel (hashtags, audio, competitor posts, AI reuse suggestions).
+- [x] Add best-time-to-post heatmap.
+- [x] Add AI content calendar with suggested publish times.
+- [x] Add data-quality badges and empty states.
 
 ### AI & Recommendations
-- [ ] Extend `generateContentIdea` to include `basedOnMediaIds`, `predictedEngagement`, `suggestedPublishAt`.
-- [ ] Add `getBestTimeToPost` analytic from historical engagement/order spikes.
-- [ ] Add `getContentCalendar` use case and server action.
-- [ ] Add AI “repurpose this top post” recommendations.
+- [x] Extend `generateContentIdea` to include `basedOnMediaIds`, `predictedEngagement`, `suggestedPublishAt`.
+- [x] Add `getBestTimeToPost` analytic from historical engagement/order spikes.
+- [x] Add `getContentCalendar` use case and server action.
+- [x] Add AI “repurpose this top post” recommendations.
 
 ### Reports
-- [ ] Extend weekly AI report with growth, attribution, coupon performance, and content calendar.
+- [x] Extend weekly AI report with growth, attribution, coupon performance, and content calendar.
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `DATABASE_URL=... npm run typecheck` passes.
-- [ ] `npm run test` passes (new connector tests + attribution tests).
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` and `npm run build:worker` pass.
-- [ ] Manual E2E: connect provider → sync products → create first-follower campaign → view analytics.
+- [x] `npm run lint` passes.
+- [x] `DATABASE_URL=... npm run typecheck` passes.
+- [x] `npm run test` passes (new connector tests + attribution tests).
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` and `npm run build:worker` pass.
+- [x] Manual E2E: connect provider → sync products → create first-follower campaign → view analytics.
 
 ## Acceptance Criteria
 
-- [ ] Matches the linked spec's acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches the linked spec's acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## Notes / Blockers
 

@@ -57,6 +57,8 @@ export interface ProductPerformanceSection {
   orders: number;
   revenue: number;
   currency: string | null;
+  aov: number | null;
+  newCustomersFromMeta: number;
   topProductByRevenue: { title: string; revenue: number } | null;
   why: string;
   nextRecommendation: string;
@@ -67,9 +69,11 @@ export interface CampaignSection {
   activeCampaigns: number;
   couponsGenerated: number;
   couponsUsed: number;
+  couponConversionRate: number | null;
+  couponRevenue: number;
   why: string;
   nextRecommendation: string;
-  topCampaigns: { name: string; couponsGenerated: number; couponsUsed: number }[];
+  topCampaigns: { name: string; couponsGenerated: number; couponsUsed: number; revenue: number }[];
 }
 
 export interface MarketingPerformanceView {

@@ -27,25 +27,57 @@ export function ConnectStoreForm({
     FormData
   >(action, {});
 
+  const isWooCommerce = provider === "WOOCOMMERCE";
+  const isBigCommerce = provider === "BIGCOMMERCE";
+  const isShopify = provider === "SHOPIFY";
+
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="storeId" value={storeId} />
       <input type="hidden" name="provider" value={provider} />
+      {isShopify && (
+        <div className="space-y-2">
+          <Label htmlFor="shopDomain">Shop domain</Label>
+          <Input
+            id="shopDomain"
+            name="shopDomain"
+            placeholder="my-shop.myshopify.com"
+          />
+        </div>
+      )}
+      {isWooCommerce && (
+        <div className="space-y-2">
+          <Label htmlFor="shopDomain">WooCommerce base URL</Label>
+          <Input
+            id="shopDomain"
+            name="shopDomain"
+            placeholder="https://my-store.com"
+          />
+          <Label htmlFor="consumerKey">Consumer key</Label>
+          <Input id="consumerKey" name="consumerKey" type="password" />
+          <Label htmlFor="consumerSecret">Consumer secret</Label>
+          <Input id="consumerSecret" name="consumerSecret" type="password" />
+        </div>
+      )}
+      {isBigCommerce && (
+        <div className="space-y-2">
+          <Label htmlFor="storeHash">Store hash</Label>
+          <Input id="storeHash" name="storeHash" placeholder="abc123" />
+        </div>
+      )}
       <div className="space-y-2">
-        <Label htmlFor="shopDomain">Shop domain (optional in dev)</Label>
-        <Input
-          id="shopDomain"
-          name="shopDomain"
-          placeholder="my-shop.myshopify.com"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="accessToken">Admin API access token (optional in dev)</Label>
+        <Label htmlFor="accessToken">
+          {isWooCommerce
+            ? "Admin API token (optional)"
+            : isBigCommerce
+              ? "X-Auth-Token"
+              : "Admin API access token"}
+        </Label>
         <Input
           id="accessToken"
           name="accessToken"
           type="password"
-          placeholder="shpat_…"
+          placeholder={isBigCommerce ? "Access token" : "shpat_…"}
         />
       </div>
       <p className="text-xs text-muted-foreground">

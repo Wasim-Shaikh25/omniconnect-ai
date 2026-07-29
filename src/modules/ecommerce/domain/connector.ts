@@ -9,12 +9,14 @@
  */
 
 export interface ConnectorCredentials {
-  /** Store/shop domain, e.g. "my-shop.myshopify.com". */
+  /** Store/shop domain, e.g. "my-shop.myshopify.com" or base URL for WooCommerce/Magento. */
   shopDomain?: string;
-  /** Admin API access token for the store. */
+  /** Admin API access token for the store (API key, bearer token, or BigCommerce token). */
   accessToken?: string;
   /** Optional refresh token for OAuth-based providers. */
   refreshToken?: string;
+  /** Provider-specific extras: consumerKey/consumerSecret for WooCommerce, storeHash for BigCommerce. */
+  metadata?: Record<string, string | undefined>;
 }
 
 export interface StoreInfo {
@@ -40,6 +42,9 @@ export interface ConnectorOrder {
   currency: string | null;
   createdAt: Date;
   customerRef: string | null;
+  customerEmail: string | null;
+  couponCode: string | null;
+  lineItems?: { externalId: string; title: string; quantity: number; price: number }[];
 }
 
 export interface ConnectorCustomer {

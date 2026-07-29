@@ -1,6 +1,6 @@
 # TASK-0062: Universal E-commerce Connectors + Meta Business Growth Analytics
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** Devin
 - **Module(s):** ecommerce, meta, analytics, coupons, ai, crm, conversations
 - **Requirement:** `docs/requirements/REQ-0062-universal-ecommerce-meta-analytics.md`
@@ -26,11 +26,16 @@ Implementation task for REQ-0062. Implementation details and code references wer
 
 ## 4. Subtasks
 
-- [ ] Review requirement and current state.
-- [ ] Implement or verify implementation.
-- [ ] Update `docs/specs/current-state.md` if contracts changed.
-- [ ] Update `CHANGELOG.md`.
-- [ ] Run lint + typecheck + tests + build.
+- [x] Review requirement and current state.
+- [x] Design connector contract extensions and schema additions.
+- [x] Implement WooCommerce connector.
+- [x] Implement BigCommerce connector.
+- [x] Document Magento connector as follow-up.
+- [x] Add Prisma migration and update sync logic with attribution.
+- [x] Extend analytics for growth/attribution/coupon/new-customer metrics.
+- [x] Add best-time-to-post and content calendar.
+- [x] Update `CHANGELOG.md`.
+- [x] Run lint + typecheck + tests + build.
 
 ## 5. Acceptance Criteria
 

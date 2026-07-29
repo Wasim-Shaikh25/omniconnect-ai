@@ -24,6 +24,7 @@ import {
   PlusCircle,
   Settings,
   Store,
+  TrendingUp,
   Users,
   X,
 } from "lucide-react";
@@ -104,6 +105,7 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
       label: "Analyze",
       items: [
         { href: "/analytics", label: "Analytics", icon: BarChart3 },
+        { href: "/analytics/growth", label: "Growth", icon: TrendingUp },
         { href: "/reports", label: "Reports", icon: DollarSign },
       ],
     },

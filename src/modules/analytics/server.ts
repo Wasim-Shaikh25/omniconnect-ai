@@ -13,6 +13,9 @@ import { socialQueries } from "@/modules/social";
 import { eventBus } from "@/shared/events";
 import type { MetaMediaItem } from "@/modules/meta";
 import { makeGetMarketingPerformance } from "./application/marketing-analytics";
+import { getBestTimeToPost } from "./application/best-time-to-post";
+import { getContentCalendar } from "./application/content-calendar";
+import type { ProductRecord } from "@/modules/ecommerce";
 
 export {
   analyticsQueries,
@@ -39,3 +42,25 @@ export const getMarketingPerformance = makeGetMarketingPerformance({
   getPageInsights: (storeId, days) => metaService.getPageInsights(storeId, days),
   getAudienceInsights: (storeId) => metaService.getAudienceInsights(storeId),
 });
+
+/** Compute the best hours/days to post from historical media engagement and order timing. */
+export async function getBestTimeToPostForStore(storeId: string): Promise<ReturnType<typeof getBestTimeToPost>> {
+  const [media, orders] = await Promise.all([
+    getAccountMedia(storeId, 100),
+    ecommerceQueries.listOrders(storeId, 500).catch(() => []),
+  ]);
+  return getBestTimeToPost({ media, orders });
+}
+
+/** Build an AI content calendar for the next 7 days using best-time-to-post and product catalog. */
+export async function getContentCalendarForStore(
+  storeId: string,
+  products: Pick<ProductRecord, "title">[] = [],
+): Promise<ReturnType<typeof getContentCalendar>> {
+  const [media, orders, storeProducts] = await Promise.all([
+    getAccountMedia(storeId, 100),
+    ecommerceQueries.listOrders(storeId, 500).catch(() => []),
+    products.length > 0 ? Promise.resolve(products) : ecommerceQueries.listProducts(storeId, 50).catch(() => []),
+  ]);
+  return getContentCalendar({ media, orders, products: storeProducts });
+}

@@ -236,7 +236,12 @@ function parseIdea(item: unknown, requestedFormat: string): TrendIdea | null {
   const score = typeof raw.predictedEngagementScore === "number" ? raw.predictedEngagementScore : 0;
   const bestTimeToPost = typeof raw.bestTimeToPost === "string" ? raw.bestTimeToPost : "";
   const cta = typeof raw.cta === "string" ? raw.cta : "";
-  return { title, format, hook, description, whyItWorks, hashtags, audioSuggestion, predictedEngagementScore: score, bestTimeToPost, cta };
+  const predictedRevenue = typeof raw.predictedRevenue === "number" ? raw.predictedRevenue : null;
+  const suggestedPublishAt = typeof raw.suggestedPublishAt === "string" ? new Date(raw.suggestedPublishAt) : null;
+  const basedOnMediaIds = Array.isArray(raw.basedOnMediaIds)
+    ? raw.basedOnMediaIds.filter((id): id is string => typeof id === "string")
+    : undefined;
+  return { title, format, hook, description, whyItWorks, hashtags, audioSuggestion, predictedEngagementScore: score, bestTimeToPost, cta, predictedRevenue, suggestedPublishAt, basedOnMediaIds };
 }
 
 function parseSingleIdea(raw: string, requestedFormat: string): TrendIdea {
@@ -251,5 +256,8 @@ function parseSingleIdea(raw: string, requestedFormat: string): TrendIdea {
     predictedEngagementScore: 50,
     bestTimeToPost: "Weekday, 11:00 AM local time",
     cta: "Tap the link in bio.",
+    predictedRevenue: null,
+    suggestedPublishAt: null,
+    basedOnMediaIds: undefined,
   };
 }

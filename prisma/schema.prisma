@@ -238,6 +238,7 @@ model Store {
 
   integrations             Integration[]
   products                 Product[]
+  orders                   Order[]
   coupons                  Coupon[]
   customers                Customer[]
   conversations            Conversation[]
@@ -319,18 +320,21 @@ enum CouponStatus {
 }
 
 model Coupon {
-  id          String       @id @default(cuid())
-  code        String
-  discountPct Int
-  status      CouponStatus @default(ACTIVE)
-  expiresAt   DateTime?
-  deletedAt   DateTime?
-  storeId     String
-  store       Store        @relation(fields: [storeId], references: [id])
-  customerId  String?
-  customer    Customer?    @relation(fields: [customerId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                String       @id @default(cuid())
+  code              String
+  discountPct       Int
+  status            CouponStatus @default(ACTIVE)
+  expiresAt         DateTime?
+  deletedAt         DateTime?
+  usageCount        Int          @default(0)
+  revenueAttributed Decimal?     @db.Decimal(12, 2)
+  lastUsedAt        DateTime?
+  storeId           String
+  store             Store        @relation(fields: [storeId], references: [id])
+  customerId        String?
+  customer          Customer?    @relation(fields: [customerId], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   usages CouponUsage[]
 
@@ -349,6 +353,40 @@ model CouponUsage {
 
   @@index([couponId])
   @@index([customerId])
+}
+
+enum AttributionSource {
+  META_POST
+  META_DM
+  META_STORY
+  META_LIVE
+  COUPON
+  DIRECT
+}
+
+model Order {
+  id                  String             @id @default(cuid())
+  externalId          String
+  storeId             String
+  store               Store              @relation(fields: [storeId], references: [id])
+  total               Decimal?           @db.Decimal(12, 2)
+  currency            String?
+  orderDate           DateTime
+  couponCode          String?
+  customerRef         String?
+  customerEmail       String?
+  attributedMediaId   String?
+  attributionSource   AttributionSource?
+  isFirstTimeCustomer Boolean            @default(false)
+  syncedAt            DateTime           @default(now())
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@unique([storeId, externalId])
+  @@index([storeId, attributedMediaId])
+  @@index([storeId, couponCode])
+  @@index([storeId, orderDate])
+  @@index([storeId, isFirstTimeCustomer])
 }
 
 // ── crm (customers) ─────────────────────────────────────────────────────────

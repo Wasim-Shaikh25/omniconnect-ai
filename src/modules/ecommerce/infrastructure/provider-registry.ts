@@ -6,6 +6,8 @@ import type {
 } from "../domain/connector";
 import { MockConnector } from "./providers/mock.connector";
 import { ShopifyConnector } from "./providers/shopify.connector";
+import { WooCommerceConnector } from "./providers/woocommerce.connector";
+import { BigCommerceConnector } from "./providers/bigcommerce.connector";
 
 /**
  * Provider registry — the single place that maps a provider + credentials to a
@@ -19,11 +21,28 @@ export function getConnector(
   provider: EcommerceProvider,
   credentials: ConnectorCredentials,
 ): EcommerceConnector {
-  const { shopDomain, accessToken, refreshToken } = credentials;
+  const { shopDomain, accessToken, refreshToken, metadata } = credentials;
 
   if (provider === "SHOPIFY" && shopDomain && accessToken) {
     logger.info("ecommerce.connector.resolved", { provider: "SHOPIFY" });
     return new ShopifyConnector(shopDomain, accessToken, refreshToken);
+  }
+
+  if (provider === "WOOCOMMERCE" && shopDomain) {
+    const consumerKey = metadata?.consumerKey;
+    const consumerSecret = metadata?.consumerSecret;
+    if (consumerKey && consumerSecret) {
+      logger.info("ecommerce.connector.resolved", { provider: "WOOCOMMERCE" });
+      return new WooCommerceConnector(shopDomain, consumerKey, consumerSecret);
+    }
+  }
+
+  if (provider === "BIGCOMMERCE" && accessToken) {
+    const storeHash = metadata?.storeHash ?? shopDomain;
+    if (storeHash) {
+      logger.info("ecommerce.connector.resolved", { provider: "BIGCOMMERCE" });
+      return new BigCommerceConnector(storeHash, accessToken);
+    }
   }
 
   logger.info("ecommerce.connector.resolved", {
