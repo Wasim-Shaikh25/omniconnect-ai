@@ -17,7 +17,7 @@ Move the bulk-delete success feedback out of `BulkDeleteToolbar` and into `Produ
 - [x] Update `CouponList` to own and display `bulkMessage`.
 - [x] Update `BulkDeleteToolbar` to call `onSuccess` and remove local success timer/display.
 - [x] Run `lint`, `typecheck`, `test`, `audit`, `build`, `build:worker`.
-- [ ] E2E re-test with `testing_agent`.
+- [x] E2E re-test with `testing_agent`.
 - [x] Update `CHANGELOG.md`.
 
 ## Acceptance Criteria
