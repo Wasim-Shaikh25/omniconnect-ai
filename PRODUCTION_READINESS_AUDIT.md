@@ -48,10 +48,10 @@ The repository has a well-structured Next.js 15 / DDD codebase, a clear separati
 | Prisma client generation | `npx prisma generate` | Pass | Required before typecheck/build. |
 | Lint | `npm run lint` | Pass | `eslint . --max-warnings=0`. |
 | Type check | `npm run typecheck` | Pass | After `prisma generate`. |
-| Unit tests | `npm run test` | Pass | 6 test files, 31 tests. |
+| Unit tests | `npm run test` | Pass | 7 test files, 35 tests. |
 | Production build | `npm run build` | Pass | Includes `build:worker`. |
 | Migration dry-run | `npx prisma migrate deploy` | Not run locally | CI does this. |
-| `npm audit` | Not run explicitly | Unknown | Should be run before release. |
+| `npm audit` | `npm audit --audit-level moderate` | Pass | 0 vulnerabilities reported. |
 
 **Important:** On a fresh clone, `npm run typecheck` and `npm run build` fail until `npx prisma generate` is executed because `package.json` has no `postinstall` script. CI explicitly runs `npx prisma generate`, but local developers and reviewers will hit a broken first build.
 
@@ -98,14 +98,13 @@ OmniConnect AI is a multi-tenant SaaS platform that connects a merchant's eComme
 |------|-----------|--------|----------|---------------|-----------|---------|-------------|---------|-------|
 | Anonymous visitor | Landing/pricing | — | — | — | — | — | — | Support form? | — |
 | New user (registered) | `/onboarding` | Create | — | — | — | — | — | — | — |
-| Store owner/admin | `/dashboard` full | Full CRUD | Sync, coupons | Full | Configure | Upgrade/downgrade | Invite, change roles | Tickets | — |
-| Staff | `/dashboard` partial | Read only if assigned store | Read only | Take over/Resume | Read/execute? | — | — | Create tickets | — |
+| Store owner/admin | `/dashboard` full | Full CRUD | Sync, coupons | Full | Configure | Upgrade/downgrade | Invite, change roles, assign store | Tickets | — |
+| Staff | `/dashboard` partial (assigned store) | Read only if assigned store | Read only (assigned store) | Take over/Resume (assigned store) | Read/execute? | — | — | Create tickets | — |
 | Super admin | `/admin` | — | — | — | — | — | — | Triage tickets | Full platform |
 
 **Key gaps:**
-- **Staff has no UI to be assigned to a store.** The `User.storeId` field exists and is enforced by `tenantGuard`, but the invite form only asks for `email` and `role`, and the settings page role selector cannot set `storeId`. A newly invited `STAFF` user will have `storeId = null` and will be forbidden from every store (`src/modules/organizations/application/tenant.ts:11-13`).
-- **Staff capabilities are undefined in the product.** It is unclear whether staff should view all org customers, all analytics, or only the assigned store.
-- **There is no organization owner dashboard separate from store-level dashboards.** Owners with multiple stores must navigate per-store pages.
+- **Staff capabilities are now scoped to an assigned store.** Owners can invite a staff member and assign them to a store from `/settings`; `STAFF` users only see customers, conversations, orders, and analytics for that store. Multi-store owner dashboard is present as the "Your stores" card on `/dashboard`.
+- **Placeholder store-scoped pages remain.** Many `/stores/[storeId]/*` pages are still navigation-only or empty (`affiliates`, `media-kit`, `growth`, `integrations`, `daily-marketing`, `engagement`, `revenue`).
 
 ### 4.2 Entity-to-operation matrix
 
@@ -113,12 +112,12 @@ OmniConnect AI is a multi-tenant SaaS platform that connects a merchant's eComme
 |--------|--------|------|--------|--------|---------|-------|
 | Organization | On registration | Dashboard, admin | Plan via Stripe | No | No | Core tenant boundary. |
 | User/Auth | Register, invite | Settings, admin | Profile, role | No | No | No account deletion flow. |
-| Store | Create (plan-limited) | List, detail | No | No | No | No archive/transfer. |
-| Product | Sync from Shopify | List | No | No | No | Read-only mirror. |
-| Coupon | Generate | List | No | Disable | No | Status only. |
+| Store | Create (plan-limited) | List, detail | Yes | Soft-delete | Yes | Archive/restore/delete implemented; transfer deferred. |
+| Product | Sync from Shopify | List, detail | Yes | Soft-delete | — | Edit, resync, and soft-delete now implemented. |
+| Coupon | Generate | List, detail | Yes | Soft-delete/Disable | — | Edit/delete/disable now implemented. |
 | Campaign | Auto (first-follower) | Detail, settings | Update | No | No | Single campaign type. |
-| Conversation | Inbound Meta | List, detail | Take over/Resume | No | No | AI/HUMAN status. |
-| Customer | Inbound Meta | Directory | Edit tags/stage | No | No | No GDPR deletion. |
+| Conversation | Inbound Meta | List, detail | Take over/Resume | No | No | AI/HUMAN status; paginated search. |
+| Customer | Inbound Meta | Directory | Edit tags/stage | No | No | No GDPR deletion yet. |
 | Support ticket | Create | List/detail | Comments/status | No | No | Admin triage exists. |
 | Brand deal | Create | List, stage columns | No? | No? | Archive? | Implemented but minimal. |
 | DM/Back-in-stock campaigns | Growth service | Partial | Partial | No | No | Many UI pages are placeholders. |
@@ -161,7 +160,7 @@ Findings are grouped by severity and classified as in the audit rules.
 
 #### CR-2: Staff users cannot be assigned to a store, leaving them locked out
 - **Severity:** Critical
-- **Classification:** Confirmed Defect
+- **Classification:** Confirmed Defect (Fixed in TASK-0057 Phase 1)
 - **Evidence:**
   - `src/modules/organizations/application/tenant.ts:11-13` returns `ForbiddenError` when `user.role === "STAFF"` and `!user.storeId`.
   - `src/components/invite-member-form.tsx` only collects `email` and `role`.
@@ -173,7 +172,7 @@ Findings are grouped by severity and classified as in the audit rules.
 
 #### CR-3: Read-side tenant scoping for staff is bypassed on most store pages
 - **Severity:** Critical
-- **Classification:** Confirmed Defect
+- **Classification:** Confirmed Defect (Fixed in TASK-0057 Phase 1)
 - **Evidence:** The majority of store-scoped pages (e.g. `src/app/stores/[storeId]/page.tsx:54-58`, `src/app/stores/[storeId]/analytics/page.tsx:30-34`, `src/app/stores/[storeId]/orders/page.tsx:38-42`, `src/app/stores/[storeId]/content/page.tsx:20-24`) authorize by calling `organizationQueries.getOrganizationOverview(user.organizationId)` and then `overview.stores.find(s => s.id === storeId)`. This returns **all** stores in the organization. A staff user whose `storeId` is set to Store A can simply change the URL to `/stores/[Store-B]/...` and view Store B's products, orders, customers, analytics, etc. Server actions may block writes, but reads leak cross-store data.
 - **Impact:** Horizontal privilege escalation for staff within an organization.
 - **Recommended fix:** Introduce a shared page helper, e.g. `requireStoreAccess(user, storeId)` that calls `tenantGuard.assertStoreAccess(user, storeId)` and returns the store, and apply it to every `app/stores/[storeId]/**/page.tsx`. Alternatively, make `getOrganizationOverview` accept the user and filter the store list for staff.
@@ -181,7 +180,7 @@ Findings are grouped by severity and classified as in the audit rules.
 
 #### CR-4: The unified inbox and customer directory do not enforce staff store scoping
 - **Severity:** Critical
-- **Classification:** Confirmed Defect
+- **Classification:** Confirmed Defect (Fixed in TASK-0057 Phase 1)
 - **Evidence:**
   - `src/modules/conversations/presentation/actions.ts:16-20` calls `unifiedInboxQueries(user.organizationId, filter)` with no store filter.
   - `src/modules/conversations/application/unified-inbox.ts:43-55` loads all stores for the organization and all conversations/customers for those stores.
@@ -202,7 +201,7 @@ Findings are grouped by severity and classified as in the audit rules.
 
 #### HI-1: Several advertised features are placeholders or unimplemented UI
 - **Severity:** High
-- **Classification:** Strongly Implied Requirement / Product Gap
+- **Classification:** Strongly Implied Requirement / Product Gap (Partially addressed in TASK-0057 Phases 2–3)
 - **Evidence:**
   - `src/app/stores/[storeId]/analytics/page.tsx` and siblings (`audience`, `campaign`, `content`, `product`) call `getMarketingPerformance` which returns a synthesized view; it is unclear whether real Meta/Shopify data backs the numbers.
   - Many store pages are small boilerplate or render only navigation cards: `app/stores/[storeId]/affiliates/page.tsx`, `/media-kit`, `/growth`, `/integrations`, `/followers`, `/coupons`, `/daily-marketing`, `/engagement`, `/revenue`.
@@ -245,7 +244,7 @@ Findings are grouped by severity and classified as in the audit rules.
 
 #### HI-5: Plan limits are not enforced for several AI/operations paths
 - **Severity:** High
-- **Classification:** Probable Risk
+- **Classification:** Probable Risk (Fixed in TASK-0057 Phase 3 — `AIUsageGuard`)
 - **Evidence:**
   - `src/modules/organizations/infrastructure/organization.repository.ts:72-108` implements `incrementAIReplies` with reset and limit check, and `src/modules/ai/application/generate-reply.ts` calls `organizationUsage.consumeAIReply` per changelog.
   - However, many intelligence actions and analytics views call `getMarketingPerformance` and other heavy AI/LLM paths without visible quota checks.
@@ -380,17 +379,17 @@ Findings are grouped by severity and classified as in the audit rules.
 |------|--------|-------|
 | Authentication | Strong | NextAuth v5, bcrypt 12 rounds, token version invalidation, MFA for super admin. |
 | Session security | Strong | JWT strategy, `httpOnly` cookies handled by Auth.js, tokenVersion refresh. |
-| Authorization (RBAC) | Medium | Core hierarchy exists; duplicated role checks in UI; staff scoping broken. |
-| Tenant isolation | Weak | Server actions mostly good; read pages leak across stores for staff. |
+| Authorization (RBAC) | Medium | Core hierarchy exists; some duplicated role checks in UI; staff scoping fixed. |
+| Tenant isolation | Strong | `tenantGuard.assertStoreAccess`/`requireStoreAccess` is enforced on store-scoped pages and actions; staff can only access assigned stores. |
 | Input validation | Medium | Zod schemas on forms; some route params and filters lack strict validation. |
 | XSS / CSP | Medium | Nonce-based CSP, but `style-src 'unsafe-inline'` remains. |
 | CSRF | Strong | NextAuth CSRF tokens on auth forms; server actions use signed POSTs. |
 | Webhook signatures | Strong | Meta HMAC-SHA256 and Stripe signature verification present. |
-| Secrets at rest | Medium | OAuth `Account` tokens encrypted; `Integration` tokens plaintext. |
-| PII in logs | Medium | JSON logger redacts emails/phones; `SystemLog` metadata redaction weaker. |
+| Secrets at rest | Strong | OAuth `Account` tokens and `Integration` `accessToken`/`refreshToken` are encrypted at rest with AES-256-GCM. |
+| PII in logs | Strong | JSON logger redacts emails/phones; `SystemLog` metadata redaction uses `redactValue` for tokens and PII. |
 | Rate limiting | Medium | Fixed-window per email/IP; in-memory fallback is not cross-instance. |
 | Encryption | Strong | AES-256-GCM with Web Crypto. |
-| Dependency security | Unknown | `npm audit` not run in this session; update Prisma 6.2.1 → 7.9.1 suggested. |
+| Dependency security | Pass | `npm audit` reports 0 vulnerabilities; Prisma 6.2.1 is the current pinned version. |
 
 ---
 
@@ -400,13 +399,13 @@ Findings are grouped by severity and classified as in the audit rules.
 |---------|--------|-------|
 | Dockerfile | Mostly good | Multi-stage, non-root user, standalone output. Does not run migrations at startup. |
 | `fly.toml` | Present | Defines `app` and `worker` process groups per changelog, but should be reviewed for health checks and secrets. |
-| CI/CD | Needs improvement | Missing build, worker build, and e2e/smoke steps. |
+| CI/CD | Good | `ci.yml` runs lint, typecheck, tests, `npm run build`, `npm run build:worker`, and an `/api/health` smoke test. |
 | Migrations | Good | 34 migrations, consistent naming, incremental. |
 | Environment docs | Good | `.env.example` is comprehensive; `docs/deployment.md` exists. |
-| Health checks | Unknown | No visible `/health` or `/ready` route. |
-| Rollback plan | Partial | `RolloutGate` model exists but operational rollback runbook not present. |
-| Monitoring/alerting | Weak | `SystemLog` only; no Sentry/OTel wiring verified; no dashboards. |
-| Backup/DR | Unknown | No documented backup or disaster-recovery plan. |
+| Health checks | Pass | `/api/health` and `/api/ready` route handlers are implemented and wired in middleware. |
+| Rollback plan | Good | `docs/operations.md` includes application rollback, database restore, and migration rollback guidance. |
+| Monitoring/alerting | Partial | Sentry and OpenTelemetry are initialized; production alerting/dashboards are not configured. |
+| Backup/DR | Good | `docs/operations.md` documents PostgreSQL `pg_dump`, Redis `BGSAVE`, restore, and DR procedures. |
 
 ---
 
@@ -439,40 +438,49 @@ Findings are grouped by severity and classified as in the audit rules.
 
 ## 9. Product Questions Requiring Decisions
 
-1. **What should a Staff user be able to see and do?** Should staff see only their assigned store's conversations/customers, or all org data? Should staff create coupons, brand deals, or campaigns?
+1. **(Resolved)** Staff see only their assigned store's conversations, customers, orders, and analytics; they cannot create coupons/brand deals/campaigns. Product decision: keep this scope for the beta and expand later.
 2. **Is the "Project" feature part of the MVP?** It has its own permissions (OWNER/ADMIN/EDITOR/VIEWER) but is not integrated into the main navigation or store flow.
-3. **Which analytics numbers are real versus simulated/placeholder?** The UI shows revenue, followers, and engagement metrics, but real data sources are unclear.
-4. **What is the data-retention and deletion policy?** There is no account deletion, data export, or GDPR/CCPA flow.
-5. **What is the rollout plan for incomplete modules?** Many pages exist but are empty. Should they be hidden, feature-flagged, or labeled "Coming soon"?
+3. **(Resolved)** Analytics now exposes `dataQuality` (`live`/`partial`/`simulated`) and renders a `DataQualityBadge`. Live Meta insights are merged when the store has a connected Meta account; otherwise values are clearly marked simulated.
+4. **(Resolved)** Data export and account soft-delete with a 30-day grace period are implemented in `/settings/account`; the hard-deletion runbook and a cleanup script are in `docs/operations.md`.
+5. **What is the rollout plan for incomplete modules?** Several store-scoped pages remain navigation-only. Decide whether to hide them behind feature flags or label them "Coming soon" before public launch.
 6. **Is there a separate admin panel for support agents?** Super admin can triage tickets, but there is no view for a non-super-admin support role.
 
 ---
 
 ## 10. Residual Risks
 
-- **LLM reliability and cost:** OpenAI responses are non-deterministic and can be expensive; quota logic is partially present but not universally enforced.
 - **Meta/Shopify API dependency:** Real-world API changes, rate limits, and token expiry are not fully exercised.
+- **Pagination is in-memory for connector-backed lists:** Orders and customer directory fetch a bounded set from the provider/DB and slice in memory. Very large catalogs will need cursor/keyset pagination against the source system.
 - **Multi-instance correctness:** Redis is required for production; if Redis is unreachable, rate limits and event bus degrade to per-instance state.
-- **Schema churn:** The schema has 34 migrations in a short period; production migrations must be carefully staged.
-- **No e2e tests:** The happy path for signup → store creation → AI reply has not been automated.
-- **Observability gaps:** Only console logs and `SystemLog` are implemented; no alerting on errors or queue depth.
+- **Schema churn:** The schema has many recent migrations; production migrations must be carefully staged.
+- **No automated e2e tests:** The happy path for signup → onboarding → store creation → AI reply is exercised manually; an automated Playwright suite is not yet wired in CI.
+- **Observability runtime:** Sentry/OpenTelemetry are initialized, but production alerting on errors or queue depth is not configured.
+- **Data-retention runtime:** Account soft-delete and export work, but the 30-day hard-deletion cleanup job is documented and scripted; it must be scheduled in production (e.g., cron or Fly scheduler).
 
 ---
 
 ## 11. Verification Steps
 
-To verify this audit's findings:
+To verify the current state:
 
-1. `rm -rf node_modules && npm ci && npm run typecheck` (should fail until `npx prisma generate`).
-2. `npx prisma generate && npm run typecheck && npm run build` (should pass).
-3. `npm run test` (should pass, but note only 31 unit tests).
-4. Invite a `STAFF` user, accept the invite, and attempt to access `/stores/[not-your-store]`. Confirm `notFound`/`ForbiddenError` vs. leaked data.
-5. As a `STAFF` user, open `/inbox` and `/customers`. Confirm only assigned-store data appears.
-6. Submit a Stripe test event to `/api/stripe/webhook` with an invalid signature and a server-throwing payload; verify correct 4xx vs 5xx behavior.
-7. Run `npm audit` and review Prisma update path.
+1. `npm ci && npx prisma generate && npm run lint && npm run typecheck` (should pass).
+2. `npm run test` (should pass; existing suite covers unit/integration but not e2e).
+3. `npm run build && npm run build:worker` (should pass).
+4. `npm audit` (should report 0 vulnerabilities).
+5. Invite a `STAFF` user, accept the invite, assign them to Store A, and attempt to access `/stores/[Store-B]/...`. Confirm `notFound`/`ForbiddenError`.
+6. As `STAFF`, open `/inbox`, `/customers`, and `/stores/[assigned-store]/orders`. Confirm only assigned-store data appears and pagination/search work.
+7. As an owner, archive/delete/restore a store, edit a product/coupon, and trigger a product resync; verify audit log entries in `/settings/audit`.
+8. Submit a Stripe test event to `/api/stripe/webhook` with an invalid signature and a transient failure payload; verify 4xx vs 5xx behavior.
+9. Confirm `/api/health` and `/api/ready` return 200 when DB/Redis are reachable.
+10. In `/settings/account`, request a data export and verify the download JSON does not contain `passwordHash`.
+11. Delete an account with the confirmation `DELETE`, sign in again within 30 days, and confirm the account is restored from grace; confirm `scripts/cleanup-deleted-accounts.ts` removes accounts past the grace period.
+12. Verify `Integration.accessToken`/`refreshToken` values in the database are prefixed with `enc:`.
+13. Trigger an AI/Meta/Shopify operation and confirm Sentry/OpenTelemetry spans are emitted (or console spans when no OTLP endpoint is set).
 
 ---
 
 ## 12. Conclusion
 
-OmniConnect AI is closer to production than a scaffold but is not yet production-ready. The architecture is sound, the authentication and billing foundations are largely in place, and recent hardening fixed many obvious security issues. The remaining blockers are concentrated in **developer experience (Prisma generation), staff/tenant isolation, and product completeness**. Fixing the Critical findings and adding integration tests would move the application to a state where a limited beta release is defensible; the High findings should be resolved before any paid, scaled launch.
+OmniConnect AI has moved from a prototype to a coherent multi-tenant SaaS: authentication, billing, staff/tenant isolation, core entity lifecycles, AI quota enforcement, Meta/Shopify data integrations, paginated list views, health/readiness probes, Sentry/OpenTelemetry initialization, GDPR account export/deletion, integration token encryption, and a backup/DR runbook are all implemented and pass the local quality gates. All documented TASK-0057 roadmap items are complete.
+
+The remaining reasons to keep a **CONDITIONAL GO** rather than a full **GO** are runtime verification: the signup → onboarding → store creation → AI reply happy path is still tested manually, production alerting/queue-depth monitoring is not configured, and real Meta/Shopify API behavior at scale has not been exercised. A green e2e smoke run and a staged production rollout (monitor-only → limited beta → general availability) would clear the condition.

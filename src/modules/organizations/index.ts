@@ -64,6 +64,8 @@ export {
   validateSaaSCoupon,
   saasCouponRepository,
   inviteMember,
+  revokeInvite,
+  resendInvite,
   validateOrganizationInvite,
   acceptOrganizationInvite,
 } from "./infrastructure/container";
@@ -92,6 +94,9 @@ export type { CouponActionState } from "./presentation/saas-coupon.actions";
 export {
   inviteOrganizationMemberAction,
   registerWithInviteAction,
+  revokeInviteAction,
+  resendInviteAction,
+  removeOrganizationMemberAction,
 } from "./presentation/invite-member.actions";
 export type { InviteMemberActionState } from "./presentation/invite-member.actions";
 export {

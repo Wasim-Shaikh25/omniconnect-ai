@@ -27,15 +27,30 @@ function daysAgo(days: number): Date {
 }
 
 function fakeEcommerce(): EcommerceQueries {
+  const products = [
+    { id: "p1", storeId: "store-1", externalId: "ext-1", title: "Widget A", description: null, price: 99, currency: "INR", inventory: 42, imageUrl: null, deletedAt: null },
+    { id: "p2", storeId: "store-1", externalId: "ext-2", title: "Widget B", description: null, price: 149, currency: "INR", inventory: 18, imageUrl: null, deletedAt: null },
+    { id: "p3", storeId: "store-1", externalId: "ext-3", title: "Widget C", description: null, price: 199, currency: "INR", inventory: 7, imageUrl: null, deletedAt: null },
+  ];
   return {
     getStoreConnection: async () => ({ connected: true, integration: null, productCount: 3 }),
-    listProducts: async () => [
-      { id: "p1", externalId: "ext-1", title: "Widget A", price: 99, currency: "INR", inventory: 42, imageUrl: null },
-      { id: "p2", externalId: "ext-2", title: "Widget B", price: 149, currency: "INR", inventory: 18, imageUrl: null },
-      { id: "p3", externalId: "ext-3", title: "Widget C", price: 199, currency: "INR", inventory: 7, imageUrl: null },
-    ],
-    countProducts: async () => 3,
+    listProducts: async () => products,
+    listProductsPaginated: async (_storeId, pagination, _search) => ({
+      items: products.slice((pagination.page - 1) * pagination.limit, pagination.page * pagination.limit),
+      total: products.length,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: Math.ceil(products.length / pagination.limit) || 1,
+    }),
+    countProducts: async () => products.length,
     listCoupons: async () => [],
+    listCouponsPaginated: async (_storeId, pagination, _search) => ({
+      items: [],
+      total: 0,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: 0,
+    }),
     countCoupons: async () => 0,
     listOrders: async () => [
       // previous 7-day window
@@ -44,12 +59,30 @@ function fakeEcommerce(): EcommerceQueries {
       // current 7-day window: one low-AOV order
       { externalId: "ord-curr-1", total: 100, currency: "INR", createdAt: daysAgo(1), customerRef: "cust-3" },
     ],
+    listOrdersPaginated: async (_storeId, pagination, _search) => ({
+      items: [
+        { externalId: "ord-prev-1", total: 1000, currency: "INR", createdAt: daysAgo(8), customerRef: "cust-1" },
+        { externalId: "ord-prev-2", total: 1000, currency: "INR", createdAt: daysAgo(9), customerRef: "cust-2" },
+        { externalId: "ord-curr-1", total: 100, currency: "INR", createdAt: daysAgo(1), customerRef: "cust-3" },
+      ],
+      total: 3,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: 1,
+    }),
   };
 }
 
 function fakeConversations(): ConversationQueries {
   return {
     listConversations: async () => [],
+    listConversationsPaginated: async (_storeId, pagination, _search) => ({
+      items: [],
+      total: 0,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: 0,
+    }),
     countConversations: async () => 0,
     getConversation: async () => null,
   };
@@ -59,6 +92,13 @@ function fakeCrm(): CrmQueries {
   return {
     listCustomers: async () => [],
     listFollowers: async () => [],
+    listFollowersPaginated: async (_storeId, pagination, _search) => ({
+      items: [],
+      total: 0,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: 0,
+    }),
     countFollowers: async () => 0,
     getCustomerProfile: async () => null,
   };

@@ -56,6 +56,8 @@ export { AIContextBuilder } from "./application/ai-context";
 export type { AIContext } from "./application/ai-context";
 export { selectModel } from "./application/model-router";
 export type { AIOperation, ModelSelection } from "./application/model-router";
+export { aiUsageGuard } from "./application/usage-guard";
+export type { AIUsageGuard } from "./application/usage-guard";
 
 // Presentation
 export {

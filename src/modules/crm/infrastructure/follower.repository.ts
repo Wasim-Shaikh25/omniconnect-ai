@@ -58,17 +58,31 @@ export class PrismaFollowerRepository implements FollowerRepository {
     return { record: toRecord(created), isNew: true };
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<FollowerRecord[]> {
+  async listByStore(
+    storeId: string,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ): Promise<FollowerRecord[]> {
     const rows = await prisma.follower.findMany({
-      where: { storeId },
+      where: {
+        storeId,
+        ...(options.search
+          ? { username: { contains: options.search, mode: "insensitive" } }
+          : {}),
+      },
       orderBy: { followedAt: "desc" },
-      take: limit,
+      skip: options.offset ?? 0,
+      take: options.limit ?? 50,
     });
     return rows.map(toRecord);
   }
 
-  async countByStore(storeId: string): Promise<number> {
-    return prisma.follower.count({ where: { storeId } });
+  async countByStore(storeId: string, search?: string): Promise<number> {
+    return prisma.follower.count({
+      where: {
+        storeId,
+        ...(search ? { username: { contains: search, mode: "insensitive" } } : {}),
+      },
+    });
   }
 
   async recordCampaignEnrollment(input: {

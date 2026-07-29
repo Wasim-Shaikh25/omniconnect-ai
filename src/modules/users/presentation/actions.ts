@@ -13,6 +13,8 @@ import {
   setUserSuperAdmin,
   setUserStore,
   userRepository,
+  dataExportService,
+  deleteAccountService,
 } from "../infrastructure/container";
 
 export interface ProfileActionState {
@@ -177,4 +179,35 @@ export async function toggleUserSuperAdminAction(
 
   revalidatePath("/admin/users");
   return { ok: true, user };
+}
+
+export async function requestDataExportAction(): Promise<{ downloadUrl?: string; error?: string; ok?: boolean }> {
+  const user = await requireUser();
+  try {
+    const exportRequest = await dataExportService.requestExport(user.id, user.organizationId);
+    return { downloadUrl: exportRequest.downloadUrl ?? undefined, ok: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not create export" };
+  }
+}
+
+export async function listDataExportsAction() {
+  const user = await requireUser();
+  return dataExportService.listExports(user.id);
+}
+
+export async function deleteAccountAction(
+  _prev: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  const user = await requireUser();
+  const reasonRaw = formData.get("reason");
+  const confirmation = formData.get("confirmation");
+  if (confirmation !== "DELETE") {
+    return { error: "Type DELETE to confirm account deletion." };
+  }
+  const reason = typeof reasonRaw === "string" ? reasonRaw : undefined;
+  await deleteAccountService.deleteAccount(user.id, reason);
+  revalidatePath("/");
+  return { ok: true };
 }

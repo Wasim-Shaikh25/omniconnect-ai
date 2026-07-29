@@ -51,6 +51,14 @@ export { connectStoreSchema } from "./application/connect-store";
 export type { ConnectStoreInput } from "./application/connect-store";
 export { generateCouponSchema } from "./application/generate-coupon";
 export type { GenerateCouponInput } from "./application/generate-coupon";
+export { updateProductSchema } from "./application/update-product";
+export type { UpdateProductInput } from "./application/update-product";
+export { deleteProductSchema } from "./application/delete-product";
+export type { DeleteProductInput } from "./application/delete-product";
+export { updateCouponSchema } from "./application/update-coupon";
+export type { UpdateCouponInput } from "./application/update-coupon";
+export { deleteCouponSchema } from "./application/delete-coupon";
+export type { DeleteCouponInput } from "./application/delete-coupon";
 export type {
   IntegrationRecord,
   ProductRecord,
@@ -69,6 +77,10 @@ export {
   connectStore,
   syncProducts,
   generateCoupon,
+  updateProduct,
+  deleteProduct,
+  updateCoupon,
+  deleteCoupon,
   ecommerceQueries,
   detectCommerceInsights,
 } from "./infrastructure/container";
@@ -78,5 +90,11 @@ export {
   connectStoreAction,
   syncProductsAction,
   generateCouponAction,
+  updateProductAction,
+  deleteProductAction,
+  bulkDeleteProductsAction,
+  updateCouponAction,
+  deleteCouponAction,
+  bulkDeleteCouponsAction,
 } from "./presentation/actions";
 export type { EcommerceActionState } from "./presentation/actions";

@@ -4,6 +4,8 @@ import type {
   MessageRecord,
   MessageRepository,
 } from "./ports";
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
+import { paginatedResult, toSkip } from "@/shared/kernel";
 
 export interface ConversationDetail {
   conversation: ConversationRecord;
@@ -17,13 +19,33 @@ export function makeConversationQueries(deps: {
   return {
     listConversations(
       storeId: string,
-      limit = 50,
+      limitOrOptions: number | { limit?: number; offset?: number; search?: string } = 50,
     ): Promise<ConversationRecord[]> {
-      return deps.conversations.listByStore(storeId, limit);
+      const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
+      return deps.conversations.listByStore(storeId, options);
     },
 
-    countConversations(storeId: string): Promise<number> {
-      return deps.conversations.countByStore(storeId);
+    async listConversationsPaginated(
+      storeId: string,
+      pagination: PaginationInput,
+      search?: string,
+    ): Promise<PaginatedResult<ConversationRecord>> {
+      const [items, total] = await Promise.all([
+        deps.conversations.listByStore(storeId, {
+          ...pagination,
+          offset: toSkip(pagination),
+          search,
+        }),
+        deps.conversations.countByStore(storeId, { search }),
+      ]);
+      return paginatedResult(items, total, pagination);
+    },
+
+    countConversations(
+      storeId: string,
+      options?: { search?: string },
+    ): Promise<number> {
+      return deps.conversations.countByStore(storeId, options);
     },
 
     async getConversation(id: string): Promise<ConversationDetail | null> {

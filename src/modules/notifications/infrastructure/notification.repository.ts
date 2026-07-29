@@ -28,14 +28,33 @@ export class PrismaNotificationRepository implements NotificationRepository {
 
   async listByUser(
     userId: string,
-    limit = 50,
+    options: { limit?: number; offset?: number; search?: string } = {},
   ): Promise<NotificationRecord[]> {
+    const where: { userId: string; OR?: { title?: { contains: string; mode: "insensitive" }; body?: { contains: string; mode: "insensitive" } }[] } = { userId };
+    if (options.search) {
+      where.OR = [
+        { title: { contains: options.search, mode: "insensitive" } },
+        { body: { contains: options.search, mode: "insensitive" } },
+      ];
+    }
     const rows = await prisma.notification.findMany({
-      where: { userId },
+      where,
       orderBy: { createdAt: "desc" },
-      take: limit,
+      skip: options.offset ?? 0,
+      take: options.limit ?? 50,
     });
     return rows.map(toRecord);
+  }
+
+  async countByUser(userId: string, search?: string): Promise<number> {
+    const where: { userId: string; OR?: { title?: { contains: string; mode: "insensitive" }; body?: { contains: string; mode: "insensitive" } }[] } = { userId };
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { body: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    return prisma.notification.count({ where });
   }
 
   async findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]> {
@@ -57,6 +76,14 @@ export class PrismaNotificationRepository implements NotificationRepository {
       where: { id, userId },
       data: { read: true },
     });
+  }
+
+  async markAllReadByUser(userId: string): Promise<number> {
+    const result = await prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+    return result.count;
   }
 }
 

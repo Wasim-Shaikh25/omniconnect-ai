@@ -10,12 +10,15 @@ export interface AccountRecord {
   organizationId: string | null;
   storeId: string | null;
   tokenVersion: number;
+  deletedAt: Date | null;
 }
 
 /** Persistence port for user accounts (implemented in infrastructure). */
 export interface AccountRepository {
   findById(id: string): Promise<AccountRecord | null>;
   findByEmail(email: string): Promise<AccountRecord | null>;
+  findByEmailIncludingDeleted(email: string): Promise<AccountRecord | null>;
+  restoreAccount(id: string): Promise<AccountRecord | null>;
   updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
   bumpTokenVersion(id: string): Promise<AccountRecord | null>;
   create(input: {

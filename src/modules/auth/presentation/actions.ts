@@ -95,7 +95,7 @@ export async function loginAction(
     return { error: "Too many attempts. Try again later." };
   }
 
-  const account = await accounts.findByEmail(email);
+  const account = await accounts.findByEmailIncludingDeleted(email);
   if (!account?.passwordHash) {
     return { error: "Invalid email or password." };
   }

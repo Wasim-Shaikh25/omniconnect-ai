@@ -81,6 +81,7 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
       email,
       organizationId: input.organizationId,
       role,
+      storeId: storeId ?? null,
       token,
       createdByUserId: input.createdByUserId,
       expiresAt,

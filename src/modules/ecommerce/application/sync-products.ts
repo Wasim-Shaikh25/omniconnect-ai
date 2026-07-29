@@ -14,7 +14,7 @@ export function makeSyncProducts(deps: {
 }) {
   return async function syncProducts(
     storeId: string,
-  ): Promise<Result<{ count: number }, StoreNotConnectedError | ConnectorError>> {
+  ): Promise<Result<{ count: number; deleted: number }, StoreNotConnectedError | ConnectorError>> {
     let connector;
     try {
       connector = await deps.connectors.forStore(storeId);
@@ -42,7 +42,10 @@ export function makeSyncProducts(deps: {
       currency: p.currency ?? storeCurrency,
     }));
 
-    const count = await deps.products.upsertMany(storeId, normalized);
+    const { upserted: count, removed: deletedCount } = await deps.products.sync(
+      storeId,
+      normalized,
+    );
 
     await eventBus.publish(
       new ProductsSynced(storeId, {
@@ -61,8 +64,9 @@ export function makeSyncProducts(deps: {
       storeId,
       provider: connector.provider,
       count,
+      deleted: deletedCount,
     });
 
-    return ok({ count });
+    return ok({ count, deleted: deletedCount });
   };
 }

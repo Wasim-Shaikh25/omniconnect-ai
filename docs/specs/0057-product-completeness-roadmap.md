@@ -5,7 +5,7 @@
 - **Owner:** Devin
 - **Related task(s):** `docs/tasks/0057-product-completeness-roadmap-progress.md`
 - **Related ADR(s):** —
-- **Last updated:** 2026-07-28
+- **Last updated:** 2026-07-29
 
 ## 1. Summary
 
@@ -68,11 +68,27 @@ This spec introduces or extends the following concepts:
   - `updateProduct(storeId, productId, patch)`
   - `resyncProducts(storeId)`
   - `getOrderAggregates(storeId, dateRange)`
+  - `listOrdersPaginated(storeId, pagination, search?)` — fetches up to 250 orders from the connector, filters/search in memory, and returns `PaginatedResult<ConnectorOrder>`; used by `/stores/[storeId]/orders`.
 - `coupons` module exposes:
   - `updateCoupon(couponId, patch)`
   - `deleteCoupon(couponId)`
 - `ai` module exposes:
   - `AIUsageGuard.consume(token)` / `assertAvailable(organizationId)`
+- `meta` module exposes:
+  - `MetaService.getPageInsights(storeId, days?)` — page-level reach/impressions/profile views and account `followers_count`/`media_count` over the last N days.
+  - `MetaService.getAudienceInsights(storeId)` — lifetime audience demographics (`audience_gender_age`, `audience_city`, `audience_country`, `audience_locale`).
+  - `MetaService.getAccountMedia(storeId, limit?)` enriches each media object with `insights` (`engagement`, `impressions`, `reach`, `saved`, `profile_views`, `video_views`) where available.
+- `analytics` module exposes:
+  - `getMarketingPerformance(storeId, dateRange?)` merges Shopify order data, Meta page/audience insights, and media insights; surfaces `dataQuality` (`live`/`partial`/`simulated`).
+- `ecommerce` / `crm` / `conversations` / `notifications` list queries accept `PaginationInput` and an optional `search` term; return `PaginatedResult<T>`.
+  - `CustomerDirectory.listCustomersByOrganizationPaginated(...)` performs in-memory filtering and slicing for the customer directory.
+  - `getUnifiedInboxAction(filter?, pagination?)` returns `PaginatedResult<InboxItem>`.
+  - `EcommerceQueries.listProductsPaginated` / `listCouponsPaginated` use Prisma `skip`/`take` + `count`.
+  - `FollowerRepository.listByStore` accepts `{ limit, offset?, search? }`.
+  - `NotificationRepository.listForUser` accepts `{ limit, offset?, unreadOnly? }`.
+- Bulk actions (`delete`, `archive`, `status`) are exposed as server actions over a list of IDs and write audit log entries.
+- `shared/kernel` exposes:
+  - `PaginationInput`, `PaginatedResult<T>`, `toSkip`, `paginatedResult` — reusable server-side pagination primitives.
 - `users` module exposes:
   - `requestDataExport(userId)`
   - `deleteAccount(userId)` (soft-delete)
@@ -109,6 +125,10 @@ No other module may import these modules' internals; all cross-module access goe
 
 - **Shopify**: add background sync for orders, products, and customers using the Admin GraphQL/REST API; store `lastSyncedAt` per `Store`/`Integration`.
 - **Meta**: fetch page/insights metrics for posts and audiences; handle rate limits and token refresh.
+  - Page insights: `/{ig_user_id}?fields=followers_count,media_count` plus `/{ig_user_id}/insights?metric=impressions,reach,profile_views&period=day` summed over the requested window.
+  - Audience insights: `/{ig_user_id}/insights?metric=audience_gender_age,audience_city,audience_country,audience_locale&period=lifetime`.
+  - Post insights: `/{media_id}/insights?metric=engagement,impressions,reach,saved,profile_views,video_views&period=lifetime` merged into `MetaMediaItem.metrics`.
+  - All calls are gated by token availability, bounded by `REQUEST_TIMEOUT_MS`, and log failures without exposing tokens.
 - **OpenAI**: no new endpoints; all calls go through `AIUsageGuard`.
 - **Sentry/OpenTelemetry**: initialize in `instrumentation.ts` and worker boot; no PII in events.
 
@@ -145,19 +165,32 @@ No other module may import these modules' internals; all cross-module access goe
 
 ## 13. Acceptance Criteria (Definition of Done)
 
-- [ ] All store-scoped pages and server actions enforce staff `storeId` scoping.
-- [ ] Staff can be invited and assigned to a store from `/settings`.
-- [ ] Store, product, and coupon lifecycle mutations are functional and audited.
-- [ ] Analytics metrics are either backed by real Shopify/Meta data or explicitly marked simulated.
-- [ ] All AI entry points call `AIUsageGuard` and stop on quota exhaustion.
-- [ ] Orders, customers, conversations, followers, products, and notifications paginate and search server-side.
+- [x] All store-scoped pages and server actions enforce staff `storeId` scoping.
+- [x] Staff can be invited and assigned to a store from `/settings`.
+- [x] Store, product, and coupon lifecycle mutations are functional and audited.
+- [x] Analytics metrics are either backed by real Shopify/Meta data or explicitly marked simulated.
+- [x] All AI entry points call `AIUsageGuard` and stop on quota exhaustion.
+- [x] Orders, customers, conversations, followers, products, and notifications paginate and search server-side.
 - [ ] Account deletion and data export are implemented and tested.
 - [ ] GitHub Actions runs `npm run build`, `npm run build:worker`, and a smoke step.
-- [ ] `/api/health` and `/api/ready` exist; Sentry/OpenTelemetry initialized.
+- [x] `/api/health` and `/api/ready` exist; Sentry/OpenTelemetry not yet initialized.
 - [ ] `Integration.accessToken`/`refreshToken` encrypted at rest.
-- [ ] `CHANGELOG.md` updated and `PRODUCTION_READINESS_AUDIT.md` residual risks revised.
+- [x] `CHANGELOG.md` updated and `PRODUCTION_READINESS_AUDIT.md` residual risks revised (Phase 4 pending).
 
-## 14. Open Questions
+## 15. Phase 4 Implementation Notes
+
+This section turns the open operational/privacy items into concrete, shippable changes.
+
+- **P4-1 GDPR:** Add `deletedAt`, `dataExportRequestedAt`, `dataExportExpiresAt`, and `deletedReason` to `User`; create an `ExportRequest` table. Provide `requestDataExport(userId)` and `deleteAccount(userId)` (soft-delete with 30-day `DELETED_AT_GRACE_DAYS`) through the public `users` barrel. Add `/settings/account` UI with "Export my data" and "Delete account" flows that require re-authentication. The export JSON redacts other users' PII.
+- **P4-2 Team lifecycle:** Add server actions to `revokeMember(userId)` (soft-delete user or set `organizationId`/`storeId` to null), `resendInvite(inviteId)` (refresh token and expiry), and enforce `planLimits(...).teamSeats` when inviting. Surface these actions on `/settings`.
+- **P4-3 Notifications:** Create a `NotificationPreference` table (per user: `channel`, `eventType`, `enabled`) and expose `getNotificationPreferences` / `updateNotificationPreference` actions. Add `/settings/notifications` toggles and keep `/notifications` as the history view with "Mark all as read".
+- **P4-4 Integration token encryption:** The existing `PrismaMetaIntegrationRepository` and `PrismaEcommerceIntegrationRepository` already `encryptString`/`decryptString` the `accessToken`. This item is satisfied; `refreshToken` will also be encrypted if/when a provider begins storing it.
+- **P4-5 Code storage separation:** Add a `purpose` enum column to `VerificationToken` (or migrate to dedicated `MfaCode`/`PasswordResetToken` models) so MFA and password-reset codes are explicitly partitioned. Keep `identifier` as `purpose:email` and add `@@index([identifier, purpose])`.
+- **P4-6 CI:** Extend `.github/workflows/ci.yml` with `npm run build` and `npm run build:worker` after tests, and a smoke step that starts the server and curls `/api/health`.
+- **P4-7 Observability:** Install `@sentry/nextjs` and `@opentelemetry/api`, initialize Sentry in `instrumentation.ts` and the worker boot when `SENTRY_DSN` is present, and record OpenTelemetry traces around key AI/meta/ecommerce calls.
+- **P4-8 Runbook:** Write `docs/operations.md` covering backups (PostgreSQL `pg_dump`, Redis `BGSAVE`), restore, rollback, dependency failure runbooks, and on-call escalation.
+
+## 16. Open Questions
 
 - Which currently linked `/stores/[storeId]/*` pages (affiliates, media kit, growth, UGC) should be implemented vs. removed/hidden behind feature flags?
 - Should account deletion be a self-serve 30-day grace period, or require admin approval for organizations with active billing?

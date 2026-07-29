@@ -2,6 +2,7 @@ import { logger } from "@/shared/observability";
 import type {
   NotificationChannel,
   NotificationChannelAdapter,
+  NotificationPreferenceRepository,
   NotificationRepository,
   NotificationService,
   OrganizationMembersResolver,
@@ -9,6 +10,7 @@ import type {
 
 export function makeNotificationService(deps: {
   notifications: NotificationRepository;
+  preferences: NotificationPreferenceRepository;
   members: OrganizationMembersResolver;
   channels: Record<NotificationChannel, NotificationChannelAdapter>;
 }) {
@@ -32,7 +34,18 @@ export function makeNotificationService(deps: {
       const channel = input.channel ?? "IN_APP";
       const adapter = deps.channels[channel];
 
+      async function isEnabled(userId: string, eventType: string, ch: string): Promise<boolean> {
+        const prefs = await deps.preferences.listForUser(userId);
+        const key = `${ch}:${eventType}`;
+        const stored = prefs.find((p) => `${p.channel}:${p.eventType}` === key)?.enabled;
+        if (stored !== undefined) return stored;
+        // Defaults: IN_APP on, EMAIL off unless explicitly enabled.
+        return ch === "IN_APP";
+      }
+
       for (const userId of userIds) {
+        if (!(await isEnabled(userId, input.type, channel))) continue;
+
         const record = await deps.notifications.create({
           userId,
           storeId: input.storeId,

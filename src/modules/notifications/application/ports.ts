@@ -1,6 +1,8 @@
 import type { NotificationType, NotificationChannel, NotificationDeliveryTier } from "@prisma/client";
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
 export type { NotificationType, NotificationChannel, NotificationDeliveryTier };
+export type { PaginationInput, PaginatedResult };
 
 export interface NotificationRecord {
   id: string;
@@ -33,11 +35,13 @@ export interface NotificationRepository {
   create(input: CreateNotificationInput): Promise<NotificationRecord>;
   listByUser(
     userId: string,
-    limit?: number,
+    options?: { limit?: number; offset?: number; search?: string },
   ): Promise<NotificationRecord[]>;
+  countByUser(userId: string, search?: string): Promise<number>;
   findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
   countUnreadByUser(userId: string): Promise<number>;
   markAsRead(id: string, userId: string): Promise<void>;
+  markAllReadByUser(userId: string): Promise<number>;
 }
 
 export interface OrganizationMembersResolver {
@@ -61,8 +65,31 @@ export interface NotificationService {
 }
 
 export interface NotificationQueries {
-  listForUser(userId: string, limit?: number): Promise<NotificationRecord[]>;
+  listForUser(userId: string, limitOrOptions?: number | { limit?: number; offset?: number; search?: string }): Promise<NotificationRecord[]>;
+  listForUserPaginated(userId: string, pagination: PaginationInput, search?: string): Promise<PaginatedResult<NotificationRecord>>;
+  countForUser(userId: string, search?: string): Promise<number>;
   getUnreadCount(userId: string): Promise<number>;
   markAsRead(userId: string, notificationId: string): Promise<void>;
+  markAllRead(userId: string): Promise<number>;
   findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
+}
+
+export interface NotificationPreferenceRecord {
+  id: string;
+  userId: string;
+  channel: string;
+  eventType: string;
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NotificationPreferenceRepository {
+  listForUser(userId: string): Promise<NotificationPreferenceRecord[]>;
+  upsert(input: {
+    userId: string;
+    channel: string;
+    eventType: string;
+    enabled: boolean;
+  }): Promise<NotificationPreferenceRecord>;
 }

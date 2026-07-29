@@ -34,19 +34,27 @@ model User {
   store                   Store?        @relation(fields: [storeId], references: [id])
   notificationPreferences Json?
   tokenVersion            Int           @default(0)
+  deletedAt               DateTime?
+  deletedReason           String?
+  dataExportRequestedAt   DateTime?
+  dataExportExpiresAt     DateTime?
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
 
-  notifications Notification[]
-  accounts      Account[]
-  sessions      Session[]
-  auditLogs     AuditLog[]
-  tickets       SupportTicket[]
-  ticketComments TicketComment[]
-  projectMembers ProjectMember[]
+  notifications                 Notification[]
+  accounts                      Account[]
+  sessions                      Session[]
+  auditLogs                     AuditLog[]
+  tickets                       SupportTicket[]
+  ticketComments                TicketComment[]
+  projectMembers                ProjectMember[]
+  exportRequests                ExportRequest[]
+  notificationPreferencesDetail NotificationPreference[]
 
   @@index([organizationId])
   @@index([storeId])
+  @@index([deletedAt])
+  @@index([dataExportExpiresAt])
 }
 
 // NextAuth (Auth.js) adapter models.
@@ -89,6 +97,32 @@ model VerificationToken {
   @@index([expires])
 }
 
+// One-time codes used for super-admin MFA. Kept separate from password-reset tokens.
+model MfaCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, code])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+// One-time codes used for password reset. Kept separate from MFA codes.
+model PasswordResetCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, code])
+  @@index([email])
+  @@index([expiresAt])
+}
+
 // ── organizations ───────────────────────────────────────────────────────────
 enum Plan {
   FREE
@@ -97,15 +131,15 @@ enum Plan {
 }
 
 model Organization {
-  id                  String    @id @default(cuid())
-  name                String
-  plan                Plan      @default(FREE)
-  subscriptionId      String?
-  subscriptionStatus  String?
-  aiRepliesThisMonth  Int       @default(0)
-  aiRepliesResetAt    DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  name               String
+  plan               Plan      @default(FREE)
+  subscriptionId     String?
+  subscriptionStatus String?
+  aiRepliesThisMonth Int       @default(0)
+  aiRepliesResetAt   DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   users     User[]
   stores    Store[]
@@ -124,16 +158,17 @@ enum InviteStatus {
 }
 
 model OrganizationInvite {
-  id             String       @id @default(cuid())
-  email          String
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role           Role         @default(STAFF)
-  status         InviteStatus @default(PENDING)
-  token          String       @unique
+  id              String       @id @default(cuid())
+  email           String
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role            Role         @default(STAFF)
+  storeId         String?
+  status          InviteStatus @default(PENDING)
+  token           String       @unique
   createdByUserId String
-  createdAt      DateTime     @default(now())
-  expiresAt      DateTime
+  createdAt       DateTime     @default(now())
+  expiresAt       DateTime
 
   @@unique([organizationId, email])
   @@index([token])
@@ -189,19 +224,17 @@ enum EcommerceProvider {
 }
 
 model Store {
-  id             String            @id @default(cuid())
-  name           String
-  provider       EcommerceProvider @default(SHOPIFY)
-  domain         String?
-  organizationId String
-  organization   Organization      @relation(fields: [organizationId], references: [id])
-  archivedAt     DateTime?
-  deletedAt      DateTime?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  @@index([organizationId])
-  @@index([deletedAt])
+  id                String            @id @default(cuid())
+  name              String
+  provider          EcommerceProvider @default(SHOPIFY)
+  domain            String?
+  organizationId    String
+  organization      Organization      @relation(fields: [organizationId], references: [id])
+  archivedAt        DateTime?
+  deletedAt         DateTime?
+  lastProductSyncAt DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   integrations             Integration[]
   products                 Product[]
@@ -225,6 +258,9 @@ model Store {
   backInStockSubscriptions BackInStockSubscription[]
   commentUnlockCampaigns   CommentUnlockCampaign[]
   brandDeals               BrandDeal[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
 }
 
 enum IntegrationType {
@@ -246,31 +282,33 @@ model Integration {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
+  projects Project[]
+
   @@index([storeId, type])
   @@index([storeId, type, provider])
   @@index([externalId])
-
-  projects     Project[]
 }
 
 model Product {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   externalId  String
   title       String
   description String?
-  price       Decimal? @db.Decimal(12, 2)
+  price       Decimal?  @db.Decimal(12, 2)
   currency    String?
   inventory   Int?
   imageUrl    String?
+  deletedAt   DateTime?
   storeId     String
-  store       Store    @relation(fields: [storeId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  store       Store     @relation(fields: [storeId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   metaProductMappings      MetaProductMapping[]
   backInStockSubscriptions BackInStockSubscription[]
 
   @@unique([storeId, externalId])
+  @@index([deletedAt])
 }
 
 // ── coupons ─────────────────────────────────────────────────────────────────
@@ -286,6 +324,7 @@ model Coupon {
   discountPct Int
   status      CouponStatus @default(ACTIVE)
   expiresAt   DateTime?
+  deletedAt   DateTime?
   storeId     String
   store       Store        @relation(fields: [storeId], references: [id])
   customerId  String?
@@ -296,6 +335,7 @@ model Coupon {
   usages CouponUsage[]
 
   @@unique([storeId, code])
+  @@index([deletedAt])
 }
 
 model CouponUsage {
@@ -341,10 +381,6 @@ model Customer {
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
 
-  @@index([storeId])
-  @@index([igUserId])
-  @@index([fbUserId])
-
   conversations            Conversation[]
   coupons                  Coupon[]
   couponUsages             CouponUsage[]
@@ -353,6 +389,10 @@ model Customer {
   ugcAssets                UgcAsset[]
   ambassadors              Ambassador[]
   backInStockSubscriptions BackInStockSubscription[]
+
+  @@index([storeId])
+  @@index([igUserId])
+  @@index([fbUserId])
 }
 
 // ── meta / conversations ────────────────────────────────────────────────────
@@ -379,12 +419,12 @@ model Conversation {
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
+  messages Message[]
+
   @@index([storeId])
   @@index([storeId, customerId])
   @@index([customerId])
   @@index([assignedHumanId])
-
-  messages Message[]
 }
 
 enum MessageSender {
@@ -930,7 +970,7 @@ model BrandDeal {
 }
 
 model AuditLog {
-  id             String    @id @default(cuid())
+  id             String   @id @default(cuid())
   organizationId String?
   actorId        String?
   actorEmail     String?
@@ -938,7 +978,7 @@ model AuditLog {
   resource       String
   resourceId     String?
   details        String?
-  createdAt      DateTime  @default(now())
+  createdAt      DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   actor        User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
@@ -1636,6 +1676,43 @@ model SaaSCoupon {
   @@index([isActive, expiresAt])
 }
 
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  EXPIRED
+}
+
+model ExportRequest {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  status         ExportStatus @default(PENDING)
+  downloadUrl    String?
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  completedAt    DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   String // e.g. IN_APP, EMAIL
+  eventType String // e.g. NEW_MESSAGE, COUPON_GENERATED, ESCALATION
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, channel, eventType])
+  @@index([userId])
+}
+
 model SupportTicket {
   id             String         @id @default(cuid())
   organizationId String
@@ -1658,12 +1735,12 @@ model SupportTicket {
 }
 
 model TicketComment {
-  id          String   @id @default(cuid())
-  ticketId    String
-  userId      String
-  message     String
-  isInternal  Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  ticketId   String
+  userId     String
+  message    String
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)

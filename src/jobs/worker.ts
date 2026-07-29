@@ -1,6 +1,8 @@
 import { startIntelligenceWorker } from "@/modules/intelligence/server";
 import { env } from "@/shared/config";
-import { logger } from "@/shared/observability";
+import { logger, initSentry } from "@/shared/observability";
+
+initSentry();
 
 // Importing the server barrel loads the composition root and registers queue
 // handlers as a side effect, so we only need to start the worker here.

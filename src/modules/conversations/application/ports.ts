@@ -29,9 +29,12 @@ export interface ConversationRepository {
     externalId: string | null;
   }): Promise<ConversationRecord>;
 
-  listByStore(storeId: string, limit?: number): Promise<ConversationRecord[]>;
+  listByStore(
+    storeId: string,
+    options?: { limit?: number; offset?: number; search?: string },
+  ): Promise<ConversationRecord[]>;
 
-  countByStore(storeId: string): Promise<number>;
+  countByStore(storeId: string, options?: { search?: string }): Promise<number>;
 
   listByStoreIds(storeIds: string[], limit?: number): Promise<ConversationRecord[]>;
 

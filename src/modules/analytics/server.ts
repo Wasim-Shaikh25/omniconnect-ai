@@ -36,4 +36,6 @@ export const getMarketingPerformance = makeGetMarketingPerformance({
   social: socialQueries,
   eventBus,
   getAccountMedia,
+  getPageInsights: (storeId, days) => metaService.getPageInsights(storeId, days),
+  getAudienceInsights: (storeId) => metaService.getAudienceInsights(storeId),
 });

@@ -20,27 +20,32 @@ export interface IntegrationRepository {
     provider: EcommerceProvider;
     shopDomain: string | null;
     accessToken: string | null;
+    refreshToken?: string | null;
     scopes: string | null;
   }): Promise<IntegrationRecord>;
 
   findEcommerceByStore(storeId: string): Promise<IntegrationRecord | null>;
 
-  /** Access token is only read by the infrastructure layer to build a connector. */
+  /** Tokens are only read by the infrastructure layer to build a connector. */
   findCredentialsByStore(storeId: string): Promise<{
     provider: string;
     shopDomain: string | null;
     accessToken: string | null;
+    refreshToken: string | null;
   } | null>;
 }
 
 export interface ProductRecord {
   id: string;
   externalId: string;
+  storeId: string;
   title: string;
+  description: string | null;
   price: number | null;
   currency: string | null;
   inventory: number | null;
   imageUrl: string | null;
+  deletedAt: Date | null;
 }
 
 export interface ProductRepository {
@@ -49,16 +54,62 @@ export interface ProductRepository {
     products: ConnectorProduct[],
   ): Promise<number>;
 
-  listByStore(storeId: string, limit?: number): Promise<ProductRecord[]>;
-  countByStore(storeId: string): Promise<number>;
+  /**
+   * Atomically upsert the provided products and soft-delete any existing products
+   * for the store whose `externalId` is not in the batch. Returns the number of
+   * products upserted and removed.
+   */
+  sync(
+    storeId: string,
+    products: ConnectorProduct[],
+  ): Promise<{ upserted: number; removed: number }>;
+
+  update(
+    id: string,
+    input: {
+      title?: string;
+      description?: string | null;
+      price?: number | null;
+      currency?: string | null;
+      inventory?: number | null;
+      imageUrl?: string | null;
+    },
+  ): Promise<ProductRecord | null>;
+
+  findById(id: string): Promise<ProductRecord | null>;
+
+  listByStore(
+    storeId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      includeDeleted?: boolean;
+    },
+  ): Promise<ProductRecord[]>;
+  countByStore(storeId: string, search?: string): Promise<number>;
+
+  delete(id: string): Promise<ProductRecord | null>;
+
+  /**
+   * Soft-delete products for a store whose `externalId` is not in the provided set.
+   * Typically called after a sync to remove products no longer returned by the provider.
+   */
+  markDeletedNotInBatch(
+    storeId: string,
+    externalIds: string[],
+    deletedAt: Date,
+  ): Promise<number>;
 }
 
 export interface CouponRecord {
   id: string;
   code: string;
+  storeId: string;
   discountPct: number;
   status: string;
   expiresAt: Date | null;
+  deletedAt: Date | null;
 }
 
 export interface CouponRepository {
@@ -70,9 +121,32 @@ export interface CouponRepository {
     customerId: string | null;
   }): Promise<CouponRecord>;
 
+  findById(id: string): Promise<CouponRecord | null>;
+
+  update(
+    id: string,
+    input: {
+      discountPct?: number;
+      status?: string;
+      expiresAt?: Date | null;
+    },
+  ): Promise<CouponRecord | null>;
+
   disable(storeId: string, code: string): Promise<void>;
-  listByStore(storeId: string, limit?: number): Promise<CouponRecord[]>;
-  countByStore(storeId: string): Promise<number>;
+
+  /** Soft-delete a coupon. */
+  delete(id: string): Promise<CouponRecord | null>;
+
+  listByStore(
+    storeId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      includeDeleted?: boolean;
+    },
+  ): Promise<CouponRecord[]>;
+  countByStore(storeId: string, search?: string): Promise<number>;
 }
 
 /** Resolves the correct provider connector for a store. */

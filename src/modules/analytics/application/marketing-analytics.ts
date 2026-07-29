@@ -2,7 +2,7 @@ import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";
 import type { SocialQueries } from "@/modules/social";
-import type { MetaMediaItem } from "@/modules/meta";
+import type { MetaMediaItem, MetaPageInsights, MetaAudienceInsights, AudienceDemographics } from "@/modules/meta";
 import type { EventBus } from "@/shared/events";
 import { MarketingPerformanceUpdated } from "../domain/events";
 import type { MarketingPerformanceView } from "../domain/types";
@@ -40,8 +40,22 @@ function engagementScore(media: MetaMediaItem): number {
     (metrics.likes ?? 0) +
     (metrics.comments ?? 0) * 2 +
     (metrics.shares ?? 0) * 3 +
-    (metrics.plays ?? 0) * 0.1
+    (metrics.plays ?? 0) * 0.1 +
+    (metrics.engagement ?? 0) * 1 +
+    (metrics.saved ?? 0) * 2 +
+    (metrics.videoViews ?? 0) * 0.1
   );
+}
+
+function mapAudienceDemographics(
+  demographics: AudienceDemographics,
+): { genderAge: Record<string, number>; cities: Record<string, number>; countries: Record<string, number>; locales: Record<string, number> } {
+  return {
+    genderAge: { ...demographics.genderAge },
+    cities: { ...demographics.cities },
+    countries: { ...demographics.countries },
+    locales: { ...demographics.locales },
+  };
 }
 
 const ATTRIBUTION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,6 +103,8 @@ export function makeGetMarketingPerformance(deps: {
   social: SocialQueries;
   eventBus: EventBus;
   getAccountMedia?: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
+  getPageInsights?: (storeId: string, days?: number) => Promise<MetaPageInsights | null>;
+  getAudienceInsights?: (storeId: string) => Promise<MetaAudienceInsights | null>;
 }) {
   return async function getMarketingPerformance(
     input: GetMarketingPerformanceInput,
@@ -109,13 +125,28 @@ export function makeGetMarketingPerformance(deps: {
       ]);
 
     let ownMedia: MetaMediaItem[] = [];
+    let mediaSourceError = !deps.getAccountMedia;
     if (deps.getAccountMedia) {
       try {
         ownMedia = await deps.getAccountMedia(storeId, 25);
       } catch {
         ownMedia = [];
+        mediaSourceError = true;
       }
     }
+
+    let pageInsights: MetaPageInsights | null = null;
+    let audienceInsights: MetaAudienceInsights | null = null;
+    try {
+      pageInsights = deps.getPageInsights ? await deps.getPageInsights(storeId, 7) : null;
+      audienceInsights = deps.getAudienceInsights ? await deps.getAudienceInsights(storeId) : null;
+    } catch {
+      pageInsights = null;
+      audienceInsights = null;
+    }
+    const hasMediaInsights = ownMedia.some(
+      (m) => m.metrics?.reach != null || m.metrics?.impressions != null || m.metrics?.engagement != null,
+    );
 
     const newFollowersThisWeek = followers.filter((f) => f.followedAt >= since).length;
 
@@ -176,9 +207,11 @@ export function makeGetMarketingPerformance(deps: {
         likes: metrics.likes ?? 0,
         comments: metrics.comments ?? 0,
         shares: metrics.shares ?? 0,
-        plays: metrics.plays ?? 0,
+        plays: metrics.plays ?? metrics.videoViews ?? 0,
         reach: metrics.reach ?? 0,
         impressions: metrics.impressions ?? 0,
+        saved: metrics.saved ?? 0,
+        engagement: metrics.engagement ?? 0,
         orders: attr.orders,
         revenue: attr.revenue,
       };
@@ -243,10 +276,20 @@ export function makeGetMarketingPerformance(deps: {
 
     const summary = `Followers: ${followers.length} (${newFollowersThisWeek} new this week). Conversations: ${conversations.length}. Orders: ${orders.length}, revenue ${formatCurrency(revenue, currency)}. Post-attributed orders: ${postOrders} (${formatCurrency(postRevenue, currency)}). Top hashtags: ${topHashtags.map((h) => `#${h}`).join(", ") || "none"}.`;
 
+    let dataQuality: "live" | "partial" | "simulated" = "simulated";
+    if (hasMediaInsights) {
+      dataQuality = "live";
+    } else if (ownMedia.length > 0 || pageInsights != null) {
+      dataQuality = "partial";
+    } else if (!mediaSourceError) {
+      dataQuality = "partial";
+    }
+
     const view: MarketingPerformanceView = {
       organizationId: input.organizationId,
       storeId,
       generatedAt: new Date(),
+      dataQuality,
       content: {
         totalPosts,
         published: ownMedia.length,
@@ -266,6 +309,17 @@ export function makeGetMarketingPerformance(deps: {
         why: audienceWhy,
         nextRecommendation: audienceNext,
         segments: audienceSegments,
+        pageInsights: pageInsights
+          ? {
+              username: pageInsights.username,
+              followers: pageInsights.followers,
+              mediaCount: pageInsights.mediaCount,
+              impressions: pageInsights.impressions,
+              reach: pageInsights.reach,
+              profileViews: pageInsights.profileViews,
+            }
+          : null,
+        demographics: audienceInsights ? mapAudienceDemographics(audienceInsights.demographics) : null,
       },
       product: {
         totalProducts: connection.productCount,

@@ -171,12 +171,17 @@ export default async function DashboardPage() {
                 {kpis.stores.map((store) => (
                   <li
                     key={store.id}
-                    className="flex items-center justify-between py-3"
+                    className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div>
                       <p className="font-medium">{store.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {store.provider}
+                        {store.provider} · {store.productCount} products ·{" "}
+                        {store.followerCount} followers · {store.conversationCount}{" "}
+                        conversations · {store.couponCount} coupons
+                        {store.connected ? " · Connected" : " · Not connected"}
+                        {store.lastProductSyncAt &&
+                          ` · Last product sync ${new Date(store.lastProductSyncAt).toLocaleDateString("en-IN")}`}
                       </p>
                     </div>
                     <Button asChild variant="outline" size="sm">

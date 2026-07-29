@@ -14,6 +14,7 @@ export interface MetaIntegrationRepository {
     channel: MetaChannel;
     accountId: string | null;
     accessToken: string | null;
+    refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord>;
 
   findByStore(storeId: string): Promise<MetaIntegrationRecord | null>;
@@ -35,6 +36,10 @@ export interface MetaMediaMetrics {
   plays?: number;
   impressions?: number;
   reach?: number;
+  engagement?: number;
+  saved?: number;
+  profileViews?: number;
+  videoViews?: number;
 }
 
 export interface MetaMediaItem {
@@ -63,6 +68,26 @@ export interface CompetitorMediaOptions {
   limit?: number;
 }
 
+export interface MetaPageInsights {
+  username: string | null;
+  followers: number | null;
+  mediaCount: number | null;
+  impressions: number | null;
+  reach: number | null;
+  profileViews: number | null;
+}
+
+export interface AudienceDemographics {
+  genderAge: Record<string, number>;
+  cities: Record<string, number>;
+  countries: Record<string, number>;
+  locales: Record<string, number>;
+}
+
+export interface MetaAudienceInsights {
+  demographics: AudienceDemographics;
+}
+
 /** Outbound Graph API port (send replies, etc.). */
 export interface MetaService {
   sendMessage(input: {
@@ -89,6 +114,17 @@ export interface MetaService {
     storeId: string,
     limit?: number,
   ): Promise<MetaMediaItem[]>;
+
+  /** Fetch page-level insights for the connected account. */
+  getPageInsights(
+    storeId: string,
+    days?: number,
+  ): Promise<MetaPageInsights | null>;
+
+  /** Fetch audience demographics for the connected account. */
+  getAudienceInsights(
+    storeId: string,
+  ): Promise<MetaAudienceInsights | null>;
 
   /** Fetch public media for a competitor/creator handle. */
   getCompetitorMedia(

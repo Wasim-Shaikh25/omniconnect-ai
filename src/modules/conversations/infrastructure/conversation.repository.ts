@@ -71,17 +71,32 @@ export class PrismaConversationRepository implements ConversationRepository {
     return toRecord(created);
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<ConversationRecord[]> {
+  async listByStore(
+    storeId: string,
+    options: { limit?: number; offset?: number; search?: string } = {},
+  ): Promise<ConversationRecord[]> {
+    const where: { storeId: string; externalId?: { contains: string; mode: "insensitive" } } = { storeId };
+    if (options.search) {
+      where.externalId = { contains: options.search, mode: "insensitive" };
+    }
     const rows = await prisma.conversation.findMany({
-      where: { storeId },
+      where,
       orderBy: { updatedAt: "desc" },
-      take: limit,
+      skip: options.offset ?? 0,
+      take: options.limit ?? 50,
     });
     return rows.map(toRecord);
   }
 
-  async countByStore(storeId: string): Promise<number> {
-    return prisma.conversation.count({ where: { storeId } });
+  async countByStore(
+    storeId: string,
+    options: { search?: string } = {},
+  ): Promise<number> {
+    const where: { storeId: string; externalId?: { contains: string; mode: "insensitive" } } = { storeId };
+    if (options.search) {
+      where.externalId = { contains: options.search, mode: "insensitive" };
+    }
+    return prisma.conversation.count({ where });
   }
 
   async listByStoreIds(

@@ -19,14 +19,16 @@ export { updateProfileSchema } from "./application/update-profile";
 export type { UpdateProfileInput } from "./application/update-profile";
 export { changeRoleSchema } from "./application/change-role";
 export type { ChangeRoleInput } from "./application/change-role";
-export type { UserProfile } from "./application/ports";
+export type { UserProfile, ExportRequestRecord } from "./application/ports";
 export type {
   AuditLogRecord,
   CreateAuditLogInput,
 } from "./application/audit-ports";
+export type { UserDataExport } from "./application/data-export";
 
 // Queries + use-cases (composed)
 export {
+  userRepository,
   getUserProfile,
   listOrganizationUsers,
   listAllUsers,
@@ -35,6 +37,9 @@ export {
   setUserOrganization,
   auditQueries,
   auditCommands,
+  dataExportService,
+  deleteAccountService,
+  removeUserFromOrganization,
 } from "./infrastructure/container";
 
 // Presentation + bootstrap wiring
@@ -44,6 +49,9 @@ export {
   changeUserStoreAction,
   listAllUsersAction,
   toggleUserSuperAdminAction,
+  requestDataExportAction,
+  listDataExportsAction,
+  deleteAccountAction,
 } from "./presentation/actions";
 export type { ProfileActionState } from "./presentation/actions";
 export { registerUsersSubscribers } from "./infrastructure/subscribers";

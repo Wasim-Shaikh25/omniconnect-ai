@@ -11,6 +11,8 @@ import { makeOrganizationUsageService } from "../application/usage";
 import { makeBillingService } from "../application/billing";
 import { makeCreateSaaSCoupon, makeValidateSaaSCoupon } from "../application/saas-coupon";
 import { makeInviteMember } from "../application/invite-member";
+import { makeRevokeInvite } from "../application/revoke-invite";
+import { makeResendInvite } from "../application/resend-invite";
 import { makeCreateOrganization } from "../application/create-organization";
 import {
   makeValidateInvite,
@@ -84,6 +86,7 @@ export const deleteStore = makeDeleteStore({ stores });
 export const organizationQueries = makeOrganizationQueries({
   organizations,
   stores,
+  invites: inviteRepository,
 });
 export const organizationUsage = makeOrganizationUsageService({ organizations });
 export const tenantGuard = makeTenantGuard({ queries: organizationQueries });
@@ -98,6 +101,14 @@ export const inviteMember = makeInviteMember({
   organizations,
   invites: inviteRepository,
   countOrganizationUsers,
+  sendInviteEmail,
+  generateToken: generateInviteToken,
+  now: () => new Date(),
+});
+export const revokeInvite = makeRevokeInvite({ invites: inviteRepository });
+export const resendInvite = makeResendInvite({
+  invites: inviteRepository,
+  organizations,
   sendInviteEmail,
   generateToken: generateInviteToken,
   now: () => new Date(),

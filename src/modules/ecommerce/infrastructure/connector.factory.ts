@@ -34,6 +34,7 @@ export class IntegrationConnectorFactory implements ConnectorFactory {
     return getConnector(asProvider(creds.provider), {
       shopDomain: creds.shopDomain ?? undefined,
       accessToken: creds.accessToken ?? undefined,
+      refreshToken: creds.refreshToken ?? undefined,
     });
   }
 }

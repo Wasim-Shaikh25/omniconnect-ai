@@ -36,6 +36,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - Credentials password hasher is lazy-loaded in `auth.ts` to keep `bcryptjs` out of the middleware bundle.
   - Added continuation spec `docs/specs/0054-audit-fixes-continuation.md` and tracker `docs/tasks/0054-audit-fixes-continuation-progress.md`.
 
+- **TASK-0057 — Product Completeness Roadmap Phase 4 (final)** (spec `0057`):
+  - **P4-1 (GDPR / account lifecycle):** `User.deletedAt`, `ExportRequest` model, `dataExportService` JSON export, `deleteAccountService` 30-day soft-delete grace period, `/settings/account` UI (`AccountActions`, `requestDataExportAction`, `deleteAccountAction`), and `/api/export/[id]` download route.
+  - **P4-2 (team / invite lifecycle):** `OrganizationInvite.storeId`, `revokeInvite`/`resendInvite` use cases, seat-limit enforcement in `inviteMember`, `/settings` resend/revoke/remove member buttons, and audit logging.
+  - **P4-3 (notification preferences):** `NotificationPreference` per `(userId, channel, eventType)`, notification service honors disabled preferences, `/settings/notifications` preference toggles and `/notifications` history.
+  - **P4-4 (integration token encryption):** `Integration.accessToken` and `refreshToken` encrypted at rest using `encryptString`/`decryptString` (AES-256-GCM) with legacy-plaintext backwards compatibility; `ConnectorCredentials` and `ShopifyConnector` accept `refreshToken`.
+  - **P4-5 (MFA / reset code separation):** `MfaCode` and `PasswordResetCode` tables; `VerificationCodeRepository` persists/consumes from the correct table based on `mfa:<email>` vs `reset:<email>` prefixes.
+  - **P4-6 (CI smoke):** GitHub Actions `ci.yml` now runs `npm run build`, `npm run build:worker`, and a `/api/health` smoke test.
+  - **P4-7 (Sentry / OpenTelemetry):** `initSentry` with PII header redaction, `initTelemetry` with OTLP/console exporter and `trace.setGlobalTracerProvider`; initialized in `instrumentation.ts`, `src/jobs/worker.ts`, and wrapped around OpenAI, Meta, and Shopify outbound calls.
+  - **P4-8 (operations runbook):** Created `docs/operations.md` with health probes, PostgreSQL/Redis backup & restore, rollback, dependency-failure, secrets-rotation, and incident-escalation guidance.
+  - Added `scripts/export-user-data.ts` and `scripts/cleanup-deleted-accounts.ts` referenced by the runbook.
+  - Generated and applied Prisma migration `20260729035410_phase4_invite_store_id` for `OrganizationInvite.storeId`.
+  - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test` (35), `npm audit` (0 vulnerabilities), `npm run build`, `npm run build:worker`.
+
 ### 🚧 In Progress
 
 - **TASK-0055 — Production Readiness Audit fixes (spec `0055`):**
@@ -83,6 +96,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `/analytics/page.tsx` redirect to `/analytics/journeys` so the authenticated header link no longer 404s.
   - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test`, `npm audit` (0 vulnerabilities), and `npm run build`.
 
+- **TASK-0058 — PR #75 Follow-up Blockers** (spec `0058`):
+  - Hardened CI `quality` smoke step with all required production env vars and the standalone server binary.
+  - Refactored `ProductRepository` to expose `sync()` which atomically upserts fetched products and soft-deletes stale ones in a single Prisma transaction, preventing `syncProducts` from deleting products it just inserted.
+  - Added `AccountRecord.deletedAt`, `findByEmailIncludingDeleted`, and `restoreAccount` to the auth `AccountRepository` port.
+  - Credentials sign-in (`auth.ts` `authorize` and `loginAction`) now restores soft-deleted accounts within a 30-day grace period and bumps `tokenVersion` to invalidate old sessions.
+  - Split `<AccountActions />` into `mode="export"` and `mode="delete"` so `/settings/account` no longer renders the component twice.
+  - `ProductList` and `CouponList` bulk-delete toolbars now keep selection for three seconds after success so the success message is visible before the toolbar unmounts.
+  - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test` (35), `npm audit` (0 vulnerabilities), `npm run build`, `npm run build:worker`, and `/api/health` smoke.
+
 - **TASK-0057 — Product Completeness Roadmap** (spec `0057`):
   - Master spec and task tracker created to close remaining product-completeness gaps from `PRODUCTION_READINESS_AUDIT.md`.
   - Phase 1 (staff/tenant isolation):
@@ -91,6 +113,8 @@ All notable changes to **OmniConnect AI** are documented here.
     - Updated `getOrganizationOverview` to accept an optional `SessionUser` and filter `stores` to `user.storeId` for `STAFF` roles.
     - Updated `getUnifiedInbox` and `listCustomersByOrganization` to scope store IDs by staff assignment.
     - Added `src/modules/organizations/application/queries.test.ts` proving staff only see their assigned store and cannot read another store via `getOrganizationOverview`.
+    - Fixed `listTrackedCompetitorsAction` to use `tenantGuard.assertStoreAccess` instead of `requireRole("STORE_OWNER")` so assigned staff can view the `Competitor Benchmarks` panel.
+    - Fixed `requireStoreAccess` to catch `ForbiddenError` and render a clean 404 (`notFound()`) when a `STAFF` user visits an unassigned store, instead of a generic 500.
   - Added `storeId` to the invite flow and user settings:
     - `inviteMemberSchema` accepts an optional `storeId` and `sendInviteEmail` appends it to the `/register?inviteToken=...&storeId=...` link.
     - `/register` reads `storeId` from the query string and `AuthForm` forwards it as a hidden field.
@@ -104,11 +128,39 @@ All notable changes to **OmniConnect AI** are documented here.
     - Added `updateStore`, `archiveStore`, `restoreStore`, `deleteStore` use cases and server actions guarded by `tenantGuard.assertStoreAccess`.
     - Added `/stores/[storeId]/settings/page.tsx` and `StoreSettingsForm` component for owners to update, archive, restore, or delete a store.
     - Added a settings link on the store detail page header.
-  - In progress: Phase 2 — product and coupon lifecycle (edit/resync/delete).
-  - Phase 4 (operations readiness):
+  - Phase 2 — product and coupon lifecycle:
+    - `Product` and `Coupon` now have `deletedAt` for soft-delete; `Store` has `lastProductSyncAt` (migration `20260728193000_product_coupon_lifecycle`).
+    - `ProductRepository` supports `update`, `findById`, `delete`, and `markDeletedNotInBatch`; `listByStore` filters deleted products by default.
+    - `CouponRepository` supports `findById`, `update`, `delete`, and status-correct `listByStore` filtering.
+    - New use-cases `updateProduct`, `deleteProduct`, `updateCoupon`, `deleteCoupon` with store-ownership guard.
+    - Server actions `updateProductAction`, `deleteProductAction`, `updateCouponAction`, `deleteCouponAction` write audit logs (`PRODUCT_UPDATED`, `PRODUCT_DELETED`, `COUPON_UPDATED`, `COUPON_DELETED`) via `auditCommands`.
+    - New `/stores/[storeId]/products/page.tsx` with inline edit/delete; new `/stores/[storeId]/coupons/page.tsx` with edit/delete; added `Product` and `Coupons` links on the store detail page.
+  - Phase 3 — AI guard and sync hardening:
+    - Added `AIUsageGuard` (`src/modules/ai/application/usage-guard.ts`) and routed all AI calls (`generateCaptionsAction`, `generateTrendsAction`, `generatePostIdeasAction`, `askBusinessBrainAction`, `analyzeCompetitorAction`, `content idea generation`, `welcome-first-follower`) through `aiUsageGuard.assertAvailable(organizationId)`.
+    - `welcome-first-follower` now asserts AI quota before generating the welcome message text.
+    - Product sync marks products not present in the provider as `deletedAt = now` and returns `{ count, deleted }`; `ProductsSynced` subscriber updates `Store.lastProductSyncAt`.
+    - `MarketingPerformanceView` now carries `dataQuality` (`live`/`partial`/`simulated`) based on whether live Meta media data was available; the analytics page renders a `DataQualityBadge`.
+  - Phase 3 — Meta insights integration:
+    - `MetaService.getPageInsights` fetches page-level `followers_count`, `posts_impressions`, and `profile_visits` from the Meta Graph API with error handling and logging.
+    - `MetaService.getAudienceInsights` fetches lifetime demographics breakdown by age/gender/city/country.
+    - `MetaService.getAccountMedia` fetches connected-account media and enriches each post with `fetchMediaInsights` (`likes`, `comments`, `shares`, `impressions`, `reach`).
+    - `getMarketingPerformance` merges live media/page/audience data with simulated fallback values and sets `dataQuality` accordingly.
+    - `app/analytics/page.tsx` and `app/stores/[storeId]/analytics/page.tsx` display a `DataQualityBadge` so users can tell when metrics are live versus simulated.
+  - Phase 3 — server-side pagination, search, and bulk actions:
+    - Added `PaginationInput`/`PaginatedResult` helpers to `src/shared/kernel/` and reusable `PaginationControls`/`ListSearch` components in `src/components/pagination-controls.tsx`.
+    - Implemented DB-level pagination with `skip`/`take` and search `where` clauses for: admin organizations/users/coupons/tickets, `/stores/[storeId]/products`, `/stores/[storeId]/coupons`, `/stores/[storeId]/followers`, and `/notifications`.
+    - Added `CustomerDirectory.listCustomersByOrganizationPaginated` (in-memory filter + slice) and wired `/customers` with `ListSearch`, `PaginationControls`, and filter-preserving URLs (`q`, `page`, `limit`, `lifecycleStage`, `consent`, `segment`).
+    - Added `EcommerceQueries.listOrdersPaginated` (fetch from connector, in-memory filter/slice) and wired `/stores/[storeId]/orders` with search + pagination controls.
+    - Added `getUnifiedInboxAction` pagination and wired `/inbox` with search, channel/status filters, and pagination controls.
+    - Implemented bulk actions on `/stores/[storeId]/products` (select/delete selected) and `/stores/[storeId]/coupons` (select/delete selected) using new server actions `deleteSelectedProductsAction`/`deleteSelectedCouponsAction`.
+    - Added `/notifications` “Mark all as read” action and unread badge counter in the shell header.
+  - Phase 2 — organization-level dashboard for owners with multiple stores:
+    - `WorkspaceKpiSnapshot.stores` is now `WorkspaceStoreSnapshot[]` with per-store product/follower/conversation/coupon counts and connection status.
+    - `/dashboard` “Your stores” card now shows each store’s KPIs, integration status, and last product sync date, giving owners with multiple stores a single overview.
+  - Phase 4 (operations readiness) — completed; see TASK-0057 Phase 4 entry under ✅ Done above.
     - Added public `/api/health` (liveness) and `/api/ready` (readiness) route handlers.
     - `/api/ready` checks PostgreSQL (`$queryRaw SELECT 1`) and Redis (`PING`) before returning `200 OK`; returns `503` with per-check diagnostics when a dependency is unreachable.
-    - Updated NextAuth middleware public-path allowlist so the probes are reachable without a session.
+    - Sentry and OpenTelemetry initialized at app startup and in the worker; outbound AI/Meta/Shopify calls wrapped in spans.
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

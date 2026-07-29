@@ -8,6 +8,8 @@ import type {
   ProductRepository,
 } from "./ports";
 import type { ConnectorOrder } from "../domain/connector";
+import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
+import { paginatedResult, toSkip } from "@/shared/kernel";
 
 export interface StoreConnectionView {
   connected: boolean;
@@ -32,21 +34,50 @@ export function makeEcommerceQueries(deps: {
 
     async listProducts(
       storeId: string,
-      limit = 50,
+      limitOrOptions: number | { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = 50,
     ): Promise<ProductRecord[]> {
-      return deps.products.listByStore(storeId, limit);
+      const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
+      return deps.products.listByStore(storeId, options);
     },
 
-    countProducts(storeId: string): Promise<number> {
-      return deps.products.countByStore(storeId);
+    async listProductsPaginated(
+      storeId: string,
+      pagination: PaginationInput,
+      search?: string,
+    ): Promise<PaginatedResult<ProductRecord>> {
+      const [items, total] = await Promise.all([
+        deps.products.listByStore(storeId, { ...pagination, offset: toSkip(pagination), search }),
+        deps.products.countByStore(storeId, search),
+      ]);
+      return paginatedResult(items, total, pagination);
     },
 
-    async listCoupons(storeId: string, limit = 50): Promise<CouponRecord[]> {
-      return deps.coupons.listByStore(storeId, limit);
+    countProducts(storeId: string, search?: string): Promise<number> {
+      return deps.products.countByStore(storeId, search);
     },
 
-    countCoupons(storeId: string): Promise<number> {
-      return deps.coupons.countByStore(storeId);
+    async listCoupons(
+      storeId: string,
+      limitOrOptions: number | { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = 50,
+    ): Promise<CouponRecord[]> {
+      const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
+      return deps.coupons.listByStore(storeId, options);
+    },
+
+    async listCouponsPaginated(
+      storeId: string,
+      pagination: PaginationInput,
+      search?: string,
+    ): Promise<PaginatedResult<CouponRecord>> {
+      const [items, total] = await Promise.all([
+        deps.coupons.listByStore(storeId, { ...pagination, offset: toSkip(pagination), search }),
+        deps.coupons.countByStore(storeId, search),
+      ]);
+      return paginatedResult(items, total, pagination);
+    },
+
+    countCoupons(storeId: string, search?: string): Promise<number> {
+      return deps.coupons.countByStore(storeId, search);
     },
 
     async listOrders(
@@ -55,6 +86,24 @@ export function makeEcommerceQueries(deps: {
     ): Promise<ConnectorOrder[]> {
       const connector = await deps.connectors.forStore(storeId);
       return connector.getOrders(limit);
+    },
+
+    async listOrdersPaginated(
+      storeId: string,
+      pagination: PaginationInput,
+      search?: string,
+    ): Promise<PaginatedResult<ConnectorOrder>> {
+      const connector = await deps.connectors.forStore(storeId);
+      const all = await connector.getOrders(250);
+      const q = search?.toLowerCase() ?? "";
+      const filtered = q
+        ? all.filter((o) =>
+            `${o.externalId} ${o.customerRef ?? ""} ${o.currency ?? ""}`.toLowerCase().includes(q)
+          )
+        : all;
+      const skip = toSkip(pagination);
+      const items = filtered.slice(skip, skip + pagination.limit);
+      return paginatedResult(items, filtered.length, pagination);
     },
   };
 }

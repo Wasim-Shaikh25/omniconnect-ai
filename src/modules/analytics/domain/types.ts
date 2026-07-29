@@ -16,9 +16,27 @@ export interface ContentPerformanceSection {
     plays: number;
     reach: number;
     impressions: number;
+    saved: number;
+    engagement: number;
     orders: number;
     revenue: number;
   }[];
+}
+
+export interface AudienceDemographics {
+  genderAge: Record<string, number>;
+  cities: Record<string, number>;
+  countries: Record<string, number>;
+  locales: Record<string, number>;
+}
+
+export interface AudienceInsights {
+  username: string | null;
+  followers: number | null;
+  mediaCount: number | null;
+  impressions: number | null;
+  reach: number | null;
+  profileViews: number | null;
 }
 
 export interface AudienceSection {
@@ -30,6 +48,8 @@ export interface AudienceSection {
   why: string;
   nextRecommendation: string;
   segments: { label: string; count: number }[];
+  pageInsights: AudienceInsights | null;
+  demographics: AudienceDemographics | null;
 }
 
 export interface ProductPerformanceSection {
@@ -56,6 +76,7 @@ export interface MarketingPerformanceView {
   organizationId: string;
   storeId: string;
   generatedAt: Date;
+  dataQuality: "live" | "partial" | "simulated";
   content: ContentPerformanceSection;
   audience: AudienceSection;
   product: ProductPerformanceSection;

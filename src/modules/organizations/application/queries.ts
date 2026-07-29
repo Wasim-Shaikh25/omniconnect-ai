@@ -1,6 +1,6 @@
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import type { SessionUser } from "@/modules/auth";
-import { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
+import { OrganizationInviteRecord, OrganizationInviteRepository, OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
 import { Plan } from "../domain/plan";
 
 export interface OrganizationOverview {
@@ -14,6 +14,7 @@ export interface OrganizationOverview {
 export function makeOrganizationQueries(deps: {
   organizations: OrganizationRepository;
   stores: StoreRepository;
+  invites?: OrganizationInviteRepository;
 }) {
   return {
     async listAllOrganizations(
@@ -71,6 +72,11 @@ export function makeOrganizationQueries(deps: {
     async getOrganizationIdByStoreId(storeId: string): Promise<string | null> {
       const store = await deps.stores.findById(storeId);
       return store?.organizationId ?? null;
+    },
+
+    async listPendingInvites(organizationId: string): Promise<OrganizationInviteRecord[]> {
+      if (!deps.invites) return [];
+      return deps.invites.listPendingByOrganization(organizationId);
     },
   };
 }

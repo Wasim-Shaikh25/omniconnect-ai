@@ -43,6 +43,9 @@ export type {
   MetaMediaItem,
   MetaMediaMetrics,
   HashtagMediaOptions,
+  MetaPageInsights,
+  AudienceDemographics,
+  MetaAudienceInsights,
 } from "./application/ports";
 export type { MetaConnectionView } from "./application/queries";
 

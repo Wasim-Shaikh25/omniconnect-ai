@@ -40,7 +40,7 @@ const providers: NextAuthConfig["providers"] = [
       });
       if (!limit.allowed) return null;
 
-      const account = await accounts.findByEmail(email);
+      const account = await accounts.findByEmailIncludingDeleted(email);
       if (!account?.passwordHash) return null;
 
       const { BcryptPasswordHasher } = await import("./password-hasher");
@@ -49,6 +49,19 @@ const providers: NextAuthConfig["providers"] = [
         account.passwordHash,
       );
       if (!valid) return null;
+
+      // Grace-period restoration: accounts soft-deleted within the last 30 days
+      // can be reactivated by signing in. Beyond that, the account is gone.
+      if (account.deletedAt) {
+        const graceMs = 30 * 24 * 60 * 60 * 1000;
+        if (Date.now() - account.deletedAt.getTime() > graceMs) {
+          return null;
+        }
+        const restored = await accounts.restoreAccount(account.id);
+        if (!restored) return null;
+        account.deletedAt = null;
+        account.tokenVersion = restored.tokenVersion;
+      }
 
       if (account.isSuperAdmin) {
         if (!mfaCode) return null;

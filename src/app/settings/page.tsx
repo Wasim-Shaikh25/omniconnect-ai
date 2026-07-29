@@ -12,9 +12,13 @@ import { ProfileForm } from "@/components/profile-form";
 import { RoleSelectForm } from "@/components/role-select-form";
 import { StoreSelectForm } from "@/components/store-select-form";
 import { InviteMemberForm } from "@/components/invite-member-form";
+import { TeamActionButton } from "@/components/team-action-button";
 import { Button } from "@/components/ui/button";
 import {
   inviteOrganizationMemberAction,
+  revokeInviteAction,
+  resendInviteAction,
+  removeOrganizationMemberAction,
   organizationQueries,
 } from "@/modules/organizations";
 import {
@@ -39,6 +43,10 @@ export default async function SettingsPage() {
     isAdmin && user.organizationId
       ? await organizationQueries.listStores(user.organizationId)
       : [];
+  const pendingInvites =
+    isAdmin && user.organizationId
+      ? await organizationQueries.listPendingInvites(user.organizationId)
+      : [];
 
   return (
     <main className="container mx-auto max-w-3xl px-4 py-8">
@@ -50,6 +58,18 @@ export default async function SettingsPage() {
       </header>
 
       <div className="mt-8 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account</CardTitle>
+            <CardDescription>Export your data or delete your account.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/settings/account">Manage account</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Profile</CardTitle>
@@ -76,6 +96,23 @@ export default async function SettingsPage() {
                   action={inviteOrganizationMemberAction}
                   stores={stores.map((s) => ({ id: s.id, name: s.name }))}
                 />
+                {pendingInvites.length > 0 && (
+                  <ul className="space-y-3">
+                    {pendingInvites.map((invite) => (
+                      <li
+                        key={invite.id}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3 text-sm"
+                      >
+                        <span className="font-medium">{invite.email}</span>
+                        <span className="text-xs text-muted-foreground">Pending</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <TeamActionButton action={resendInviteAction} id={invite.id} label="Resend" />
+                          <TeamActionButton action={revokeInviteAction} id={invite.id} label="Revoke" />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {members.length > 0 ? (
                   <ul className="space-y-3">
                     {members.map((member) => (
@@ -97,6 +134,9 @@ export default async function SettingsPage() {
                             stores={stores.map((s) => ({ id: s.id, name: s.name }))}
                             currentStoreId={member.storeId}
                           />
+                          {member.id !== user.id && (
+                            <TeamActionButton action={removeOrganizationMemberAction} id={member.id} label="Remove" />
+                          )}
                         </div>
                       </li>
                     ))}
@@ -108,6 +148,20 @@ export default async function SettingsPage() {
             </Card>
 
             <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notifications</CardTitle>
+                  <CardDescription>
+                    Manage notification preferences and history.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/settings/notifications">Open notifications</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Audit log</CardTitle>
