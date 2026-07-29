@@ -815,6 +815,24 @@ All notable changes to **OmniConnect AI** are documented here.
 > Each item above must start with its own spec (`docs/specs/`) and task (`docs/tasks/`)
 > before implementation, per `AGENTS.md` §0.
 
+### 🎯 Next
+
+- **TASK-0061 — Product Charter and Scope Cleanup** (spec `0061`):
+  - Ratify the universal Meta-first growth platform charter (creators + merchants on any e-commerce provider).
+  - Reframe navigation with collapsible hamburger sidebar grouped Connect / Create / Engage / Analyze / Settings.
+  - Delete out-of-scope UI routes and files (affiliates, media-kit, brand-deals, UGC/ambassador growth, projects, revenue, unused settings pages).
+  - Simplify store/product/coupon UI to read-only e-commerce data and Meta campaign coupons.
+  - Update landing, onboarding, dashboard, and empty-state copy to Meta growth positioning.
+  - Quality gates: lint, typecheck, tests, build, build:worker.
+
+- **TASK-0062 — Universal E-commerce Connectors + Meta Business Growth Analytics** (spec `0062`):
+  - Add WooCommerce, BigCommerce, and Magento `EcommerceConnector` providers.
+  - Extend `Order`/`Coupon` schema with attribution fields (`attributedMediaId`, `attributionSource`, `couponCode`, `isFirstTimeCustomer`, `usageCount`, `revenueAttributed`).
+  - Build business growth analytics: revenue, new customers, AOV, content-to-sale attribution, coupon effectiveness.
+  - Add trending content discovery, best-time-to-post, AI content calendar, and “new customers from Meta” insights.
+  - Extend Meta media insights with reel/video/story metrics and public hashtag/audio research.
+  - Quality gates: lint, typecheck, tests, build, build:worker.
+
 ---
 
 ## Release history
