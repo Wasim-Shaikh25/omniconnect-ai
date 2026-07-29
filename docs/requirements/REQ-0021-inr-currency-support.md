@@ -4,7 +4,7 @@ description: INR Currency Support
 
 # REQ-0021: INR Currency Support
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** shared, ecommerce, ai
 - **Original spec path:** `docs/specs/0021-inr-currency-support.md` (restructured)
@@ -16,7 +16,7 @@ description: INR Currency Support
 
 
 - **Module(s):** shared, ecommerce, ai
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-240)
 - **Related ADR(s):** —

@@ -1,6 +1,6 @@
 # TASK-0029: Media Kit
 
-- **Status:** Todo
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** growth / presentation
 - **Requirement:** `docs/requirements/REQ-0029-media-kit.md`

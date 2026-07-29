@@ -1,6 +1,6 @@
 # TASK-0011: Users, Organizations & Stores (multi-tenant foundation)
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** users, organizations
 - **Requirement:** `docs/requirements/REQ-0011-users-organizations-stores.md`

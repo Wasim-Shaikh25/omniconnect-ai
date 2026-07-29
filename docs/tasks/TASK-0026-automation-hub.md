@@ -1,6 +1,6 @@
 # TASK-0026: Automation Hub
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** automation (presentation) — builds on `coupons` and `growth`
 - **Requirement:** `docs/requirements/REQ-0026-automation-hub.md`

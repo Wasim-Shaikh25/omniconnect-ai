@@ -4,7 +4,7 @@ description: Mobile Responsive Quick Actions & PWA Polish
 
 # REQ-0032: Mobile Responsive Quick Actions & PWA Polish
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** ui / app shell
 - **Original spec path:** `docs/specs/0032-mobile-pwa-polish.md` (restructured)
@@ -16,7 +16,7 @@ description: Mobile Responsive Quick Actions & PWA Polish
 
 
 - **Module(s):** ui / app shell
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-340)
 - **Related ADR(s):** —

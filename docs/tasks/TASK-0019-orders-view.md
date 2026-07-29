@@ -1,6 +1,6 @@
 # TASK-0019: Orders View (read-only connector orders)
 
-- **Status:** Todo
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** ecommerce
 - **Requirement:** `docs/requirements/REQ-0019-orders-view.md`

@@ -4,7 +4,7 @@ description: Automation Hub
 
 # REQ-0026: Automation Hub
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** automation (presentation) — builds on `coupons` and `growth`
 - **Original spec path:** `docs/specs/0026-automation-hub.md` (restructured)
@@ -16,7 +16,7 @@ description: Automation Hub
 
 
 - **Module(s):** automation (presentation) — builds on `coupons` and `growth`
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-280)
 - **Related ADR(s):** —

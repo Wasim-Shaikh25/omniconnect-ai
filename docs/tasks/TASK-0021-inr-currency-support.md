@@ -1,6 +1,6 @@
 # TASK-0021: INR Currency Support
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** shared, ecommerce, ai
 - **Requirement:** `docs/requirements/REQ-0021-inr-currency-support.md`

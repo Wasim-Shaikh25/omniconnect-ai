@@ -1,6 +1,6 @@
 # TASK-0043: 0043 — Testing, Rollout, and Risk Mitigations
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence`, cross-module
 - **Requirement:** `docs/requirements/REQ-0043-testing-rollout-risk.md`

@@ -1,6 +1,6 @@
 # TRACKER-0060: Meta-First Product Reframing
 
-- **Status:** In Progress
+- **Status:** Done
 - **Requirement:** `docs/requirements/REQ-0060-meta-first-product-reframing.md`
 - **Task:** `docs/tasks/TASK-0060-meta-first-product-reframing.md`
 - **Module(s):** presentation, ecommerce, organizations, coupons, meta, analytics
@@ -14,42 +14,42 @@ Implement the Meta-first product reframe defined in the linked spec. The app mus
 ## Subtasks
 
 ### Navigation & Layout
-- [ ] Audit current `TopNav` / `MobileNav` usage and route definitions.
-- [ ] Design and implement collapsible sidebar (`DesktopSidebar` + `MobileSidebar`) with hamburger.
-- [ ] Group nav items under Connect / Engage / Create / Analyze / Settings.
-- [ ] Remove nav links to deleted/out-of-scope pages from sidebar and top nav.
+- [x] Audit current `TopNav` / `MobileNav` usage and route definitions.
+- [x] Design and implement collapsible sidebar (`DesktopSidebar` + `MobileSidebar`) with hamburger.
+- [x] Group nav items under Connect / Engage / Create / Analyze / Settings.
+- [x] Remove nav links to deleted/out-of-scope pages from sidebar and top nav.
 
 ### Store/Product/Coupon UI Cleanup
-- [ ] Remove archive/restore/delete buttons from `/stores` and `/stores/[id]/settings`.
-- [ ] Remove product edit/delete actions from `/stores/[id]/products` and make list read-only.
-- [ ] Update product empty state to “Sync your Shopify catalog for AI insights.”
-- [ ] Keep coupon lifecycle for Meta campaign coupons (first-follower / DM) and remove standalone generic coupon management UI.
+- [x] Remove archive/restore/delete buttons from `/stores` and `/stores/[id]/settings`.
+- [x] Remove product edit/delete actions from `/stores/[id]/products` and make list read-only.
+- [x] Update product empty state to “Sync your Shopify catalog for AI insights.”
+- [x] Keep coupon lifecycle for Meta campaign coupons (first-follower / DM) and remove standalone generic coupon management UI.
 
 ### Out-of-Scope Page Deletion
-- [ ] Delete `src/app/stores/[storeId]/(affiliates|media-kit|growth|revenue|projects|daily-marketing|engagement|brand-deals|orders)` route directories.
-- [ ] Delete `src/app/projects`.
-- [ ] Delete `src/app/stores/[storeId]/commerce/(leads|growth|catalog)` if unwired / overlapping.
-- [ ] Delete unused `/settings/*` pages (`rollout`, `operating-model`, `quality`, `unified-context`) if present.
-- [ ] Remove any components/server actions that are only referenced by deleted pages.
+- [x] Delete `src/app/stores/[storeId]/(affiliates|media-kit|growth|revenue|projects|daily-marketing|engagement|brand-deals|orders)` route directories.
+- [x] Delete `src/app/projects`.
+- [x] Delete `src/app/stores/[storeId]/commerce/(leads|growth|catalog)` if unwired / overlapping.
+- [x] Delete unused `/settings/*` pages (`rollout`, `operating-model`, `quality`, `unified-context`) if present.
+- [x] Remove any components/server actions that are only referenced by deleted pages.
 
 ### Copy & Positioning
-- [ ] Update landing page hero/subtitle to Meta-first value prop.
-- [ ] Update onboarding steps to “Connect Shopify” / “Connect Meta” / “Create your first campaign.”
-- [ ] Update dashboard empty state and KPI labels to “Meta engagement,” “AI replies,” etc.
-- [ ] Update first-follower campaign copy to clarify it generates a Shopify coupon for Meta followers.
+- [x] Update landing page hero/subtitle to Meta-first value prop.
+- [x] Update onboarding steps to “Connect Shopify” / “Connect Meta” / “Create your first campaign.”
+- [x] Update dashboard empty state and KPI labels to “Meta engagement,” “AI replies,” etc.
+- [x] Update first-follower campaign copy to clarify it generates a Shopify coupon for Meta followers.
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `DATABASE_URL=... npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` and `npm run build:worker` pass.
-- [ ] Manual spot-check of navigation on desktop and mobile.
+- [x] `npm run lint` passes.
+- [x] `DATABASE_URL=... npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` and `npm run build:worker` pass.
+- [x] Manual spot-check of navigation on desktop and mobile.
 
 ## Acceptance Criteria
 
-- [ ] Matches the linked spec's acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches the linked spec's acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## Notes / Blockers
 

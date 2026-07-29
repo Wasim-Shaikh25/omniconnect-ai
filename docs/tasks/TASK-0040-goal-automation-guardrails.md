@@ -1,6 +1,6 @@
 # TASK-0040: 0040 — Goal-based Automation Templates and Guardrails
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence`, `growth`, `crm`
 - **Requirement:** `docs/requirements/REQ-0040-goal-automation-guardrails.md`

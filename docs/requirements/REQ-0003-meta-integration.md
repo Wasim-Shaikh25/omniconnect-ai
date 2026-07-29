@@ -16,7 +16,7 @@ description: Meta Integration
 
 
 - **Module(s):** meta (+ event consumers: crm, conversations)
-- **Status:** Implemented (Phase 1)
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-050)
 - **Related ADR(s):** —

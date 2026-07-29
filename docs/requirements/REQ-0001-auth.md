@@ -16,7 +16,7 @@ description: Authentication
 
 
 - **Module(s):** auth, users
-- **Status:** Implemented (Phase 1)
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-020)
 - **Related ADR(s):** —

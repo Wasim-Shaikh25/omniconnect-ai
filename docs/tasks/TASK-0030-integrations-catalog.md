@@ -1,6 +1,6 @@
 # TASK-0030: Integrations Catalog
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** ecommerce, meta (presentation)
 - **Requirement:** `docs/requirements/REQ-0030-integrations-catalog.md`

@@ -1,6 +1,6 @@
 # TASK-0044: 0044 — Operating Model, 30-Day Plan, and Success Criteria
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence`, cross-functional program
 - **Requirement:** `docs/requirements/REQ-0044-operating-model-30day.md`

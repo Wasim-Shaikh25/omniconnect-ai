@@ -1,6 +1,6 @@
 # TRACKER-0062: Universal E-commerce Connectors + Meta Business Growth Analytics
 
-- **Status:** Completed
+- **Status:** Done
 - **Requirement:** `docs/requirements/REQ-0062-universal-ecommerce-meta-analytics.md`
 - **Task:** `docs/tasks/TASK-0062-universal-ecommerce-meta-analytics.md`
 - **Module(s):** ecommerce, meta, analytics, coupons, ai, crm, conversations

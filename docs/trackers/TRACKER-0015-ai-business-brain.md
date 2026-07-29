@@ -1,6 +1,6 @@
 # TRACKER-0015: AI Business Brain
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0015-ai-business-brain.md`
 - **Task:** `docs/tasks/TASK-0015-ai-business-brain.md`
@@ -13,27 +13,27 @@ Progress tracker for REQ-0015.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement approved and task created.
+- [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [ ] Spec created and linked to backlog.
-- [ ] `/business-brain` page renders with question form and presets.
-- [ ] `askBusinessBrainAction` returns grounded answer using workspace context.
-- [ ] Nav link added.
-- [ ] Lint + typecheck + build pass.
-- [ ] CHANGELOG.md and backlog updated.
+- [x] Spec created and linked to backlog.
+- [x] `/business-brain` page renders with question form and presets.
+- [x] `askBusinessBrainAction` returns grounded answer using workspace context.
+- [x] Nav link added.
+- [x] Lint + typecheck + build pass.
+- [x] CHANGELOG.md and backlog updated.
 
 ### Quality Gates
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All quality gates pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All quality gates pass.
 
 ## 4. Notes / Blockers
 

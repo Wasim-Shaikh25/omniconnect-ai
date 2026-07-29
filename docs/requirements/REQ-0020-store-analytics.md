@@ -4,7 +4,7 @@ description: Store Analytics Page
 
 # REQ-0020: Store Analytics Page
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** analytics (presentation of ecommerce + crm + conversations)
 - **Original spec path:** `docs/specs/0020-store-analytics.md` (restructured)
@@ -16,7 +16,7 @@ description: Store Analytics Page
 
 
 - **Module(s):** analytics (presentation of ecommerce + crm + conversations)
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-230)
 - **Related ADR(s):** —

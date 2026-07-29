@@ -1,6 +1,6 @@
 # TASK-0023: Store Coupons Page
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** ecommerce (presentation)
 - **Requirement:** `docs/requirements/REQ-0023-coupons-page.md`

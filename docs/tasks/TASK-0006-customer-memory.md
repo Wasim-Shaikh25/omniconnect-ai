@@ -1,6 +1,6 @@
 # TASK-0006: Customer Memory System (CRM)
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** crm
 - **Requirement:** `docs/requirements/REQ-0006-customer-memory.md`

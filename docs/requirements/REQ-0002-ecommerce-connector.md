@@ -16,7 +16,7 @@ description: eCommerce Connector Framework
 
 
 - **Module(s):** ecommerce
-- **Status:** Implemented (Phase 1)
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-040)
 - **Related ADR(s):** —

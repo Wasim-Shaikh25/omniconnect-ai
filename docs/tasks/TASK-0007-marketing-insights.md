@@ -1,6 +1,6 @@
 # TASK-0007: Meta Content Intelligence & Marketing Insights
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** analytics, reports, meta
 - **Requirement:** `docs/requirements/REQ-0007-marketing-insights.md`

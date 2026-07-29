@@ -4,7 +4,7 @@ description: Content Studio — MVP (ideas + captions)
 
 # REQ-0018: Content Studio — MVP (ideas + captions)
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** content (client of `ai` and `ecommerce`)
 - **Original spec path:** `docs/specs/0018-content-studio-mvp.md` (restructured)
@@ -16,7 +16,7 @@ description: Content Studio — MVP (ideas + captions)
 
 
 - **Module(s):** content (client of `ai` and `ecommerce`)
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-210)
 - **Related ADR(s):** —

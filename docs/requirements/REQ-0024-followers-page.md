@@ -4,7 +4,7 @@ description: Store Followers Page
 
 # REQ-0024: Store Followers Page
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** crm (presentation)
 - **Original spec path:** `docs/specs/0024-followers-page.md` (restructured)
@@ -16,7 +16,7 @@ description: Store Followers Page
 
 
 - **Module(s):** crm (presentation)
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-270)
 - **Related ADR(s):** —

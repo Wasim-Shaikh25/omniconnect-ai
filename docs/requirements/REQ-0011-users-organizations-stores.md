@@ -16,7 +16,7 @@ description: Users, Organizations & Stores (multi-tenant foundation)
 
 
 - **Module(s):** users, organizations
-- **Status:** Implemented (Phase 1)
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-030)
 - **Related ADR(s):** —

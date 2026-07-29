@@ -4,7 +4,7 @@ description: Application Scaffold
 
 # REQ-0010: Application Scaffold
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** all (infrastructure/base)
 - **Original spec path:** `docs/specs/0010-app-scaffold.md` (restructured)
@@ -16,7 +16,7 @@ description: Application Scaffold
 
 
 - **Module(s):** all (infrastructure/base)
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md (TASK-010)
 - **Related ADR(s):** docs/decisions/0001-record-architecture-decisions.md

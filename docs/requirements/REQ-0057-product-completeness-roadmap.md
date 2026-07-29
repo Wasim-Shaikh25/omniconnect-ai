@@ -4,7 +4,7 @@ description: Product Completeness Roadmap
 
 # REQ-0057: Product Completeness Roadmap
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** auth, organizations, ecommerce, meta, ai, coupons, crm, conversations, analytics, reports, notifications, shared/operations
 - **Original spec path:** `docs/specs/0057-product-completeness-roadmap.md` (restructured)
@@ -16,7 +16,7 @@ description: Product Completeness Roadmap
 
 
 - **Module(s):** auth, organizations, ecommerce, meta, ai, coupons, crm, conversations, analytics, reports, notifications, shared/operations
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** Devin
 - **Related task(s):** `docs/trackers/TRACKER-0057-product-completeness-roadmap.md`
 - **Related ADR(s):** —

@@ -1,6 +1,6 @@
 # TASK-0009: Notifications
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** notifications
 - **Requirement:** `docs/requirements/REQ-0009-notifications.md`

@@ -1,6 +1,6 @@
 # TRACKER-0025: Workspace Reports
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0025-workspace-reports.md`
 - **Task:** `docs/tasks/TASK-0025-workspace-reports.md`
@@ -13,25 +13,25 @@ Progress tracker for REQ-0025.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement approved and task created.
+- [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [ ] Spec created and linked to backlog.
-- [ ] `/reports` renders workspace KPIs and per-store breakdown.
-- [ ] Lint + typecheck + build pass.
-- [ ] CHANGELOG.md and backlog updated.
+- [x] Spec created and linked to backlog.
+- [x] `/reports` renders workspace KPIs and per-store breakdown.
+- [x] Lint + typecheck + build pass.
+- [x] CHANGELOG.md and backlog updated.
 
 ### Quality Gates
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All quality gates pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All quality gates pass.
 
 ## 4. Notes / Blockers
 

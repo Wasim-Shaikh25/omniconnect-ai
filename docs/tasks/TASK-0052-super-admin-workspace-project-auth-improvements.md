@@ -1,6 +1,6 @@
 # TASK-0052: Super-Admin Login, Workspace/Project Model, and Auth Improvements
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** Devin
 - **Module(s):** `auth`, `users`, `organizations`, `meta`, `support`, `shared`
 - **Requirement:** `docs/requirements/REQ-0052-super-admin-workspace-project-auth-improvements.md`

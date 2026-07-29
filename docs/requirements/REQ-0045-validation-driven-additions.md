@@ -16,7 +16,7 @@ description: 0045 — Validation-Driven Additions
 
 
 - **Module(s):** `intelligence` + cross-module
-- **Status:** Done
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/TASK-369-validation-driven-additions.md`
 - **Last updated:** 2026-07-25

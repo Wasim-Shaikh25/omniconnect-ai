@@ -4,7 +4,7 @@ description: Executive Dashboard & Workspace KPIs
 
 # REQ-0014: Executive Dashboard & Workspace KPIs
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** analytics, organizations, ecommerce, crm, conversations, ai
 - **Original spec path:** `docs/specs/0014-executive-dashboard.md` (restructured)
@@ -16,7 +16,7 @@ description: Executive Dashboard & Workspace KPIs
 
 
 - **Module(s):** analytics, organizations, ecommerce, crm, conversations, ai
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-170)
 - **Related ADR(s):** —

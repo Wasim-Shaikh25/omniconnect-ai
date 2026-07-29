@@ -1,6 +1,6 @@
 # TASK-0059: Bulk Delete Success Message
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** devin
 - **Module(s):** ui/components, ecommerce
 - **Requirement:** `docs/requirements/REQ-0059-bulk-delete-success-message.md`

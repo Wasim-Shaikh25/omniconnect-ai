@@ -1,6 +1,6 @@
 # TASK-0058: PR #75 Follow-up Blockers
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** devin
 - **Module(s):** auth, ecommerce, ui/settings
 - **Requirement:** `docs/requirements/REQ-0058-pr75-follow-up-fixes.md`

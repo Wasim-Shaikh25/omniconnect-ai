@@ -4,7 +4,7 @@ description: 0038 — Next Best Action for Inbox, Orders, and CRM
 
 # REQ-0038: 0038 — Next Best Action for Inbox, Orders, and CRM
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** all
 - **Original spec path:** `docs/specs/0038-next-best-action-inbox-orders-crm.md` (restructured)

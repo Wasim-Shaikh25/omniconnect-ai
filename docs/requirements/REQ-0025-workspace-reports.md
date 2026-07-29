@@ -4,7 +4,7 @@ description: Workspace Reports
 
 # REQ-0025: Workspace Reports
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** analytics/presentation
 - **Original spec path:** `docs/specs/0025-workspace-reports.md` (restructured)
@@ -16,7 +16,7 @@ description: Workspace Reports
 
 
 - **Module(s):** analytics/presentation
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-280)
 - **Related ADR(s):** —

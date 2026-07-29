@@ -1,6 +1,6 @@
 # TASK-0041: 0041 — KPIs and Operating Rhythm
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence`, `analytics`
 - **Requirement:** `docs/requirements/REQ-0041-kpis-operating-rhythm.md`

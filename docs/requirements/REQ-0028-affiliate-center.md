@@ -4,7 +4,7 @@ description: Affiliate Center
 
 # REQ-0028: Affiliate Center
 
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** growth (presentation)
 - **Original spec path:** `docs/specs/0028-affiliate-center.md` (restructured)
@@ -16,7 +16,7 @@ description: Affiliate Center
 
 
 - **Module(s):** growth (presentation)
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-300)
 - **Related ADR(s):** —

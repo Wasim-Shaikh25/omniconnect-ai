@@ -1,6 +1,6 @@
 # TASK-0003: Meta Integration
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** meta (+ event consumers: crm, conversations)
 - **Requirement:** `docs/requirements/REQ-0003-meta-integration.md`

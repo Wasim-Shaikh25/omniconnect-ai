@@ -4,7 +4,7 @@ description: Project Overview
 
 # REQ-0000: Project Overview
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** all
 - **Original spec path:** `docs/specs/0000-project-overview.md` (restructured)
@@ -16,7 +16,7 @@ description: Project Overview
 
 
 - **Module(s):** all
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** docs/tasks/backlog.md
 - **Related ADR(s):** docs/decisions/0001-record-architecture-decisions.md
