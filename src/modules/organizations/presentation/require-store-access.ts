@@ -1,7 +1,7 @@
 "use server";
 
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/modules/auth";
+import { getCurrentUser, ForbiddenError } from "@/modules/auth";
 import { organizationQueries, tenantGuard } from "../infrastructure/container";
 import type { SessionUser } from "@/modules/auth";
 import type { StoreRecord } from "../application/ports";
@@ -17,7 +17,14 @@ export async function requireStoreAccess(
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  await tenantGuard.assertStoreAccess(user, storeId);
+  try {
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch (error) {
+    if (error instanceof ForbiddenError) {
+      notFound();
+    }
+    throw error;
+  }
 
   const store = await organizationQueries.getStoreById(storeId);
   if (!store) notFound();

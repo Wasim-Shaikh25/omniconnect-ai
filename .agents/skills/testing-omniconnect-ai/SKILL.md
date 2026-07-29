@@ -49,7 +49,9 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - Connect a store with blank credentials to use the built-in `MOCK` connector; sync will create 6 demo products.
   - Product and coupon deletes are soft deletes (`deletedAt` populated, status set to `DISABLED` for coupons); list queries filter them out.
   - The `/stores/[storeId]/analytics` data-quality badge reads `Partial data` when no Meta account is connected.
-  - To test the AI usage guard, exhaust the workspace quota by setting `"Organization"."aiRepliesThisMonth"` to the plan limit (e.g. `50` for `FREE`) in Postgres before triggering an AI action.
+  - To test the AI usage guard, exhaust the workspace quota by setting `"Organization"."aiRepliesThisMonth"` to the plan limit (e.g. `50` for `FREE`) in Postgres **after** the first successful AI call has committed; also set `"aiRepliesResetAt"` to a future date in the current month so the guard does not reset the counter.
+  - Product/coupon delete buttons use `window.confirm`; Playwright must accept dialogs or the bulk delete forms will not submit.
+  - Staff tenant isolation: `requireStoreAccess` limits a `STAFF` user to their `storeId` and calls `notFound()` for unassigned stores. `listTrackedCompetitorsAction` uses `tenantGuard.assertStoreAccess`, so the `Competitor Benchmarks` panel renders for assigned staff. Test staff isolation by checking the assigned store is reachable and an unassigned store returns a clean 404.
 
 ## Useful smoke checks
 

@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireRole } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { requireRole, getCurrentUser } from "@/modules/auth";
+import { organizationQueries, tenantGuard } from "@/modules/organizations";
 import { metaService } from "@/modules/meta/server";
 import { analyzeCompetitor } from "@/modules/ai/server";
 import { aiUsageGuard } from "@/modules/ai";
@@ -99,9 +99,13 @@ export async function trackCompetitorAction(
 }
 
 export async function listTrackedCompetitorsAction(storeId: string): Promise<ListCompetitorsState> {
-  const user = await requireRole("STORE_OWNER");
-  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
-    return { error: "Store not found in your organization." };
+  const user = await getCurrentUser();
+  if (!user || !user.organizationId) return { error: "Not authenticated" };
+
+  try {
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch {
+    return { error: "Store not found or access denied." };
   }
 
   try {

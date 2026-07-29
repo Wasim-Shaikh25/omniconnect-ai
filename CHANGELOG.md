@@ -91,6 +91,8 @@ All notable changes to **OmniConnect AI** are documented here.
     - Updated `getOrganizationOverview` to accept an optional `SessionUser` and filter `stores` to `user.storeId` for `STAFF` roles.
     - Updated `getUnifiedInbox` and `listCustomersByOrganization` to scope store IDs by staff assignment.
     - Added `src/modules/organizations/application/queries.test.ts` proving staff only see their assigned store and cannot read another store via `getOrganizationOverview`.
+    - Fixed `listTrackedCompetitorsAction` to use `tenantGuard.assertStoreAccess` instead of `requireRole("STORE_OWNER")` so assigned staff can view the `Competitor Benchmarks` panel.
+    - Fixed `requireStoreAccess` to catch `ForbiddenError` and render a clean 404 (`notFound()`) when a `STAFF` user visits an unassigned store, instead of a generic 500.
   - Added `storeId` to the invite flow and user settings:
     - `inviteMemberSchema` accepts an optional `storeId` and `sendInviteEmail` appends it to the `/register?inviteToken=...&storeId=...` link.
     - `/register` reads `storeId` from the query string and `AuthForm` forwards it as a hidden field.
