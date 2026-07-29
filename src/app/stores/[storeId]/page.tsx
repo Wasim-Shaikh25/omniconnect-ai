@@ -5,7 +5,6 @@ import { requireStoreAccess } from "@/modules/organizations";
 import {
   connectStoreAction,
   ecommerceQueries,
-  generateCouponAction,
   syncProductsAction,
   type ProductRecord,
   type CouponRecord,
@@ -22,7 +21,6 @@ import { updateAIConfigurationAction } from "@/modules/ai";
 import { ConnectStoreForm } from "@/components/connect-store-form";
 import { AISettingsForm } from "@/components/ai-settings-form";
 import { SyncProductsButton } from "@/components/sync-products-button";
-import { GenerateCouponForm } from "@/components/generate-coupon-form";
 import { MetaConnectForm } from "@/components/meta-connect-form";
 import { MetaSimulateForm } from "@/components/meta-simulate-form";
 import { IntelligencePanel } from "@/components/intelligence-panel";
@@ -145,25 +143,15 @@ export default async function StoreDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Coupons</CardTitle>
+            <CardTitle>Campaign coupons</CardTitle>
             <CardDescription>
-              Generate a discount code through the connected provider.
+              Coupons created by Meta campaigns (e.g., first-follower welcome).
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {canManage && connection.connected ? (
-              <GenerateCouponForm
-                action={generateCouponAction}
-                storeId={storeId}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Connect the store first to generate coupons.
-              </p>
-            )}
-            {coupons.length > 0 && (
-              <ul className="space-y-2 border-t pt-4">
-                {coupons.map((c: CouponRecord) => (
+            {coupons.length > 0 ? (
+              <ul className="space-y-2">
+                {coupons.slice(0, 5).map((c: CouponRecord) => (
                   <li
                     key={c.id}
                     className="flex items-center justify-between text-sm"
@@ -175,6 +163,10 @@ export default async function StoreDetailPage({
                   </li>
                 ))}
               </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No coupons yet. Create one from the first-follower campaign.
+              </p>
             )}
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link href={`/stores/${storeId}/coupons`}>View all coupons</Link>
@@ -327,95 +319,35 @@ export default async function StoreDetailPage({
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Commerce</CardTitle>
+          <CardTitle>Meta marketing hub</CardTitle>
           <CardDescription>
-            Instagram Shop sync, shoppable media, and product tags.
+            Insights, content, and conversations for this store.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Link
-            href={`/stores/${storeId}/commerce/catalog`}
-            className="text-sm text-primary underline"
-          >
-            Open commerce catalog
-          </Link>
-          <Link
-            href={`/stores/${storeId}/commerce/comments`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Comments & mentions
-          </Link>
-          <Link
-            href={`/stores/${storeId}/commerce/leads`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Leads
-          </Link>
-          <Link
-            href={`/stores/${storeId}/commerce/growth`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Growth
-          </Link>
-          <Link
-            href={`/stores/${storeId}/commerce/trends`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Trends
-          </Link>
-          <Link
-            href={`/stores/${storeId}/commerce/competitors`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Competitors
-          </Link>
-          <Link
-            href={`/stores/${storeId}/content`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Content Studio
-          </Link>
-          <Link
-            href={`/stores/${storeId}/orders`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Orders
-          </Link>
-          <Link
-            href={`/stores/${storeId}/analytics`}
-            className="ml-4 text-sm text-primary underline"
-          >
-            Analytics
-          </Link>
-        </CardContent>
-      </Card>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Campaigns</CardTitle>
-          <CardDescription>
-            Active automations like first-time follower welcome.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-wrap gap-3">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${storeId}/campaigns`}>View campaigns</Link>
+            <Link href={`/stores/${storeId}/analytics`}>Analytics</Link>
           </Button>
-        </CardContent>
-      </Card>
-
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Conversations</CardTitle>
-          <CardDescription>
-            View all customer conversations and take over or resume AI for each.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${storeId}/conversations`}>
-              View conversations
-            </Link>
+            <Link href={`/stores/${storeId}/campaigns`}>Campaigns</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/conversations`}>Conversations</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/content`}>Content Studio</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/commerce/catalog`}>Meta Catalog</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/commerce/trends`}>Trends</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/commerce/competitors`}>Competitors</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${storeId}/integrations`}>Integrations</Link>
           </Button>
         </CardContent>
       </Card>
@@ -482,86 +414,6 @@ export default async function StoreDetailPage({
             )}
             <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
               <Link href={`/stores/${storeId}/followers`}>View all followers</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Automations</CardTitle>
-            <CardDescription>
-              Manage welcome, DM, back-in-stock, and AI automations.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/automations`}>
-                View automations
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand Deals</CardTitle>
-            <CardDescription>
-              Track sponsor leads and deal pipeline.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/brand-deals`}>
-                View brand deals
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Affiliate Center</CardTitle>
-            <CardDescription>
-              Enroll ambassadors and track referrals.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/affiliates`}>
-                View affiliates
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Media Kit</CardTitle>
-            <CardDescription>
-              Shareable creator portfolio and brand pitch.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/media-kit`}>
-                View media kit
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Integrations</CardTitle>
-            <CardDescription>
-              Connected stores, Meta accounts, and health status.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/integrations`}>
-                View integrations
-              </Link>
             </Button>
           </CardContent>
         </Card>
