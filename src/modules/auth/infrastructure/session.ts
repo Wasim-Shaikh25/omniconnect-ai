@@ -62,7 +62,7 @@ async function loadFreshUser(
   id: string,
 ): Promise<(SessionUser & { tokenVersion: number }) | null> {
   const row = await prisma.user.findUnique({
-    where: { id },
+    where: { id, deletedAt: null },
     select: {
       id: true,
       email: true,

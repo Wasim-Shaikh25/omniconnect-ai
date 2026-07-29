@@ -73,3 +73,23 @@ export interface NotificationQueries {
   markAllRead(userId: string): Promise<number>;
   findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
 }
+
+export interface NotificationPreferenceRecord {
+  id: string;
+  userId: string;
+  channel: string;
+  eventType: string;
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NotificationPreferenceRepository {
+  listForUser(userId: string): Promise<NotificationPreferenceRecord[]>;
+  upsert(input: {
+    userId: string;
+    channel: string;
+    eventType: string;
+    enabled: boolean;
+  }): Promise<NotificationPreferenceRecord>;
+}

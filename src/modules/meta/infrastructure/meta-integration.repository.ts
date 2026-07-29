@@ -41,6 +41,7 @@ export class PrismaMetaIntegrationRepository
     channel: MetaChannel;
     accountId: string | null;
     accessToken: string | null;
+    refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord> {
     const existing = await prisma.integration.findFirst({
       where: { storeId: input.storeId, type: "META", provider: input.channel },
@@ -51,6 +52,7 @@ export class PrismaMetaIntegrationRepository
       provider: input.channel,
       externalId: input.accountId,
       accessToken: await encryptString(input.accessToken),
+      refreshToken: await encryptString(input.refreshToken ?? null),
       storeId: input.storeId,
     };
 

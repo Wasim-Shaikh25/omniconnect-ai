@@ -11,6 +11,7 @@ function toRecord(row: {
   email: string;
   organizationId: string;
   role: Role;
+  storeId: string | null;
   status: InviteStatus;
   token: string;
   createdByUserId: string;
@@ -22,6 +23,7 @@ function toRecord(row: {
     email: row.email,
     organizationId: row.organizationId,
     role: row.role,
+    storeId: row.storeId,
     status: row.status,
     token: row.token,
     createdByUserId: row.createdByUserId,
@@ -49,6 +51,16 @@ export class PrismaOrganizationInviteRepository
     return toRecord(row as OrganizationInviteRecord);
   }
 
+  async findById(
+    id: string,
+    organizationId: string,
+  ): Promise<OrganizationInviteRecord | null> {
+    const row = await prisma.organizationInvite.findFirst({
+      where: { id, organizationId },
+    });
+    return row ? toRecord(row as OrganizationInviteRecord) : null;
+  }
+
   async create(
     input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & {
       status?: InviteStatus;
@@ -59,6 +71,7 @@ export class PrismaOrganizationInviteRepository
         email: input.email,
         organizationId: input.organizationId,
         role: input.role,
+        storeId: input.storeId,
         status: input.status ?? "PENDING",
         token: input.token,
         createdByUserId: input.createdByUserId,
@@ -71,6 +84,23 @@ export class PrismaOrganizationInviteRepository
   async updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord> {
     const row = await prisma.organizationInvite.update({ where: { id }, data: { status } });
     return toRecord(row as OrganizationInviteRecord);
+  }
+
+  async updateToken(
+    id: string,
+    organizationId: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<OrganizationInviteRecord | null> {
+    const row = await prisma.organizationInvite.update({
+      where: { id, organizationId },
+      data: { token, expiresAt },
+    });
+    return row ? toRecord(row as OrganizationInviteRecord) : null;
+  }
+
+  async deleteInvite(id: string, organizationId: string): Promise<void> {
+    await prisma.organizationInvite.deleteMany({ where: { id, organizationId } });
   }
 
   async countPendingByOrganization(organizationId: string): Promise<number> {

@@ -36,6 +36,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - Credentials password hasher is lazy-loaded in `auth.ts` to keep `bcryptjs` out of the middleware bundle.
   - Added continuation spec `docs/specs/0054-audit-fixes-continuation.md` and tracker `docs/tasks/0054-audit-fixes-continuation-progress.md`.
 
+- **TASK-0057 — Product Completeness Roadmap Phase 4 (final)** (spec `0057`):
+  - **P4-1 (GDPR / account lifecycle):** `User.deletedAt`, `ExportRequest` model, `dataExportService` JSON export, `deleteAccountService` 30-day soft-delete grace period, `/settings/account` UI (`AccountActions`, `requestDataExportAction`, `deleteAccountAction`), and `/api/export/[id]` download route.
+  - **P4-2 (team / invite lifecycle):** `OrganizationInvite.storeId`, `revokeInvite`/`resendInvite` use cases, seat-limit enforcement in `inviteMember`, `/settings` resend/revoke/remove member buttons, and audit logging.
+  - **P4-3 (notification preferences):** `NotificationPreference` per `(userId, channel, eventType)`, notification service honors disabled preferences, `/settings/notifications` preference toggles and `/notifications` history.
+  - **P4-4 (integration token encryption):** `Integration.accessToken` and `refreshToken` encrypted at rest using `encryptString`/`decryptString` (AES-256-GCM) with legacy-plaintext backwards compatibility; `ConnectorCredentials` and `ShopifyConnector` accept `refreshToken`.
+  - **P4-5 (MFA / reset code separation):** `MfaCode` and `PasswordResetCode` tables; `VerificationCodeRepository` persists/consumes from the correct table based on `mfa:<email>` vs `reset:<email>` prefixes.
+  - **P4-6 (CI smoke):** GitHub Actions `ci.yml` now runs `npm run build`, `npm run build:worker`, and a `/api/health` smoke test.
+  - **P4-7 (Sentry / OpenTelemetry):** `initSentry` with PII header redaction, `initTelemetry` with OTLP/console exporter and `trace.setGlobalTracerProvider`; initialized in `instrumentation.ts`, `src/jobs/worker.ts`, and wrapped around OpenAI, Meta, and Shopify outbound calls.
+  - **P4-8 (operations runbook):** Created `docs/operations.md` with health probes, PostgreSQL/Redis backup & restore, rollback, dependency-failure, secrets-rotation, and incident-escalation guidance.
+  - Added `scripts/export-user-data.ts` and `scripts/cleanup-deleted-accounts.ts` referenced by the runbook.
+  - Generated and applied Prisma migration `20260729035410_phase4_invite_store_id` for `OrganizationInvite.storeId`.
+  - All quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck`, `npm run test` (35), `npm audit` (0 vulnerabilities), `npm run build`, `npm run build:worker`.
+
 ### 🚧 In Progress
 
 - **TASK-0055 — Production Readiness Audit fixes (spec `0055`):**
@@ -135,10 +148,10 @@ All notable changes to **OmniConnect AI** are documented here.
   - Phase 2 — organization-level dashboard for owners with multiple stores:
     - `WorkspaceKpiSnapshot.stores` is now `WorkspaceStoreSnapshot[]` with per-store product/follower/conversation/coupon counts and connection status.
     - `/dashboard` “Your stores” card now shows each store’s KPIs, integration status, and last product sync date, giving owners with multiple stores a single overview.
-  - Phase 4 (operations readiness):
+  - Phase 4 (operations readiness) — completed; see TASK-0057 Phase 4 entry under ✅ Done above.
     - Added public `/api/health` (liveness) and `/api/ready` (readiness) route handlers.
     - `/api/ready` checks PostgreSQL (`$queryRaw SELECT 1`) and Redis (`PING`) before returning `200 OK`; returns `503` with per-check diagnostics when a dependency is unreachable.
-    - Updated NextAuth middleware public-path allowlist so the probes are reachable without a session.
+    - Sentry and OpenTelemetry initialized at app startup and in the worker; outbound AI/Meta/Shopify calls wrapped in spans.
 
 - **Project governance & foundation**
   - Canonical engineering standard (`AGENTS.md`) — single source of truth for humans + AI tools.

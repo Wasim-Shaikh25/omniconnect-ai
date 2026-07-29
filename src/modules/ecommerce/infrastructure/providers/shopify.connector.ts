@@ -1,3 +1,4 @@
+import { withSpan } from "@/shared/observability";
 import type {
   ConnectorCoupon,
   ConnectorCustomer,
@@ -74,6 +75,7 @@ export class ShopifyConnector implements EcommerceConnector {
   constructor(
     shopDomain: string,
     private readonly accessToken: string,
+    private readonly refreshToken?: string,
   ) {
     this.shopDomain = validateShopDomain(shopDomain);
   }
@@ -82,25 +84,31 @@ export class ShopifyConnector implements EcommerceConnector {
     path: string,
     init?: RequestInit,
   ): Promise<T> {
-    if (path.includes("..") || path.includes("//")) {
-      throw new Error("Invalid API path");
-    }
+    return withSpan(
+      "ecommerce.shopify.request",
+      async () => {
+        if (path.includes("..") || path.includes("//")) {
+          throw new Error("Invalid API path");
+        }
 
-    const url = new URL(path, `https://${this.shopDomain}/admin/api/${API_VERSION}/`);
+        const url = new URL(path, `https://${this.shopDomain}/admin/api/${API_VERSION}/`);
 
-    const res = await fetch(url.toString(), {
-      ...init,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      headers: {
-        "X-Shopify-Access-Token": this.accessToken,
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
+        const res = await fetch(url.toString(), {
+          ...init,
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+          headers: {
+            "X-Shopify-Access-Token": this.accessToken,
+            "Content-Type": "application/json",
+            ...(init?.headers ?? {}),
+          },
+        });
+        if (!res.ok) {
+          throw new Error(`Shopify request failed: ${res.status}`);
+        }
+        return (await res.json()) as T;
       },
-    });
-    if (!res.ok) {
-      throw new Error(`Shopify request failed: ${res.status}`);
-    }
-    return (await res.json()) as T;
+      { attributes: { shop: this.shopDomain, path } },
+    );
   }
 
   async fetchStoreInfo(): Promise<StoreInfo> {

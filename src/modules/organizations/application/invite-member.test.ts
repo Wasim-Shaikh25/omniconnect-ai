@@ -64,11 +64,18 @@ class InMemoryInvites implements OrganizationInviteRepository {
     );
   }
 
+  findById(id: string, organizationId: string): Promise<OrganizationInviteRecord | null> {
+    return Promise.resolve(
+      this.invites.find((i) => i.id === id && i.organizationId === organizationId) ?? null,
+    );
+  }
+
   create(
     input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & { status?: InviteStatus },
   ): Promise<OrganizationInviteRecord> {
     const invite: OrganizationInviteRecord = {
       ...input,
+      storeId: input.storeId ?? null,
       status: input.status ?? "PENDING",
       id: `invite-${this.invites.length + 1}`,
       createdAt: new Date(),
@@ -82,6 +89,26 @@ class InMemoryInvites implements OrganizationInviteRepository {
     if (!invite) throw new Error("Invite not found");
     invite.status = status;
     return Promise.resolve(invite);
+  }
+
+  updateToken(
+    id: string,
+    organizationId: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<OrganizationInviteRecord | null> {
+    const invite = this.invites.find((i) => i.id === id && i.organizationId === organizationId);
+    if (!invite) return Promise.resolve(null);
+    invite.token = token;
+    invite.expiresAt = expiresAt;
+    return Promise.resolve(invite);
+  }
+
+  deleteInvite(id: string, organizationId: string): Promise<void> {
+    this.invites = this.invites.filter(
+      (i) => !(i.id === id && i.organizationId === organizationId),
+    );
+    return Promise.resolve();
   }
 
   countPendingByOrganization(organizationId: string): Promise<number> {

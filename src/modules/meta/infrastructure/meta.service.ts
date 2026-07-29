@@ -1,5 +1,5 @@
 import { env } from "@/shared/config";
-import { logger } from "@/shared/observability";
+import { logger, withSpan } from "@/shared/observability";
 import type {
   MetaIntegrationRepository,
   MetaMediaItem,
@@ -32,36 +32,42 @@ export class GraphApiMetaService implements MetaService {
     recipientId: string;
     text: string;
   }): Promise<void> {
-    const token = await this.integrations.findAccessToken(input.storeId);
-    if (!token || !env.META_APP_ID) {
-      logger.info("meta.sendMessage.skipped", {
-        storeId: input.storeId,
-        reason: "not-configured",
-      });
-      return;
-    }
+    return withSpan(
+      "meta.sendMessage",
+      async () => {
+        const token = await this.integrations.findAccessToken(input.storeId);
+        if (!token || !env.META_APP_ID) {
+          logger.info("meta.sendMessage.skipped", {
+            storeId: input.storeId,
+            reason: "not-configured",
+          });
+          return;
+        }
 
-    const res = await fetch(`${GRAPH_API_BASE}/me/messages`, withTimeout({
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
+        const res = await fetch(`${GRAPH_API_BASE}/me/messages`, withTimeout({
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            recipient: { id: input.recipientId },
+            message: { text: input.text },
+          }),
+        }));
+
+        if (!res.ok) {
+          logger.warn("meta.sendMessage.failed", {
+            storeId: input.storeId,
+            status: res.status,
+          });
+          return;
+        }
+
+        logger.info("meta.sendMessage.ok", { storeId: input.storeId });
       },
-      body: JSON.stringify({
-        recipient: { id: input.recipientId },
-        message: { text: input.text },
-      }),
-    }));
-
-    if (!res.ok) {
-      logger.warn("meta.sendMessage.failed", {
-        storeId: input.storeId,
-        status: res.status,
-      });
-      return;
-    }
-
-    logger.info("meta.sendMessage.ok", { storeId: input.storeId });
+      { attributes: { storeId: input.storeId } },
+    );
   }
 
   async searchHashtag(
@@ -190,118 +196,130 @@ export class GraphApiMetaService implements MetaService {
     storeId: string,
     days = 7,
   ): Promise<MetaPageInsights | null> {
-    const token = await this.integrations.findAccessToken(storeId);
-    const integration = await this.integrations.findByStore(storeId);
-    if (!token || !integration?.accountId) {
-      logger.info("meta.getPageInsights.skipped", { storeId, reason: "not-configured" });
-      return null;
-    }
+    return withSpan(
+      "meta.getPageInsights",
+      async () => {
+        const token = await this.integrations.findAccessToken(storeId);
+        const integration = await this.integrations.findByStore(storeId);
+        if (!token || !integration?.accountId) {
+          logger.info("meta.getPageInsights.skipped", { storeId, reason: "not-configured" });
+          return null;
+        }
 
-    try {
-      const accountUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
-      accountUrl.searchParams.set("fields", "username,followers_count,media_count");
-      const accountRes = await fetch(accountUrl.toString(), withTimeout({
-        headers: { authorization: `Bearer ${token}` },
-      }));
-      const account: unknown = accountRes.ok ? await accountRes.json() : {};
-      const accountJson = account as Record<string, unknown>;
+        try {
+          const accountUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
+          accountUrl.searchParams.set("fields", "username,followers_count,media_count");
+          const accountRes = await fetch(accountUrl.toString(), withTimeout({
+            headers: { authorization: `Bearer ${token}` },
+          }));
+          const account: unknown = accountRes.ok ? await accountRes.json() : {};
+          const accountJson = account as Record<string, unknown>;
 
-      const since = Math.floor(Date.now() / 1000) - days * 86400;
-      const until = Math.floor(Date.now() / 1000);
-      const insightsUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
-      insightsUrl.searchParams.set("metric", "impressions,reach,profile_views");
-      insightsUrl.searchParams.set("period", "day");
-      insightsUrl.searchParams.set("since", String(since));
-      insightsUrl.searchParams.set("until", String(until));
+          const since = Math.floor(Date.now() / 1000) - days * 86400;
+          const until = Math.floor(Date.now() / 1000);
+          const insightsUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
+          insightsUrl.searchParams.set("metric", "impressions,reach,profile_views");
+          insightsUrl.searchParams.set("period", "day");
+          insightsUrl.searchParams.set("since", String(since));
+          insightsUrl.searchParams.set("until", String(until));
 
-      const insightsRes = await fetch(insightsUrl.toString(), withTimeout({
-        headers: { authorization: `Bearer ${token}` },
-      }));
-      const insights: unknown = insightsRes.ok ? await insightsRes.json() : {};
-      const data = Array.isArray((insights as { data?: unknown[] }).data)
-        ? (insights as { data: unknown[] }).data
-        : [];
-      const summed = sumInsightData(data);
+          const insightsRes = await fetch(insightsUrl.toString(), withTimeout({
+            headers: { authorization: `Bearer ${token}` },
+          }));
+          const insights: unknown = insightsRes.ok ? await insightsRes.json() : {};
+          const data = Array.isArray((insights as { data?: unknown[] }).data)
+            ? (insights as { data: unknown[] }).data
+            : [];
+          const summed = sumInsightData(data);
 
-      return {
-        username: typeof accountJson.username === "string" ? accountJson.username : null,
-        followers: typeof accountJson.followers_count === "number" ? accountJson.followers_count : null,
-        mediaCount: typeof accountJson.media_count === "number" ? accountJson.media_count : null,
-        impressions: summed.impressions,
-        reach: summed.reach,
-        profileViews: summed.profileViews,
-      };
-    } catch (error) {
-      logger.error("meta.getPageInsights.error", {
-        storeId,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-      return null;
-    }
+          return {
+            username: typeof accountJson.username === "string" ? accountJson.username : null,
+            followers: typeof accountJson.followers_count === "number" ? accountJson.followers_count : null,
+            mediaCount: typeof accountJson.media_count === "number" ? accountJson.media_count : null,
+            impressions: summed.impressions,
+            reach: summed.reach,
+            profileViews: summed.profileViews,
+          };
+        } catch (error) {
+          logger.error("meta.getPageInsights.error", {
+            storeId,
+            error: error instanceof Error ? error.message : "unknown",
+          });
+          return null;
+        }
+      },
+      { attributes: { storeId, days } },
+    );
   }
 
   async getAudienceInsights(
     storeId: string,
   ): Promise<MetaAudienceInsights | null> {
-    const token = await this.integrations.findAccessToken(storeId);
-    const integration = await this.integrations.findByStore(storeId);
-    if (!token || !integration?.accountId) {
-      logger.info("meta.getAudienceInsights.skipped", { storeId, reason: "not-configured" });
-      return null;
-    }
-
-    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
-    url.searchParams.set("metric", "audience_gender_age,audience_city,audience_country,audience_locale");
-    url.searchParams.set("period", "lifetime");
-
-    try {
-      const res = await fetch(url.toString(), withTimeout({
-        headers: { authorization: `Bearer ${token}` },
-      }));
-      if (!res.ok) {
-        logger.warn("meta.getAudienceInsights.failed", { storeId, status: res.status });
-        return null;
-      }
-      const payload: unknown = await res.json();
-      const data = Array.isArray((payload as { data?: unknown[] }).data)
-        ? (payload as { data: unknown[] }).data
-        : [];
-
-      const demographics: AudienceDemographics = {
-        genderAge: {},
-        cities: {},
-        countries: {},
-        locales: {},
-      };
-
-      for (const metric of data) {
-        if (typeof metric !== "object" || metric === null) continue;
-        const m = metric as Record<string, unknown>;
-        const name = typeof m.name === "string" ? m.name : "";
-        const firstValue = Array.isArray(m.values) ? m.values[0] : null;
-        const value = typeof firstValue === "object" && firstValue !== null
-          ? (firstValue as { value?: unknown }).value
-          : null;
-
-        if (name === "audience_gender_age" && typeof value === "object" && value !== null) {
-          mergeDemographicObject(demographics.genderAge, value);
-        } else if (name === "audience_city" && typeof value === "object" && value !== null) {
-          mergeDemographicObject(demographics.cities, value);
-        } else if (name === "audience_country" && typeof value === "object" && value !== null) {
-          mergeDemographicObject(demographics.countries, value);
-        } else if (name === "audience_locale" && typeof value === "object" && value !== null) {
-          mergeDemographicObject(demographics.locales, value);
+    return withSpan(
+      "meta.getAudienceInsights",
+      async () => {
+        const token = await this.integrations.findAccessToken(storeId);
+        const integration = await this.integrations.findByStore(storeId);
+        if (!token || !integration?.accountId) {
+          logger.info("meta.getAudienceInsights.skipped", { storeId, reason: "not-configured" });
+          return null;
         }
-      }
 
-      return { demographics };
-    } catch (error) {
-      logger.error("meta.getAudienceInsights.error", {
-        storeId,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-      return null;
-    }
+        const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
+        url.searchParams.set("metric", "audience_gender_age,audience_city,audience_country,audience_locale");
+        url.searchParams.set("period", "lifetime");
+
+        try {
+          const res = await fetch(url.toString(), withTimeout({
+            headers: { authorization: `Bearer ${token}` },
+          }));
+          if (!res.ok) {
+            logger.warn("meta.getAudienceInsights.failed", { storeId, status: res.status });
+            return null;
+          }
+          const payload: unknown = await res.json();
+          const data = Array.isArray((payload as { data?: unknown[] }).data)
+            ? (payload as { data: unknown[] }).data
+            : [];
+
+          const demographics: AudienceDemographics = {
+            genderAge: {},
+            cities: {},
+            countries: {},
+            locales: {},
+          };
+
+          for (const metric of data) {
+            if (typeof metric !== "object" || metric === null) continue;
+            const m = metric as Record<string, unknown>;
+            const name = typeof m.name === "string" ? m.name : "";
+            const firstValue = Array.isArray(m.values) ? m.values[0] : null;
+            const value = typeof firstValue === "object" && firstValue !== null
+              ? (firstValue as { value?: unknown }).value
+              : null;
+
+            if (name === "audience_gender_age" && typeof value === "object" && value !== null) {
+              mergeDemographicObject(demographics.genderAge, value);
+            } else if (name === "audience_city" && typeof value === "object" && value !== null) {
+              mergeDemographicObject(demographics.cities, value);
+            } else if (name === "audience_country" && typeof value === "object" && value !== null) {
+              mergeDemographicObject(demographics.countries, value);
+            } else if (name === "audience_locale" && typeof value === "object" && value !== null) {
+              mergeDemographicObject(demographics.locales, value);
+            }
+          }
+
+          return { demographics };
+        } catch (error) {
+          logger.error("meta.getAudienceInsights.error", {
+            storeId,
+            error: error instanceof Error ? error.message : "unknown",
+          });
+          return null;
+        }
+      },
+      { attributes: { storeId } },
+    );
   }
 
   private async fetchMediaInsights(
@@ -358,43 +376,49 @@ export class GraphApiMetaService implements MetaService {
     handle: string,
     options: CompetitorMediaOptions = {},
   ): Promise<MetaMediaItem[]> {
-    const token = await this.integrations.findAccessToken(storeId);
-    const integration = await this.integrations.findByStore(storeId);
-    const limit = Math.min(Math.max(options.limit ?? 10, 1), 25);
-    if (!token || !integration?.accountId) {
-      logger.info("meta.getCompetitorMedia.skipped", { storeId, handle, reason: "not-configured" });
-      if (env.NODE_ENV !== "production") {
-        return generateSampleCompetitorMedia(handle, limit);
-      }
-      return [];
-    }
+    return withSpan(
+      "meta.getCompetitorMedia",
+      async () => {
+        const token = await this.integrations.findAccessToken(storeId);
+        const integration = await this.integrations.findByStore(storeId);
+        const limit = Math.min(Math.max(options.limit ?? 10, 1), 25);
+        if (!token || !integration?.accountId) {
+          logger.info("meta.getCompetitorMedia.skipped", { storeId, handle, reason: "not-configured" });
+          if (env.NODE_ENV !== "production") {
+            return generateSampleCompetitorMedia(handle, limit);
+          }
+          return [];
+        }
 
-    const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
-    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
-    url.searchParams.set(
-      "fields",
-      `business_discovery.username(${handle}){id,media{${fields}}}`,
+        const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
+        const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
+        url.searchParams.set(
+          "fields",
+          `business_discovery.username(${handle}){id,media{${fields}}}`,
+        );
+
+        try {
+          const res = await fetch(url.toString(), withTimeout({
+            headers: { authorization: `Bearer ${token}` },
+          }));
+          if (!res.ok) {
+            logger.warn("meta.getCompetitorMedia.failed", { storeId, handle, status: res.status });
+            return [];
+          }
+          const payload: unknown = await res.json();
+          const media = (payload as { business_discovery?: { media?: { data?: unknown[] } } })?.business_discovery?.media?.data ?? [];
+          return media.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
+        } catch (error) {
+          logger.error("meta.getCompetitorMedia.error", {
+            storeId,
+            handle,
+            error: error instanceof Error ? error.message : "unknown",
+          });
+          return [];
+        }
+      },
+      { attributes: { storeId, handle, limit: options.limit } },
     );
-
-    try {
-      const res = await fetch(url.toString(), withTimeout({
-        headers: { authorization: `Bearer ${token}` },
-      }));
-      if (!res.ok) {
-        logger.warn("meta.getCompetitorMedia.failed", { storeId, handle, status: res.status });
-        return [];
-      }
-      const payload: unknown = await res.json();
-      const media = (payload as { business_discovery?: { media?: { data?: unknown[] } } })?.business_discovery?.media?.data ?? [];
-      return media.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
-    } catch (error) {
-      logger.error("meta.getCompetitorMedia.error", {
-        storeId,
-        handle,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-      return [];
-    }
   }
 }
 

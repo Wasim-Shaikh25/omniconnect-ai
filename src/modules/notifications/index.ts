@@ -16,6 +16,7 @@ export type {
   NotificationRecord,
   NotificationQueries,
   NotificationService,
+  NotificationPreferenceRecord,
 } from "./application/ports";
 export type { NotificationServiceImpl } from "./application/service";
 
@@ -23,6 +24,7 @@ export type { NotificationServiceImpl } from "./application/service";
 export {
   notificationService,
   notificationQueries,
+  notificationPreferences,
 } from "./infrastructure/container";
 
 // Presentation
@@ -31,4 +33,6 @@ export {
   getUnreadNotificationCountAction,
   markNotificationAsReadAction,
   markAllNotificationsAsReadAction,
+  getNotificationPreferencesAction,
+  updateNotificationPreferenceAction,
 } from "./presentation/actions";

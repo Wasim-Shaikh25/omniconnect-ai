@@ -20,16 +20,18 @@ export interface IntegrationRepository {
     provider: EcommerceProvider;
     shopDomain: string | null;
     accessToken: string | null;
+    refreshToken?: string | null;
     scopes: string | null;
   }): Promise<IntegrationRecord>;
 
   findEcommerceByStore(storeId: string): Promise<IntegrationRecord | null>;
 
-  /** Access token is only read by the infrastructure layer to build a connector. */
+  /** Tokens are only read by the infrastructure layer to build a connector. */
   findCredentialsByStore(storeId: string): Promise<{
     provider: string;
     shopDomain: string | null;
     accessToken: string | null;
+    refreshToken: string | null;
   } | null>;
 }
 

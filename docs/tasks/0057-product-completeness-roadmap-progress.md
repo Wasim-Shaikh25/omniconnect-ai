@@ -37,28 +37,28 @@ Implement the full product-completeness roadmap derived from `PRODUCTION_READINE
 
 ### Phase 4 — Platform, privacy, and operations (16–24h)
 
-- [ ] **P4-1** — GDPR/CCPA: request data export, generate JSON archive, soft-delete account with 30-day grace period.
-- [ ] **P4-2** — Team/invite lifecycle: revoke, resend invite, reassign store, seat-limit enforcement.
-- [ ] **P4-3** — Notification preferences and notification history UI.
-- [ ] **P4-4** — Encrypt `Integration.accessToken`/`refreshToken` at rest with backwards-compatible migration.
-- [ ] **P4-5** — Separate MFA and password-reset code storage/purposes.
-- [ ] **P4-6** — CI: add `npm run build`, `npm run build:worker`, and an E2E/smoke step.
-- [x] **P4-7** — Add `/api/health` and `/api/ready` (Sentry/OpenTelemetry initialization remaining).
-- [ ] **P4-8** — Write backup/DR runbook in `docs/operations.md`.
+- [x] **P4-1** — GDPR/CCPA: request data export, generate JSON archive, soft-delete account with 30-day grace period and `/settings/account` UI.
+- [x] **P4-2** — Team/invite lifecycle: revoke, resend invite, reassign store, seat-limit enforcement.
+- [x] **P4-3** — Notification preferences and notification history UI.
+- [x] **P4-4** — Encrypt `Integration.accessToken`/`refreshToken` at rest with backwards-compatible migration.
+- [x] **P4-5** — Separate MFA and password-reset code storage/purposes.
+- [x] **P4-6** — CI: add `npm run build`, `npm run build:worker`, and a `/api/health` smoke step.
+- [x] **P4-7** — Add `/api/health` and `/api/ready`; initialize Sentry and OpenTelemetry at startup and in worker; wrap AI, Meta, and Shopify calls with spans.
+- [x] **P4-8** — Write backup/DR runbook in `docs/operations.md`.
 
 ## Acceptance Criteria
 
 - [x] Phase 1 acceptance: staff assignment and scoping tests pass.
 - [x] Phase 2 acceptance: store/product/coupon lifecycle works end-to-end.
 - [x] Phase 3 acceptance: AI guard, paginated lists, and analytics data sources functional.
-- [ ] Phase 4 acceptance: privacy features, CI changes, and observability routes in place.
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` and `npm run build:worker` pass.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `PRODUCTION_READINESS_AUDIT.md` residual risks and final recommendation updated.
+- [x] Phase 4 acceptance: privacy features, CI changes, and observability routes in place.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` and `npm run build:worker` pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `PRODUCTION_READINESS_AUDIT.md` residual risks and final recommendation updated.
 
 ## Notes / Blockers
 

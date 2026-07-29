@@ -28,20 +28,20 @@ function mapUser(user: {
 
 export class PrismaAccountRepository implements AccountRepository {
   async findById(id: string): Promise<AccountRecord | null> {
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { id, deletedAt: null } });
     if (!user) return null;
     return mapUser(user);
   }
 
   async findByEmail(email: string): Promise<AccountRecord | null> {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email, deletedAt: null } });
     if (!user) return null;
     return mapUser(user);
   }
 
   async updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null> {
     const user = await prisma.user.update({
-      where: { id: input.id },
+      where: { id: input.id, deletedAt: null },
       data: { passwordHash: input.passwordHash, tokenVersion: { increment: 1 } },
     });
     return mapUser(user);
@@ -49,7 +49,7 @@ export class PrismaAccountRepository implements AccountRepository {
 
   async bumpTokenVersion(id: string): Promise<AccountRecord | null> {
     const user = await prisma.user.update({
-      where: { id },
+      where: { id, deletedAt: null },
       data: { tokenVersion: { increment: 1 } },
     });
     return mapUser(user);

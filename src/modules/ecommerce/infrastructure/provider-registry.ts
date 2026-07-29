@@ -19,11 +19,11 @@ export function getConnector(
   provider: EcommerceProvider,
   credentials: ConnectorCredentials,
 ): EcommerceConnector {
-  const { shopDomain, accessToken } = credentials;
+  const { shopDomain, accessToken, refreshToken } = credentials;
 
   if (provider === "SHOPIFY" && shopDomain && accessToken) {
     logger.info("ecommerce.connector.resolved", { provider: "SHOPIFY" });
-    return new ShopifyConnector(shopDomain, accessToken);
+    return new ShopifyConnector(shopDomain, accessToken, refreshToken);
   }
 
   logger.info("ecommerce.connector.resolved", {

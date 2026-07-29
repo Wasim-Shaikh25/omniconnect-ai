@@ -177,7 +177,20 @@ No other module may import these modules' internals; all cross-module access goe
 - [ ] `Integration.accessToken`/`refreshToken` encrypted at rest.
 - [x] `CHANGELOG.md` updated and `PRODUCTION_READINESS_AUDIT.md` residual risks revised (Phase 4 pending).
 
-## 14. Open Questions
+## 15. Phase 4 Implementation Notes
+
+This section turns the open operational/privacy items into concrete, shippable changes.
+
+- **P4-1 GDPR:** Add `deletedAt`, `dataExportRequestedAt`, `dataExportExpiresAt`, and `deletedReason` to `User`; create an `ExportRequest` table. Provide `requestDataExport(userId)` and `deleteAccount(userId)` (soft-delete with 30-day `DELETED_AT_GRACE_DAYS`) through the public `users` barrel. Add `/settings/account` UI with "Export my data" and "Delete account" flows that require re-authentication. The export JSON redacts other users' PII.
+- **P4-2 Team lifecycle:** Add server actions to `revokeMember(userId)` (soft-delete user or set `organizationId`/`storeId` to null), `resendInvite(inviteId)` (refresh token and expiry), and enforce `planLimits(...).teamSeats` when inviting. Surface these actions on `/settings`.
+- **P4-3 Notifications:** Create a `NotificationPreference` table (per user: `channel`, `eventType`, `enabled`) and expose `getNotificationPreferences` / `updateNotificationPreference` actions. Add `/settings/notifications` toggles and keep `/notifications` as the history view with "Mark all as read".
+- **P4-4 Integration token encryption:** The existing `PrismaMetaIntegrationRepository` and `PrismaEcommerceIntegrationRepository` already `encryptString`/`decryptString` the `accessToken`. This item is satisfied; `refreshToken` will also be encrypted if/when a provider begins storing it.
+- **P4-5 Code storage separation:** Add a `purpose` enum column to `VerificationToken` (or migrate to dedicated `MfaCode`/`PasswordResetToken` models) so MFA and password-reset codes are explicitly partitioned. Keep `identifier` as `purpose:email` and add `@@index([identifier, purpose])`.
+- **P4-6 CI:** Extend `.github/workflows/ci.yml` with `npm run build` and `npm run build:worker` after tests, and a smoke step that starts the server and curls `/api/health`.
+- **P4-7 Observability:** Install `@sentry/nextjs` and `@opentelemetry/api`, initialize Sentry in `instrumentation.ts` and the worker boot when `SENTRY_DSN` is present, and record OpenTelemetry traces around key AI/meta/ecommerce calls.
+- **P4-8 Runbook:** Write `docs/operations.md` covering backups (PostgreSQL `pg_dump`, Redis `BGSAVE`), restore, rollback, dependency failure runbooks, and on-call escalation.
+
+## 16. Open Questions
 
 - Which currently linked `/stores/[storeId]/*` pages (affiliates, media kit, growth, UGC) should be implemented vs. removed/hidden behind feature flags?
 - Should account deletion be a self-serve 30-day grace period, or require admin approval for organizations with active billing?

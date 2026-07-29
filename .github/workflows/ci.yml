@@ -58,3 +58,25 @@ jobs:
 
       - name: Migration dry-run (apply all migrations)
         run: npx prisma migrate deploy
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Build worker bundle
+        run: npm run build:worker
+
+      - name: Smoke test
+        run: |
+          npm start &
+          APP_PID=$!
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/health; then
+              echo "Smoke test passed"
+              kill $APP_PID || true
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Smoke test failed"
+          kill $APP_PID || true
+          exit 1

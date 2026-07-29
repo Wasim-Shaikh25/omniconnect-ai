@@ -1,6 +1,17 @@
 import type { Role } from "@/modules/auth";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
+export interface ExportRequestRecord {
+  id: string;
+  userId: string;
+  organizationId: string | null;
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "EXPIRED";
+  downloadUrl: string | null;
+  expiresAt: Date | null;
+  createdAt: Date;
+  completedAt: Date | null;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -25,4 +36,11 @@ export interface UserProfileRepository {
   listAll(pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
   countByOrganization(organizationId: string): Promise<number>;
   setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
+  removeFromOrganization(id: string): Promise<UserProfile>;
+  requestDataExport(userId: string, organizationId?: string | null): Promise<ExportRequestRecord>;
+  listExportRequests(userId: string): Promise<ExportRequestRecord[]>;
+  getExportRequest(id: string, userId: string): Promise<ExportRequestRecord | null>;
+  markExportCompleted(id: string, downloadUrl: string): Promise<ExportRequestRecord | null>;
+  deleteAccount(userId: string, reason?: string | null): Promise<UserProfile | null>;
+  hardDeleteExpired(before: Date): Promise<number>;
 }

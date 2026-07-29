@@ -5,9 +5,12 @@ import {
   makeListAuditLogs,
   makeCreateAuditLog,
 } from "../application/audit-use-cases";
+import { makeDataExportService } from "../application/data-export";
+import { makeDeleteAccountService } from "../application/delete-account";
 import { UserProfile } from "../application/ports";
 import { PrismaUserProfileRepository } from "./user.repository";
 import { PrismaAuditLogRepository } from "./audit.repository";
+import { prismaDataExportBuilder } from "./data-export";
 
 const users = new PrismaUserProfileRepository();
 const auditLogs = new PrismaAuditLogRepository();
@@ -16,6 +19,8 @@ const auditLogs = new PrismaAuditLogRepository();
 export const userRepository = users;
 export const updateProfile = makeUpdateProfile({ users });
 export const changeUserRole = makeChangeUserRole({ users });
+export const dataExportService = makeDataExportService({ users, builder: prismaDataExportBuilder });
+export const deleteAccountService = makeDeleteAccountService(users);
 
 export const auditQueries = {
   listByOrganization: makeListAuditLogs({ auditLogs }),
@@ -63,4 +68,8 @@ export async function setUserStore(
   storeId: string | null,
 ): Promise<UserProfile> {
   return users.setStore(id, storeId);
+}
+
+export async function removeUserFromOrganization(id: string): Promise<UserProfile> {
+  return users.removeFromOrganization(id);
 }

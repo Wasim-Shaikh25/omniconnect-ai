@@ -112,6 +112,7 @@ export interface OrganizationInviteRecord {
   email: string;
   organizationId: string;
   role: Role;
+  storeId: string | null;
   status: InviteStatus;
   token: string;
   createdByUserId: string;
@@ -122,8 +123,11 @@ export interface OrganizationInviteRecord {
 export interface OrganizationInviteRepository {
   findByToken(token: string): Promise<OrganizationInviteRecord | null>;
   findPendingByEmail(organizationId: string, email: string): Promise<OrganizationInviteRecord | null>;
+  findById(id: string, organizationId: string): Promise<OrganizationInviteRecord | null>;
   create(input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & { status?: InviteStatus }): Promise<OrganizationInviteRecord>;
   updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord>;
+  updateToken(id: string, organizationId: string, token: string, expiresAt: Date): Promise<OrganizationInviteRecord | null>;
+  deleteInvite(id: string, organizationId: string): Promise<void>;
   countPendingByOrganization(organizationId: string): Promise<number>;
   listPendingByOrganization(organizationId: string, limit?: number): Promise<OrganizationInviteRecord[]>;
 }

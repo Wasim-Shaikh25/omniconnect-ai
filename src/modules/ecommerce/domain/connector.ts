@@ -13,6 +13,8 @@ export interface ConnectorCredentials {
   shopDomain?: string;
   /** Admin API access token for the store. */
   accessToken?: string;
+  /** Optional refresh token for OAuth-based providers. */
+  refreshToken?: string;
 }
 
 export interface StoreInfo {

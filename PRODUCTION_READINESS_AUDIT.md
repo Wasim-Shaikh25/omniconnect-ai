@@ -48,10 +48,10 @@ The repository has a well-structured Next.js 15 / DDD codebase, a clear separati
 | Prisma client generation | `npx prisma generate` | Pass | Required before typecheck/build. |
 | Lint | `npm run lint` | Pass | `eslint . --max-warnings=0`. |
 | Type check | `npm run typecheck` | Pass | After `prisma generate`. |
-| Unit tests | `npm run test` | Pass | 6 test files, 31 tests. |
+| Unit tests | `npm run test` | Pass | 7 test files, 35 tests. |
 | Production build | `npm run build` | Pass | Includes `build:worker`. |
 | Migration dry-run | `npx prisma migrate deploy` | Not run locally | CI does this. |
-| `npm audit` | Not run explicitly | Unknown | Should be run before release. |
+| `npm audit` | `npm audit --audit-level moderate` | Pass | 0 vulnerabilities reported. |
 
 **Important:** On a fresh clone, `npm run typecheck` and `npm run build` fail until `npx prisma generate` is executed because `package.json` has no `postinstall` script. CI explicitly runs `npx prisma generate`, but local developers and reviewers will hit a broken first build.
 
@@ -379,17 +379,17 @@ Findings are grouped by severity and classified as in the audit rules.
 |------|--------|-------|
 | Authentication | Strong | NextAuth v5, bcrypt 12 rounds, token version invalidation, MFA for super admin. |
 | Session security | Strong | JWT strategy, `httpOnly` cookies handled by Auth.js, tokenVersion refresh. |
-| Authorization (RBAC) | Medium | Core hierarchy exists; duplicated role checks in UI; staff scoping broken. |
-| Tenant isolation | Weak | Server actions mostly good; read pages leak across stores for staff. |
+| Authorization (RBAC) | Medium | Core hierarchy exists; some duplicated role checks in UI; staff scoping fixed. |
+| Tenant isolation | Strong | `tenantGuard.assertStoreAccess`/`requireStoreAccess` is enforced on store-scoped pages and actions; staff can only access assigned stores. |
 | Input validation | Medium | Zod schemas on forms; some route params and filters lack strict validation. |
 | XSS / CSP | Medium | Nonce-based CSP, but `style-src 'unsafe-inline'` remains. |
 | CSRF | Strong | NextAuth CSRF tokens on auth forms; server actions use signed POSTs. |
 | Webhook signatures | Strong | Meta HMAC-SHA256 and Stripe signature verification present. |
-| Secrets at rest | Medium | OAuth `Account` tokens encrypted; `Integration` tokens plaintext. |
-| PII in logs | Medium | JSON logger redacts emails/phones; `SystemLog` metadata redaction weaker. |
+| Secrets at rest | Strong | OAuth `Account` tokens and `Integration` `accessToken`/`refreshToken` are encrypted at rest with AES-256-GCM. |
+| PII in logs | Strong | JSON logger redacts emails/phones; `SystemLog` metadata redaction uses `redactValue` for tokens and PII. |
 | Rate limiting | Medium | Fixed-window per email/IP; in-memory fallback is not cross-instance. |
 | Encryption | Strong | AES-256-GCM with Web Crypto. |
-| Dependency security | Unknown | `npm audit` not run in this session; update Prisma 6.2.1 → 7.9.1 suggested. |
+| Dependency security | Pass | `npm audit` reports 0 vulnerabilities; Prisma 6.2.1 is the current pinned version. |
 
 ---
 
@@ -399,13 +399,13 @@ Findings are grouped by severity and classified as in the audit rules.
 |---------|--------|-------|
 | Dockerfile | Mostly good | Multi-stage, non-root user, standalone output. Does not run migrations at startup. |
 | `fly.toml` | Present | Defines `app` and `worker` process groups per changelog, but should be reviewed for health checks and secrets. |
-| CI/CD | Needs improvement | Missing build, worker build, and e2e/smoke steps. |
+| CI/CD | Good | `ci.yml` runs lint, typecheck, tests, `npm run build`, `npm run build:worker`, and an `/api/health` smoke test. |
 | Migrations | Good | 34 migrations, consistent naming, incremental. |
 | Environment docs | Good | `.env.example` is comprehensive; `docs/deployment.md` exists. |
-| Health checks | Unknown | No visible `/health` or `/ready` route. |
-| Rollback plan | Partial | `RolloutGate` model exists but operational rollback runbook not present. |
-| Monitoring/alerting | Weak | `SystemLog` only; no Sentry/OTel wiring verified; no dashboards. |
-| Backup/DR | Unknown | No documented backup or disaster-recovery plan. |
+| Health checks | Pass | `/api/health` and `/api/ready` route handlers are implemented and wired in middleware. |
+| Rollback plan | Good | `docs/operations.md` includes application rollback, database restore, and migration rollback guidance. |
+| Monitoring/alerting | Partial | Sentry and OpenTelemetry are initialized; production alerting/dashboards are not configured. |
+| Backup/DR | Good | `docs/operations.md` documents PostgreSQL `pg_dump`, Redis `BGSAVE`, restore, and DR procedures. |
 
 ---
 
@@ -441,7 +441,7 @@ Findings are grouped by severity and classified as in the audit rules.
 1. **(Resolved)** Staff see only their assigned store's conversations, customers, orders, and analytics; they cannot create coupons/brand deals/campaigns. Product decision: keep this scope for the beta and expand later.
 2. **Is the "Project" feature part of the MVP?** It has its own permissions (OWNER/ADMIN/EDITOR/VIEWER) but is not integrated into the main navigation or store flow.
 3. **(Resolved)** Analytics now exposes `dataQuality` (`live`/`partial`/`simulated`) and renders a `DataQualityBadge`. Live Meta insights are merged when the store has a connected Meta account; otherwise values are clearly marked simulated.
-4. **What is the data-retention and deletion policy?** Account deletion and data export are not yet implemented (Phase 4 of TASK-0057).
+4. **(Resolved)** Data export and account soft-delete with a 30-day grace period are implemented in `/settings/account`; the hard-deletion runbook and a cleanup script are in `docs/operations.md`.
 5. **What is the rollout plan for incomplete modules?** Several store-scoped pages remain navigation-only. Decide whether to hide them behind feature flags or label them "Coming soon" before public launch.
 6. **Is there a separate admin panel for support agents?** Super admin can triage tickets, but there is no view for a non-super-admin support role.
 
@@ -454,8 +454,8 @@ Findings are grouped by severity and classified as in the audit rules.
 - **Multi-instance correctness:** Redis is required for production; if Redis is unreachable, rate limits and event bus degrade to per-instance state.
 - **Schema churn:** The schema has many recent migrations; production migrations must be carefully staged.
 - **No automated e2e tests:** The happy path for signup → onboarding → store creation → AI reply is exercised manually; an automated Playwright suite is not yet wired in CI.
-- **Observability gaps:** Sentry/OpenTelemetry are not initialized; alerting on errors or queue depth is not in place.
-- **Data rights and token encryption:** Account deletion, data export, and `Integration` token encryption at rest are still pending (Phase 4 of TASK-0057).
+- **Observability runtime:** Sentry/OpenTelemetry are initialized, but production alerting on errors or queue depth is not configured.
+- **Data-retention runtime:** Account soft-delete and export work, but the 30-day hard-deletion cleanup job is documented and scripted; it must be scheduled in production (e.g., cron or Fly scheduler).
 
 ---
 
@@ -472,9 +472,15 @@ To verify the current state:
 7. As an owner, archive/delete/restore a store, edit a product/coupon, and trigger a product resync; verify audit log entries in `/settings/audit`.
 8. Submit a Stripe test event to `/api/stripe/webhook` with an invalid signature and a transient failure payload; verify 4xx vs 5xx behavior.
 9. Confirm `/api/health` and `/api/ready` return 200 when DB/Redis are reachable.
+10. In `/settings/account`, request a data export and verify the download JSON does not contain `passwordHash`.
+11. Delete an account with the confirmation `DELETE`, sign in again within 30 days, and confirm the account is restored from grace; confirm `scripts/cleanup-deleted-accounts.ts` removes accounts past the grace period.
+12. Verify `Integration.accessToken`/`refreshToken` values in the database are prefixed with `enc:`.
+13. Trigger an AI/Meta/Shopify operation and confirm Sentry/OpenTelemetry spans are emitted (or console spans when no OTLP endpoint is set).
 
 ---
 
 ## 12. Conclusion
 
-OmniConnect AI has moved from a prototype to a coherent multi-tenant SaaS: authentication, billing, staff/tenant isolation, core entity lifecycles, AI quota enforcement, Meta/Shopify data integrations, paginated list views, and health/readiness probes are all implemented and pass the local quality gates. The remaining blockers are operational (Sentry/OpenTelemetry, automated e2e/CI smoke, backup/DR runbook) and privacy (account deletion, data export, token encryption). Fixing those would support a controlled paid launch; for an unpaid beta, the current **CONDITIONAL GO** recommendation still applies because automated runtime verification is not yet in place.
+OmniConnect AI has moved from a prototype to a coherent multi-tenant SaaS: authentication, billing, staff/tenant isolation, core entity lifecycles, AI quota enforcement, Meta/Shopify data integrations, paginated list views, health/readiness probes, Sentry/OpenTelemetry initialization, GDPR account export/deletion, integration token encryption, and a backup/DR runbook are all implemented and pass the local quality gates. All documented TASK-0057 roadmap items are complete.
+
+The remaining reasons to keep a **CONDITIONAL GO** rather than a full **GO** are runtime verification: the signup → onboarding → store creation → AI reply happy path is still tested manually, production alerting/queue-depth monitoring is not configured, and real Meta/Shopify API behavior at scale has not been exercised. A green e2e smoke run and a staged production rollout (monitor-only → limited beta → general availability) would clear the condition.

@@ -32,6 +32,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     provider: EcommerceProvider;
     shopDomain: string | null;
     accessToken: string | null;
+    refreshToken?: string | null;
     scopes: string | null;
   }): Promise<IntegrationRecord> {
     const existing = await prisma.integration.findFirst({
@@ -43,6 +44,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       provider: input.provider,
       externalId: input.shopDomain,
       accessToken: await encryptString(input.accessToken),
+      refreshToken: await encryptString(input.refreshToken ?? null),
       scopes: input.scopes,
       storeId: input.storeId,
     };
@@ -70,16 +72,18 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     provider: string;
     shopDomain: string | null;
     accessToken: string | null;
+    refreshToken: string | null;
   } | null> {
     const found = await prisma.integration.findFirst({
       where: { storeId, type: "ECOMMERCE" },
-      select: { provider: true, externalId: true, accessToken: true },
+      select: { provider: true, externalId: true, accessToken: true, refreshToken: true },
     });
     if (!found) return null;
     return {
       provider: found.provider,
       shopDomain: found.externalId,
       accessToken: await decryptString(found.accessToken),
+      refreshToken: await decryptString(found.refreshToken),
     };
   }
 }

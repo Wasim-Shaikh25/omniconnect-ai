@@ -7,11 +7,14 @@ import { requireRole, registerUser, registerUserSchema, signIn } from "@/modules
 import { inviteMemberSchema } from "../application/invite-member";
 import {
   inviteMember,
+  revokeInvite,
+  resendInvite,
   validateOrganizationInvite,
   acceptOrganizationInvite,
   tenantGuard,
   organizationQueries,
 } from "../infrastructure/container";
+import { removeUserFromOrganization } from "@/modules/users";
 
 export interface InviteMemberActionState {
   error?: string;
@@ -102,8 +105,8 @@ export async function registerWithInviteAction(
     return { error: "Email does not match the invite." };
   }
 
-  let assignedStoreId: string | null = null;
-  if (typeof storeId === "string" && storeId.trim()) {
+  let assignedStoreId: string | null = invite.storeId ?? null;
+  if (!assignedStoreId && typeof storeId === "string" && storeId.trim()) {
     const storeOrganizationId = await organizationQueries.getOrganizationIdByStoreId(storeId);
     if (storeOrganizationId !== invite.organizationId) {
       return { error: "Selected store does not belong to the inviting organization." };
@@ -138,4 +141,35 @@ export async function registerWithInviteAction(
     throw error;
   }
   redirect("/dashboard");
+}
+
+export async function revokeInviteAction(inviteId: string): Promise<InviteMemberActionState> {
+  const user = await requireRole("STORE_OWNER");
+  if (!user.organizationId) return { error: "No organization." };
+  const result = await revokeInvite({ inviteId, organizationId: user.organizationId });
+  if (!result.ok) return { error: result.error.message };
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function resendInviteAction(inviteId: string): Promise<InviteMemberActionState> {
+  const user = await requireRole("STORE_OWNER");
+  if (!user.organizationId) return { error: "No organization." };
+  const result = await resendInvite({ inviteId, organizationId: user.organizationId });
+  if (!result.ok) return { error: result.error.message };
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function removeOrganizationMemberAction(userId: string): Promise<InviteMemberActionState> {
+  const admin = await requireRole("STORE_OWNER");
+  if (!admin.organizationId) return { error: "No organization." };
+  const { getUserProfile } = await import("@/modules/users");
+  const target = await getUserProfile(userId);
+  if (!target || target.organizationId !== admin.organizationId) {
+    return { error: "Member not found in your organization." };
+  }
+  await removeUserFromOrganization(userId);
+  revalidatePath("/settings");
+  return { ok: true };
 }

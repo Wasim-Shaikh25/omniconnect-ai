@@ -14,6 +14,7 @@ export interface MetaIntegrationRepository {
     channel: MetaChannel;
     accountId: string | null;
     accessToken: string | null;
+    refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord>;
 
   findByStore(storeId: string): Promise<MetaIntegrationRecord | null>;
