@@ -154,29 +154,27 @@ function BulkDeleteToolbar({
   storeId,
   selected,
   onClear,
+  onSuccess,
 }: {
   storeId: string;
   selected: string[];
   onClear: () => void;
+  onSuccess?: (message: string) => void;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(
     async (prev: EcommerceActionState, formData: FormData) => {
       const result = await bulkDeleteCouponsAction(prev, formData);
       if (result.ok) {
+        if (result.message) {
+          onSuccess?.(result.message);
+        }
         router.refresh();
       }
       return result;
     },
     {},
   );
-
-  useEffect(() => {
-    if (state.ok) {
-      const timer = setTimeout(onClear, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [state.ok, onClear]);
 
   if (selected.length === 0) return null;
 
@@ -202,7 +200,6 @@ function BulkDeleteToolbar({
         Clear
       </Button>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.ok && <p className="text-sm text-green-600">{state.message}</p>}
     </form>
   );
 }
@@ -215,6 +212,14 @@ export function CouponList({
   storeId: string;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!bulkMessage) return;
+    const timer = setTimeout(() => setBulkMessage(null), 3000);
+    return () => clearTimeout(timer);
+  }, [bulkMessage]);
+
   const allSelected = coupons.length > 0 && selected.size === coupons.length;
 
   function toggle(id: string) {
@@ -233,35 +238,45 @@ export function CouponList({
     setSelected(new Set());
   }
 
-  if (coupons.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">No coupons in this store.</p>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          checked={allSelected}
-          onChange={toggleAll}
-          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-        />
-        <span className="text-sm text-muted-foreground">Select all</span>
-      </div>
-      <BulkDeleteToolbar storeId={storeId} selected={Array.from(selected)} onClear={clear} />
-      <ul className="space-y-4">
-        {coupons.map((coupon) => (
-          <CouponRow
-            key={coupon.id}
-            coupon={coupon}
-            storeId={storeId}
-            selected={selected.has(coupon.id)}
-            onToggle={toggle}
+      {bulkMessage && (
+        <p className="text-sm text-green-600" role="status">{bulkMessage}</p>
+      )}
+      {coupons.length > 0 && (
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={toggleAll}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
           />
-        ))}
-      </ul>
+          <span className="text-sm text-muted-foreground">Select all</span>
+        </div>
+      )}
+      {coupons.length > 0 && (
+        <BulkDeleteToolbar
+          storeId={storeId}
+          selected={Array.from(selected)}
+          onClear={clear}
+          onSuccess={setBulkMessage}
+        />
+      )}
+      {coupons.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No coupons in this store.</p>
+      ) : (
+        <ul className="space-y-4">
+          {coupons.map((coupon) => (
+            <CouponRow
+              key={coupon.id}
+              coupon={coupon}
+              storeId={storeId}
+              selected={selected.has(coupon.id)}
+              onToggle={toggle}
+            />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

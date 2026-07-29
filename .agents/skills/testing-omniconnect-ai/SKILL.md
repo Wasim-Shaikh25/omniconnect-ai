@@ -54,7 +54,7 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - Staff tenant isolation: `requireStoreAccess` limits a `STAFF` user to their `storeId` and calls `notFound()` for unassigned stores. `listTrackedCompetitorsAction` uses `tenantGuard.assertStoreAccess`, so the `Competitor Benchmarks` panel renders for assigned staff. Test staff isolation by checking the assigned store is reachable and an unassigned store returns a clean 404.
 - `ProductRepository.sync` now runs `upsert` and stale-deletion in a single Prisma transaction, so `syncProducts` should leave the 6 MOCK products active on a fresh store.
 - `/settings/account` has separate `<AccountActions mode="export" />` and `<AccountActions mode="delete" />` cards, so selectors should target the card title (`Data export` or `Delete account`).
-- Product/coupon bulk-delete toolbars keep the selection for 3 seconds after a successful delete so the `X deleted` success message is visible.
+- Product/coupon bulk-delete success messages are owned by `ProductList`/`CouponList` (not `BulkDeleteToolbar`) and persist through `router.refresh()` and the empty-list transition; they should read `N product(s) deleted.` / `N coupon(s) deleted.` and auto-dismiss after ~3 seconds.
 
 ## Useful smoke checks
 
