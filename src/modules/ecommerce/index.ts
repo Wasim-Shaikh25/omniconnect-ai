@@ -33,6 +33,7 @@ export {
   CouponDisabled,
   CommerceInsightGenerated,
   CommerceRecommendationGenerated,
+  AbandonedCartDetected,
 } from "./domain/events";
 export type {
   StoreConnectedPayload,
@@ -79,6 +80,7 @@ export {
   connectStore,
   syncProducts,
   syncOrders,
+  applyShopifyWebhook,
   generateCoupon,
   updateProduct,
   deleteProduct,

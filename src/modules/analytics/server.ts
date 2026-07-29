@@ -20,8 +20,11 @@ import type { ProductRecord } from "@/modules/ecommerce";
 export {
   analyticsQueries,
   getCompetitorBenchmark,
+  marketingInsightsService,
+  marketingInsightsRepository,
 } from "./infrastructure/container";
 export { PrismaTrackedAccountRepository } from "./infrastructure/tracked-account.repository";
+export { PrismaMarketingInsightsRepository } from "./infrastructure/marketing-insights.repository";
 
 /** Fetch the connected Meta account's own media. Kept server-only to avoid pulling node:crypto into the client bundle. */
 export async function getAccountMedia(

@@ -46,6 +46,18 @@ export type {
   CompetitorAnalysis,
   AnalyzeCompetitor,
 } from "./application/analyze-competitor";
+export type {
+  MediaMetricsInput,
+  MediaSlide,
+  MediaAnalysis,
+  AnalyzeMediaInput,
+  AnalyzeMedia,
+} from "./application/analyze-media";
+export type {
+  CreateContentIdeaInput,
+  ContentIdeaOutput,
+  CreateContentIdea,
+} from "./application/create-content-idea";
 export { updateAIConfigSchema } from "./application/update-config";
 export type { UpdateAIConfigInput } from "./application/update-config";
 export type {

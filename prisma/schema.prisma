@@ -259,6 +259,10 @@ model Store {
   backInStockSubscriptions BackInStockSubscription[]
   commentUnlockCampaigns   CommentUnlockCampaign[]
   brandDeals               BrandDeal[]
+  mediaPosts               MediaPost[]
+  accountInsights          AccountInsight[]
+  trendSnapshots           TrendSnapshot[]
+  contentRecommendations   ContentRecommendation[]
 
   @@index([organizationId])
   @@index([deletedAt])
@@ -604,6 +608,105 @@ model TrackedAccount {
   updatedAt    DateTime  @updatedAt
 
   @@index([storeId, handle])
+}
+
+enum MediaType {
+  POST
+  REEL
+  STORY
+  LIVE
+  CAROUSEL
+}
+
+enum TrendSnapshotType {
+  HASHTAG
+  AUDIO
+  NICHE
+}
+
+model MediaPost {
+  id              String     @id @default(cuid())
+  storeId         String
+  store           Store      @relation(fields: [storeId], references: [id])
+  trackedAccountId String?
+  externalId      String
+  platform        String     @default("INSTAGRAM")
+  mediaType       MediaType  @default(POST)
+  permalink       String?
+  caption         String?
+  hashtags        String[]
+  audioId         String?
+  audioName       String?
+  thumbnailUrl    String?
+  publishedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  insights MediaInsight[]
+
+  @@unique([storeId, externalId])
+  @@index([storeId, publishedAt])
+}
+
+model MediaInsight {
+  id            String    @id @default(cuid())
+  mediaPostId   String
+  mediaPost     MediaPost @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
+  impressions   Int?
+  reach         Int?
+  likes         Int?
+  comments      Int?
+  shares        Int?
+  saves         Int?
+  plays         Int?
+  views         Int?
+  engagementRate Decimal? @db.Decimal(5, 4)
+  fetchedAt     DateTime  @default(now())
+
+  @@index([mediaPostId, fetchedAt])
+}
+
+model AccountInsight {
+  id            String   @id @default(cuid())
+  storeId       String
+  store         Store    @relation(fields: [storeId], references: [id])
+  date          DateTime
+  followers     Int?
+  profileViews  Int?
+  reach         Int?
+  impressions   Int?
+  websiteClicks Int?
+  audienceJson  Json?
+  fetchedAt     DateTime @default(now())
+
+  @@index([storeId, date])
+}
+
+model TrendSnapshot {
+  id        String            @id @default(cuid())
+  storeId   String
+  store     Store             @relation(fields: [storeId], references: [id])
+  type      TrendSnapshotType
+  query     String
+  data      Json
+  fetchedAt DateTime          @default(now())
+
+  @@index([storeId, type, query, fetchedAt])
+}
+
+model ContentRecommendation {
+  id              String   @id @default(cuid())
+  storeId         String
+  store           Store    @relation(fields: [storeId], references: [id])
+  type            String   @default("REEL")
+  title           String
+  outline         String
+  hashtags        String[]
+  audioSuggestion String?
+  generatedAt     DateTime @default(now())
+  basedOnMediaIds Json
+
+  @@index([storeId, generatedAt])
 }
 
 // ── notifications ───────────────────────────────────────────────────────────

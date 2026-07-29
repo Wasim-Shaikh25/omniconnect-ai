@@ -10,6 +10,8 @@ export {
   generateTrends,
   generatePostIdeas,
   analyzeCompetitor,
+  analyzeMedia,
+  createContentIdea,
   generateReply,
   generateWelcome,
   updateAIConfiguration,

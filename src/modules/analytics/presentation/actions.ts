@@ -10,7 +10,13 @@ import { aiUsageGuard } from "@/modules/ai";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
-import { getMarketingPerformance, getBestTimeToPostForStore, getContentCalendarForStore } from "../server";
+import {
+  getMarketingPerformance,
+  getBestTimeToPostForStore,
+  getContentCalendarForStore,
+  marketingInsightsService,
+  marketingInsightsRepository,
+} from "../server";
 import { getCompetitorBenchmark } from "../infrastructure/container";
 import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
@@ -474,5 +480,242 @@ export async function getContentCalendarAction(
     return { slots };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not load content calendar" };
+  }
+}
+
+export interface SyncMediaCatalogState { error?: string; upserted?: number; }
+export interface SyncAccountAnalyticsState { error?: string; insight?: Awaited<ReturnType<typeof marketingInsightsService.syncAccountAnalytics>>; }
+export interface SearchTrendingHashtagsState { error?: string; snapshotId?: string; }
+export interface AnalyzeMediaState { error?: string; analysis?: Awaited<ReturnType<typeof marketingInsightsService.analyzeMediaPost>>; }
+export interface GenerateReportState { error?: string; reportId?: string; }
+export interface CreateContentRecommendationState { error?: string; recommendationId?: string; }
+
+async function guardStoreAccess(user: Awaited<ReturnType<typeof getCurrentUser>>, storeId: string): Promise<{ error?: string }> {
+  if (!user || !user.organizationId) return { error: "Not authenticated" };
+  try {
+    await tenantGuard.assertStoreAccess(user, storeId);
+  } catch {
+    return { error: "Store not found or access denied." };
+  }
+  return {};
+}
+
+const storeIdSchema = z.object({ storeId: z.string().min(1) });
+
+export async function syncMediaCatalogAction(_prev: SyncMediaCatalogState, formData: FormData): Promise<SyncMediaCatalogState> {
+  const user = await getCurrentUser();
+  const parsed = storeIdSchema.safeParse({ storeId: formData.get("storeId") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.storeId);
+  if (guard.error) return guard;
+
+  try {
+    const result = await marketingInsightsService.syncMediaCatalog(parsed.data.storeId);
+    revalidatePath(`/stores/${parsed.data.storeId}/analytics/content`);
+    return { upserted: result.upserted };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not sync media" };
+  }
+}
+
+export async function syncAccountAnalyticsAction(_prev: SyncAccountAnalyticsState, formData: FormData): Promise<SyncAccountAnalyticsState> {
+  const user = await getCurrentUser();
+  const parsed = storeIdSchema.safeParse({ storeId: formData.get("storeId") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.storeId);
+  if (guard.error) return guard;
+
+  try {
+    const insight = await marketingInsightsService.syncAccountAnalytics(parsed.data.storeId);
+    return { insight };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not sync account analytics" };
+  }
+}
+
+const searchTrendingHashtagsSchema = z.object({
+  storeId: z.string().min(1),
+  query: z.string().min(1).max(120),
+});
+
+export async function searchTrendingHashtagsAction(_prev: SearchTrendingHashtagsState, formData: FormData): Promise<SearchTrendingHashtagsState> {
+  const user = await getCurrentUser();
+  const parsed = searchTrendingHashtagsSchema.safeParse({
+    storeId: formData.get("storeId"),
+    query: formData.get("query"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.storeId);
+  if (guard.error) return guard;
+
+  try {
+    const snapshotId = await marketingInsightsService.searchTrendingHashtags(parsed.data.storeId, parsed.data.query);
+    revalidatePath(`/stores/${parsed.data.storeId}/analytics/trends`);
+    return { snapshotId };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not search hashtags" };
+  }
+}
+
+const analyzeMediaSchema = z.object({
+  storeId: z.string().min(1),
+  mediaPostId: z.string().min(1),
+});
+
+export async function analyzeMediaAction(_prev: AnalyzeMediaState, formData: FormData): Promise<AnalyzeMediaState> {
+  const user = await getCurrentUser();
+  const parsed = analyzeMediaSchema.safeParse({
+    storeId: formData.get("storeId"),
+    mediaPostId: formData.get("mediaPostId"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.storeId);
+  if (guard.error) return guard;
+
+  const organizationId = user?.organizationId ? await organizationQueries.getOrganizationIdByStoreId(parsed.data.storeId) : null;
+  try {
+    await aiUsageGuard.assertAvailable(organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
+  }
+
+  try {
+    const analysis = await marketingInsightsService.analyzeMediaPost(parsed.data.storeId, parsed.data.mediaPostId);
+    return { analysis };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not analyze media" };
+  }
+}
+
+const generateReportSchema = z.object({
+  storeId: z.string().min(1),
+  period: z.enum(["WEEKLY", "MONTHLY"]).default("WEEKLY"),
+});
+
+export async function generateReportAction(_prev: GenerateReportState, formData: FormData): Promise<GenerateReportState> {
+  const user = await getCurrentUser();
+  const parsed = generateReportSchema.safeParse({
+    storeId: formData.get("storeId"),
+    period: formData.get("period") ?? "WEEKLY",
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.storeId);
+  if (guard.error) return guard;
+
+  try {
+    const reportId = await marketingInsightsService.generateReport(parsed.data.storeId, parsed.data.period);
+    revalidatePath(`/stores/${parsed.data.storeId}/analytics/reports`);
+    return { reportId };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not generate report" };
+  }
+}
+
+const createContentRecommendationSchema = z.object({
+  storeId: z.string().min(1),
+  type: z.string().max(50).optional(),
+  topic: z.string().max(200).optional(),
+});
+
+export async function createContentRecommendationAction(_prev: CreateContentRecommendationState, formData: FormData): Promise<CreateContentRecommendationState> {
+  const user = await getCurrentUser();
+  const parsed = createContentRecommendationSchema.safeParse({
+    storeId: formData.get("storeId"),
+    type: formData.get("type") || undefined,
+    topic: formData.get("topic") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.storeId);
+  if (guard.error) return guard;
+
+  const organizationId = user?.organizationId ? await organizationQueries.getOrganizationIdByStoreId(parsed.data.storeId) : null;
+  try {
+    await aiUsageGuard.assertAvailable(organizationId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
+  }
+
+  try {
+    const recommendationId = await marketingInsightsService.createContentRecommendation(parsed.data.storeId, {
+      type: parsed.data.type,
+      topic: parsed.data.topic,
+    });
+    revalidatePath(`/stores/${parsed.data.storeId}/analytics/recommendations`);
+    return { recommendationId };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not create recommendation" };
+  }
+}
+
+export interface ListMediaPostsState { error?: string; posts?: Awaited<ReturnType<typeof marketingInsightsRepository.listMediaPosts>>; }
+export interface GetMediaPostState { error?: string; post?: Awaited<ReturnType<typeof marketingInsightsRepository.getMediaPostById>>; }
+export interface ListTrendSnapshotsState { error?: string; snapshots?: Awaited<ReturnType<typeof marketingInsightsRepository.listTrendSnapshots>>; }
+export interface ListContentRecommendationsState { error?: string; recommendations?: Awaited<ReturnType<typeof marketingInsightsRepository.listContentRecommendations>>; }
+export interface ListReportsState { error?: string; reports?: Awaited<ReturnType<typeof marketingInsightsRepository.listReports>>; }
+
+export async function listMediaPostsAction(storeId: string): Promise<ListMediaPostsState> {
+  const user = await getCurrentUser();
+  const guard = await guardStoreAccess(user, storeId);
+  if (guard.error) return guard;
+
+  try {
+    const posts = await marketingInsightsRepository.listMediaPosts(storeId, { limit: 50 });
+    return { posts };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load media posts" };
+  }
+}
+
+export async function getMediaPostAction(id: string): Promise<GetMediaPostState> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Not authenticated" };
+
+  try {
+    const post = await marketingInsightsRepository.getMediaPostById(id);
+    if (!post) return { error: "Media post not found" };
+    const guard = await guardStoreAccess(user, post.storeId);
+    if (guard.error) return guard;
+    return { post };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load media post" };
+  }
+}
+
+export async function listTrendSnapshotsAction(storeId: string, type?: "HASHTAG" | "AUDIO" | "NICHE"): Promise<ListTrendSnapshotsState> {
+  const user = await getCurrentUser();
+  const guard = await guardStoreAccess(user, storeId);
+  if (guard.error) return guard;
+
+  try {
+    const snapshots = await marketingInsightsRepository.listTrendSnapshots(storeId, { type, limit: 50 });
+    return { snapshots };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load trends" };
+  }
+}
+
+export async function listContentRecommendationsAction(storeId: string): Promise<ListContentRecommendationsState> {
+  const user = await getCurrentUser();
+  const guard = await guardStoreAccess(user, storeId);
+  if (guard.error) return guard;
+
+  try {
+    const recommendations = await marketingInsightsRepository.listContentRecommendations(storeId, 50);
+    return { recommendations };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load recommendations" };
+  }
+}
+
+export async function listReportsAction(storeId: string): Promise<ListReportsState> {
+  const user = await getCurrentUser();
+  const guard = await guardStoreAccess(user, storeId);
+  if (guard.error) return guard;
+
+  try {
+    const reports = await marketingInsightsRepository.listReports(storeId, 50);
+    return { reports };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load reports" };
   }
 }

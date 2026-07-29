@@ -157,6 +157,13 @@ export class PrismaProductRepository implements ProductRepository {
     return product ? toRecord(product) : null;
   }
 
+  async findByExternalId(storeId: string, externalId: string): Promise<ProductRecord | null> {
+    const product = await prisma.product.findFirst({
+      where: { storeId, externalId, ...notDeleted() },
+    });
+    return product ? toRecord(product) : null;
+  }
+
   async listByStore(
     storeId: string,
     options: { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = {},

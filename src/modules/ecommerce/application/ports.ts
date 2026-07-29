@@ -29,6 +29,9 @@ export interface IntegrationRepository {
 
   findEcommerceByStore(storeId: string): Promise<IntegrationRecord | null>;
 
+  /** Resolve the store that owns a given e-commerce shop domain. */
+  findByShopDomain(shopDomain: string): Promise<IntegrationRecord | null>;
+
   /** Tokens are only read by the infrastructure layer to build a connector. */
   findCredentialsByStore(storeId: string): Promise<{
     provider: string;
@@ -81,6 +84,8 @@ export interface ProductRepository {
   ): Promise<ProductRecord | null>;
 
   findById(id: string): Promise<ProductRecord | null>;
+
+  findByExternalId(storeId: string, externalId: string): Promise<ProductRecord | null>;
 
   listByStore(
     storeId: string,
@@ -179,6 +184,7 @@ export interface OrderRecord {
 
 export interface OrderRepository {
   sync(storeId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }>;
+  upsertMany(storeId: string, orders: ConnectorOrder[]): Promise<number>;
   listByStore(
     storeId: string,
     options?: {

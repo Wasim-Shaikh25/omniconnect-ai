@@ -194,7 +194,7 @@ Indexes: all `storeId` foreign keys plus `external*` IDs for idempotency.
 ## 13. Acceptance Criteria (Definition of Done)
 - [x] Domain modeled (entities + events) and exposed via public ports.
 - [x] Infrastructure adapters for Meta Commerce, Comments, Mentions, Leads, Messaging, UGC, Ambassador, and Messaging — stub implementations for all Phase 2 ports; live Graph API adapters can be plugged in later.
-- [ ] Shopify-side hooks for catalog, orders, and abandoned cart events.
+- [x] Shopify-side hooks for catalog, orders, and abandoned cart events.
 - [x] UI pages for catalog, shoppable media, comments, mentions, leads, UGC, ambassadors, and campaigns — implemented as `/stores/[storeId]/commerce/{catalog,comments,leads,growth}`.
 - [~] AI integration for intent, replies, lead scoring, and product-tag suggestions — heuristic intent/sentiment and scoring implemented; OpenAI integration pending.
 - [x] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
