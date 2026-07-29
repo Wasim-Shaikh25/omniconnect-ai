@@ -26,7 +26,8 @@ interface ShopifyOrder {
   total_price: string;
   currency: string;
   created_at: string;
-  customer: { id: number } | null;
+  discount_codes?: { code: string }[];
+  customer: { id: number; email?: string } | null;
 }
 
 interface ShopifyCustomer {
@@ -153,6 +154,8 @@ export class ShopifyConnector implements EcommerceConnector {
       currency: o.currency,
       createdAt: new Date(o.created_at),
       customerRef: o.customer ? String(o.customer.id) : null,
+      customerEmail: o.customer?.email ?? null,
+      couponCode: o.discount_codes?.[0]?.code ?? null,
     }));
   }
 

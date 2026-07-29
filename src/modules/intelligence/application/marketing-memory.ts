@@ -88,7 +88,7 @@ async function loadMessagesForConversations(
 function scoreProducts(
   products: { id: string; title: string; price: number | null; inventory: number | null; currency: string | null }[],
   conversations: { conversationId: string; messages: MessageRecord[] }[],
-  orders: { total: number }[],
+  orders: { total: number | null }[],
 ): ProductScoreRecord[] {
   const allMessages = conversations.flatMap((c) => c.messages);
   const totalStoreMessages = Math.max(allMessages.length, 1);
@@ -270,7 +270,7 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
 
     const ownMedia = await deps.getAccountMedia(storeId, 25).catch(() => []);
 
-    let orders: { total: number }[] = [];
+    let orders: { total: number | null }[] = [];
     try {
       orders = await deps.ecommerceQueries.listOrders(storeId, 100);
     } catch {

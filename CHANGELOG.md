@@ -22,6 +22,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `scripts/task-status.ts` to report which requirements are done and which are left (`npx tsx scripts/task-status.ts --summary`).
   - Updated `AGENTS.md`, `CLAUDE.md`, `.windsurfrules`, and `.cursor/rules/*.mdc` to enforce the new requirement-first, task+tracker workflow.
 
+- **TASK-0062 — Universal E-commerce Connectors + Meta Business Growth Analytics:**
+  - Extended `Order`/`Coupon` Prisma schema with `attributedMediaId`, `attributionSource`, `couponCode`, `isFirstTimeCustomer`, `usageCount`, `revenueAttributed`, and `lastUsedAt`; generated migration `20260729084750_add_orders_and_coupon_attribution`.
+  - New `Order` model and `PrismaOrderRepository`; order-sync marks first-time customers and persists coupon codes.
+  - New `EcommerceConnector` providers: `WooCommerceConnector` (REST v3) and `BigCommerceConnector` (v3 store + orders); `getConnector` registry dispatches by provider using `ConnectorCredentials.metadata` (`consumerKey`/`consumerSecret`, `storeHash`).
+  - Provider-specific `connect-store` flow and connect form accept WooCommerce/BigCommerce credentials.
+  - Extended `MarketingPerformanceView` with `newCustomersFromMeta`, `aov`, `couponConversionRate`, `couponRevenue`, and `topContentByRevenue`.
+  - `getMarketingPerformance` attributes orders to Meta posts within a 7-day window and rolls up coupon effectiveness.
+  - New `getBestTimeToPost` and `getContentCalendar` analytics use cases plus server actions; surfaced on `/analytics/growth`.
+  - New `/analytics/growth` page with unified KPI cards, store breakdown, top content attribution, best-time-to-post windows, and AI content calendar.
+  - Extended `TrendIdea` with `predictedRevenue`, `suggestedPublishAt`, `basedOnMediaIds`.
+  - Added connector unit tests for WooCommerce and BigCommerce with mocked HTTP responses.
+  - Quality gates: lint, typecheck, tests (43), npm audit (0 vulnerabilities), build + build:worker all pass.
+
 - **TASK-0061 — Product Charter and Scope Cleanup:**
   - Replaced top-header navigation with a collapsible hamburger sidebar (`src/components/app-shell.tsx`) grouped Home / Connect / Create / Engage / Analyze / Account.
   - Deleted out-of-scope routes and files: `projects`, `stores/[storeId]/affiliates`, `media-kit`, `growth`, `revenue`, `daily-marketing`, `engagement`, `brand-deals`, `orders`, `commerce/growth`, and unused `settings/rollout`, `operating-model`, `quality`, `unified-context`.

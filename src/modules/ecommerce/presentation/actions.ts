@@ -8,6 +8,7 @@ import {
   connectStore,
   generateCoupon,
   syncProducts,
+  syncOrders,
   updateProduct,
   deleteProduct,
   updateCoupon,
@@ -15,6 +16,7 @@ import {
 } from "../infrastructure/container";
 import { connectStoreSchema } from "../application/connect-store";
 import { generateCouponSchema } from "../application/generate-coupon";
+import { syncOrdersSchema } from "../application/sync-orders";
 import { updateProductSchema } from "../application/update-product";
 import { deleteProductSchema } from "../application/delete-product";
 import { updateCouponSchema } from "../application/update-coupon";
@@ -49,6 +51,9 @@ export async function connectStoreAction(
     provider: formData.get("provider") || undefined,
     shopDomain: formData.get("shopDomain") || undefined,
     accessToken: formData.get("accessToken") || undefined,
+    consumerKey: formData.get("consumerKey") || undefined,
+    consumerSecret: formData.get("consumerSecret") || undefined,
+    storeHash: formData.get("storeHash") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -68,6 +73,30 @@ export async function connectStoreAction(
 
   revalidatePath(`/stores/${parsed.data.storeId}`);
   return { ok: true, message: "Store connected." };
+}
+
+export async function syncOrdersAction(
+  _prev: EcommerceActionState,
+  formData: FormData,
+): Promise<EcommerceActionState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = syncOrdersSchema.safeParse({
+    storeId: formData.get("storeId"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const result = await syncOrders(parsed.data.storeId);
+  if (!result.ok) return { error: result.error.message };
+
+  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/analytics`);
+  return { ok: true, message: `Synced ${result.value.count} orders.` };
 }
 
 export async function syncProductsAction(

@@ -55,6 +55,8 @@ export class MockConnector implements EcommerceConnector {
       currency: "INR",
       createdAt: new Date(Date.now() - i * 86_400_000),
       customerRef: `mock-cust-${i + 1}`,
+      customerEmail: `customer${i + 1}@example.com`,
+      couponCode: i === 0 ? "WELCOME10" : null,
     }));
   }
 

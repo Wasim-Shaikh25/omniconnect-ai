@@ -10,7 +10,7 @@ import { aiUsageGuard } from "@/modules/ai";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
-import { getMarketingPerformance } from "../server";
+import { getMarketingPerformance, getBestTimeToPostForStore, getContentCalendarForStore } from "../server";
 import { getCompetitorBenchmark } from "../infrastructure/container";
 import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
 import { PrismaTrackedAccountRepository } from "../infrastructure/tracked-account.repository";
@@ -385,6 +385,16 @@ export async function getCompetitorBenchmarkAction(
   }
 }
 
+export interface BestTimeToPostState {
+  error?: string;
+  windows?: Awaited<ReturnType<typeof getBestTimeToPostForStore>>;
+}
+
+export interface ContentCalendarState {
+  error?: string;
+  slots?: Awaited<ReturnType<typeof getContentCalendarForStore>>;
+}
+
 export interface WorkspaceCompetitorComparisonState {
   error?: string;
   comparison?: Awaited<ReturnType<typeof getWorkspaceCompetitorComparison>>;
@@ -416,5 +426,53 @@ export async function getWorkspaceCompetitorComparisonAction(
     return { comparison };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not load workspace comparison" };
+  }
+}
+
+const bestTimeToPostSchema = z.object({
+  storeId: z.string().min(1),
+});
+
+export async function getBestTimeToPostAction(
+  _prev: BestTimeToPostState,
+  formData: FormData,
+): Promise<BestTimeToPostState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = bestTimeToPostSchema.safeParse({ storeId: formData.get("storeId") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const windows = await getBestTimeToPostForStore(parsed.data.storeId);
+    return { windows };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load best times" };
+  }
+}
+
+const contentCalendarSchema = z.object({
+  storeId: z.string().min(1),
+});
+
+export async function getContentCalendarAction(
+  _prev: ContentCalendarState,
+  formData: FormData,
+): Promise<ContentCalendarState> {
+  const user = await requireRole("STORE_OWNER");
+  const parsed = contentCalendarSchema.safeParse({ storeId: formData.get("storeId") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const slots = await getContentCalendarForStore(parsed.data.storeId);
+    return { slots };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load content calendar" };
   }
 }

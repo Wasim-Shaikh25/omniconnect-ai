@@ -51,6 +51,7 @@ export { connectStoreSchema } from "./application/connect-store";
 export type { ConnectStoreInput } from "./application/connect-store";
 export { generateCouponSchema } from "./application/generate-coupon";
 export type { GenerateCouponInput } from "./application/generate-coupon";
+export { syncOrdersSchema } from "./application/sync-orders";
 export { updateProductSchema } from "./application/update-product";
 export type { UpdateProductInput } from "./application/update-product";
 export { deleteProductSchema } from "./application/delete-product";
@@ -63,6 +64,7 @@ export type {
   IntegrationRecord,
   ProductRecord,
   CouponRecord,
+  OrderRecord,
 } from "./application/ports";
 export type { EcommerceQueries, StoreConnectionView } from "./application/queries";
 export type { DetectCommerceInsights } from "./application/detect-insights";
@@ -76,6 +78,7 @@ export { getConnector } from "./infrastructure/provider-registry";
 export {
   connectStore,
   syncProducts,
+  syncOrders,
   generateCoupon,
   updateProduct,
   deleteProduct,
@@ -89,6 +92,7 @@ export {
 export {
   connectStoreAction,
   syncProductsAction,
+  syncOrdersAction,
   generateCouponAction,
   updateProductAction,
   deleteProductAction,

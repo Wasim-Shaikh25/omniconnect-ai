@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import { CouponStatus } from "@prisma/client";
 import type { CouponRecord, CouponRepository } from "../application/ports";
@@ -10,6 +11,9 @@ type PrismaCoupon = {
   status: string;
   expiresAt: Date | null;
   deletedAt: Date | null;
+  usageCount: number;
+  revenueAttributed: Prisma.Decimal | null;
+  lastUsedAt: Date | null;
 };
 
 function toRecord(c: PrismaCoupon): CouponRecord {
@@ -21,6 +25,9 @@ function toRecord(c: PrismaCoupon): CouponRecord {
     status: c.status,
     expiresAt: c.expiresAt,
     deletedAt: c.deletedAt,
+    usageCount: c.usageCount,
+    revenueAttributed: c.revenueAttributed ? c.revenueAttributed.toNumber() : null,
+    lastUsedAt: c.lastUsedAt,
   };
 }
 
@@ -61,6 +68,9 @@ export class PrismaCouponRepository implements CouponRepository {
       discountPct?: number;
       status?: string;
       expiresAt?: Date | null;
+      usageCount?: number;
+      revenueAttributed?: number | null;
+      lastUsedAt?: Date | null;
     },
   ): Promise<CouponRecord | null> {
     const coupon = await prisma.coupon.update({
@@ -73,6 +83,9 @@ export class PrismaCouponRepository implements CouponRepository {
           ? { status: input.status as CouponStatus }
           : {}),
         ...(input.expiresAt !== undefined ? { expiresAt: input.expiresAt } : {}),
+        ...(input.usageCount !== undefined ? { usageCount: input.usageCount } : {}),
+        ...(input.revenueAttributed !== undefined ? { revenueAttributed: input.revenueAttributed } : {}),
+        ...(input.lastUsedAt !== undefined ? { lastUsedAt: input.lastUsedAt } : {}),
       },
     });
     return coupon ? toRecord(coupon) : null;

@@ -1,5 +1,6 @@
 import type { EcommerceProvider } from "@/modules/organizations";
 import type {
+  ConnectorOrder,
   ConnectorProduct,
   EcommerceConnector,
 } from "../domain/connector";
@@ -12,6 +13,7 @@ export interface IntegrationRecord {
   shopDomain: string | null;
   scopes: string | null;
   connectedAt: Date;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface IntegrationRepository {
@@ -22,6 +24,7 @@ export interface IntegrationRepository {
     accessToken: string | null;
     refreshToken?: string | null;
     scopes: string | null;
+    metadata?: Record<string, unknown> | null;
   }): Promise<IntegrationRecord>;
 
   findEcommerceByStore(storeId: string): Promise<IntegrationRecord | null>;
@@ -32,6 +35,7 @@ export interface IntegrationRepository {
     shopDomain: string | null;
     accessToken: string | null;
     refreshToken: string | null;
+    metadata: Record<string, unknown> | null;
   } | null>;
 }
 
@@ -110,6 +114,9 @@ export interface CouponRecord {
   status: string;
   expiresAt: Date | null;
   deletedAt: Date | null;
+  usageCount: number;
+  revenueAttributed: number | null;
+  lastUsedAt: Date | null;
 }
 
 export interface CouponRepository {
@@ -129,6 +136,9 @@ export interface CouponRepository {
       discountPct?: number;
       status?: string;
       expiresAt?: Date | null;
+      usageCount?: number;
+      revenueAttributed?: number | null;
+      lastUsedAt?: Date | null;
     },
   ): Promise<CouponRecord | null>;
 
@@ -147,6 +157,41 @@ export interface CouponRepository {
     },
   ): Promise<CouponRecord[]>;
   countByStore(storeId: string, search?: string): Promise<number>;
+}
+
+export interface OrderRecord {
+  id: string;
+  externalId: string;
+  storeId: string;
+  total: number | null;
+  currency: string | null;
+  orderDate: Date;
+  couponCode: string | null;
+  customerRef: string | null;
+  customerEmail: string | null;
+  attributedMediaId: string | null;
+  attributionSource: string | null;
+  isFirstTimeCustomer: boolean;
+  syncedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrderRepository {
+  sync(storeId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }>;
+  listByStore(
+    storeId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      since?: Date;
+      couponCode?: string;
+      attributedMediaId?: string;
+      includeFirstTimeOnly?: boolean;
+    },
+  ): Promise<OrderRecord[]>;
+  countByStore(storeId: string): Promise<number>;
+  findByExternalId(storeId: string, externalId: string): Promise<OrderRecord | null>;
 }
 
 /** Resolves the correct provider connector for a store. */

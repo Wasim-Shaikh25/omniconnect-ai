@@ -40,7 +40,7 @@ function fakeEcommerce(): EcommerceQueries {
     { id: "p3", storeId: "store-1", externalId: "ext-3", title: "Widget C", description: null, price: 199, currency: "INR", inventory: 7, imageUrl: null, deletedAt: null },
   ];
   return {
-    getStoreConnection: async () => ({ connected: true, integration: null, productCount: 3 }),
+    getStoreConnection: async () => ({ connected: true, integration: null, productCount: 3, orderCount: 0 }),
     listProducts: async () => products,
     listProductsPaginated: async (_storeId, pagination, _search) => ({
       items: products.slice((pagination.page - 1) * pagination.limit, pagination.page * pagination.limit),
@@ -60,15 +60,15 @@ function fakeEcommerce(): EcommerceQueries {
     }),
     countCoupons: async () => 0,
     listOrders: async () => [
-      { externalId: "ord-prev-1", total: 1000, currency: "INR", createdAt: daysAgo(8), customerRef: "cust-1" },
-      { externalId: "ord-prev-2", total: 1000, currency: "INR", createdAt: daysAgo(9), customerRef: "cust-2" },
-      { externalId: "ord-curr-1", total: 100, currency: "INR", createdAt: daysAgo(1), customerRef: "cust-3" },
+      { id: "op1", externalId: "ord-prev-1", storeId: "store-1", total: 1000, currency: "INR", orderDate: daysAgo(8), createdAt: daysAgo(8), updatedAt: daysAgo(8), syncedAt: daysAgo(8), couponCode: null, customerRef: "cust-1", customerEmail: null, attributedMediaId: null, attributionSource: null, isFirstTimeCustomer: false },
+      { id: "op2", externalId: "ord-prev-2", storeId: "store-1", total: 1000, currency: "INR", orderDate: daysAgo(9), createdAt: daysAgo(9), updatedAt: daysAgo(9), syncedAt: daysAgo(9), couponCode: null, customerRef: "cust-2", customerEmail: null, attributedMediaId: null, attributionSource: null, isFirstTimeCustomer: false },
+      { id: "oc1", externalId: "ord-curr-1", storeId: "store-1", total: 100, currency: "INR", orderDate: daysAgo(1), createdAt: daysAgo(1), updatedAt: daysAgo(1), syncedAt: daysAgo(1), couponCode: null, customerRef: "cust-3", customerEmail: null, attributedMediaId: null, attributionSource: null, isFirstTimeCustomer: true },
     ],
     listOrdersPaginated: async (_storeId, pagination, _search) => ({
       items: [
-        { externalId: "ord-prev-1", total: 1000, currency: "INR", createdAt: daysAgo(8), customerRef: "cust-1" },
-        { externalId: "ord-prev-2", total: 1000, currency: "INR", createdAt: daysAgo(9), customerRef: "cust-2" },
-        { externalId: "ord-curr-1", total: 100, currency: "INR", createdAt: daysAgo(1), customerRef: "cust-3" },
+        { id: "op1", externalId: "ord-prev-1", storeId: "store-1", total: 1000, currency: "INR", orderDate: daysAgo(8), createdAt: daysAgo(8), updatedAt: daysAgo(8), syncedAt: daysAgo(8), couponCode: null, customerRef: "cust-1", customerEmail: null, attributedMediaId: null, attributionSource: null, isFirstTimeCustomer: false },
+        { id: "op2", externalId: "ord-prev-2", storeId: "store-1", total: 1000, currency: "INR", orderDate: daysAgo(9), createdAt: daysAgo(9), updatedAt: daysAgo(9), syncedAt: daysAgo(9), couponCode: null, customerRef: "cust-2", customerEmail: null, attributedMediaId: null, attributionSource: null, isFirstTimeCustomer: false },
+        { id: "oc1", externalId: "ord-curr-1", storeId: "store-1", total: 100, currency: "INR", orderDate: daysAgo(1), createdAt: daysAgo(1), updatedAt: daysAgo(1), syncedAt: daysAgo(1), couponCode: null, customerRef: "cust-3", customerEmail: null, attributedMediaId: null, attributionSource: null, isFirstTimeCustomer: true },
       ],
       total: 3,
       page: pagination.page,

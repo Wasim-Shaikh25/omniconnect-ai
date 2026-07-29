@@ -40,6 +40,8 @@ export interface MetaMediaMetrics {
   saved?: number;
   profileViews?: number;
   videoViews?: number;
+  follows?: number;
+  crosspostedViews?: number;
 }
 
 export interface MetaMediaItem {
@@ -47,6 +49,7 @@ export interface MetaMediaItem {
   externalId: string;
   platform: "INSTAGRAM" | "FACEBOOK";
   mediaType: "IMAGE" | "VIDEO" | "REEL" | "CAROUSEL" | "STORY" | "OTHER";
+  mediaProductType?: "FEED" | "REELS" | "STORIES" | "LIVE" | null;
   caption: string | null;
   permalink: string | null;
   mediaUrl: string | null;

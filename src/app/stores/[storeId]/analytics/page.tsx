@@ -132,11 +132,11 @@ export default async function StoreAnalyticsPage({
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Conversations</CardTitle>
+                <CardTitle className="text-sm font-medium">New customers from Meta</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold">{view.audience.conversations}</p>
-                <p className="text-xs text-muted-foreground">{view.audience.messages} messages</p>
+                <p className="text-2xl font-semibold">{view.product.newCustomersFromMeta}</p>
+                <p className="text-xs text-muted-foreground">within 7-day attribution window</p>
               </CardContent>
             </Card>
             <Card>
@@ -157,8 +157,51 @@ export default async function StoreAnalyticsPage({
                   {formatCurrency(view.product.revenue, view.product.currency)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  AOV {formatCurrency(view.product.orders > 0 ? view.product.revenue / view.product.orders : 0, view.product.currency)}
+                  AOV {formatCurrency(view.product.aov ?? 0, view.product.currency)}
                 </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Coupons used</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{view.campaign.couponsUsed}</p>
+                <p className="text-xs text-muted-foreground">
+                  {view.campaign.couponConversionRate
+                    ? `${view.campaign.couponConversionRate.toFixed(1)}% of generated`
+                    : `${view.campaign.couponsGenerated} generated`}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Coupon revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">
+                  {formatCurrency(view.campaign.couponRevenue, view.product.currency)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Conversations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{view.audience.conversations}</p>
+                <p className="text-xs text-muted-foreground">{view.audience.messages} messages</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Post-attributed revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">
+                  {formatCurrency(view.content.topPosts.reduce((sum, p) => sum + p.revenue, 0), view.product.currency)}
+                </p>
+                <p className="text-xs text-muted-foreground">orders linked to a Meta post</p>
               </CardContent>
             </Card>
           </div>
@@ -166,55 +209,49 @@ export default async function StoreAnalyticsPage({
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Content engagement</CardTitle>
-                <CardDescription>Mentions and comment intent signals.</CardDescription>
+                <CardTitle>Content attribution</CardTitle>
+                <CardDescription>Top posts by attributed orders and revenue.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Mentions</span>
-                    <span className="font-medium">{view.content.totalPosts}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Comments</span>
-                    <span className="font-medium">
-                      {Object.values(view.content.byType).reduce((a, b) => a + b, 0)}
-                    </span>
-                  </div>
-                  {Object.entries(view.content.byType).length > 0 && (
-                    <ul className="divide-y text-sm">
-                      {Object.entries(view.content.byType).map(([intent, count]) => (
-                        <li key={intent} className="flex items-center justify-between py-2">
-                          <span className="capitalize">{intent.toLowerCase()}</span>
-                          <span className="font-medium">{count}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                {view.content.topPosts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No content captured yet.</p>
+                ) : (
+                  <ul className="divide-y text-sm">
+                    {view.content.topPosts.map((post) => (
+                      <li key={post.id} className="flex items-center justify-between py-2">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{post.caption || post.mediaType}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {post.orders} orders · {formatCurrency(post.revenue, view.product.currency)}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Campaigns &amp; coupons</CardTitle>
-                <CardDescription>Active promotions and generated coupons.</CardDescription>
+                <CardTitle>Top coupons</CardTitle>
+                <CardDescription>Coupons by usage and attributed revenue.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Active campaigns</span>
-                    <span className="font-medium">{view.campaign.activeCampaigns}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Coupons generated</span>
-                    <span className="font-medium">{view.campaign.couponsGenerated}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Coupons used</span>
-                    <span className="font-medium">{view.campaign.couponsUsed}</span>
-                  </div>
-                </div>
+                {view.campaign.topCampaigns.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No coupons used yet.</p>
+                ) : (
+                  <ul className="divide-y text-sm">
+                    {view.campaign.topCampaigns.map((campaign) => (
+                      <li key={campaign.name} className="flex items-center justify-between py-2">
+                        <span className="font-medium">{campaign.name}</span>
+                        <span className="text-muted-foreground">
+                          {campaign.couponsUsed} used · {formatCurrency(campaign.revenue, view.product.currency)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
           </div>

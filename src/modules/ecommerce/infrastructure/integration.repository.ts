@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import { encryptString, decryptString } from "@/shared/security/encryption";
 import type { EcommerceProvider } from "@/modules/organizations";
@@ -12,6 +13,7 @@ type PrismaIntegration = {
   provider: string;
   externalId: string | null;
   scopes: string | null;
+  metadata: Prisma.JsonValue;
   createdAt: Date;
 };
 
@@ -23,6 +25,7 @@ function toRecord(i: PrismaIntegration): IntegrationRecord {
     shopDomain: i.externalId,
     scopes: i.scopes,
     connectedAt: i.createdAt,
+    metadata: (i.metadata as Record<string, unknown>) ?? null,
   };
 }
 
@@ -34,6 +37,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     accessToken: string | null;
     refreshToken?: string | null;
     scopes: string | null;
+    metadata?: Record<string, unknown> | null;
   }): Promise<IntegrationRecord> {
     const existing = await prisma.integration.findFirst({
       where: { storeId: input.storeId, type: "ECOMMERCE" },
@@ -46,6 +50,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       accessToken: await encryptString(input.accessToken),
       refreshToken: await encryptString(input.refreshToken ?? null),
       scopes: input.scopes,
+      metadata: input.metadata ? (input.metadata as Prisma.InputJsonValue) : Prisma.DbNull,
       storeId: input.storeId,
     };
 
@@ -65,7 +70,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     const found = await prisma.integration.findFirst({
       where: { storeId, type: "ECOMMERCE" },
     });
-    return found ? toRecord(found) : null;
+    return found ? toRecord(found as PrismaIntegration) : null;
   }
 
   async findCredentialsByStore(storeId: string): Promise<{
@@ -73,10 +78,11 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     shopDomain: string | null;
     accessToken: string | null;
     refreshToken: string | null;
+    metadata: Record<string, unknown> | null;
   } | null> {
     const found = await prisma.integration.findFirst({
       where: { storeId, type: "ECOMMERCE" },
-      select: { provider: true, externalId: true, accessToken: true, refreshToken: true },
+      select: { provider: true, externalId: true, accessToken: true, refreshToken: true, metadata: true },
     });
     if (!found) return null;
     return {
@@ -84,6 +90,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       shopDomain: found.externalId,
       accessToken: await decryptString(found.accessToken),
       refreshToken: await decryptString(found.refreshToken),
+      metadata: (found.metadata as Record<string, unknown>) ?? null,
     };
   }
 }

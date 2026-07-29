@@ -35,6 +35,7 @@ export class IntegrationConnectorFactory implements ConnectorFactory {
       shopDomain: creds.shopDomain ?? undefined,
       accessToken: creds.accessToken ?? undefined,
       refreshToken: creds.refreshToken ?? undefined,
+      metadata: (creds.metadata as Record<string, string | undefined>) ?? undefined,
     });
   }
 }

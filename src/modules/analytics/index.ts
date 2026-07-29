@@ -38,6 +38,8 @@ export {
   getMarketingPerformanceAction,
   getCompetitorBenchmarkAction,
   getWorkspaceCompetitorComparisonAction,
+  getBestTimeToPostAction,
+  getContentCalendarAction,
 } from "./presentation/actions";
 export type {
   TrackCompetitorState,
@@ -48,4 +50,6 @@ export type {
   MarketingPerformanceState,
   CompetitorBenchmarkState,
   WorkspaceCompetitorComparisonState,
+  BestTimeToPostState,
+  ContentCalendarState,
 } from "./presentation/actions";
