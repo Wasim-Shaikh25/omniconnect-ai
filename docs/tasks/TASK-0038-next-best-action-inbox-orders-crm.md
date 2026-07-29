@@ -1,6 +1,6 @@
 # TASK-0038: 0038 — Next Best Action for Inbox, Orders, and CRM
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** Devin
 - **Module(s):** all
 - **Requirement:** `docs/requirements/REQ-0038-next-best-action-inbox-orders-crm.md`

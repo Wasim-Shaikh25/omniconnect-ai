@@ -4,7 +4,7 @@ description: AI CRM Refinements — Lifecycle, Consent, Scoring, Segments
 
 # REQ-0017: AI CRM Refinements — Lifecycle, Consent, Scoring, Segments
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** crm, conversations, ecommerce
 - **Original spec path:** `docs/specs/0017-ai-crm-refinements.md` (restructured)
@@ -16,7 +16,7 @@ description: AI CRM Refinements — Lifecycle, Consent, Scoring, Segments
 
 
 - **Module(s):** crm, conversations, ecommerce
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-200)
 - **Related ADR(s):** —

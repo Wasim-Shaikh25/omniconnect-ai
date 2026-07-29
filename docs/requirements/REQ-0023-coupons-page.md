@@ -4,7 +4,7 @@ description: Store Coupons Page
 
 # REQ-0023: Store Coupons Page
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** ecommerce (presentation)
 - **Original spec path:** `docs/specs/0023-coupons-page.md` (restructured)
@@ -16,7 +16,7 @@ description: Store Coupons Page
 
 
 - **Module(s):** ecommerce (presentation)
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-260)
 - **Related ADR(s):** —

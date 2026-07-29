@@ -4,7 +4,7 @@ description: Media Kit
 
 # REQ-0029: Media Kit
 
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** growth / presentation
 - **Original spec path:** `docs/specs/0029-media-kit.md` (restructured)
@@ -16,7 +16,7 @@ description: Media Kit
 
 
 - **Module(s):** growth / presentation
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-310)
 - **Related ADR(s):** —

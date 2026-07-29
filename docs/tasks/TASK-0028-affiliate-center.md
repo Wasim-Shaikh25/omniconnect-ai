@@ -1,6 +1,6 @@
 # TASK-0028: Affiliate Center
 
-- **Status:** Todo
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** growth (presentation)
 - **Requirement:** `docs/requirements/REQ-0028-affiliate-center.md`

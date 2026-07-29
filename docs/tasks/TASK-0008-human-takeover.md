@@ -1,6 +1,6 @@
 # TASK-0008: Human Takeover
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** conversations, ai
 - **Requirement:** `docs/requirements/REQ-0008-human-takeover.md`

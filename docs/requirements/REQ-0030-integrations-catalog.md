@@ -4,7 +4,7 @@ description: Integrations Catalog
 
 # REQ-0030: Integrations Catalog
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** ecommerce, meta (presentation)
 - **Original spec path:** `docs/specs/0030-integrations-catalog.md` (restructured)
@@ -16,7 +16,7 @@ description: Integrations Catalog
 
 
 - **Module(s):** ecommerce, meta (presentation)
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-320)
 - **Related ADR(s):** —

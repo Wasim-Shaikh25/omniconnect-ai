@@ -1,6 +1,6 @@
 # TASK-0031: Settings & Administration
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** users, organizations
 - **Requirement:** `docs/requirements/REQ-0031-settings-admin.md`

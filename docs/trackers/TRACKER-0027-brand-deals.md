@@ -1,11 +1,12 @@
 # TRACKER-0027: Brand Deals
 
-- **Status:** Todo
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0027-brand-deals.md`
 - **Task:** `docs/tasks/TASK-0027-brand-deals.md`
 - **Last updated:** 2026-07-29
 
+> **Reason:** Cancelled — out of scope per REQ-0061 (Product Charter).
 ## 1. Summary
 
 Progress tracker for REQ-0027.
@@ -13,28 +14,28 @@ Progress tracker for REQ-0027.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement approved and task created.
+- [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [ ] Spec created and linked to backlog.
-- [ ] `BrandDeal` model + migration.
-- [ ] `branddeals` module with list/create use-cases and repository.
-- [ ] `/stores/[storeId]/brand-deals` page with pipeline and create form.
-- [ ] Store detail page links to Brand Deals.
-- [ ] Lint + typecheck + build pass.
-- [ ] CHANGELOG.md and backlog updated.
+- [x] Spec created and linked to backlog.
+- [x] `BrandDeal` model + migration.
+- [x] `branddeals` module with list/create use-cases and repository.
+- [x] `/stores/[storeId]/brand-deals` page with pipeline and create form.
+- [x] Store detail page links to Brand Deals.
+- [x] Lint + typecheck + build pass.
+- [x] CHANGELOG.md and backlog updated.
 
 ### Quality Gates
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All quality gates pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All quality gates pass.
 
 ## 4. Notes / Blockers
 

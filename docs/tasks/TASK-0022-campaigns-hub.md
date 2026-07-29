@@ -1,6 +1,6 @@
 # TASK-0022: Campaigns Hub
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** coupons (presentation)
 - **Requirement:** `docs/requirements/REQ-0022-campaigns-hub.md`

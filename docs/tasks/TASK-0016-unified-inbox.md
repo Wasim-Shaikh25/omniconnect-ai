@@ -1,6 +1,6 @@
 # TASK-0016: Unified Inbox (Global Conversation Triage)
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** conversations, crm, organizations
 - **Requirement:** `docs/requirements/REQ-0016-unified-inbox.md`

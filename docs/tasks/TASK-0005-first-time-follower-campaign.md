@@ -1,6 +1,6 @@
 # TASK-0005: First-Time Follower Campaign
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** crm, coupons, ai, meta, notifications
 - **Requirement:** `docs/requirements/REQ-0005-first-time-follower-campaign.md`

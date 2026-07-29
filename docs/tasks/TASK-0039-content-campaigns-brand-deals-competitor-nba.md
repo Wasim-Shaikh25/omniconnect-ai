@@ -1,6 +1,6 @@
 # TASK-0039: 0039 — Next Best Action for Content, Campaigns, Brand Deals, and Competitor Intelligence
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence`, `growth`, `branddeals`, `analytics`, `conversations`, `ecommerce`
 - **Requirement:** `docs/requirements/REQ-0039-content-campaigns-brand-deals-competitor-nba.md`

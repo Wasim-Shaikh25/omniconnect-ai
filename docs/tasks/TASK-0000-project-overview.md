@@ -1,6 +1,6 @@
 # TASK-0000: Project Overview
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** all
 - **Requirement:** `docs/requirements/REQ-0000-project-overview.md`

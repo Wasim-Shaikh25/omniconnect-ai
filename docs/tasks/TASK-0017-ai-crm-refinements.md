@@ -1,6 +1,6 @@
 # TASK-0017: AI CRM Refinements — Lifecycle, Consent, Scoring, Segments
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** crm, conversations, ecommerce
 - **Requirement:** `docs/requirements/REQ-0017-ai-crm-refinements.md`

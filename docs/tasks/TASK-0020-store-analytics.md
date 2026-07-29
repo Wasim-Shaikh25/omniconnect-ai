@@ -1,6 +1,6 @@
 # TASK-0020: Store Analytics Page
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** analytics (presentation of ecommerce + crm + conversations)
 - **Requirement:** `docs/requirements/REQ-0020-store-analytics.md`

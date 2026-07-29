@@ -1,6 +1,6 @@
 # TASK-0027: Brand Deals
 
-- **Status:** Todo
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** branddeals
 - **Requirement:** `docs/requirements/REQ-0027-brand-deals.md`

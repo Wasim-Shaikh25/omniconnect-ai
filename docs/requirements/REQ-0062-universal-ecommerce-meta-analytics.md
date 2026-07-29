@@ -4,7 +4,7 @@ description: Universal E-commerce Connectors + Meta Business Growth Analytics
 
 # REQ-0062: Universal E-commerce Connectors + Meta Business Growth Analytics
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** ecommerce, meta, analytics, coupons, ai, crm, conversations
 - **Original spec path:** `docs/specs/0062-universal-ecommerce-meta-analytics.md` (restructured)
@@ -16,7 +16,7 @@ description: Universal E-commerce Connectors + Meta Business Growth Analytics
 
 
 - **Module(s):** ecommerce, meta, analytics, coupons, ai, crm, conversations
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Related spec(s):** `docs/requirements/REQ-0061-product-charter.md`
 - **Related task(s):** `docs/trackers/TRACKER-0062-universal-ecommerce-meta-analytics.md`

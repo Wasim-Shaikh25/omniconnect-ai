@@ -35,6 +35,7 @@ interface Tracker {
   total: number;
   done: number;
   pending: string[];
+  status?: string;
 }
 
 function parseId(fileName: string): { id: string; prefix: string; slug: string } | null {
@@ -75,7 +76,7 @@ function scanDir(dir: string, prefix: string): Map<string, Item> {
   return result;
 }
 
-function parseTracker(filePath: string): { total: number; done: number; pending: string[] } {
+function parseTracker(filePath: string): { total: number; done: number; pending: string[]; status?: string } {
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split(/\r?\n/);
   const pending: string[] = [];
@@ -94,7 +95,7 @@ function parseTracker(filePath: string): { total: number; done: number; pending:
     }
   }
 
-  return { total, done, pending };
+  return { total, done, pending, status: parseStatus(content) };
 }
 
 function safeWrite(line: string) {
@@ -115,7 +116,7 @@ function main() {
   const tasks = scanDir("docs/tasks", "TASK");
   const trackers = scanDir("docs/trackers", "TRACKER");
 
-  const report: Record<string, Tracker & { requirement?: Item; task?: Item }> = {};
+  const report: Record<string, Tracker & { requirement?: Item; task?: Item; id: string }> = {};
   const missing: string[] = [];
   const orphanedTasks: string[] = [];
   const orphanedTrackers: string[] = [];
@@ -131,7 +132,7 @@ function main() {
 
     if (tracker) {
       const stats = parseTracker(tracker.file);
-      const record = { ...stats, item: tracker, requirement: req, task };
+      const record = { ...stats, id, item: tracker, requirement: req, task };
       report[id] = record;
       trackerRecords.push(record);
     }
@@ -169,26 +170,36 @@ function main() {
   safeWrite("|----|-------------|------|---------|------------|----------|");
 
   const sortedIds = Object.keys(report).sort((a, b) => Number(a) - Number(b));
-  let anyPending = false;
   let doneCount = 0;
+  let cancelledCount = 0;
 
   for (const id of sortedIds) {
     const r = report[id]!;
     const pct = r.total === 0 ? 0 : Math.round((r.done / r.total) * 100);
-    const trackerStatus = pct === 100 ? "Done" : `${pct}% (${r.done}/${r.total})`;
-    if (pct === 100) doneCount++;
-    else anyPending = true;
+    const reqStatus = (r.requirement?.status ?? "").toLowerCase();
+    const trackerStatusText = (r.status ?? "").toLowerCase();
+
+    const isCancelled = reqStatus === "cancelled" || trackerStatusText === "cancelled";
+    const isDone = !isCancelled && pct === 100;
+
+    const trackerStatus = isCancelled
+      ? "Cancelled"
+      : isDone
+        ? "Done"
+        : `${pct}% (${r.done}/${r.total})`;
+
+    if (isDone) doneCount++;
+    if (isCancelled) cancelledCount++;
 
     const reqTitle = r.requirement ? `[REQ-${id}](${path.relative(ROOT, r.requirement.file)})` : "—";
     const taskTitle = r.task ? `[TASK-${id}](${path.relative(ROOT, r.task.file)})` : "—";
     const trackTitle = `[TRACKER-${id}](${path.relative(ROOT, r.item.file)})`;
-    const reqStatus = r.requirement?.status ?? "—";
 
-    safeWrite(`| ${id} | ${reqTitle} | ${taskTitle} | ${trackTitle} | ${reqStatus} | ${trackerStatus} |`);
+    safeWrite(`| ${id} | ${reqTitle} | ${taskTitle} | ${trackTitle} | ${r.requirement?.status ?? "—"} | ${trackerStatus} |`);
   }
 
   safeWrite("");
-  safeWrite(`**Total:** ${sortedIds.length} | **Done:** ${doneCount} | **Left:** ${sortedIds.length - doneCount}`);
+  safeWrite(`**Total:** ${sortedIds.length} | **Done:** ${doneCount} | **Cancelled:** ${cancelledCount} | **Left:** ${sortedIds.length - doneCount - cancelledCount}`);
   safeWrite("");
 
   if (!summaryMode) {
@@ -203,7 +214,8 @@ function main() {
     }
   }
 
-  if (anyPending || missing.length > 0) {
+  const leftCount = sortedIds.length - doneCount - cancelledCount;
+  if (leftCount > 0 || missing.length > 0) {
     if (failMode) process.exit(1);
   } else {
     safeWrite("All trackers complete. No pending work.");

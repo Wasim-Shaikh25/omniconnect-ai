@@ -1,6 +1,6 @@
 # TASK-0049: 0049 — SaaS Landing Page, Pricing, Payments, and Onboarding Docs
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `organizations`, `app` (UI), `docs`
 - **Requirement:** `docs/requirements/REQ-0049-saas-landing-billing-onboarding.md`

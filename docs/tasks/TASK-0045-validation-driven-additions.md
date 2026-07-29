@@ -1,6 +1,6 @@
 # TASK-0045: 0045 — Validation-Driven Additions
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence` + cross-module
 - **Requirement:** `docs/requirements/REQ-0045-validation-driven-additions.md`

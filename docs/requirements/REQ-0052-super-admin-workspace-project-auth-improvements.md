@@ -16,7 +16,7 @@ description: Super-Admin Login, Workspace/Project Model, and Auth Improvements
 
 
 - **Module(s):** `auth`, `users`, `organizations`, `meta`, `support`, `shared`
-- **Status:** Done
+- **Status:** Implemented
 - **Owner:** Devin
 - **Related task(s):** `docs/tasks/TASK-376-super-admin-workspace-project-auth.md`
 - **Related ADR(s):** —

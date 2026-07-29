@@ -4,7 +4,7 @@ description: Orders View (read-only connector orders)
 
 # REQ-0019: Orders View (read-only connector orders)
 
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** ecommerce
 - **Original spec path:** `docs/specs/0019-orders-view.md` (restructured)
@@ -16,7 +16,7 @@ description: Orders View (read-only connector orders)
 
 
 - **Module(s):** ecommerce
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-220)
 - **Related ADR(s):** —

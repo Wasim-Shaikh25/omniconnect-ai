@@ -1,6 +1,6 @@
 # TASK-0018: Content Studio — MVP (ideas + captions)
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** content (client of `ai` and `ecommerce`)
 - **Requirement:** `docs/requirements/REQ-0018-content-studio-mvp.md`

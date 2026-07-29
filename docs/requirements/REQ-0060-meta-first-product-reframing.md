@@ -4,7 +4,7 @@ description: Meta-First Product Reframing
 
 # REQ-0060: Meta-First Product Reframing
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** presentation, ecommerce, organizations, coupons, meta, analytics
 - **Original spec path:** `docs/specs/0060-meta-first-product-reframing.md` (restructured)
@@ -16,7 +16,7 @@ description: Meta-First Product Reframing
 
 
 - **Module(s):** presentation, ecommerce, organizations, coupons, meta, analytics
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Related spec(s):** `docs/requirements/REQ-0061-product-charter.md` (source-of-truth product scope)
 - **Related task(s):** `docs/trackers/TRACKER-0061-product-charter.md` (master tracker); `docs/trackers/TRACKER-0060-meta-first-product-reframing.md` (legacy)

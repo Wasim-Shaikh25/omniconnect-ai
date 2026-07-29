@@ -1,6 +1,6 @@
 # TASK-0035: 0035 — UI Pages and Dark/Light Mode
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** Devin
 - **Module(s):** all
 - **Requirement:** `docs/requirements/REQ-0035-ui-pages-dark-mode.md`

@@ -4,7 +4,7 @@ description: 0035 — UI Pages and Dark/Light Mode
 
 # REQ-0035: 0035 — UI Pages and Dark/Light Mode
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** all
 - **Original spec path:** `docs/specs/0035-ui-pages-dark-mode.md` (restructured)

@@ -1,6 +1,6 @@
 # TRACKER-0017: AI CRM Refinements — Lifecycle, Consent, Scoring, Segments
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0017-ai-crm-refinements.md`
 - **Task:** `docs/tasks/TASK-0017-ai-crm-refinements.md`
@@ -13,27 +13,27 @@ Progress tracker for REQ-0017.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement approved and task created.
+- [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [ ] Spec created and linked to backlog.
-- [ ] Schema migration adds lifecycle, consent, and last-activity fields.
-- [ ] `/customers` renders workspace customer list with scores and segment labels.
-- [ ] `/customers/[id]` shows profile, activity, and editable stage/consent.
-- [ ] Lint + typecheck + build pass.
-- [ ] CHANGELOG.md and backlog updated.
+- [x] Spec created and linked to backlog.
+- [x] Schema migration adds lifecycle, consent, and last-activity fields.
+- [x] `/customers` renders workspace customer list with scores and segment labels.
+- [x] `/customers/[id]` shows profile, activity, and editable stage/consent.
+- [x] Lint + typecheck + build pass.
+- [x] CHANGELOG.md and backlog updated.
 
 ### Quality Gates
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All quality gates pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All quality gates pass.
 
 ## 4. Notes / Blockers
 

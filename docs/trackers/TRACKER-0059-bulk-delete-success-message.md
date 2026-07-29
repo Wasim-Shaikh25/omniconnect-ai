@@ -24,8 +24,8 @@ Move the bulk-delete success feedback out of `BulkDeleteToolbar` and into `Produ
 ## Acceptance Criteria
 
 - [x] Matches the linked spec's acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## Notes / Blockers
 

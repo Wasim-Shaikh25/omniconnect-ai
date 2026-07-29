@@ -1,6 +1,6 @@
 # TASK-0004: AI Customer Assistant
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** ai
 - **Requirement:** `docs/requirements/REQ-0004-ai-assistant.md`

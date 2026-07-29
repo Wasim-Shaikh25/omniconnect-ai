@@ -1,6 +1,6 @@
 # TASK-0001: Authentication
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** auth, users
 - **Requirement:** `docs/requirements/REQ-0001-auth.md`

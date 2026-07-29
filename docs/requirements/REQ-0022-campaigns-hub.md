@@ -4,7 +4,7 @@ description: Campaigns Hub
 
 # REQ-0022: Campaigns Hub
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** coupons (presentation)
 - **Original spec path:** `docs/specs/0022-campaigns-hub.md` (restructured)
@@ -16,7 +16,7 @@ description: Campaigns Hub
 
 
 - **Module(s):** coupons (presentation)
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-250)
 - **Related ADR(s):** —

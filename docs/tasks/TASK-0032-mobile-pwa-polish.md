@@ -1,6 +1,6 @@
 # TASK-0032: Mobile Responsive Quick Actions & PWA Polish
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** ui / app shell
 - **Requirement:** `docs/requirements/REQ-0032-mobile-pwa-polish.md`

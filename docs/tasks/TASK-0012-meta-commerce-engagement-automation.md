@@ -1,6 +1,6 @@
 # TASK-0012: Meta Commerce & Engagement Automation (Phase 2)
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** ecommerce, meta, crm, ai, notifications, commerce, social, growth
 - **Requirement:** `docs/requirements/REQ-0012-meta-commerce-engagement-automation.md`

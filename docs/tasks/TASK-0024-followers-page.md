@@ -1,6 +1,6 @@
 # TASK-0024: Store Followers Page
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** crm (presentation)
 - **Requirement:** `docs/requirements/REQ-0024-followers-page.md`

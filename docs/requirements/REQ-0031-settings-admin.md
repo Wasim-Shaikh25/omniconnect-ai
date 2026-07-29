@@ -4,7 +4,7 @@ description: Settings & Administration
 
 # REQ-0031: Settings & Administration
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** users, organizations
 - **Original spec path:** `docs/specs/0031-settings-admin.md` (restructured)
@@ -16,7 +16,7 @@ description: Settings & Administration
 
 
 - **Module(s):** users, organizations
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-330)
 - **Related ADR(s):** —

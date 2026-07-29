@@ -1,6 +1,6 @@
 # TASK-0025: Workspace Reports
 
-- **Status:** Todo
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** analytics/presentation
 - **Requirement:** `docs/requirements/REQ-0025-workspace-reports.md`

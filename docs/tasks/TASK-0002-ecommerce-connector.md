@@ -1,6 +1,6 @@
 # TASK-0002: eCommerce Connector Framework
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** ecommerce
 - **Requirement:** `docs/requirements/REQ-0002-ecommerce-connector.md`

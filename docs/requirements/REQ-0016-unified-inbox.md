@@ -4,7 +4,7 @@ description: Unified Inbox (Global Conversation Triage)
 
 # REQ-0016: Unified Inbox (Global Conversation Triage)
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** conversations, crm, organizations
 - **Original spec path:** `docs/specs/0016-unified-inbox.md` (restructured)
@@ -16,7 +16,7 @@ description: Unified Inbox (Global Conversation Triage)
 
 
 - **Module(s):** conversations, crm, organizations
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-190)
 - **Related ADR(s):** —

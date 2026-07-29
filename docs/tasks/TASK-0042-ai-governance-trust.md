@@ -1,6 +1,6 @@
 # TASK-0042: 0042 — AI Governance, Trust, and Workflow Acceptance
 
-- **Status:** Done
+- **Status:** Completed
 - **Owner:** wasim
 - **Module(s):** `intelligence`, `ai`
 - **Requirement:** `docs/requirements/REQ-0042-ai-governance-trust.md`

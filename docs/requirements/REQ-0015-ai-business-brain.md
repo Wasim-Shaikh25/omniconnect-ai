@@ -4,7 +4,7 @@ description: AI Business Brain
 
 # REQ-0015: AI Business Brain
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** ai, analytics, organizations, ecommerce, crm, conversations
 - **Original spec path:** `docs/specs/0015-ai-business-brain.md` (restructured)
@@ -16,7 +16,7 @@ description: AI Business Brain
 
 
 - **Module(s):** ai, analytics, organizations, ecommerce, crm, conversations
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-180)
 - **Related ADR(s):** —

@@ -4,7 +4,7 @@ description: Brand Deals
 
 # REQ-0027: Brand Deals
 
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Module(s):** branddeals
 - **Original spec path:** `docs/specs/0027-brand-deals.md` (restructured)
@@ -16,7 +16,7 @@ description: Brand Deals
 
 
 - **Module(s):** branddeals
-- **Status:** In Progress
+- **Status:** Cancelled
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/backlog.md` (TASK-290)
 - **Related ADR(s):** —
