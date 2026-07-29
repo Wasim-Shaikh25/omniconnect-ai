@@ -1,5 +1,5 @@
 ---
-description: Mandatory spec-first, changelog-first, task-driven workflow for OmniConnect AI
+description: Mandatory requirement-first, changelog-first, task+tracker-driven workflow for OmniConnect AI
 globs:
 alwaysApply: true
 ---
@@ -9,11 +9,21 @@ alwaysApply: true
 The single source of truth is `AGENTS.md`. Follow this loop for ANY code change, in order:
 
 1. **Read `CHANGELOG.md` first** — understand Done / In Progress / Next.
-2. **Read + update the relevant spec** in `docs/specs/` BEFORE writing code (spec-first).
-   - Use `docs/specs/_TEMPLATE.md` for new specs.
-3. **Create/append a task** in `docs/tasks/` (`_TEMPLATE.md`) or `docs/tasks/backlog.md`.
-4. **Implement** to match the spec.
-5. **Update `CHANGELOG.md`** as the last step (move to Done, add the Next item).
-6. **Verify**: lint + typecheck + tests pass.
+2. **Read `docs/specs/current-state.md`** — understand architecture, public contracts, and current behavior.
+3. **Read + update the relevant requirement** in `docs/requirements/` BEFORE writing code (requirement-first).
+   - Use `docs/templates/REQ-TEMPLATE.md` for new requirements.
+4. **Create/append a task** in `docs/tasks/` (`docs/templates/TASK-TEMPLATE.md`) with code snippets and file references.
+5. **Create/append a tracker** in `docs/trackers/` (`docs/templates/TRACKER-TEMPLATE.md`) to record progress.
+6. **Implement** to match the requirement + task.
+7. **Update `docs/specs/current-state.md`** if architecture or public contracts change.
+8. **Update `CHANGELOG.md`** as the last step (move to Done, add the Next item).
+9. **Verify**: lint + typecheck + tests + build/build:worker + `npx tsx scripts/task-status.ts` pass.
 
-Rule of thumb: **No code without a spec. No work without a task. No session without reading the changelog.**
+Rule of thumb: **No code without a requirement. No work without a task and tracker. No session without reading the changelog and current-state.**
+
+DOCUMENT STRUCTURE:
+- `docs/specs/current-state.md` — living architecture and current-state doc.
+- `docs/requirements/REQ-<id>-<slug>.md` — business requirement.
+- `docs/tasks/TASK-<id>-<slug>.md` — implementation plan with code snippets.
+- `docs/trackers/TRACKER-<id>-<slug>.md` — progress tracker.
+- `scripts/task-status.ts` — run to see what is done and what is left.

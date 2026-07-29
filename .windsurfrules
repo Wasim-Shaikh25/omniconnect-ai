@@ -4,17 +4,20 @@ The single source of truth for this repo is AGENTS.md. Follow it. This file mirr
 non-negotiables so Windsurf/Cascade always enforces them.
 
 WORKFLOW (every session, in order):
-1. Read CHANGELOG.md first (Done / In Progress / Next).
-2. Read + update the relevant spec in docs/specs/ BEFORE writing code (spec-first).
-3. Create/append a task in docs/tasks/.
-4. Implement to match the spec.
-5. Update CHANGELOG.md last (move to Done, add Next).
-6. Ensure lint + typecheck + tests pass.
+1. Read `CHANGELOG.md` first (Done / In Progress / Next).
+2. Read `docs/specs/current-state.md` to understand architecture and contracts.
+3. Read + update the relevant requirement in `docs/requirements/` BEFORE writing code (requirement-first).
+4. Create/append a task in `docs/tasks/` with code snippets and file references.
+5. Create/append a tracker in `docs/trackers/` to record progress.
+6. Implement to match the requirement + task.
+7. Update `docs/specs/current-state.md` if architecture or public contracts change.
+8. Update `CHANGELOG.md` last (move to Done, add Next).
+9. Ensure lint + typecheck + tests + build/build:worker + `npx tsx scripts/task-status.ts` pass.
 
-Rule of thumb: No code without a spec. No work without a task. No session without reading the changelog.
+Rule of thumb: No code without a requirement. No work without a task and tracker. No session without reading the changelog and current-state.
 
 ARCHITECTURE (loose coupling is law):
-- Modules: auth, users, organizations, ecommerce, meta, ai, coupons, crm, conversations, analytics, reports, notifications.
+- Modules: auth, users, organizations, ecommerce, meta, ai, coupons, crm, conversations, analytics, reports, notifications, commerce, social, growth, branddeals, content, intelligence, support.
 - Never import another module's internals. Cross-module communication = public contract
   (application service / port) or DOMAIN EVENTS only. No circular dependencies.
 - DDD layering per module: Presentation -> Application -> Domain <- Infrastructure.
@@ -31,4 +34,12 @@ CODING STANDARDS:
 - Prisma migrations for all schema changes. Prefer deps published >=7 days ago; no floating ranges.
 - Do not edit tests just to make them pass.
 
-Full detail: AGENTS.md (§0–§7) and docs/architecture/.
+DOCUMENT STRUCTURE:
+- `docs/specs/current-state.md` — living architecture and current-state doc.
+- `docs/requirements/REQ-<id>-<slug>.md` — business requirement.
+- `docs/tasks/TASK-<id>-<slug>.md` — implementation plan with code snippets.
+- `docs/trackers/TRACKER-<id>-<slug>.md` — progress tracker.
+- `docs/templates/` — copy templates for new work.
+- `scripts/task-status.ts` — run to see what is done and what is left.
+
+Full detail: AGENTS.md (§0–§7) and `docs/specs/current-state.md`.
