@@ -73,6 +73,6 @@ responsive, mobile-first.
 See `CHANGELOG.md` → `[Unreleased] → Next`. Each item ships spec-first with a task.
 
 ## 10. Acceptance Criteria
-- [ ] Governance foundation in place (rules, specs, tasks, changelog, architecture docs). ← this PR
-- [ ] App scaffold builds, lints, typechecks, runs.
-- [ ] Each Phase 1 module delivered per its spec with tests and updated changelog.
+- [x] Governance foundation in place (rules, specs, tasks, changelog, architecture docs). ← this PR
+- [x] App scaffold builds, lints, typechecks, runs.
+- [x] Each Phase 1 module delivered per its spec with tests and updated changelog.

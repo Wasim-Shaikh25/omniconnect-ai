@@ -16,7 +16,7 @@ Implementation task for REQ-0007. The marketing-insights domain, repository, ser
 
 - Requirement: `docs/requirements/REQ-0007-marketing-insights.md`
 - Tracker: `docs/trackers/TRACKER-0007-marketing-insights.md`
-- Prisma migration: `prisma/migrations/20260729100209_add_marketing_insights_models/migration.sql`
+- Prisma migration: `prisma/migrations/20260729094742_add_marketing_insights_tables/migration.sql`
 - Domain events: `src/modules/analytics/domain/events.ts`
 - Domain types: `src/modules/analytics/domain/types.ts`
 - Repository: `src/modules/analytics/infrastructure/marketing-insights.repository.ts`

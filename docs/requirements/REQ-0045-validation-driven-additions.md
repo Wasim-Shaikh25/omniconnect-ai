@@ -70,16 +70,16 @@ Close the remaining `TASK-350` validation-driven gaps identified during the firs
 
 ## 7. Acceptance Criteria
 
-- [ ] `UnifiedContextService` returns a consolidated workspace context.
-- [ ] `KnowledgeGraphService` returns the five required query results.
-- [ ] `FeatureService` exposes customer, product, content, campaign, and business feature profiles.
-- [ ] Goal-plan generation supports versioned workflows, test runs, and holdout launch.
-- [ ] Learning evidence hierarchy is documented and queryable.
-- [ ] Model ops tracking includes versions, validation, drift, abstention, and rollback.
-- [ ] Prediction prioritization criteria applied with abstention when not met.
-- [ ] User feedback ratings ("I understand why") and hours saved tracked.
-- [ ] Today feed supports drill-downs and dismissal reasons.
-- [ ] Chart acceptance rule enforced before dashboard promotion.
-- [ ] Data-quality gate blocks high-priority insight generation when checks fail.
-- [ ] `scripts/verify-task369.ts` passes.
-- [ ] Lint + typecheck + build pass.
+- [x] `UnifiedContextService` returns a consolidated workspace context.
+- [x] `KnowledgeGraphService` returns the five required query results.
+- [x] `FeatureService` exposes customer, product, content, campaign, and business feature profiles.
+- [x] Goal-plan generation supports versioned workflows, test runs, and holdout launch.
+- [x] Learning evidence hierarchy is documented and queryable.
+- [x] Model ops tracking includes versions, validation, drift, abstention, and rollback.
+- [x] Prediction prioritization criteria applied with abstention when not met.
+- [x] User feedback ratings ("I understand why") and hours saved tracked.
+- [x] Today feed supports drill-downs and dismissal reasons.
+- [x] Chart acceptance rule enforced before dashboard promotion.
+- [x] Data-quality gate blocks high-priority insight generation when checks fail.
+- [x] `scripts/verify-task369.ts` passes.
+- [x] Lint + typecheck + build pass.

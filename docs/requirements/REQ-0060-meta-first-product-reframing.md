@@ -154,14 +154,14 @@ No changes to Meta Graph or Shopify connector contracts. Only the call sites and
 
 ## 13. Acceptance Criteria
 
-- [ ] Sidebar/hamburger replaces crowded top header.
-- [ ] Navigation labels are Meta-first and do not read as Shopify admin.
-- [ ] All placeholder/dead-end store-scoped pages are hidden or marked “Coming soon.”
-- [ ] Product catalog is read-only; edit/delete buttons removed.
-- [ ] Store lifecycle UI reduced to connect/rename; archive/restore/delete removed.
-- [ ] Dashboard, onboarding, and empty states use Meta growth copy.
-- [ ] Lint, typecheck, tests, build pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Sidebar/hamburger replaces crowded top header.
+- [x] Navigation labels are Meta-first and do not read as Shopify admin.
+- [x] All placeholder/dead-end store-scoped pages are hidden or marked “Coming soon.”
+- [x] Product catalog is read-only; edit/delete buttons removed.
+- [x] Store lifecycle UI reduced to connect/rename; archive/restore/delete removed.
+- [x] Dashboard, onboarding, and empty states use Meta growth copy.
+- [x] Lint, typecheck, tests, build pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 14. Open Questions
 

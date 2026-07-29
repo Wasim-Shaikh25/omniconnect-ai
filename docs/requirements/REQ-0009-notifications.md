@@ -93,12 +93,12 @@ Deliver in-app notifications (and a pluggable email adapter behind a port) for e
 - E2E: simulate a message, open `/notifications`, verify unread badge and mark as read.
 
 ## 13. Acceptance Criteria (Definition of Done)
-- [ ] `NotificationRepository` and `NotificationService`/`NotificationQueries` implemented.
-- [ ] Subscribers wired for `NewMessage`, `FirstTimeFollowerDetected`, `CouponGenerated`, `EscalationRequested`, `ConversationTakenOver`, `AIResumed`.
-- [ ] Server actions `listNotificationsAction`, `markNotificationAsReadAction`, `getUnreadNotificationCountAction` exposed and RBAC-gated.
-- [ ] `/notifications` page implemented with unread badge support.
-- [ ] Header shows unread count badge.
-- [ ] Lint + typecheck + build pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] `NotificationRepository` and `NotificationService`/`NotificationQueries` implemented.
+- [x] Subscribers wired for `NewMessage`, `FirstTimeFollowerDetected`, `CouponGenerated`, `EscalationRequested`, `ConversationTakenOver`, `AIResumed`.
+- [x] Server actions `listNotificationsAction`, `markNotificationAsReadAction`, `getUnreadNotificationCountAction` exposed and RBAC-gated.
+- [x] `/notifications` page implemented with unread badge support.
+- [x] Header shows unread count badge.
+- [x] Lint + typecheck + build pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Open Questions
 1. Should we de-duplicate rapid events of the same type for the same conversation/follower within a short window?

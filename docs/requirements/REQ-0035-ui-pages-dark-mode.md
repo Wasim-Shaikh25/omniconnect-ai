@@ -38,7 +38,7 @@ Core pages: Login, Dashboard, eCommerce/Meta connections (on store detail), AI s
 
 ## 5. Acceptance Criteria
 
-- [ ] Listed routes exist and build.
-- [ ] Primary navigation includes Dashboard, AI Brain, Inbox, Stores, Customers, Reports, Settings, Help, Notifications.
-- [ ] Dark/light mode toggle works across pages.
-- [ ] No lint/type errors.
+- [x] Listed routes exist and build.
+- [x] Primary navigation includes Dashboard, AI Brain, Inbox, Stores, Customers, Reports, Settings, Help, Notifications.
+- [x] Dark/light mode toggle works across pages.
+- [x] No lint/type errors.

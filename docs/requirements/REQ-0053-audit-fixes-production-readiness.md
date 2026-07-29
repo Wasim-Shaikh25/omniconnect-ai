@@ -707,23 +707,23 @@ function sanitize(fields: LogFields): LogFields {
 
 ## 13. Acceptance Criteria (Definition of Done)
 
-- [ ] OAuth users are onboarded into an organization and reach `/dashboard`.
-- [ ] Stripe `checkout.session.completed` updates `Organization.plan` and `subscriptionId`.
-- [ ] Coupon usage increments only after successful payment.
-- [ ] `users` barrel no longer exports `setUserSuperAdmin` or `changeUserRole`.
-- [ ] `changeUserRole` enforces hierarchy and blocks self-demotion/last-owner removal.
-- [ ] All mutating repository methods include tenant scope and reject cross-tenant IDs.
-- [ ] MFA and reset codes are rate-limited, single-active, and not logged.
-- [ ] Password reset invalidates existing sessions.
-- [ ] Shopify `shopDomain` is validated and requests use `URL` object.
-- [ ] Meta Graph API URLs encode dynamic values.
-- [ ] OpenAI calls have a timeout and user content is escaped/delimited.
-- [ ] Intelligence feedback, dismissal, and goal-plan state persist to PostgreSQL.
-- [ ] CSP, HSTS, and `X-Powered-By` hardening applied.
-- [ ] Sign-out works via authenticated `signOut` action.
-- [ ] Prisma indexes added and heavy queries are under budget.
-- [ ] `npm run lint`, `typecheck`, `test`, and `build` pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] OAuth users are onboarded into an organization and reach `/dashboard`.
+- [x] Stripe `checkout.session.completed` updates `Organization.plan` and `subscriptionId`.
+- [x] Coupon usage increments only after successful payment.
+- [x] `users` barrel no longer exports `setUserSuperAdmin` or `changeUserRole`.
+- [x] `changeUserRole` enforces hierarchy and blocks self-demotion/last-owner removal.
+- [x] All mutating repository methods include tenant scope and reject cross-tenant IDs.
+- [x] MFA and reset codes are rate-limited, single-active, and not logged.
+- [x] Password reset invalidates existing sessions.
+- [x] Shopify `shopDomain` is validated and requests use `URL` object.
+- [x] Meta Graph API URLs encode dynamic values.
+- [x] OpenAI calls have a timeout and user content is escaped/delimited.
+- [x] Intelligence feedback, dismissal, and goal-plan state persist to PostgreSQL.
+- [x] CSP, HSTS, and `X-Powered-By` hardening applied.
+- [x] Sign-out works via authenticated `signOut` action.
+- [x] Prisma indexes added and heavy queries are under budget.
+- [x] `npm run lint`, `typecheck`, `test`, and `build` pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 14. Open Questions
 

@@ -109,12 +109,12 @@ An event-driven workflow that welcomes a first-time Instagram/Facebook follower 
 - UI test for the campaign settings form and simulator.
 
 ## 13. Acceptance Criteria (Definition of Done)
-- [ ] Domain modeled (`FirstTimeFollowerCampaign`, `CampaignDispatch`) and events defined.
-- [ ] `FirstTimeFollowerCampaignService` port and Prisma repository implemented.
-- [ ] Campaign dispatcher subscribes to `FirstTimeFollowerDetected`, generates coupon, AI message, and outbound send.
-- [ ] UI page for campaign settings on `/stores/[storeId]/campaigns/first-follower`.
-- [ ] Dev simulator supports "Simulate new follower" and shows result.
-- [ ] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] Domain modeled (`FirstTimeFollowerCampaign`, `CampaignDispatch`) and events defined.
+- [x] `FirstTimeFollowerCampaignService` port and Prisma repository implemented.
+- [x] Campaign dispatcher subscribes to `FirstTimeFollowerDetected`, generates coupon, AI message, and outbound send.
+- [x] UI page for campaign settings on `/stores/[storeId]/campaigns/first-follower`.
+- [x] Dev simulator supports "Simulate new follower" and shows result.
+- [x] Lint + typecheck + tests pass; `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ## 14. Open Questions
 1. Should the welcome message be sent as a DM immediately after follow, or only when the follower sends the first message? Meta's 24h rule may prevent the former.

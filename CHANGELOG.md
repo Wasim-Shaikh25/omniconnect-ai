@@ -16,7 +16,7 @@ All notable changes to **OmniConnect AI** are documented here.
 ### ✅ Done
 
 - **Follow-up to TASK-0007 + TASK-0012 — Close remaining gaps identified in the line-by-line audit:**
-  - Persisted marketing-insights domain (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `ContentRecommendation`, `Report`) with Prisma migration `20260729100209_add_marketing_insights_models`.
+  - Persisted marketing-insights domain (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `ContentRecommendation`, `Report`) with Prisma migration `20260729094742_add_marketing_insights_tables`.
   - Implemented `MarketingInsightsRepository`, `marketingInsightsService`, and server actions for `syncMediaCatalog`, `syncAccountAnalytics`, `searchTrendingHashtags`, `analyzeMedia`, `generateReport`, and `createContentRecommendation`.
   - Built `/stores/[storeId]/analytics/content` (with sync), `/trends`, `/reports`, and `/recommendations` dashboard pages; added per-post detail page with AI-generated "why it worked" analysis and slide-by-slide storyboard.
   - Added Shopify webhook handler at `/api/shopify/webhooks` with HMAC-SHA256 verification; handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` by normalizing payloads to `ConnectorProduct`/`ConnectorOrder` and emitting `AbandonedCartDetected`.
@@ -24,6 +24,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - Split `analytics` public barrel so server-only queries (`analyticsQueries`, `getCompetitorBenchmark`, `marketingInsightsService`, `marketingInsightsRepository`) move to `analytics/server`, preventing client bundles from pulling Node-only dependencies.
   - Quality gates pass: `npm run lint`, `DATABASE_URL=... npm run typecheck` (0 errors), `npm run test` (43), `npm audit --audit-level moderate` (0 vulnerabilities), `npm run build` + `npm run build:worker`.
   - Updated `docs/specs/current-state.md`, `REQ-0007`/`TASK-0007`/`TRACKER-0007`, and `REQ-0012`/`TASK-0012`/`TRACKER-0012`.
+
+- **TASK-0066 — Line-by-line audit of all 61 requirements:**
+  - Enhanced `scripts/task-status.ts` to parse and report unchecked acceptance criteria in `REQ-*.md` and subtasks in `TASK-*.md`, not just `TRACKER-*.md`.
+  - Checked every `TASK-*.md` subtask against its parent status and every `REQ-*.md` acceptance criterion against the codebase.
+  - Marked verifiable/done items `[x]` and left only the items with no concrete evidence unchecked.
+  - Created `docs/specs/0066-audit-report.md` with the detailed findings.
+  - Final `npx tsx scripts/task-status.ts --summary`: **62 total | 59 done | 0 cancelled | 3 left** (`REQ-0066` audit in progress, `REQ-0007` 3 gaps, `REQ-0012` 1 gap).
+  - Quality gates: lint, typecheck, tests, build pass.
 
 - **TASK-0065 — Complete remaining intelligence and daily-marketing work:**
   - Removed cancelled out-of-scope Meta-first requirements/tasks/trackers entirely: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.

@@ -116,12 +116,12 @@ The prior audit (`docs/audit/2026-07-26-production-readiness-audit.md`) identifi
 
 ## 10. Acceptance Criteria
 
-- [ ] `getCurrentUser()` returns `null` after `tokenVersion` is bumped in the DB.
-- [ ] Demoted user cannot call `requireRole('ADMIN')` or `requireRole('STORE_OWNER')` with an old session.
-- [ ] `Integration.accessToken`/`refreshToken` values in the DB are prefixed/encrypted; connectors still work.
-- [ ] Outbound Meta requests do not contain `access_token` in the URL.
+- [x] `getCurrentUser()` returns `null` after `tokenVersion` is bumped in the DB.
+- [x] Demoted user cannot call `requireRole('ADMIN')` or `requireRole('STORE_OWNER')` with an old session.
+- [x] `Integration.accessToken`/`refreshToken` values in the DB are prefixed/encrypted; connectors still work.
+- [x] Outbound Meta requests do not contain `access_token` in the URL.
 - [x] CSP `script-src` uses per-request nonces and does not contain `unsafe-inline` or `unsafe-eval` (dev-only `unsafe-eval` is allowed).
-- [ ] `monthlyAiReplies` is enforced for Free/Starter plans.
-- [ ] `teamSeats` is enforced when adding members to an organization (pending invite flow).
-- [ ] Staff users cannot access stores they are not assigned to.
-- [ ] All CI-quality gates pass.
+- [x] `monthlyAiReplies` is enforced for Free/Starter plans.
+- [x] `teamSeats` is enforced when adding members to an organization (pending invite flow).
+- [x] Staff users cannot access stores they are not assigned to.
+- [x] All CI-quality gates pass.

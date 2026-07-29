@@ -158,16 +158,16 @@ Give the OmniConnect AI founder a secure, isolated platform-admin surface to man
 
 ## 13. Acceptance Criteria (Definition of Done)
 
-- [ ] Spec and task tracker created.
-- [ ] Prisma migration adds `User.isSuperAdmin`, `SaaSCoupon`, `SupportTicket`, `TicketComment`, `SystemLog`.
-- [ ] `requireSuperAdmin()` guard and admin layout/page exist.
-- [ ] Super admin can create SaaS coupons with arbitrary percentage discount and Stripe sync.
-- [ ] Users can apply coupon codes during Stripe Checkout and receive the discount.
-- [ ] Users can create/view support tickets; super admins can triage and reply.
-- [ ] System logs are persisted and viewable in `/admin/logs`.
-- [ ] All admin mutations write `AuditLog` entries.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run build` pass.
-- [ ] CHANGELOG.md updated; PR created and linked to spec/task.
+- [x] Spec and task tracker created.
+- [x] Prisma migration adds `User.isSuperAdmin`, `SaaSCoupon`, `SupportTicket`, `TicketComment`, `SystemLog`.
+- [x] `requireSuperAdmin()` guard and admin layout/page exist.
+- [x] Super admin can create SaaS coupons with arbitrary percentage discount and Stripe sync.
+- [x] Users can apply coupon codes during Stripe Checkout and receive the discount.
+- [x] Users can create/view support tickets; super admins can triage and reply.
+- [x] System logs are persisted and viewable in `/admin/logs`.
+- [x] All admin mutations write `AuditLog` entries.
+- [x] `npm run lint`, `npm run typecheck`, `npm run build` pass.
+- [x] CHANGELOG.md updated; PR created and linked to spec/task.
 
 ## 14. Open Questions
 
