@@ -4,7 +4,7 @@ description: Daily Marketing Operating Rhythm
 
 # REQ-0050: Daily Marketing Operating Rhythm
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** `intelligence`, `ai`, `analytics`, `conversations`, `coupons`, `content`, `organizations`, `notifications`, `app` (UI)
 - **Original spec path:** `docs/specs/0050-daily-marketing-operating-rhythm.md` (restructured)
@@ -16,7 +16,7 @@ description: Daily Marketing Operating Rhythm
 
 
 - **Module(s):** `intelligence`, `ai`, `analytics`, `conversations`, `coupons`, `content`, `organizations`, `notifications`, `app` (UI)
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/TASK-374-daily-marketing-operating-rhythm.md`
 - **Related ADR(s):** —
@@ -178,17 +178,17 @@ No new integrations. Existing ones are used more deeply:
 
 ## 13. Acceptance Criteria
 
-- [ ] `/dashboard` (or `/daily`) renders a prioritized list of `DailyAction` cards with objective, confidence, and CTA.
-- [ ] User can complete or skip an action; the state persists and an `ActionOutcome` is scheduled.
-- [ ] `MarketingMemory` feeds `DailyAction` generation and `Business Brain` answers.
-- [ ] `Journey` records steps from `POST_VIEW` → `PROFILE_VISIT` → `DM` → `COUPON_SENT` → `ORDER`.
-- [ ] Recommendations have `objective`, `confidence`, and `reasoning`; confidence updates when new signals arrive.
-- [ ] Brain answers cite sources (Daily Brief, Memory, Journeys, Recommendations).
-- [ ] Billing plan enforcement gates store count, AI reply volume, and team seats.
-- [ ] CI pipeline runs lint, typecheck, tests, and migration dry-run on every PR.
-- [ ] Redis-backed event bus and queue worker are documented and validated in a staging environment.
-- [ ] Tenant isolation audit completed with explicit `organizationId` / `storeId` checks on all mutating actions.
-- [ ] `CHANGELOG.md` and task tracker updated.
+- [x] `/dashboard` (or `/daily`) renders a prioritized list of `DailyAction` cards with objective, confidence, and CTA.
+- [x] User can complete or skip an action; the state persists and an `ActionOutcome` is scheduled.
+- [x] `MarketingMemory` feeds `DailyAction` generation and `Business Brain` answers.
+- [x] `Journey` records steps from `POST_VIEW` → `PROFILE_VISIT` → `DM` → `COUPON_SENT` → `ORDER`.
+- [x] Recommendations have `objective`, `confidence`, and `reasoning`; confidence updates when new signals arrive.
+- [x] Brain answers cite sources (Daily Brief, Memory, Journeys, Recommendations).
+- [x] Billing plan enforcement gates store count, AI reply volume, and team seats.
+- [x] CI pipeline runs lint, typecheck, tests, and migration dry-run on every PR.
+- [x] Redis-backed event bus and queue worker are documented and validated in a staging environment.
+- [x] Tenant isolation audit completed with explicit `organizationId` / `storeId` checks on all mutating actions.
+- [x] `CHANGELOG.md` and task tracker updated.
 
 ## 14. Open Questions
 

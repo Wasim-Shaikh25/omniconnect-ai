@@ -4,7 +4,7 @@ description: 0034 — Unified Intelligence Layer Phase 5: Scale & Optimization
 
 # REQ-0034: 0034 — Unified Intelligence Layer Phase 5: Scale & Optimization
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** all
 - **Original spec path:** `docs/specs/0034-scale-optimization.md` (restructured)
@@ -65,10 +65,10 @@ All panels embedded on `/dashboard` and `/business-brain` (or `/portfolio` later
 
 ## 8. Acceptance Criteria
 
-- [ ] `CompetitorInsight`, `PortfolioSnapshot`, `SystemMetric` tables exist and are populated by services.
-- [ ] Portfolio rollup aggregates all stores in an organization.
-- [ ] Competitor benchmarks are derived from public `analytics` tracked-account data.
-- [ ] System health summary shows avg latency, total cost, and operation count.
-- [ ] Dashboard displays the new panels.
-- [ ] Lint + typecheck + build pass; no `any`/deep cross-module imports.
-- [ ] `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] `CompetitorInsight`, `PortfolioSnapshot`, `SystemMetric` tables exist and are populated by services.
+- [x] Portfolio rollup aggregates all stores in an organization.
+- [x] Competitor benchmarks are derived from public `analytics` tracked-account data.
+- [x] System health summary shows avg latency, total cost, and operation count.
+- [x] Dashboard displays the new panels.
+- [x] Lint + typecheck + build pass; no `any`/deep cross-module imports.
+- [x] `CHANGELOG.md` and `docs/tasks/backlog.md` updated.

@@ -4,7 +4,7 @@ description: 0037 — Revenue Decline & Funnel Diagnosis
 
 # REQ-0037: 0037 — Revenue Decline & Funnel Diagnosis
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** Devin
 - **Module(s):** all
 - **Original spec path:** `docs/specs/0037-revenue-decline-diagnosis.md` (restructured)
@@ -51,9 +51,9 @@ Detect revenue declines and explain them with a simple funnel/driver decompositi
 
 ## 5. Acceptance Criteria
 
-- [ ] `revenue_7d`, `order_count_7d`, `aov_7d` metrics defined and computed.
-- [ ] `DiagnosisService` produces revenue decline/recovery insights.
-- [ ] `DetectionService` integrates diagnosis during `analyzeStore`.
-- [ ] `RecommendationService` maps revenue insights to appropriate action recommendations.
-- [ ] End-to-end script confirms revenue decline → insight → recommendation.
-- [ ] Lint + typecheck + build pass.
+- [x] `revenue_7d`, `order_count_7d`, `aov_7d` metrics defined and computed.
+- [x] `DiagnosisService` produces revenue decline/recovery insights.
+- [x] `DetectionService` integrates diagnosis during `analyzeStore`.
+- [x] `RecommendationService` maps revenue insights to appropriate action recommendations.
+- [x] End-to-end script confirms revenue decline → insight → recommendation.
+- [x] Lint + typecheck + build pass.

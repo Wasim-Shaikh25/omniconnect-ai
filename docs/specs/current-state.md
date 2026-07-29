@@ -2,7 +2,7 @@
 
 - **Status:** Living document
 - **Owner:** Devin
-- **Last updated:** 2026-07-28
+- **Last updated:** 2026-07-29
 - **Changelog:** `CHANGELOG.md`
 - **Product charter:** `docs/requirements/REQ-0061-product-charter.md`
 

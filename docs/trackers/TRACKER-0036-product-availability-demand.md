@@ -1,6 +1,6 @@
 # TRACKER-0036: 0036 — Product Availability & Demand Mismatch
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** Devin
 - **Requirement:** `docs/requirements/REQ-0036-product-availability-demand.md`
 - **Task:** `docs/tasks/TASK-0036-product-availability-demand.md`
@@ -13,27 +13,27 @@ Progress tracker for REQ-0036.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement approved and task created.
+- [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [ ] `ProductsSynced` carries product inventory list.
-- [ ] `DetectionService` emits product availability/demand insights.
-- [ ] `RecommendationService` creates alternative-product recommendations.
-- [ ] `WorkspaceActionExecutor` creates a DM campaign.
-- [ ] End-to-end script confirms: product sync → message mentioning product → insight → recommendation → executed campaign.
-- [ ] Lint + typecheck + build pass.
+- [x] `ProductsSynced` carries product inventory list.
+- [x] `DetectionService` emits product availability/demand insights.
+- [x] `RecommendationService` creates alternative-product recommendations.
+- [x] `WorkspaceActionExecutor` creates a DM campaign.
+- [x] End-to-end script confirms: product sync → message mentioning product → insight → recommendation → executed campaign.
+- [x] Lint + typecheck + build pass.
 
 ### Quality Gates
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All quality gates pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All quality gates pass.
 
 ## 4. Notes / Blockers
 

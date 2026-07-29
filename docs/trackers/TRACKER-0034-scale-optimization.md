@@ -1,6 +1,6 @@
 # TRACKER-0034: 0034 — Unified Intelligence Layer Phase 5: Scale & Optimization
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** Devin
 - **Requirement:** `docs/requirements/REQ-0034-scale-optimization.md`
 - **Task:** `docs/tasks/TASK-0034-scale-optimization.md`
@@ -13,28 +13,28 @@ Progress tracker for REQ-0034.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement approved and task created.
+- [x] Requirement approved and task created.
 
 ### Implementation / Verification
-- [ ] `CompetitorInsight`, `PortfolioSnapshot`, `SystemMetric` tables exist and are populated by services.
-- [ ] Portfolio rollup aggregates all stores in an organization.
-- [ ] Competitor benchmarks are derived from public `analytics` tracked-account data.
-- [ ] System health summary shows avg latency, total cost, and operation count.
-- [ ] Dashboard displays the new panels.
-- [ ] Lint + typecheck + build pass; no `any`/deep cross-module imports.
-- [ ] `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
+- [x] `CompetitorInsight`, `PortfolioSnapshot`, `SystemMetric` tables exist and are populated by services.
+- [x] Portfolio rollup aggregates all stores in an organization.
+- [x] Competitor benchmarks are derived from public `analytics` tracked-account data.
+- [x] System health summary shows avg latency, total cost, and operation count.
+- [x] Dashboard displays the new panels.
+- [x] Lint + typecheck + build pass; no `any`/deep cross-module imports.
+- [x] `CHANGELOG.md` and `docs/tasks/backlog.md` updated.
 
 ### Quality Gates
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All quality gates pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All quality gates pass.
 
 ## 4. Notes / Blockers
 

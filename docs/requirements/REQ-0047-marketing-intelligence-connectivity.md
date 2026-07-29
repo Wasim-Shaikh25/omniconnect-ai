@@ -4,7 +4,7 @@ description: 0047 — Marketing Intelligence Connectivity
 
 # REQ-0047: 0047 — Marketing Intelligence Connectivity
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** `content`, `analytics`, `competitors`, `conversations`, `social`, `ecommerce`, `intelligence`, `ai`
 - **Original spec path:** `docs/specs/0047-marketing-intelligence-connectivity.md` (restructured)
@@ -16,7 +16,7 @@ description: 0047 — Marketing Intelligence Connectivity
 
 
 - **Module(s):** `content`, `analytics`, `competitors`, `conversations`, `social`, `ecommerce`, `intelligence`, `ai`
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/TASK-371-marketing-intelligence.md`
 - **Last updated:** 2026-07-25

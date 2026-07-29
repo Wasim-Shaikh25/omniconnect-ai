@@ -13,6 +13,7 @@ import {
   BarChart3,
   Brain,
   Building2,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   DollarSign,
@@ -78,7 +79,10 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
   const sections: NavSection[] = [
     {
       label: "Home",
-      items: [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+      items: [
+        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/daily-marketing", label: "Daily Marketing", icon: CalendarDays },
+      ],
     },
     {
       label: "Connect",

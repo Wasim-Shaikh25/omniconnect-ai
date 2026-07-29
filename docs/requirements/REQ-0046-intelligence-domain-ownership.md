@@ -4,7 +4,7 @@ description: 0046 — Intelligence Domain Ownership Refactor
 
 # REQ-0046: 0046 — Intelligence Domain Ownership Refactor
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Module(s):** `intelligence`, `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`, `ai`, `auth`
 - **Original spec path:** `docs/specs/0046-intelligence-domain-ownership.md` (restructured)
@@ -16,7 +16,7 @@ description: 0046 — Intelligence Domain Ownership Refactor
 
 
 - **Module(s):** `intelligence`, `ecommerce`, `crm`, `conversations`, `growth`, `branddeals`, `ai`, `auth`
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Related task(s):** `docs/tasks/TASK-370-intelligence-domain-ownership.md`
 - **Last updated:** 2026-07-25
