@@ -31,8 +31,8 @@ The unified requirement → task → tracker restructure left behind orphaned le
 
 ## 4. Acceptance Criteria
 
-- [ ] All orphaned task files are removed.
-- [ ] Implemented tasks show `Implemented` in their REQ, `Completed` in their TASK, and `Done` or 100% in their TRACKER.
-- [ ] Out-of-scope tasks show `Cancelled` in REQ/TASK and their TRACKER is also marked `Cancelled`.
-- [ ] `task-status.ts` no longer reports legacy orphaned files.
-- [ ] `CHANGELOG.md` updated with the cleanup summary.
+- [x] All orphaned task files are removed.
+- [x] Implemented tasks show `Implemented` in their REQ, `Completed` in their TASK, and `Done` or 100% in their TRACKER.
+- [x] Out-of-scope tasks show `Cancelled` in REQ/TASK and their TRACKER is also marked `Cancelled`.
+- [x] `task-status.ts` no longer reports legacy orphaned files.
+- [x] `CHANGELOG.md` updated with the cleanup summary.

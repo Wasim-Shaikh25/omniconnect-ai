@@ -187,15 +187,15 @@ No new core entities; reuse and extend:
 
 ## 13. Acceptance Criteria
 
-- [ ] WooCommerce connector implements `EcommerceConnector` and passes `getProducts`/`getOrders`/`getCustomers`/`generateCoupon`/`disableCoupon`/`fetchStoreInfo`.
-- [ ] BigCommerce connector implements the same contract.
-- [ ] Magento connector implements the same contract (or is documented as Phase 1.5 if blocked by OAuth1 complexity).
-- [ ] Provider can be selected in the connect-store UI.
-- [ ] `getMarketingPerformance` returns `newCustomersFromMeta`, `couponsUsed`, `couponConversionRate`, and `topContent` with revenue attribution.
-- [ ] Analytics dashboard shows growth KPIs, attribution, coupon effectiveness, trending content, best-time-to-post, and AI content calendar.
-- [ ] `Order` schema supports attribution fields and indexes.
-- [ ] Quality gates pass: lint, typecheck, tests, build, build:worker.
-- [ ] `CHANGELOG.md` updated.
+- [x] WooCommerce connector implements `EcommerceConnector` and passes `getProducts`/`getOrders`/`getCustomers`/`generateCoupon`/`disableCoupon`/`fetchStoreInfo`.
+- [x] BigCommerce connector implements the same contract.
+- [x] Magento connector implements the same contract (or is documented as Phase 1.5 if blocked by OAuth1 complexity).
+- [x] Provider can be selected in the connect-store UI.
+- [x] `getMarketingPerformance` returns `newCustomersFromMeta`, `couponsUsed`, `couponConversionRate`, and `topContent` with revenue attribution.
+- [x] Analytics dashboard shows growth KPIs, attribution, coupon effectiveness, trending content, best-time-to-post, and AI content calendar.
+- [x] `Order` schema supports attribution fields and indexes.
+- [x] Quality gates pass: lint, typecheck, tests, build, build:worker.
+- [x] `CHANGELOG.md` updated.
 
 ## 14. Open Questions
 

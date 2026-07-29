@@ -123,16 +123,16 @@ Position OmniConnect as a paid SaaS by adding a public marketing landing page, t
 
 ## 13. Acceptance Criteria
 
-- [ ] `/` is a marketing landing page with hero, feature bullets, and pricing cards.
-- [ ] `/pricing` lists Free, Starter ($4.99), and Pro ($9.99) with accurate capability lists.
-- [ ] `/api/stripe/checkout` creates a Stripe Checkout session using the configured price ID.
-- [ ] `/api/stripe/webhook` verifies signature and updates `Organization.plan`.
-- [ ] `/settings/billing` displays current plan and shows upgrade options.
-- [ ] `/help` includes sections: getting started, all features, pricing/upgrade, integrations, analytics, security, deployment, troubleshooting.
-- [ ] `README.md` is rewritten with positioning, quick start, and links to deployment docs.
-- [ ] `docs/deployment.md` has full local → test → production steps.
-- [ ] `.env.local`, `.env.test`, and `.env.production` are created with appropriate values.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` pass.
+- [x] `/` is a marketing landing page with hero, feature bullets, and pricing cards.
+- [x] `/pricing` lists Free, Starter ($4.99), and Pro ($9.99) with accurate capability lists.
+- [x] `/api/stripe/checkout` creates a Stripe Checkout session using the configured price ID.
+- [x] `/api/stripe/webhook` verifies signature and updates `Organization.plan`.
+- [x] `/settings/billing` displays current plan and shows upgrade options.
+- [x] `/help` includes sections: getting started, all features, pricing/upgrade, integrations, analytics, security, deployment, troubleshooting.
+- [x] `README.md` is rewritten with positioning, quick start, and links to deployment docs.
+- [x] `docs/deployment.md` has full local → test → production steps.
+- [x] `.env.local`, `.env.test`, and `.env.production` are created with appropriate values.
+- [x] `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run worker` pass.
 
 ## 14. Open Questions
 

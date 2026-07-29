@@ -117,5 +117,5 @@ Implement in this order:
 - [x] Users can generate AI captions/hooks for posts in the shoppable-media composer.
 - [x] Composer suggests best posting time and hashtags.
 - [x] Comment keyword triggers an automated DM reward flow (comment-to-DM unlock loop).
-- [ ] Campaign analytics show shares/sends/follower growth per post.
+- [x] Campaign analytics show shares/sends/follower growth per post.
 - [x] `lint`, `typecheck`, and `build` pass; docs/backlog updated.

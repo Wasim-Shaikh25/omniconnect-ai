@@ -39,9 +39,9 @@ Implementation task for REQ-0062. Implementation details and code references wer
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches the linked requirement.
-- [ ] Quality gates pass.
-- [ ] `CHANGELOG.md` updated if needed.
+- [x] Matches the linked requirement.
+- [x] Quality gates pass.
+- [x] `CHANGELOG.md` updated if needed.
 
 ## 6. Notes / Blockers
 

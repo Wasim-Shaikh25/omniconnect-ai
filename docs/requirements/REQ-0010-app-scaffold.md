@@ -58,10 +58,10 @@ prisma/schema.prisma
 ```
 
 ## 5. Acceptance Criteria
-- [ ] App builds, lints, typechecks.
-- [ ] Landing page renders with theme toggle (dark/light).
-- [ ] All 12 module folders exist with a public `index.ts` barrel.
-- [ ] Shared kernel + event bus + validated config present.
-- [ ] Prisma schema defines core tables; client singleton compiles.
-- [ ] Import-boundary ESLint rule configured.
-- [ ] CHANGELOG updated.
+- [x] App builds, lints, typechecks.
+- [x] Landing page renders with theme toggle (dark/light).
+- [x] All 12 module folders exist with a public `index.ts` barrel.
+- [x] Shared kernel + event bus + validated config present.
+- [x] Prisma schema defines core tables; client singleton compiles.
+- [x] Import-boundary ESLint rule configured.
+- [x] CHANGELOG updated.

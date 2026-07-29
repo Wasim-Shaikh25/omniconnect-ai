@@ -95,14 +95,14 @@ All server actions and server components that accept a `storeId` must verify aut
 
 ## 13. Acceptance Criteria
 
-- [ ] C1: In-memory event bus, rate limiter, and webhook dedup are backed by Redis or removed from production fallback.
-- [ ] C2: `fly.toml` / `deploy.sh` run `npm run worker` as a separate process.
-- [ ] C3: Project management actions enforce RBAC and `teamSeats`.
-- [ ] C4: Every store-scoped server action/component uses `tenantGuard.assertStoreAccess`.
-- [ ] C5: Admin list endpoints paginate and billing lookup uses indexed `subscriptionId`.
-- [ ] C6: `REDIS_URL` and a non-console `EMAIL_PROVIDER` are required in production.
-- [ ] H1-H5 and M/L items addressed or explicitly deferred with rationale.
-- [ ] All quality gates pass.
+- [x] C1: In-memory event bus, rate limiter, and webhook dedup are backed by Redis or removed from production fallback.
+- [x] C2: `fly.toml` / `deploy.sh` run `npm run worker` as a separate process.
+- [x] C3: Project management actions enforce RBAC and `teamSeats`.
+- [x] C4: Every store-scoped server action/component uses `tenantGuard.assertStoreAccess`.
+- [x] C5: Admin list endpoints paginate and billing lookup uses indexed `subscriptionId`.
+- [x] C6: `REDIS_URL` and a non-console `EMAIL_PROVIDER` are required in production.
+- [x] H1-H5 and M/L items addressed or explicitly deferred with rationale.
+- [x] All quality gates pass.
 
 ## 14. Open Questions
 

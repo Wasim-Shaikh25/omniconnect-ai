@@ -4,7 +4,8 @@
  *
  * Scans the docs/requirements, docs/tasks, and docs/trackers directories,
  * validates that every REQ has a TASK and TRACKER, computes completion
- * percentages, and prints a clear status report.
+ * percentages from every checklist in those files, and prints a clear status
+ * report.
  *
  * Usage:
  *   npx tsx scripts/task-status.ts
@@ -30,12 +31,21 @@ interface Item {
   status?: string;
 }
 
-interface Tracker {
-  item: Item;
+interface Checklist {
   total: number;
   done: number;
   pending: string[];
   status?: string;
+}
+
+interface TaskRecord {
+  id: string;
+  requirement?: Item;
+  task?: Item;
+  tracker: Item;
+  req: Checklist;
+  taskCheck: Checklist;
+  trackerCheck: Checklist;
 }
 
 function parseId(fileName: string): { id: string; prefix: string; slug: string } | null {
@@ -70,13 +80,13 @@ function scanDir(dir: string, prefix: string): Map<string, Item> {
       slug: parsed.slug,
       title: extractTitle(content),
       file: filePath,
-      status: prefix === "REQ" ? parseStatus(content) : undefined,
+      status: parseStatus(content),
     });
   }
   return result;
 }
 
-function parseTracker(filePath: string): { total: number; done: number; pending: string[]; status?: string } {
+function parseChecklist(filePath: string): Checklist {
   const content = fs.readFileSync(filePath, "utf-8");
   const lines = content.split(/\r?\n/);
   const pending: string[] = [];
@@ -116,11 +126,10 @@ function main() {
   const tasks = scanDir("docs/tasks", "TASK");
   const trackers = scanDir("docs/trackers", "TRACKER");
 
-  const report: Record<string, Tracker & { requirement?: Item; task?: Item; id: string }> = {};
+  const records: TaskRecord[] = [];
   const missing: string[] = [];
   const orphanedTasks: string[] = [];
   const orphanedTrackers: string[] = [];
-  const trackerRecords: Tracker[] = [];
 
   // Validate requirements
   for (const [id, req] of requirements) {
@@ -131,10 +140,15 @@ function main() {
     if (!tracker) missing.push(`TRACKER-${id} missing for REQ-${id}`);
 
     if (tracker) {
-      const stats = parseTracker(tracker.file);
-      const record = { ...stats, id, item: tracker, requirement: req, task };
-      report[id] = record;
-      trackerRecords.push(record);
+      records.push({
+        id,
+        requirement: req,
+        task,
+        tracker,
+        req: parseChecklist(req.file),
+        taskCheck: task ? parseChecklist(task.file) : { total: 0, done: 0, pending: [] },
+        trackerCheck: parseChecklist(tracker.file),
+      });
     }
   }
 
@@ -147,79 +161,96 @@ function main() {
   }
 
   if (jsonMode) {
-    console.log(JSON.stringify({ report, missing, orphanedTasks, orphanedTrackers }, null, 2));
-    process.exit(missing.length > 0 || trackerRecords.some((t) => t.pending.length > 0) ? 1 : 0);
+    const left = records.filter((r) => !isDone(r) && !isCancelled(r)).length;
+    console.log(JSON.stringify({ records, missing, orphanedTasks, orphanedTrackers, left }, null, 2));
+    process.exit(missing.length > 0 || left > 0 ? 1 : 0);
   }
 
   safeWrite("# OmniConnect AI — Task Status\n");
 
   if (missing.length > 0) {
-    safeWrite("## Missing Files\n");
+    safeWrite("## Missing Files");
     for (const m of missing) safeWrite(`- ${m}`);
     safeWrite("");
   }
 
   if (orphanedTasks.length > 0 || orphanedTrackers.length > 0) {
-    safeWrite("## Legacy Orphaned Files (no matching REQ)\n");
+    safeWrite("## Legacy Orphaned Files (no matching REQ)");
     for (const f of orphanedTasks) safeWrite(`- ${f}`);
     for (const f of orphanedTrackers) safeWrite(`- ${f}`);
     safeWrite("");
   }
 
-  safeWrite("| ID | Requirement | Task | Tracker | Req Status | Progress |");
-  safeWrite("|----|-------------|------|---------|------------|----------|");
+  safeWrite("| ID | Requirement | Task | Tracker | Req Status | Req Progress | Task Progress | Tracker Progress |");
+  safeWrite("|----|-------------|------|---------|------------|--------------|---------------|------------------|");
 
-  const sortedIds = Object.keys(report).sort((a, b) => Number(a) - Number(b));
+  const sortedRecords = records.sort((a, b) => Number(a.id) - Number(b.id));
   let doneCount = 0;
   let cancelledCount = 0;
 
-  for (const id of sortedIds) {
-    const r = report[id]!;
-    const pct = r.total === 0 ? 0 : Math.round((r.done / r.total) * 100);
+  for (const r of sortedRecords) {
+    const reqPct = progressPct(r.req);
+    const taskPct = progressPct(r.taskCheck);
+    const trackerPct = progressPct(r.trackerCheck);
+
     const reqStatus = (r.requirement?.status ?? "").toLowerCase();
-    const trackerStatusText = (r.status ?? "").toLowerCase();
+    const trackerStatusText = (r.tracker.status ?? "").toLowerCase();
+    const taskStatusText = (r.task?.status ?? "").toLowerCase();
 
-    const isCancelled = reqStatus === "cancelled" || trackerStatusText === "cancelled";
-    const isDone = !isCancelled && pct === 100;
-
-    const trackerStatus = isCancelled
-      ? "Cancelled"
-      : isDone
-        ? "Done"
-        : `${pct}% (${r.done}/${r.total})`;
+    const isCancelled = reqStatus === "cancelled" || trackerStatusText === "cancelled" || taskStatusText === "cancelled";
+    const isDone = !isCancelled && reqPct === 100 && taskPct === 100 && trackerPct === 100;
 
     if (isDone) doneCount++;
     if (isCancelled) cancelledCount++;
 
-    const reqTitle = r.requirement ? `[REQ-${id}](${path.relative(ROOT, r.requirement.file)})` : "—";
-    const taskTitle = r.task ? `[TASK-${id}](${path.relative(ROOT, r.task.file)})` : "—";
-    const trackTitle = `[TRACKER-${id}](${path.relative(ROOT, r.item.file)})`;
+    const reqTitle = r.requirement ? `[REQ-${r.id}](${path.relative(ROOT, r.requirement.file)})` : "—";
+    const taskTitle = r.task ? `[TASK-${r.id}](${path.relative(ROOT, r.task.file)})` : "—";
+    const trackTitle = `[TRACKER-${r.id}](${path.relative(ROOT, r.tracker.file)})`;
 
-    safeWrite(`| ${id} | ${reqTitle} | ${taskTitle} | ${trackTitle} | ${r.requirement?.status ?? "—"} | ${trackerStatus} |`);
+    safeWrite(
+      `| ${r.id} | ${reqTitle} | ${taskTitle} | ${trackTitle} | ${r.requirement?.status ?? "—"} | ${reqPct}% (${r.req.done}/${r.req.total}) | ${taskPct}% (${r.taskCheck.done}/${r.taskCheck.total}) | ${trackerPct}% (${r.trackerCheck.done}/${r.trackerCheck.total}) |`,
+    );
   }
 
   safeWrite("");
-  safeWrite(`**Total:** ${sortedIds.length} | **Done:** ${doneCount} | **Cancelled:** ${cancelledCount} | **Left:** ${sortedIds.length - doneCount - cancelledCount}`);
+  safeWrite(`**Total:** ${sortedRecords.length} | **Done:** ${doneCount} | **Cancelled:** ${cancelledCount} | **Left:** ${sortedRecords.length - doneCount - cancelledCount}`);
   safeWrite("");
 
   if (!summaryMode) {
-    const pendingTrackers = trackerRecords.filter((t) => t.pending.length > 0);
-    if (pendingTrackers.length > 0) {
-      safeWrite("## Pending Items\n");
-      for (const t of pendingTrackers) {
-        safeWrite(`### TRACKER-${t.item.id}: ${t.item.title}`);
-        for (const p of t.pending) safeWrite(`- [ ] ${p}`);
+    const pendingRecords = records.filter((r) => !isCancelled(r) && (r.req.pending.length > 0 || r.taskCheck.pending.length > 0 || r.trackerCheck.pending.length > 0));
+    if (pendingRecords.length > 0) {
+      safeWrite("## Pending Items");
+      for (const r of pendingRecords) {
+        safeWrite(`### ID ${r.id}: ${r.tracker.title}`);
+        for (const p of r.req.pending) safeWrite(`- [ ] REQ: ${p}`);
+        for (const p of r.taskCheck.pending) safeWrite(`- [ ] TASK: ${p}`);
+        for (const p of r.trackerCheck.pending) safeWrite(`- [ ] TRACKER: ${p}`);
         safeWrite("");
       }
     }
   }
 
-  const leftCount = sortedIds.length - doneCount - cancelledCount;
+  const leftCount = sortedRecords.length - doneCount - cancelledCount;
   if (leftCount > 0 || missing.length > 0) {
     if (failMode) process.exit(1);
   } else {
-    safeWrite("All trackers complete. No pending work.");
+    safeWrite("All checklists complete. No pending work.");
   }
+}
+
+function progressPct(checklist: Checklist): number {
+  return checklist.total === 0 ? 100 : Math.round((checklist.done / checklist.total) * 100);
+}
+
+function isCancelled(r: TaskRecord): boolean {
+  const req = (r.requirement?.status ?? "").toLowerCase();
+  const task = (r.task?.status ?? "").toLowerCase();
+  const tracker = (r.tracker.status ?? "").toLowerCase();
+  return req === "cancelled" || task === "cancelled" || tracker === "cancelled";
+}
+
+function isDone(r: TaskRecord): boolean {
+  return !isCancelled(r) && progressPct(r.req) === 100 && progressPct(r.taskCheck) === 100 && progressPct(r.trackerCheck) === 100;
 }
 
 main();

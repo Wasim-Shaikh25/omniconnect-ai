@@ -186,10 +186,10 @@ No other module may import these modules' internals; all cross-module access goe
 - [x] Analytics metrics are either backed by real Shopify/Meta data or explicitly marked simulated.
 - [x] All AI entry points call `AIUsageGuard` and stop on quota exhaustion.
 - [x] Orders, customers, conversations, followers, products, and notifications paginate and search server-side.
-- [ ] Account deletion and data export are implemented and tested.
-- [ ] GitHub Actions runs `npm run build`, `npm run build:worker`, and a smoke step.
+- [x] Account deletion and data export are implemented and tested.
+- [x] GitHub Actions runs `npm run build`, `npm run build:worker`, and a smoke step.
 - [x] `/api/health` and `/api/ready` exist; Sentry/OpenTelemetry not yet initialized.
-- [ ] `Integration.accessToken`/`refreshToken` encrypted at rest.
+- [x] `Integration.accessToken`/`refreshToken` encrypted at rest.
 - [x] `CHANGELOG.md` updated and `PRODUCTION_READINESS_AUDIT.md` residual risks revised (Phase 4 pending).
 
 ## 15. Phase 4 Implementation Notes
