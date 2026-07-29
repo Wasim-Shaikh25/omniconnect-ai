@@ -1,25 +1,27 @@
 # Specs
 
-**Spec-first is mandatory** (see `AGENTS.md` §0). No code is written without a spec here
-being created or updated first.
+This folder now contains the **living architecture and current-state document** only. Per-feature specifications have been restructured into the unified requirement/task/tracker workflow.
 
-## How to use
-1. Copy `_TEMPLATE.md` to `NNNN-short-slug.md` (next free number).
-2. Fill it in; set **Status** and link the related task in `docs/tasks/`.
-3. Keep the spec in sync with the code — a spec that disagrees with the code is a bug.
+## New document structure
 
-## Index
+| Folder | Purpose |
+|--------|---------|
+| `docs/specs/current-state.md` | Living architecture, data model, critical flows, integrations, and current limitations. Update this whenever architecture or contracts change. |
+| `docs/requirements/` | Business requirements (`REQ-<id>-<slug>.md`) — what and why. |
+| `docs/tasks/` | Implementation plans (`TASK-<id>-<slug>.md`) — how, with code snippets and file references. |
+| `docs/trackers/` | Progress trackers (`TRACKER-<id>-<slug>.md`) — subtasks and done/left status. |
+| `docs/templates/` | Templates for new requirements, tasks, and trackers. |
+| `scripts/task-status.ts` | Run to see which requirements are done and which are left. |
 
-| #    | Spec                                   | Module(s)        | Status |
-|------|----------------------------------------|------------------|--------|
-| 0000 | [Project Overview](./0000-project-overview.md) | all      | Approved |
-| 0001 | [Authentication](./0001-auth.md)       | auth, users      | Draft  |
-| 0002 | [eCommerce Connector Framework](./0002-ecommerce-connector.md) | ecommerce | Draft |
-| 0003 | [Meta Integration](./0003-meta-integration.md) | meta      | Draft  |
-| 0004 | [AI Customer Assistant](./0004-ai-assistant.md) | ai       | Implemented  |
-| 0005 | [First-Time Follower Campaign](./0005-first-time-follower-campaign.md) | crm, coupons, ai, notifications | Draft |
-| 0006 | [Customer Memory System](./0006-customer-memory.md) | crm    | Implemented  |
-| 0007 | [Meta Content Intelligence & Marketing Insights](./0007-marketing-insights.md) | analytics, reports, meta | Draft |
-| 0008 | [Human Takeover](./0008-human-takeover.md) | conversations | Draft |
-| 0009 | [Notifications](./0009-notifications.md) | notifications  | Draft  |
-| 0012 | [Meta Commerce & Engagement Automation](./0012-meta-commerce-engagement-automation.md) | ecommerce, meta, crm, ai, notifications | Draft |
+## How to add a new feature
+
+1. Read `CHANGELOG.md` and `docs/specs/current-state.md`.
+2. Create `docs/requirements/REQ-<id>-<slug>.md` from `docs/templates/REQ-TEMPLATE.md`.
+3. Create `docs/tasks/TASK-<id>-<slug>.md` from `docs/templates/TASK-TEMPLATE.md`.
+4. Create `docs/trackers/TRACKER-<id>-<slug>.md` from `docs/templates/TRACKER-TEMPLATE.md`.
+5. Implement, then update `docs/specs/current-state.md` and `CHANGELOG.md`.
+6. Run `npx tsx scripts/task-status.ts` to verify status.
+
+## Legacy spec migration
+
+Feature specs that used to live here (`0000-0062`) have been migrated to `docs/requirements/REQ-*.md`, with corresponding `TASK-*` and `TRACKER-*` files. The original `docs/specs/<id>-<slug>.md` files have been removed in favor of the requirement files.

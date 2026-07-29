@@ -15,6 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **TASK-0063 — Documentation restructure and workflow automation:**
+  - Unified document structure: `docs/specs/current-state.md` (living architecture) + `docs/requirements/REQ-<id>*.md` + `docs/tasks/TASK-<id>*.md` + `docs/trackers/TRACKER-<id>*.md`.
+  - Created templates for requirements, tasks, and trackers in `docs/templates/`.
+  - Migrated all legacy `docs/specs/<id>-<slug>.md` files into the new REQ/TASK/TRACKER structure.
+  - Added `scripts/task-status.ts` to report which requirements are done and which are left (`npx tsx scripts/task-status.ts --summary`).
+  - Updated `AGENTS.md`, `CLAUDE.md`, `.windsurfrules`, and `.cursor/rules/*.mdc` to enforce the new requirement-first, task+tracker workflow.
+
 - **TASK-0054 — Audit fixes continuation (PR-1/2/3/4):**
   - `getCurrentUser()` now loads the canonical DB record and verifies `tokenVersion`, so password/role/super-admin changes invalidate existing sessions.
   - `requireRole()` and `requireSuperAdmin()` use the fresh user returned by `getCurrentUser()`.
@@ -34,7 +41,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - Form error messages now include `role="alert"` and `aria-live` regions for accessibility.
   - `node:crypto` replaced with Web Crypto in `verification.ts`, `verify-webhook.ts`, and `webhook-guard.ts` so dev/build bundles are Edge/runtime-agnostic.
   - Credentials password hasher is lazy-loaded in `auth.ts` to keep `bcryptjs` out of the middleware bundle.
-  - Added continuation spec `docs/specs/0054-audit-fixes-continuation.md` and tracker `docs/tasks/0054-audit-fixes-continuation-progress.md`.
+  - Added continuation spec `docs/requirements/REQ-0054-audit-fixes-continuation.md` and tracker `docs/trackers/TRACKER-0054-audit-fixes-continuation.md`.
 
 - **TASK-0057 — Product Completeness Roadmap Phase 4 (final)** (spec `0057`):
   - **P4-1 (GDPR / account lifecycle):** `User.deletedAt`, `ExportRequest` model, `dataExportService` JSON export, `deleteAccountService` 30-day soft-delete grace period, `/settings/account` UI (`AccountActions`, `requestDataExportAction`, `deleteAccountAction`), and `/api/export/[id]` download route.
@@ -817,7 +824,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🎯 Next
 
-- **TASK-0061 — Product Charter and Scope Cleanup** (spec `0061`):
+- **TASK-0061 — Product Charter and Scope Cleanup** (req `docs/requirements/REQ-0061-product-charter.md`):
   - Ratify the universal Meta-first growth platform charter (creators + merchants on any e-commerce provider).
   - Reframe navigation with collapsible hamburger sidebar grouped Connect / Create / Engage / Analyze / Settings.
   - Delete out-of-scope UI routes and files (affiliates, media-kit, brand-deals, UGC/ambassador growth, projects, revenue, unused settings pages).
@@ -825,7 +832,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - Update landing, onboarding, dashboard, and empty-state copy to Meta growth positioning.
   - Quality gates: lint, typecheck, tests, build, build:worker.
 
-- **TASK-0062 — Universal E-commerce Connectors + Meta Business Growth Analytics** (spec `0062`):
+- **TASK-0062 — Universal E-commerce Connectors + Meta Business Growth Analytics** (req `docs/requirements/REQ-0062-universal-ecommerce-meta-analytics.md`):
   - Add WooCommerce, BigCommerce, and Magento `EcommerceConnector` providers.
   - Extend `Order`/`Coupon` schema with attribution fields (`attributedMediaId`, `attributionSource`, `couponCode`, `isFirstTimeCustomer`, `usageCount`, `revenueAttributed`).
   - Build business growth analytics: revenue, new customers, AOV, content-to-sale attribution, coupon effectiveness.

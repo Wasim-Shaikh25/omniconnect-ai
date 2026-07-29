@@ -14,34 +14,47 @@
 Before writing or changing ANY code, follow this loop **in order**. Do not skip steps.
 
 ```
-1. READ  CHANGELOG.md            → understand what is done + what is next
-2. READ  the relevant spec       → docs/specs/<module>.md  (create/update it FIRST)
-3. WRITE / UPDATE the spec        → spec must reflect intended behavior before code
-4. CREATE a task                  → docs/tasks/ (from _TEMPLATE.md) or update backlog.md
-5. IMPLEMENT                      → code to match the spec, respecting module boundaries
-6. UPDATE CHANGELOG.md            → move item to "Done", add the next step under "Next"
-7. VERIFY                         → lint + typecheck + tests must pass
+1. READ  CHANGELOG.md              → understand what is done + what is next
+2. READ  docs/specs/current-state.md → understand architecture, contracts, and current behavior
+3. READ  the relevant requirement  → docs/requirements/REQ-<id>-<slug>.md
+4. WRITE / UPDATE the requirement  → business what/why before any code
+5. CREATE / UPDATE the task       → docs/tasks/TASK-<id>-<slug>.md (technical how, code refs, snippets)
+6. CREATE / UPDATE the tracker      → docs/trackers/TRACKER-<id>-<slug>.md (progress checklist)
+7. IMPLEMENT                        → code to match the requirement + task, respecting module boundaries
+8. UPDATE docs/specs/current-state.md if architecture/contract changed
+9. UPDATE CHANGELOG.md              → move item to "Done", add the next step under "Next"
+10. VERIFY                           → lint + typecheck + tests + build/build:worker + task-status
 ```
 
-**Rule of thumb:** *No code without a spec. No work without a task. No session without
-reading the changelog first.*
+**Rule of thumb:** *No code without a requirement. No work without a task and tracker. No session without reading the changelog and current-state first.*
 
-### Spec-first
-- Every feature/module change begins by creating or updating a spec in `docs/specs/`.
-- The spec describes **what** and **why** (behavior, contracts, edge cases), not line-by-line **how**.
-- Code that diverges from its spec is a bug — update the spec (with reasoning) or fix the code.
+### Document structure
+- `docs/specs/current-state.md` — living system overview (architecture, data model, critical flows, current limitations). Updated whenever architecture or contracts change.
+- `docs/requirements/REQ-<id>-<slug>.md` — business requirement with goals, non-goals, user stories, acceptance criteria.
+- `docs/tasks/TASK-<id>-<slug>.md` — technical implementation plan with code snippets, file references, and subtasks.
+- `docs/trackers/TRACKER-<id>-<slug>.md` — progress tracker; all checkboxes must be `x` before a task is "Done".
+- `docs/templates/` — copy `REQ-TEMPLATE.md`, `TASK-TEMPLATE.md`, `TRACKER-TEMPLATE.md` for new work.
+- `scripts/task-status.ts` — run `npx tsx scripts/task-status.ts` to see what is done and what is left.
+
+### Spec-first / requirement-first
+- Every feature/module change begins by creating or updating the requirement in `docs/requirements/`.
+- The requirement describes **what** and **why** (behavior, contracts, edge cases, acceptance criteria), not line-by-line **how**.
+- The task file describes **how** with code snippets, file references, and implementation steps.
+- Code that diverges from its requirement is a bug — update the docs (with reasoning) or fix the code.
 
 ### Changelog-first
-- **Start every working session by reading `CHANGELOG.md`.**
+- **Start every working session by reading `CHANGELOG.md` and `docs/specs/current-state.md`.**
 - The top `[Unreleased]` section always answers three questions:
   - **Done** — what has been completed
   - **In Progress** — what is being worked on right now
   - **Next** — what should be picked up next
-- Update it as the **last** step of any unit of work.
+- Update `CHANGELOG.md` as the **last** step of any unit of work.
 
-### Task-driven
-- Track work as tasks in `docs/tasks/` (use `_TEMPLATE.md`) or as line items in `docs/tasks/backlog.md`.
-- A task links to its spec and to the changelog entry it satisfies.
+### Task-driven / tracker-driven
+- Every requirement has a matching `TASK-<id>` and `TRACKER-<id>`.
+- The tracker is the source of truth for done vs. left.
+- Run `npx tsx scripts/task-status.ts` before and after a session to verify status.
+- A requirement is "Done" only when its tracker is 100% complete and quality gates pass.
 
 ---
 

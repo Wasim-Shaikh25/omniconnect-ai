@@ -1,8 +1,19 @@
 # Tasks
 
-Work is **task-driven** (see `AGENTS.md` §0). Every unit of work is a task linked to a spec.
+This folder contains implementation plans (`TASK-<id>-<slug>.md`). Every task is linked to exactly one requirement and one tracker.
 
-- Quick items live in [`backlog.md`](./backlog.md).
-- Larger items get their own file from [`_TEMPLATE.md`](./_TEMPLATE.md): `TASK-NNN-slug.md`.
-- Each task links its **spec** (`docs/specs/`) and the **changelog** entry it satisfies.
-- Update the task status and `CHANGELOG.md` when you finish.
+## Workflow
+
+1. Create or update `docs/requirements/REQ-<id>-<slug>.md` first.
+2. Create `TASK-<id>-<slug>.md` from `docs/templates/TASK-TEMPLATE.md`.
+3. Create `docs/trackers/TRACKER-<id>-<slug>.md` from `docs/templates/TRACKER-TEMPLATE.md`.
+4. Implement and keep the tracker checkbox list current.
+5. Update `docs/specs/current-state.md` and `CHANGELOG.md` when done.
+
+## Legacy files
+
+Files matching `*-progress.md` and `TASK-350-*.md` are historical and will be migrated to the `REQ/TASK/TRACKER` format when next touched.
+
+## Status checker
+
+Run `npx tsx scripts/task-status.ts` to see what is done and what is left across all requirements and trackers.
