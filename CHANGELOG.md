@@ -18,10 +18,10 @@ All notable changes to **OmniConnect AI** are documented here.
 - **TASK-0064 — Documentation cleanup and task status reconciliation:**
   - Deleted 28 orphaned `docs/tasks/TASK-*.md` files with no matching requirement.
   - Marked implemented features as `Implemented` in their REQ, `Completed` in their TASK, and `Done` in their TRACKER.
-  - Cancelled out-of-scope Meta-first items: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.
+  - Removed cancelled out-of-scope Meta-first requirements/tasks/trackers: `REQ-0019` Orders View, `REQ-0027` Brand Deals, `REQ-0028` Affiliate Center, `REQ-0029` Media Kit.
   - Fixed status mismatches where trackers were 100% but requirements were still `Draft`/`In Progress`.
   - Updated `scripts/task-status.ts` to report `Done`, `Cancelled`, and `Left` separately.
-  - Current state: 64 requirements | 52 done | 4 cancelled | 8 left.
+  - Current state: 60 requirements | 52 done | 8 left.
 
 - **TASK-0063 — Documentation restructure and workflow automation:**
   - Unified document structure: `docs/specs/current-state.md` (living architecture) + `docs/requirements/REQ-<id>*.md` + `docs/tasks/TASK-<id>*.md` + `docs/trackers/TRACKER-<id>*.md`.
