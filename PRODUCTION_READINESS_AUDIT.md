@@ -1,11 +1,23 @@
 # OmniConnect AI — Production Readiness Audit
 
-> **Report version:** 2026-07-29
+> **Report version:** 2026-07-30 (**audit pass 2**)
 > **Auditor:** Cross-functional review (Principal Engineer, Security, QA, DevOps/SRE, DBA, PM, UX, Accessibility, Performance)
 > **Repository:** `Wasim-Shaikh25/omniconnect-ai`
-> **Commit audited:** `06395c4` (level with `origin/main` at audit time)
+> **Commit audited:** `06395c4` (unchanged since pass 1; `origin/main` has not moved)
 > **Branch:** `claude/production-readiness-audit-mc9a3m`
 > **Classification:** Internal — redact before external distribution.
+
+**Pass history**
+
+| Pass | Date | New Critical | New High | Outcome |
+|---|---|---|---|---|
+| 1 | 2026-07-29 | 2 | 8 | NO-GO |
+| 2 | 2026-07-30 | 0 | **3** | NO-GO — see §1.7 stopping rules |
+
+Pass 2 re-baselined against unchanged code and deliberately targeted areas pass 1 covered
+thinly: deployment and rolling-release safety, migration reversibility, background-job
+lifecycle, SSRF, injection, secret scanning, and UI failure states. It preserved all pass-1
+findings, reopened none, created no duplicates, and added **3 High** + **3 Medium** + **1 Low**.
 
 ---
 
@@ -13,7 +25,7 @@
 
 ### 1.1 Recommendation
 
-# 🔴 NO-GO
+# 🔴 CONTINUE — NO-GO
 
 This release must not go to production in its current state. Two **Critical**, release-blocking
 defects were reproduced empirically against a running build of this exact commit:
@@ -29,22 +41,46 @@ defects were reproduced empirically against a running build of this exact commit
 Neither is a theoretical risk. Both were reproduced and are documented with exact commands and
 output in §4.
 
+Pass 2 added three further release-blocking High findings: an **authenticated SSRF** reachable from
+the store-connect form (H9), **background jobs that never retry and never get pruned** (H10), and
+**no graceful shutdown**, so every deploy destroys in-flight work (H11).
+
 This is not a verdict on the codebase as a whole. The architecture is genuinely good — clean DDD
-layering, a real tenant guard that **I verified holds under cross-tenant probing**, correct
-security headers, a nonce-based CSP, clean migrations with zero drift, and a green
-lint/typecheck/test/build pipeline. The blockers are configuration and event-delivery defects at
-the edges of an otherwise sound system, and they are individually small fixes. The gap between
-this report and a **CONDITIONAL GO** is days of work, not months.
+layering, a real tenant guard that **I verified holds under cross-tenant probing**, correct security
+headers, a nonce-based CSP, no XSS or SQL-injection surface, clean forward-compatible migrations
+with zero drift, no committed secrets, and a green lint/typecheck/test/build pipeline. The synchronous
+request path is in good shape.
+
+The weakness is concentrated and it is structural: **the asynchronous and deployment layers have no
+reliability guarantees at all** (§4 pattern S1), and defensive rigour is applied inconsistently
+between sibling implementations (§4 pattern S2). Individually most fixes are small — the Phase 1 list
+is roughly two engineer-weeks including tests. But pass 1's estimate that this was "days of work"
+was too optimistic: with 11 blockers, a systemic async-reliability gap, 11 of 21 deployment-readiness
+requirements failing, and stopping-rule gate 8 unmet, the honest path to **CONDITIONAL GO** is Phase 1
+plus Phase 2 plus one further verification pass (§5 Phase 0) — weeks, not days.
 
 ### 1.2 Finding count by severity
 
-| Severity | Count | Release-blocking |
-|----------|-------|------------------|
-| 🔴 Critical | 2 | Yes — both |
-| 🟠 High | 8 | Yes — 6 of 8 |
-| 🟡 Medium | 12 | No (pre-launch recommended) |
-| 🔵 Low | 6 | No |
-| **Total** | **28** | **8 blockers** |
+| Severity | Pass 1 | New in pass 2 | Total | Release-blocking |
+|----------|--------|---------------|-------|------------------|
+| 🔴 Critical | 2 | 0 | **2** | Yes — both |
+| 🟠 High | 8 | **3** (H9–H11) | **11** | Yes — 9 of 11 |
+| 🟡 Medium | 12 | 3 (M13–M15) | **15** | No (pre-launch recommended) |
+| 🔵 Low | 6 | 1 (L7) | **7** | No |
+| **Total** | 28 | **7** | **35** | **11 blockers** |
+
+**Disposition summary**
+
+| Disposition | Count | Findings |
+|---|---|---|
+| Open — Release Blocker | 11 | C1, C2, H1–H6, H9, H10, H11 |
+| Open — Required Before Release | 9 | H8, M1, M2, M5, M6, M11, M12, M13, M14 |
+| Needs Product Decision | 3 | H7, M3, M15 |
+| Scheduled Post-Release | 11 | M4, M7, M8, M9, M10, L1–L7 (L-series) |
+| Verified (previous finding, now invalid) | 1 | See §2.5 note — the pass-1-era "fresh clone fails typecheck" finding |
+
+No pass-1 finding was reopened, reworded, or split. No finding was closed in pass 2 — the code
+is byte-identical to pass 1, so every pass-1 finding remains open on unchanged evidence.
 
 ### 1.3 Major technical risks
 
@@ -78,15 +114,68 @@ This audit is **static analysis plus live runtime testing of a locally built pro
 It is *not* a penetration test, load test, or browser-based accessibility audit. See §2.7 for the
 full list of what was and was not exercised.
 
-### 1.6 Release conditions
+### 1.6 New risks identified in pass 2
+
+Pass 2's focus on deployment and background-job lifecycle exposed a coherent theme that pass 1
+under-weighted: **the asynchronous and deployment layers have no reliability guarantees at all.**
+
+- **Authenticated SSRF (H9).** Any STORE_OWNER can point the "WooCommerce base URL" field at
+  `http://169.254.169.254/` (cloud metadata), `http://127.0.0.1:6379` (Redis), or any private
+  address, and the server will issue the request. Validation is `z.string().max(255)`. This is a
+  genuine new attack surface, not a variant of anything in pass 1.
+- **Background jobs never retry and never get cleaned up (H10).** `queue.add(name, data)` passes
+  no options, so BullMQ defaults apply: `attempts: 1` (a failed job is lost) and no
+  `removeOnComplete` (completed jobs accumulate in Redis forever). Both verified empirically.
+- **No graceful shutdown anywhere (H11).** `closeWorkers()` and `closeQueues()` are defined and
+  never called; no `SIGTERM` handler exists. Every deploy kills in-flight jobs. The worker's
+  `setInterval` heartbeat also keeps a process alive after its BullMQ connection dies, so a dead
+  worker looks healthy.
+
+Taken together with C2 and H6 from pass 1, **every asynchronous path in this system is
+fire-and-forget**: events double-fire, jobs never retry, jobs are killed mid-flight on deploy, and
+nothing is durable. That is a systemic pattern, recorded in §4 as a cross-cutting observation.
+
+### 1.7 Stopping rules assessment
+
+Evaluated against the ten release gates:
+
+| Gate | Met | Note |
+|---|---|---|
+| 1. No open Critical findings | ❌ | C1, C2 open |
+| 2. No release-blocking High findings | ❌ | 9 open |
+| 3. Critical journeys pass end to end | ❌ | Login fails entirely on the documented deploy path (C1) |
+| 4. Auth / authz / tenancy / sensitive data verified | 🟡 | Tenant isolation and admin authz **verified passing**; H4 and H9 open |
+| 5. Build, tests, migrations, deploy, monitoring, backup, rollback gates pass | ❌ | Build/tests/migrations pass; deploy, backup, and rollback gates do not exist (M12) |
+| 6. Product gaps implemented, deferred, or decided | ❌ | 6 open product decisions (§3.6) |
+| 7. Remaining risks have documented impact and disposition | ✅ | §1.2, §6.1 |
+| 8. **Two consecutive passes with no new Critical/High/systemic findings** | ❌ | **Pass 2 added 3 High and 1 systemic pattern** |
+| 9. Remaining findings mainly low-risk | ❌ | 11 blockers |
+| 10. Another pass unlikely to change the decision | ❌ | Pass 2 changed it materially |
+
+**Gate 8 is the decisive one.** The purpose of requiring two clean consecutive passes is to
+establish that the defect surface has stabilised. It has not: a second pass over *unchanged code*,
+looking at different areas, produced three more High findings. The reasonable inference is that
+further unexamined areas still hold defects of similar severity — the areas named in §6.1 as
+untested (load, penetration, real integrations, restore) are the obvious candidates.
+
+**A third pass is warranted, but not as another general audit.** Its objective is defined in §5,
+Phase 0: verify the Phase 1 fixes with the named tests, then audit only the four areas pass 2
+could not reach — live third-party integration behaviour, load/concurrency, restore/DR, and
+machine-verified accessibility.
+
+### 1.8 Release conditions
 
 Ship only when all of the following hold:
 
-1. C1, C2, H1, H2, H3, H4, H5, H6 are fixed **and** each has a regression test.
+1. C1, C2, H1–H6, and H9–H11 are fixed **and** each has a regression test that fails against the
+   current commit before the fix.
 2. A staging deployment on the real target platform completes: register → verify → connect store
    → receive webhook → AI reply → checkout → plan change, with **exactly one** of each side effect.
-3. A rollback procedure is documented and rehearsed once.
-4. Alerting exists on webhook failure rate, event-handler error rate, and `/api/ready`.
+3. A rolling deploy is performed **with jobs in flight** and no job is lost or duplicated.
+4. A rollback procedure is documented and rehearsed once, including a post-migration rollback.
+5. Alerting exists on webhook failure rate, event-handler error rate, BullMQ failed-queue depth,
+   Redis memory growth, and `/api/ready`.
+6. One further audit pass (§5 Phase 0) reports no new Critical or High findings.
 
 ---
 
@@ -163,6 +252,23 @@ All commands run against commit `06395c4` on Node v22.22.2 / npm 10.9.7.
 | 14 | Login rate limit | 8 bad logins then correct password | ✅ Limiter engages |
 | 15 | Event bus dedup | Isolated repro against live Redis | ❌ **1 event → 2 handler runs** → C2 |
 | 16 | DB-down boot | Server start with Postgres stopped | ❌ **Total startup failure** → H1 |
+
+**Pass 2 additions** (same commit, same environment):
+
+| # | Check | Command | Result |
+|---|-------|---------|--------|
+| 17 | Secret scan | `git grep -nE '(sk_live_\|pk_live_\|AKIA[0-9A-Z]{16}\|BEGIN .*PRIVATE KEY\|xox[baprs]-\|ghp_…)'` | ✅ **Clean** — no live secrets; only `.env.example` tracked |
+| 18 | Destructive migrations | `grep 'DROP TABLE\|DROP COLUMN\|RENAME' prisma/migrations/*/*.sql` | ✅ **0 occurrences** — migrations are forward-compatible |
+| 19 | Index-build locking | `grep -c 'CREATE INDEX' / 'CONCURRENTLY'` | ⚠️ **130 / 0** → M13 |
+| 20 | `NOT NULL` adds without default | `grep 'ADD COLUMN.*NOT NULL' \| grep -v DEFAULT` | ⚠️ **2 occurrences** → M14 |
+| 21 | XSS / injection surface | `grep 'dangerouslySetInnerHTML\|$queryRawUnsafe\|eval('` | ✅ **None** (only `$queryRaw\`SELECT 1\`` and a fixed Redis Lua script) |
+| 22 | SSRF — connector base URLs | Replicated `normalizeBaseUrl` against metadata/loopback/private IPs | ❌ **All pass through** → H9 |
+| 23 | BullMQ job defaults | Live queue+worker: 5 completed + 1 failing job | ❌ **5 retained, 1 invocation (no retry)** → H10 |
+| 24 | Graceful shutdown | `grep 'SIGTERM\|SIGINT'`; `grep 'closeWorkers'` | ❌ **No handler; `closeWorkers()` never called** → H11 |
+| 25 | UI failure states | `find src/app -name 'loading.tsx' -o -name 'error.tsx'` | 🟡 Root boundaries only → L7 |
+| 26 | File storage vs declared stack | `grep 'S3_BUCKET\|@aws-sdk\|presigned'` | ⚠️ Env vars only, **no implementation** → M15 |
+
+Pass 2 re-ran checks 1–8 and reproduced identical results; they are not re-tabulated.
 
 **Note on check #2 — a correction to the previous report.** The 2026-07-28 report stated that a
 fresh clone fails `npm run typecheck` until `npx prisma generate` is run manually. **That finding
@@ -1373,6 +1479,488 @@ detects the defect). 3. Apply the fixes. 4. Confirm each passes.
 
 ---
 
+### 🟠 H9 — Authenticated SSRF via the WooCommerce store URL (no host allowlist)
+
+| Field | Value |
+|---|---|
+| **Classification** | Confirmed Defect |
+| **Severity** | **High** |
+| **Category** | Security — SSRF / Broken input validation |
+| **Disposition** | **Open — Release Blocker** |
+| **Release impact** | Blocks release |
+| **Likelihood** | Medium — requires an authenticated STORE_OWNER, but the field is exposed in the normal store-connect UI and needs no special tooling |
+| **Affected roles** | STORE_OWNER, ADMIN (any user who can connect a store); impact lands on platform infrastructure |
+
+**Affected locations**
+- `src/modules/ecommerce/infrastructure/providers/woocommerce.connector.ts:43-47` — `normalizeBaseUrl`
+- `src/modules/ecommerce/infrastructure/providers/woocommerce.connector.ts:61-80` — `request()`
+- `src/modules/ecommerce/application/connect-store.ts:14` — `shopDomain: z.string().max(255).optional()`
+- `src/components/connect-store-form.tsx:48-52` — the user-facing "WooCommerce base URL" input
+- `src/modules/ecommerce/infrastructure/provider-registry.ts:31-38` — resolves the connector
+
+**Evidence**
+
+The only normalisation applied to an attacker-controlled hostname:
+
+```typescript
+// woocommerce.connector.ts:43
+function normalizeBaseUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed.replace(/\/$/, "");
+  return `https://${trimmed}`.replace(/\/$/, "");
+}
+```
+
+No allowlist, no scheme restriction (`http://` is explicitly honoured), no private-address or
+DNS-rebinding check. I replicated the function and the downstream `new URL()` construction:
+
+```
+$ node -e '…replicates normalizeBaseUrl + URL(API_PREFIX + "products", base)…'
+http://169.254.169.254   -> http://169.254.169.254/wp-json/wc/v3/products
+http://127.0.0.1:6379    -> http://127.0.0.1:6379/wp-json/wc/v3/products
+http://10.0.0.5          -> http://10.0.0.5/wp-json/wc/v3/products
+localhost:5432           -> https://localhost:5432/wp-json/wc/v3/products
+http://[::1]:6379        -> http://[::1]:6379/wp-json/wc/v3/products
+```
+
+Every one produces a URL the connector will `fetch()`. The path is reachable: the provider is
+selectable in the UI, `provider-registry.ts:31` resolves `WOOCOMMERCE` when `shopDomain` is set,
+and the application-layer schema imposes only a length limit.
+
+**The Shopify connector in the same directory does this correctly** — which is what makes this a
+defect rather than a missing feature:
+
+```typescript
+// shopify.connector.ts:47-64 — strict allowlist
+const isMyShopify = parts.at(-2) === "myshopify" && parts.at(-1) === "com";
+if (!isMyShopify || !/^[a-z0-9][a-z0-9-]*$/.test(parts[0] ?? "")) {
+  throw new Error("Invalid Shopify shop domain: must be a *.myshopify.com hostname");
+}
+```
+
+**Root cause.** WooCommerce is legitimately self-hosted on arbitrary domains, so the author could
+not reuse Shopify's allowlist and instead applied no restriction at all. The correct answer for
+arbitrary-host integrations is egress filtering (resolve, then reject private ranges), not an
+allowlist — but neither was implemented.
+
+**Impact**
+- *Security:* server-side requests to cloud metadata endpoints. On AWS IMDSv1 this yields IAM
+  credentials; on GCP/Azure equivalents, access tokens. Also internal port scanning and reaching
+  admin interfaces on the private network that assume network-level trust.
+- *Data:* responses are parsed as products/orders and surface in the attacker's own store UI, so
+  this is a semi-blind SSRF with an exfiltration channel, not purely blind.
+- *Operational:* `http://` is accepted, so WooCommerce `consumer_key`/`consumer_secret` are sent
+  in a **query string over plaintext** (`request()` sets them via `url.searchParams`), exposing
+  them to any network observer and to the target's access logs.
+
+**Recommended solution.** Validate at the application boundary and enforce egress filtering in the
+connector. Both layers matter: the schema stops typos and casual abuse; the resolver stops
+DNS rebinding, which schema validation cannot.
+
+```typescript
+// src/shared/security/egress.ts  (new)
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+
+const BLOCKED_V4 = [
+  /^0\./, /^10\./, /^127\./, /^169\.254\./, /^192\.168\./,
+  /^172\.(1[6-9]|2\d|3[01])\./, /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,
+];
+
+function isBlockedAddress(addr: string): boolean {
+  if (isIP(addr) === 6) {
+    const a = addr.toLowerCase();
+    return a === "::1" || a === "::" || a.startsWith("fc") || a.startsWith("fd") || a.startsWith("fe80");
+  }
+  return BLOCKED_V4.some((re) => re.test(addr));
+}
+
+/** Rejects non-HTTPS URLs and any hostname resolving into a private/link-local range. */
+export async function assertPublicHttpsUrl(raw: string): Promise<URL> {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("Store URL must be a valid absolute URL");
+  }
+  if (url.protocol !== "https:") {
+    throw new Error("Store URL must use HTTPS");
+  }
+  // Resolve every A/AAAA record: a single public answer is not sufficient.
+  const answers = await lookup(url.hostname, { all: true });
+  if (answers.length === 0 || answers.some((a) => isBlockedAddress(a.address))) {
+    throw new Error("Store URL must resolve to a public address");
+  }
+  return url;
+}
+```
+
+```typescript
+// src/modules/ecommerce/application/connect-store.ts
+export const connectStoreSchema = z.object({
+  storeId: z.string().min(1),
+  provider: z.enum(ECOMMERCE_PROVIDERS).default("SHOPIFY"),
+  // Reject non-HTTPS and malformed hosts before any network call is attempted.
+  shopDomain: z
+    .string()
+    .max(255)
+    .refine((v) => !/^https?:\/\//i.test(v) || v.toLowerCase().startsWith("https://"), {
+      message: "Store URL must use HTTPS",
+    })
+    .optional(),
+  // …unchanged…
+});
+```
+
+and in the connector, replace the query-string credentials with header auth:
+
+```typescript
+// woocommerce.connector.ts — credentials belong in a header, not a logged query string
+const url = new URL(`${API_PREFIX}${path}`, this.baseUrl);
+await assertPublicHttpsUrl(url.toString());
+const basic = Buffer.from(`${this.consumerKey}:${this.consumerSecret}`).toString("base64");
+res = await fetch(url.toString(), {
+  ...init,
+  signal: controller.signal,
+  redirect: "error",              // a 302 to 169.254.169.254 would otherwise bypass validation
+  headers: { Authorization: `Basic ${basic}`, "Content-Type": "application/json", ...(init?.headers ?? {}) },
+});
+```
+
+Note `redirect: "error"` — without it, a validated public host can redirect the request to a
+private address, defeating the check entirely.
+
+**Deployment considerations.** The durable mitigation is at the network layer: run outbound
+integration traffic through an egress proxy with an allowlist, and disable IMDSv1 (require IMDSv2
+hop-limit 1) so metadata is unreachable even if application validation regresses. Do this
+regardless of the code fix.
+
+**Database considerations.** None. Existing `Integration.shopDomain` rows should be re-validated
+and any non-HTTPS or private-address entries disabled.
+
+**Regression risk.** Medium. Legitimate self-hosted WooCommerce stores on plain HTTP, non-standard
+ports, or split-horizon DNS will stop connecting. Communicate the HTTPS requirement before
+enabling. `redirect: "error"` may break stores that redirect `example.com` → `www.example.com`;
+resolve by asking users to enter the canonical URL.
+
+**Tests to add**
+- `assertPublicHttpsUrl` rejects `169.254.169.254`, `127.0.0.1`, `10.0.0.5`, `::1`, `fd00::1`.
+- Rejects `http://` and non-URL input; accepts a public HTTPS host.
+- Rejects a hostname whose DNS answers include one public **and** one private address.
+- `connectStore` with `http://169.254.169.254` returns a validation error and makes no network call.
+- Connector sends `Authorization: Basic`, not `consumer_key` in the query string.
+
+**Exact verification steps**
+1. As a STORE_OWNER, attempt to connect a WooCommerce store with base URL
+   `http://169.254.169.254`. Expect a validation error and **no** outbound request.
+2. Start a local listener (`nc -l 9000`); attempt base URL `http://127.0.0.1:9000`. Expect no
+   connection recorded on the listener.
+3. Connect a real HTTPS WooCommerce store; confirm sync still succeeds.
+4. Capture the outbound request; confirm credentials appear in the `Authorization` header only.
+
+**Similar locations to inspect**
+- `bigcommerce.connector.ts:80` — same `fetch(url.toString())` pattern; confirm its base URL is
+  derived from `storeHash` against a fixed `api.bigcommerce.com` host (it appears to be, but it
+  was not verified in this pass).
+- `meta.service.ts` — all 8 `fetch` calls use the fixed `GRAPH_API_BASE`; not affected.
+- Any future connector: the `EcommerceConnector` interface should require a validated base URL so
+  new providers cannot reintroduce this.
+
+---
+
+### 🟠 H10 — Background jobs never retry and completed jobs accumulate in Redis forever
+
+| Field | Value |
+|---|---|
+| **Classification** | Confirmed Defect |
+| **Severity** | **High** |
+| **Category** | Reliability / Resource exhaustion |
+| **Disposition** | **Open — Release Blocker** |
+| **Release impact** | Blocks release |
+| **Likelihood** | High — certain, on every job enqueued |
+| **Affected roles** | All tenants (silent loss of intelligence refreshes); platform operators (Redis growth) |
+
+**Affected locations**
+- `src/shared/queue/bullmq-queue.ts:18-22` — `add()` passes no job options
+- `src/modules/intelligence/presentation/actions.ts:297-298` — the two production call sites
+- `src/shared/queue/worker.ts:17-42` — worker has no `stalled`/`error` handling
+
+**Evidence**
+
+```typescript
+// src/shared/queue/bullmq-queue.ts:18
+async add<T>(name: string, data: T): Promise<string> {
+  const job = await this.queue.add(name, data);   // ← no attempts, backoff, removeOnComplete, or jobId
+  logger.info("queue.bullmq.added", { queue: this.queue.name, jobId: job.id, jobName: name });
+  return job.id ?? "";
+}
+```
+
+I ran a live queue and worker against Redis, enqueuing exactly as the application does:
+
+```
+completed jobs retained in Redis: 5
+failed jobs retained: 1
+handler invocations for the failing job: 1 (1 = no retry)
+```
+
+BullMQ's defaults are therefore confirmed in this configuration: `attempts` is 1, and completed
+jobs are retained indefinitely.
+
+**Root cause.** The `QueueService.add` abstraction (`src/shared/queue/types.ts`) exposes no options
+parameter, so no caller *can* specify retry or retention policy even if it wanted to. The
+abstraction is under-specified rather than misused.
+
+**Impact**
+- *Reliability:* a transient failure — OpenAI 429, a Postgres deadlock, a Meta 503 — permanently
+  loses the job. `JOB_REFRESH_READ_MODELS` and `JOB_REFRESH_PREDICTIONS` silently never complete,
+  so the user's intelligence views stay stale with no error surfaced and no retry.
+- *Operational:* completed jobs accumulate without bound. Redis is also the store for rate limits,
+  the event bus, and webhook dedup, so this is a slow memory leak in a component whose eviction
+  under `maxmemory` pressure would break rate limiting and webhook deduplication — turning a
+  housekeeping omission into a security-control failure.
+- *Correctness:* no `jobId` means no deduplication, so a double-clicked refresh enqueues duplicate
+  work.
+
+**Recommended solution.** Extend the port to carry options, then set sane defaults centrally.
+
+```typescript
+// src/shared/queue/types.ts
+export interface JobOptions {
+  /** Stable id for deduplication; BullMQ ignores a re-add with an existing jobId. */
+  jobId?: string;
+  attempts?: number;
+  backoffMs?: number;
+}
+
+export interface QueueService {
+  add<T>(name: string, data: T, options?: JobOptions): Promise<string>;
+  close(): Promise<void>;
+}
+```
+
+```typescript
+// src/shared/queue/bullmq-queue.ts
+async add<T>(name: string, data: T, options?: JobOptions): Promise<string> {
+  const job = await this.queue.add(name, data, {
+    jobId: options?.jobId,
+    attempts: options?.attempts ?? 5,
+    backoff: { type: "exponential", delay: options?.backoffMs ?? 2_000 },
+    // Bound retention: Redis also holds rate limits, dedup keys, and the event bus.
+    removeOnComplete: { age: 3_600, count: 1_000 },
+    removeOnFail: { age: 7 * 24 * 3_600 },   // retain failures long enough to inspect
+  });
+  logger.info("queue.bullmq.added", { queue: this.queue.name, jobId: job.id, jobName: name });
+  return job.id ?? "";
+}
+```
+
+and make the call sites idempotent:
+
+```typescript
+// src/modules/intelligence/presentation/actions.ts
+const day = new Date().toISOString().slice(0, 10);
+const readJobId = await queue.add(
+  JOB_REFRESH_READ_MODELS,
+  { organizationId, storeId: id },
+  { jobId: `${JOB_REFRESH_READ_MODELS}:${id}:${day}` },   // one refresh per store per day
+);
+```
+
+Also add worker-level observability, which is currently absent:
+
+```typescript
+// src/shared/queue/worker.ts
+worker.on("stalled", (jobId) => logger.warn("queue.bullmq.stalled", { queue: queueName, jobId }));
+worker.on("error", (err) => logger.error("queue.bullmq.workerError", { queue: queueName, error: err.message }));
+```
+
+**Deployment considerations.** Existing Redis instances already carry accumulated completed jobs;
+purge them once with `queue.clean(0, 0, "completed")` during a maintenance window. Add a Redis
+memory alert. Set `maxmemory-policy noeviction` for this instance so pressure surfaces as errors
+rather than silently evicting rate-limit and dedup keys.
+
+**Regression risk.** Medium. Enabling retries means handlers must be idempotent — verify
+`JOB_REFRESH_READ_MODELS` and `JOB_REFRESH_PREDICTIONS` can safely run twice before raising
+`attempts`. If they cannot, fix idempotency first; retries on a non-idempotent handler is a
+worse failure mode than no retries.
+
+**Tests to add**
+- A failing job is attempted the configured number of times, then lands in the failed set.
+- Completed jobs are removed per `removeOnComplete`.
+- Re-adding the same `jobId` does not enqueue a second job.
+- Both intelligence handlers are idempotent when invoked twice with identical payloads.
+
+**Exact verification steps**
+1. Enqueue a deliberately failing job; assert N attempts in the worker log and one entry in the
+   failed set.
+2. Enqueue 2,000 succeeding jobs; assert `getCompletedCount()` stabilises at ≤ 1,000.
+3. Double-click "refresh" in the UI; assert one job, not two.
+
+**Similar locations to inspect**
+- `src/shared/queue/in-memory-queue.ts` — the non-Redis fallback; confirm it does not silently
+  swallow failures in development, which would hide handler bugs before production.
+- H6 (event bus) is the same *class* of problem in a different subsystem (Redis Pub/Sub rather
+  than BullMQ) and has a separate fix; the two should be remediated together.
+
+---
+
+### 🟠 H11 — No graceful shutdown: every deploy kills in-flight jobs, and dead workers look healthy
+
+| Field | Value |
+|---|---|
+| **Classification** | Confirmed Defect |
+| **Severity** | **High** |
+| **Category** | Deployment safety / Availability |
+| **Disposition** | **Open — Release Blocker** |
+| **Release impact** | Blocks release |
+| **Likelihood** | High — occurs on every deploy, restart, and autoscale event |
+| **Affected roles** | All tenants (lost work); operators (undetectable worker death) |
+
+**Affected locations**
+- `src/jobs/worker.ts:1-19` — no signal handling; `setInterval` keeps the process alive
+- `src/shared/queue/worker.ts:44-49` — `closeWorkers()` defined, never called
+- `src/shared/queue/index.ts:26-32` — `closeQueues()` defined, never called
+- `src/instrumentation.ts` — no shutdown hook
+- `fly.toml:16` — `worker = "node worker.cjs"`, no signal configuration
+
+**Evidence**
+
+```
+$ grep -rn "SIGTERM\|SIGINT\|beforeExit" src --include=*.ts
+(no matches)
+
+$ grep -rn "closeWorkers" src --include=*.ts
+src/shared/queue/worker.ts:44:export async function closeWorkers(): Promise<void> {
+   ← only the definition; no call site anywhere
+```
+
+The worker entry point in full:
+
+```typescript
+// src/jobs/worker.ts
+startIntelligenceWorker();
+
+// Keep the Node process alive. With Redis, the BullMQ worker connection already
+// prevents exit; this interval is a safety net for the in-memory fallback.
+setInterval(() => {
+  logger.info("worker.heartbeat");
+}, 60000);
+```
+
+**Root cause.** Shutdown functions were written but never wired to process signals — the
+composition root has no lifecycle management. Separately, the `setInterval` decouples process
+liveness from worker liveness, which is the opposite of what a heartbeat should do.
+
+**Impact — two distinct failures.**
+
+1. *Work is destroyed on every deploy.* Fly.io sends `SIGTERM` and `SIGKILL`s after the grace
+   period. With no handler, Node exits immediately: the BullMQ worker never calls `close()`, so
+   in-flight jobs are not returned to the queue. They remain `active` until the stalled check
+   reclaims them — and given H10 sets `attempts: 1`, a reclaimed job that exceeds
+   `maxStalledCount` is **failed permanently rather than retried**. H10 and H11 compound: deploying
+   during active work silently destroys it.
+2. *A dead worker is indistinguishable from a healthy one.* If the BullMQ Redis connection dies
+   unrecoverably, the `setInterval` keeps the process alive and still logging `worker.heartbeat`
+   every 60s. The orchestrator sees a running process, the logs show a heartbeat, and no jobs are
+   processed. There is no worker health check in `fly.toml` and no queue-depth alert, so this
+   state is invisible.
+
+**Recommended solution.** Add a real shutdown path and make the heartbeat prove liveness.
+
+```typescript
+// src/jobs/worker.ts
+import { startIntelligenceWorker } from "@/modules/intelligence/server";
+import { closeWorkers } from "@/shared/queue/worker";
+import { closeQueues } from "@/shared/queue";
+import { env } from "@/shared/config";
+import { logger, initSentry } from "@/shared/observability";
+
+initSentry();
+logger.info("worker.starting", { redisConfigured: Boolean(env.REDIS_URL) });
+
+const worker = startIntelligenceWorker();
+
+let shuttingDown = false;
+
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.info("worker.shutdown.begin", { signal });
+  clearInterval(heartbeat);
+  try {
+    // worker.close() waits for in-flight jobs to finish before resolving, so the
+    // platform's grace period must exceed the longest expected job duration.
+    await closeWorkers();
+    await closeQueues();
+    logger.info("worker.shutdown.complete", { signal });
+    process.exit(0);
+  } catch (error) {
+    logger.error("worker.shutdown.failed", {
+      signal,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    process.exit(1);
+  }
+}
+
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
+
+// Heartbeat must reflect the worker's real state, not merely that the process exists.
+const heartbeat = setInterval(() => {
+  if (!worker.isRunning()) {
+    logger.error("worker.notRunning");
+    process.exit(1);   // let the orchestrator restart us instead of idling silently
+    return;
+  }
+  logger.info("worker.heartbeat");
+}, 60_000);
+```
+
+The web process needs the same treatment for `closeQueues()` and the Redis event-bus connections;
+Next.js does not expose a shutdown hook, so register the handlers in `instrumentation.ts`.
+
+**Deployment considerations.** Set the platform grace period above the longest job runtime — on
+Fly.io, `kill_timeout` in `fly.toml` (default 5s, far too short for AI generation):
+
+```toml
+[processes]
+  app = "node server.js"
+  worker = "node worker.cjs"
+
+# Allow in-flight AI jobs to finish before SIGKILL.
+kill_signal = "SIGTERM"
+kill_timeout = "60s"
+```
+
+Also add a worker health check and a queue-depth alert so silent death is detectable.
+
+**Regression risk.** Low for the shutdown path. The `process.exit(1)` on `!worker.isRunning()`
+carries restart-loop risk if `isRunning()` returns false transiently — verify BullMQ's semantics
+and consider requiring two consecutive failed checks before exiting.
+
+**Tests to add**
+- Send `SIGTERM` to the worker with a long-running job in flight; assert the job completes and the
+  process exits 0.
+- Assert `closeWorkers()` and `closeQueues()` are both invoked on `SIGTERM`.
+- Simulate a dead worker (`isRunning() === false`); assert the process exits non-zero.
+
+**Exact verification steps**
+1. Enqueue a job that sleeps 20s. 2. Send `SIGTERM` mid-execution. 3. Assert the job reaches
+   `completed`, not `failed` or `stalled`, and the process exited 0.
+4. Repeat with `kill_timeout` at its 5s default; confirm the job is lost — this demonstrates why
+   the `fly.toml` change is part of the fix, not optional.
+5. Perform a rolling deploy with jobs in flight; assert zero lost and zero duplicated.
+
+**Similar locations to inspect**
+- `src/shared/redis/client.ts` — the shared Redis connection is never closed.
+- `src/shared/events/redis-event-bus.ts` — `publisher` and `subscriber` connections are never
+  closed; both leak on restart.
+- `src/shared/database/prisma.ts` — confirm `$disconnect()` on shutdown.
+
+---
+
 ### 🟡 M1 — `/api/ready` is unauthenticated and leaks internal error details
 
 **Status:** Confirmed Defect · **Severity:** Medium · **Category:** Information disclosure
@@ -1774,16 +2362,227 @@ backups with a rehearsed restore; add `npm audit` and secret scanning to CI.
 
 ---
 
+### 🟡 M13 — 130 non-concurrent index builds lock writes during the release command
+
+**Classification:** Confirmed Defect · **Severity:** Medium · **Disposition:** Open — Required Before Release
+**Likelihood:** High once tables are large; harmless while they are small
+**Location:** `prisma/migrations/*/migration.sql` (130 `CREATE INDEX`); `fly.toml:13` `release_command`
+
+```
+CREATE INDEX total: 130
+CONCURRENTLY:        0
+```
+
+PostgreSQL's plain `CREATE INDEX` takes a `SHARE` lock, blocking all writes to the table until the
+build completes. On an empty database (first deploy) this is instant. But several migrations add
+indexes to **already-populated** tables — `20260728081303_audit_fixes_token_version_and_indexes`
+and `20260728081713_audit_fixes_additional_indexes` exist precisely to index existing data. On a
+`Message` or `AuditLog` table with millions of rows, that is minutes of write downtime during
+`release_command`, while the old app version is still serving traffic and attempting writes.
+
+**Fix.** `CREATE INDEX CONCURRENTLY` cannot run inside a transaction, and Prisma wraps migrations
+in one, so this needs the documented escape hatch: mark the migration as unapplied-but-recorded and
+run the concurrent build outside Prisma.
+
+```sql
+-- prisma/migrations/<ts>_add_message_conversation_idx/migration.sql
+-- Prisma runs migrations in a transaction; CONCURRENTLY cannot. Apply this index
+-- out-of-band (see docs/operations.md) and record the migration as applied.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS "Message_conversationId_createdAt_idx"
+  ON "Message" ("conversationId", "createdAt" DESC);
+```
+
+Run it via `psql` during a low-traffic window, then
+`prisma migrate resolve --applied <migration_name>`. Document the procedure in
+`docs/operations.md`. For future index additions on large tables, make this the default path.
+
+**Regression risk.** Low, but `CREATE INDEX CONCURRENTLY` can leave an `INVALID` index if it fails
+midway; the runbook must include detecting and dropping invalid indexes before retrying.
+
+**Verification:** on a table seeded with ~1M rows, apply the migration and confirm concurrent
+`INSERT`s succeed throughout (`pg_stat_activity` shows no `ShareLock` waits).
+
+---
+
+### 🟡 M14 — `ADD COLUMN … NOT NULL` without a default breaks expand/contract and rolling deploys
+
+**Classification:** Confirmed Defect · **Severity:** Medium · **Disposition:** Open — Required Before Release
+**Likelihood:** Low for the two historical occurrences (tables were empty); High for the pattern recurring
+**Location:** `prisma/migrations/20260725100603_notifications/migration.sql:12,14`
+
+```sql
+ALTER TABLE "Notification" ADD COLUMN "body" TEXT NOT NULL,
+ADD COLUMN "title" TEXT NOT NULL,
+```
+
+Two of the 15 `ADD COLUMN … NOT NULL` statements omit a `DEFAULT` (the other 13 include one). Two
+consequences:
+
+1. On a **populated** table, this statement fails outright — so the migration is not safely
+   re-appliable to an environment that already has `Notification` rows.
+2. During a **rolling deploy**, the new column exists before the old application version is
+   drained. The old version's `INSERT` omits `title`/`body`, and with `NOT NULL` and no default
+   those inserts fail — so notifications break for the duration of the rollout.
+
+This is the expand/contract discipline the new-version/old-version coexistence requirement depends
+on. The prior migration also drops a foreign key (`Notification_userId_fkey`, line 9) and
+re-adds it, which briefly leaves referential integrity unenforced.
+
+**Fix (pattern, for future migrations).** Three phases across two releases:
+
+```sql
+-- Release N: expand — nullable, or NOT NULL with a default
+ALTER TABLE "Notification" ADD COLUMN "title" TEXT;
+
+-- Release N: backfill (batched, outside the migration transaction for large tables)
+UPDATE "Notification" SET "title" = '' WHERE "title" IS NULL;
+
+-- Release N+1, only after the old version is fully drained: contract
+ALTER TABLE "Notification" ALTER COLUMN "title" SET NOT NULL;
+```
+
+**Not retroactively fixable** — the two statements are in an applied migration and rewriting
+migration history is worse than the defect. The actionable output is a documented migration policy
+plus a CI check.
+
+```yaml
+# .github/workflows/ci.yml — fail the build on a rolling-deploy-unsafe migration
+- name: Check migration safety
+  run: |
+    if grep -rn "ADD COLUMN.*NOT NULL" prisma/migrations/*/migration.sql | grep -v DEFAULT; then
+      echo "::error::ADD COLUMN NOT NULL without DEFAULT is unsafe for rolling deploys"
+      exit 1
+    fi
+```
+
+Note this check will flag the two existing occurrences; allowlist those specific lines so the gate
+protects new migrations without requiring history rewrites.
+
+**Verification:** apply the full migration chain to a database seeded with `Notification` rows and
+confirm it either succeeds or fails loudly in CI rather than in production.
+
+---
+
+### 🟡 M15 — Media relies on expiring Instagram CDN URLs; declared S3 storage is unimplemented
+
+**Classification:** Confirmed Missing Requirement + specification conflict · **Severity:** Medium
+**Disposition:** **Needs Product Decision** · **Likelihood:** High — CDN URL expiry is certain, not probabilistic
+**Locations:** `prisma/schema.prisma` `UgcAsset.mediaUrl`; `AGENTS.md:112`; `src/shared/config/env.ts:39-42`
+
+**The specification conflict.** `AGENTS.md` §2 declares the tech stack as authoritative and lists:
+
+| Concern | Choice |
+|---|---|
+| Storage | AWS S3-compatible |
+
+and `env.ts` defines `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. But
+there is no implementation at all:
+
+```
+$ grep -rn "S3_BUCKET\|@aws-sdk\|aws-sdk\|putObject\|presigned\|multipart/form-data" src package.json
+src/shared/config/env.ts:40:  S3_BUCKET: z.string().optional(),
+```
+
+No SDK dependency, no upload route, no storage port. Per the core rules I am documenting the
+conflict rather than choosing an interpretation: either the declared stack is aspirational and
+`AGENTS.md` should be corrected, or a required capability was never built.
+
+**The functional consequence, independent of the conflict.** `UgcAsset` stores only `mediaUrl`, and
+`SocialMention`/media records follow the same pattern. Instagram and Facebook CDN URLs are
+**time-limited signed URLs** — they expire within days. So the UGC gallery, the ambassador
+programme, and the "ready-made media kit" advertised in `README.md:31` will progressively render
+broken images for any asset older than the expiry window. Rights approval (`rightsStatus`,
+`approvedBy`, `approvedAt`) is recorded against an asset the platform cannot actually still show —
+which undermines the audit trail those columns exist to provide.
+
+**Proposed behaviour.** On `UgcAssetCollected`, enqueue a job that fetches the media once and
+mirrors it to S3-compatible storage, storing a durable key alongside the original URL:
+
+```prisma
+model UgcAsset {
+  // …existing fields…
+  mediaUrl     String?   // original CDN URL, retained for provenance
+  storageKey   String?   // durable object key; authoritative for display
+  mirroredAt   DateTime?
+}
+```
+
+**Acceptance criteria (proposed, pending the decision below)**
+- A collected UGC asset remains displayable ≥ 12 months after collection.
+- Mirroring failures are retried and surfaced, not silent.
+- Media is served via time-limited presigned URLs, never a public bucket.
+- Rights revocation deletes the mirrored object, not just the database row.
+- Uploaded/mirrored content is content-type and size validated before storage.
+
+**Questions for the product owner**
+1. Is durable media retention required, or is the product content to show only recent media?
+2. Is *user upload* required anywhere (media kit assets, brand-deal collateral, ticket
+   attachments), or is mirroring remote media the only need? This determines whether an upload
+   surface — with its own validation, virus-scanning, and quota concerns — is in scope.
+3. If neither is required, should `AGENTS.md` and the `S3_*` env vars be removed to eliminate the
+   misleading signal?
+
+**Release-blocking recommendation:** not a blocker. It degrades over time rather than failing at
+launch, and it needs a product decision before any implementation. It should not ship silently,
+though — if deferred, record it as an accepted risk with the expiry behaviour documented.
+
+---
+
 ### 🔵 Low-severity findings
 
 | ID | Finding | Location | Note |
 |---|---|---|---|
+| **L7** | Only root-level `loading.tsx` / `error.tsx`; no segment boundaries | `src/app/loading.tsx`, `src/app/error.tsx` | All four boundary files (`loading`, `error`, `not-found`, `global-error`) exist **only at the app root**. Next.js cascades them, so every route *is* covered — this is not a missing-states defect. But the granularity is coarse: any failure inside `/stores/[id]/analytics` blanks the entire page rather than the failing panel, and every navigation replaces the whole shell with the root loading UI. Add segment-level `error.tsx`/`loading.tsx` for the analytics and inbox subtrees, where partial failure is most likely and most tolerable. |
 | **L1** | 65 of 88 domain events have no subscriber | repo-wide | Mostly forward-looking, but obscures real gaps like H7. Triage each. |
 | **L2** | `/support` and `/analytics/journeys` are unreachable from the nav | `app-shell.tsx:79-123` | `/support` is public and linked pre-auth, but authenticated users cannot find it. Two nav entries also both point to `/stores` ("Stores" and "Campaigns"), so both highlight as active simultaneously. |
 | **L3** | Admin nav injected via array index | `app-shell.tsx:126` | `sections[5]!.items.push(…)` breaks silently if sections are reordered; the `!` assertion also sits awkwardly beside the `AGENTS.md` no-`any` rule. Look the section up by label. |
 | **L4** | `logger.debug` is never gated | `observability/logger.ts:53-58` | Debug output is emitted at all levels in production. Gate on `NODE_ENV` or a `LOG_LEVEL` var. |
 | **L5** | Scale-to-zero conflicts with webhook delivery | `fly.toml:20-23` | `min_machines_running = 0` + `auto_stop_machines = "stop"` means cold starts on webhook delivery (Meta expects a fast ack) and no Pub/Sub subscriber while stopped (compounds H6). The 512 MB shared-CPU VM is also modest for Next.js SSR plus AI orchestration. |
 | **L6** | No bot protection on registration | `auth/presentation/actions.ts` | No CAPTCHA, no email-domain restriction, no verification-before-provisioning. Free-tier abuse costs real OpenAI spend. See Q6. |
+
+---
+
+### 🔎 Cross-cutting review — systemic patterns
+
+Per the final cross-cutting pass, two systemic patterns emerge that are larger than any individual
+finding and should drive remediation sequencing.
+
+**S1 — The entire asynchronous layer is fire-and-forget.** Five findings across three subsystems
+share one root cause: no delivery or execution guarantees were designed anywhere.
+
+| Subsystem | Finding | Failure mode |
+|---|---|---|
+| Redis Pub/Sub event bus | C2 | Events double-fire on the publisher |
+| Redis Pub/Sub event bus | H6 | No retry, no DLQ, lost while disconnected |
+| BullMQ queue | H10 | `attempts: 1` — failed jobs lost; completed jobs never pruned |
+| Process lifecycle | H11 | In-flight jobs destroyed on every deploy |
+| Handlers | C2, H7 | No idempotency keys on side-effecting handlers |
+
+Fixing these individually will produce five partial solutions. The coherent fix is a single
+decision (§3.6 Q4) followed by one implementation: persist events transactionally (outbox), deliver
+via BullMQ with `jobId` deduplication and bounded retention, and give every side-effecting handler
+an idempotency key. C2's minimal patch is worth shipping immediately as a stop-gap, but it should
+not be mistaken for the fix.
+
+**S2 — Defensive rigour is inconsistent between sibling implementations.** Repeatedly, one
+implementation is careful and its neighbour is not — which means the knowledge existed and simply
+was not applied uniformly. This is the most reliable predictor of where further defects remain.
+
+| Careful implementation | Careless sibling | Finding |
+|---|---|---|
+| `shopify.connector.ts` — strict `*.myshopify.com` allowlist, path-traversal guard | `woocommerce.connector.ts` — accepts any host, `http://` included | H9 |
+| Meta webhook — signature **and** replay dedup | Stripe + Shopify webhooks — signature only | H2 |
+| 108 call sites use `getCurrentUser()` (revocation-checked) | `/api/export/[id]` uses raw `auth()` | H4 |
+| `Product`, `Store`, `User` — soft delete | `Project` — hard delete named "archive" | H5 |
+| `admin/users/page.tsx` — self-guards | 5 other admin pages — rely on the layout only | M11 |
+| 13 of 15 `ADD COLUMN NOT NULL` carry a `DEFAULT` | 2 do not | M14 |
+| Most repositories bound queries with `take:` | `listLatestByConversationIds` — unbounded | M4 |
+
+The remediation implication: for each of these, fixing the one instance is necessary but
+insufficient. The pattern should become a lint rule, a CI check, or a code-review checklist item —
+otherwise the next connector, webhook, route, or migration reintroduces it. Concrete candidates:
+an ESLint rule banning `auth()` outside `src/modules/auth/`, the migration-safety grep in M14, and
+requiring the `EcommerceConnector` interface to accept a pre-validated base URL (H9).
 
 ---
 
@@ -1805,10 +2604,88 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | **PII redaction** | `logger.redactValue` masks tokens, passwords, secrets, cookies, emails, and phone numbers recursively. |
 | **RBAC on mutations** | Every mutating admin action calls `requireSuperAdmin()`; tenant actions call `requireRole("STORE_OWNER")`. |
 | **Soft deletes** | `Product`, `Store`, and `User` all soft-delete correctly (`User` with a 30-day restore window). `Project` is the sole exception — H5. |
+| **No XSS sink** | Zero `dangerouslySetInnerHTML` in 524 files; React's default escaping is relied on throughout. |
+| **No SQL injection surface** | Only one raw query in the codebase — `prisma.$queryRaw\`SELECT 1\`` (a literal). No `$queryRawUnsafe` / `$executeRawUnsafe`. The Redis Lua script is a fixed constant with arguments passed via `KEYS`/`ARGV`. |
+| **No dynamic code execution** | No `eval()` or `new Function()`. |
+| **Secrets hygiene** | Pattern scan for Stripe live keys, AWS access keys, PEM private keys, Slack and GitHub tokens across all tracked files → **0 matches**. Only `.env.example` is tracked, and it contains placeholders. |
+| **Migration forward-compatibility** | Across 40 migrations: **0** `DROP TABLE`, **0** `DROP COLUMN`, **0** `RENAME`. The 7 `ALTER COLUMN` statements are constraint *relaxations* (`DROP NOT NULL`), which are safe for old-version coexistence. |
+| **Connector request timeouts** | All three eCommerce connectors and every Meta Graph call set an abort timeout (`AbortSignal.timeout` or an `AbortController`), so a hung upstream cannot exhaust the request pool. |
+| **Shopify SSRF hardening** | `*.myshopify.com` allowlist plus `..`/`//` path-traversal rejection — the correct pattern, and the direct contrast that makes H9 a defect. |
+
+---
+
+## 4A. Deployment and Release Readiness
+
+Assessed against the 21 release-readiness requirements and the 11 failure scenarios.
+
+### 4A.1 Requirement assessment
+
+| # | Requirement | Status | Evidence / gap |
+|---|---|---|---|
+| 1 | Production build succeeds from a clean environment | ✅ Pass | `npm ci` → `npm run build` exit 0, no manual steps |
+| 2 | Artifacts versioned and traceable to a commit | ❌ Fail | No image tagging, no build metadata, no commit SHA embedded; `deploy.sh` builds from whatever is in the working tree |
+| 3 | CI runs build, lint, type, test, migration checks | ✅ Pass | All present in `ci.yml` |
+| 4 | CI runs security checks | ❌ Fail | No `npm audit`, no secret scanning, no SAST (M12) |
+| 5 | Failed gates block deployment | ❌ Fail | CI is not wired to deployment at all; `deploy.sh` is run manually and gated on nothing |
+| 6 | Dev/test/staging/prod configs separated | 🟡 Partial | Three env templates documented; **no staging environment exists** |
+| 7 | Secrets stored securely, never exposed to client or logs | ✅ Pass | Server-only access via validated `env`; logger redacts token/secret/password/cookie keys; no `NEXT_PUBLIC_` secret leakage found |
+| 8 | Required env vars documented and validated at startup | ✅ Pass | `validateProductionSecrets()` covers 17 vars + SMTP; **but** `AUTH_TRUST_HOST` is missing from it (C1) and `OTEL_EXPORTER_OTLP_ENDPOINT` is absent (M2) |
+| 9 | Infrastructure config version-controlled | ✅ Pass | `fly.toml`, `Dockerfile`, `ci.yml` all tracked |
+| 10 | Deployment permissions least-privilege | ⬜ Not Tested | No access to the Fly.io/Vercel org |
+| 11 | Migrations tested and backward-compatible | 🟡 Partial | 40/40 apply cleanly, zero drift, no destructive ops — **but** M13 (locking) and M14 (NOT NULL) are rolling-deploy hazards |
+| 12 | Old and new versions can safely coexist | ❌ Fail | M14 — a `NOT NULL` column added ahead of the old version being drained breaks its inserts. No expand/contract policy |
+| 13 | Multiple instances avoid unsafe local state | ✅ Pass | Rate limits, event bus, queues, and webhook dedup all Redis-backed; `REDIS_URL` is required in production, and `getQueue()` throws without it |
+| 14 | Sessions, queues, jobs, caches safe during deployment | ❌ Fail | **H11** — no `SIGTERM` handling; in-flight jobs destroyed. Sessions are stateless JWTs and are safe |
+| 15 | Health, readiness, liveness reflect real state | 🟡 Partial | The `/api/health` vs `/api/ready` split is correct in principle, but **H1** makes liveness fail on a DB outage, and no health check is configured in `fly.toml` at all |
+| 16 | New instances receive traffic only when ready | ❌ Fail | `fly.toml [http_service]` defines no `[[http_service.checks]]`, so Fly routes traffic as soon as the port binds — before readiness |
+| 17 | Feature flags separate deploy from release | ❌ Fail | No feature-flag mechanism anywhere in the codebase |
+| 18 | Failed deployments can be rolled back | ❌ Fail | No documented procedure; no migration-rollback policy (M12) |
+| 19 | Post-deployment smoke tests cover critical workflows | ❌ Fail | CI smoke test hits only `/api/health` — a static route. It would pass while **all authentication is broken** (C1), which is precisely how C1 reached this state |
+| 20 | Monitoring and alerts detect deployment regressions | ❌ Fail | Sentry is initialised; **no alerts, no dashboards, no SLOs** defined anywhere |
+| 21 | Backup and restore validated | ❌ Fail | Not configured, not documented, never exercised (M12) |
+
+### 4A.2 Failure-scenario walkthrough
+
+| Scenario | Predicted outcome | Basis |
+|---|---|---|
+| Clean deployment | ⚠️ **Fails on Fly.io/Docker** — auth 500s on every request | C1, reproduced |
+| Upgrade from current version | ⚠️ Succeeds only if `AUTH_TRUST_HOST` is set manually | C1 |
+| Rolling deploy with active users | 🟡 Sessions survive (stateless JWT); in-flight requests drop without connection draining | Finding 14 |
+| **Deploy while jobs are running** | ❌ **In-flight jobs destroyed and not retried** | H11 + H10, both verified |
+| Migration failure | ⚠️ `release_command` fails → Fly aborts the release (correct), but no rollback runbook for a partially applied migration | M12 |
+| Startup / health-check failure | ❌ Process binds the port and serves 500s without exiting; no readiness gate means traffic is routed to it | H1 + finding 16 |
+| Partial deployment | 🟡 Fly handles machine-level rollout; app has no version negotiation, so M14-class schema changes break the old version | M14 |
+| Missing configuration or secrets | ✅ **Handled well** — `validateProductionSecrets()` fails fast with an explicit list of missing vars |
+| External dependency outage (Redis) | 🟡 `getQueue()` throws in production; rate limiting and dedup fail; `/api/ready` correctly reports 503 |
+| External dependency outage (Postgres at boot) | ❌ **Total startup failure**, including `/api/health` | H1, reproduced |
+| Rollback after migration | ❌ No down-migrations, no policy, never rehearsed | M12 |
+| Feature-flag rollback | 🚫 Not applicable — no feature flags exist |
+
+**Assessment.** Deployment readiness is the weakest area of the system: **11 of 21 requirements
+fail** and 3 are partial. The single most alarming item is #19 — the existing smoke test passes on a
+build whose authentication is entirely broken. A smoke test that cannot detect a total auth outage
+provides false assurance, which is worse than having none.
 
 ---
 
 ## 5. Remediation Plan
+
+### Phase 0 — Verification objective for audit pass 3
+
+Per the stopping rules, pass 3 must have a defined objective rather than being another general
+audit. Its scope is exactly:
+
+1. **Verify Phase 1 fixes** — for each of C1, C2, H1–H6, H9–H11, confirm the named regression test
+   fails against `06395c4` and passes after the fix. Code changing is not verification.
+2. **Audit only the four areas pass 2 could not reach:** live third-party integration behaviour
+   (Meta/Shopify/Stripe/OpenAI sandbox credentials required), load and concurrency at ≥10× expected
+   peak, backup/restore and DR rehearsal, and machine-verified accessibility (axe-core + screen
+   reader + contrast).
+3. **Re-run the S2 sibling-inconsistency sweep** (§4 cross-cutting) after fixes land, to confirm no
+   new instance of the pattern was introduced.
+
+Pass 3 should *not* re-review architecture, product completeness, or the schema — those are covered
+and stable across two passes.
 
 ### Phase 1 — Immediate release blockers
 
@@ -1821,9 +2698,29 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | 5 | **H2** — add the `ProcessedWebhookEvent` ledger for Stripe (and Shopify) | ~4 h | Backend |
 | 6 | **H3** — handle `customer.subscription.updated` and `invoice.payment_succeeded` | ~6 h | Backend |
 | 7 | **H5** — soft-delete `Project`, add the unique constraint (or delete the feature) | ~3 h | Backend |
-| 8 | **H8 Tier 1** — regression tests for every fix above | ~3 d | All |
+| 8 | **H9** — egress validation + HTTPS enforcement + header auth for WooCommerce | ~4 h | Backend/Security |
+| 9 | **H10** — job options: `attempts`, `backoff`, bounded retention, `jobId` dedup | ~3 h | Backend |
+| 10 | **H11** — `SIGTERM` shutdown for worker and web; `kill_timeout` in `fly.toml` | ~4 h | Backend/SRE |
+| 11 | **H8 Tier 1** — regression tests for every fix above | ~3 d | All |
 
-**Exit criterion:** each new test fails against current `main` and passes after the fix.
+**Dependencies and sequencing.** These are not independent:
+
+- **H10 depends on handler idempotency.** Do not raise `attempts` above 1 until
+  `JOB_REFRESH_READ_MODELS` and `JOB_REFRESH_PREDICTIONS` are verified safe to run twice. Retries
+  on a non-idempotent handler is a worse failure mode than no retries.
+- **H11 depends on H10's retention change** to be meaningful, and on the `fly.toml`
+  `kill_timeout` increase to be effective. Shipping the signal handler alone, with the 5s default
+  grace period, does not fix the problem.
+- **C2 and H6 are one subsystem.** Ship C2's minimal patch first (it is small and stops active
+  customer harm), but schedule H6 in the same cycle — and settle §3.6 Q4 before starting H6, since
+  the answer determines the design.
+- **H3 is blocked on §3.6 Q3.** The handler can be written now; the entitlement policy cannot be
+  chosen without a product decision.
+- **H9's code fix should not be the only mitigation.** Disable IMDSv1 at the infrastructure layer
+  in parallel — it is independent, faster, and protects against regression.
+
+**Exit criterion:** each new test fails against `06395c4` and passes after the fix. Plus one
+manual gate: a rolling deploy performed with jobs in flight, losing and duplicating zero jobs.
 
 ### Phase 2 — Required pre-release
 
@@ -1839,6 +2736,12 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | 16 | **M12** — CD workflow, rollback runbook, automated backups + one restore drill | ~3 d |
 | 17 | **M10** — global per-account login throttle + rate-limit feedback | ~1 d |
 | 18 | Add a `redis:7-alpine` service to CI | ~15 m |
+| 19 | **M13** — out-of-band `CREATE INDEX CONCURRENTLY` runbook for large tables | ~4 h |
+| 20 | **M14** — migration-safety CI gate + documented expand/contract policy | ~3 h |
+| 21 | **Fix the smoke test** — assert `/api/auth/session` returns 200, plus a real login round-trip. A smoke test that passes while auth is entirely broken (§4A.1 #19) is the reason C1 shipped undetected | ~2 h |
+| 22 | **Add Fly.io health checks** — `[[http_service.checks]]` against `/api/ready` so traffic is withheld until dependencies are reachable (§4A.1 #16) | ~1 h |
+| 23 | **Build traceability** — embed the commit SHA in the image and surface it at `/api/health` (§4A.1 #2) | ~2 h |
+| 24 | **Alerting** — webhook failure rate, event-handler errors, BullMQ failed-queue depth, Redis memory, `/api/ready` (§4A.1 #20) | ~1 d |
 
 ### Phase 3 — Short-term improvements
 
@@ -1879,6 +2782,11 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | Restore has never been exercised | No backup configuration exists to test | Rehearsed restore drill |
 | Cross-tenant *write* isolation | I verified read isolation; writes were not exhaustively probed | Add tenant-guard tests for every mutating action |
 | Multi-replica correctness | All runtime testing used a single instance | Two-replica staging soak |
+| BigCommerce connector SSRF | H9 was confirmed for WooCommerce; BigCommerce appears to build from `storeHash` against a fixed host but was **not verified** | Apply the same egress validation and confirm by inspection |
+| Deployment permissions | No access to the Fly.io/Vercel organisation | Review IAM/deploy-token scope for least privilege |
+| DNS-rebinding against H9's fix | The proposed `assertPublicHttpsUrl` resolves once; a TOCTOU window remains between validation and connect | Pin the resolved IP, or route egress through an allowlisting proxy |
+| Prompt injection via customer DMs | Untrusted customer text reaches the LLM with product and coupon context | Adversarial test suite; treat LLM output as untrusted before it drives actions |
+| Historical migrations M14 | The two unsafe statements are already applied; not retroactively fixable | CI gate prevents recurrence; document as accepted |
 
 ### 6.2 Final readiness checklist
 
@@ -1895,6 +2803,18 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | Admin authorization | ✅ **Pass** | 6 routes, full + RSC, no leak |
 | Session revocation | 🟡 **Partial** | Correct on 108 sites; H4 is the exception |
 | Rate limiting | 🟡 **Partial** | Works; no global per-account limit (M10) |
+| XSS / injection / dynamic execution | ✅ **Pass** | 0 `dangerouslySetInnerHTML`; 1 literal raw query; no `eval` |
+| Secret hygiene | ✅ **Pass** | Pattern scan clean; only `.env.example` tracked |
+| Migration forward-compatibility | ✅ **Pass** | 0 destructive ops; `ALTER COLUMN`s are relaxations |
+| Outbound request timeouts | ✅ **Pass** | All connectors and Meta calls set abort timeouts |
+| **SSRF / egress control** | ❌ **Fail** | **H9 — authenticated SSRF to metadata and private ranges, demonstrated** |
+| **Background job reliability** | ❌ **Fail** | **H10 — no retries; unbounded Redis retention, both measured** |
+| **Graceful shutdown / deploy safety** | ❌ **Fail** | **H11 — no `SIGTERM` handling; in-flight jobs destroyed** |
+| **Rolling-deploy / version coexistence** | ❌ **Fail** | M14 (`NOT NULL` ahead of drain); M13 (index locking); no expand/contract policy |
+| **Readiness gating of traffic** | ❌ **Fail** | No `[[http_service.checks]]` in `fly.toml`; traffic routed on port bind |
+| **Post-deploy smoke coverage** | ❌ **Fail** | Smoke test passes while all authentication is broken (§4A.1 #19) |
+| Feature flags | 🚫 **Not Applicable** | No flag mechanism exists; noted as a gap for deploy/release separation |
+| Artifact traceability | ❌ **Fail** | No image tagging or commit SHA in the build |
 | **Authentication (deployed)** | ❌ **Fail** | **C1 — total failure on Fly.io/Docker** |
 | **Event delivery correctness** | ❌ **Fail** | **C2 — reproduced double-dispatch** |
 | **Startup resilience** | ❌ **Fail** | **H1 — DB blip prevents boot** |
@@ -1916,10 +2836,17 @@ Recording these explicitly so remediation does not disturb working behaviour.
 
 ## 7. Statement of Limitations
 
-This audit reflects commit `06395c4` as reviewed on 2026-07-29, under the conditions described in
-§2. Findings marked **Confirmed** are supported by reproducible evidence captured in this report.
-Findings marked **Probable Risk** or **Design Concern** are reasoned from code and are explicitly
-labelled as not empirically proven.
+This audit reflects commit `06395c4` as reviewed across two passes (2026-07-29 and 2026-07-30),
+under the conditions described in §2. Findings marked **Confirmed** are supported by reproducible
+evidence captured in this report. Findings marked **Probable Risk**, **Design Concern**, or
+**Needs Product Decision** are reasoned from code and are explicitly labelled as not empirically
+proven.
+
+**On the value of pass 2.** The code did not change between passes; only the areas examined did.
+That a second pass over identical code produced three further High findings is itself the most
+important result in this report — it means the defect surface has not been characterised, not that
+the code degraded. Any confidence estimate should account for the areas still unexamined (§6.1)
+rather than treating this report as complete coverage.
 
 **No claim is made that this application is bug-free or secure.** Absence of a finding is not
 evidence of correctness — particularly in the areas listed as Not Tested in §6.2, where no
