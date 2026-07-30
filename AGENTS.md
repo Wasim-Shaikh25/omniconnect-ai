@@ -179,3 +179,54 @@ A change is DONE only when:
 - [ ] Lint + typecheck + tests pass
 - [ ] `CHANGELOG.md` updated (Done / In Progress / Next)
 - [ ] PR links spec + task
+
+---
+
+## Cursor Cloud specific instructions
+
+### Infrastructure (PostgreSQL + Redis)
+
+The repo has no `docker-compose` file. Local data services are started with standalone Docker containers (see `.agents/skills/testing-omniconnect-ai/SKILL.md`). On Cloud Agent VMs, Docker is not pre-installed; use `sudo docker` after starting `dockerd` if needed.
+
+```bash
+# One-time per session (containers use --rm; they do not survive pod restarts)
+sudo dockerd > /tmp/dockerd.log 2>&1 &   # only if docker daemon is not running
+sudo docker run -d --name omniconnect-postgres -p 5432:5432 \
+  -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=omniconnect \
+  --rm postgres:16
+sudo docker run -d --name omniconnect-redis -p 6379:6379 --rm redis:7
+```
+
+### Environment file
+
+Copy `.env.example` to `.env` (or `.env.local`). Minimum for local smoke tests:
+
+- `DATABASE_URL`, `REDIS_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `APP_URL`, `ENCRYPTION_KEY` (32+ chars)
+- `EMAIL_PROVIDER=console`
+- Leave third-party keys (Stripe, Meta, Shopify, OpenAI) blank for MOCK/basic flows
+- **Do not** set `SUPER_ADMIN_EMAIL` or `SMTP_FROM` to empty strings — omit them or Zod validation fails
+
+After DB is up: `npx prisma migrate deploy` (first run or after schema changes).
+
+### Running services
+
+| Service | Command | Notes |
+|---------|---------|-------|
+| Next.js app | `npm run dev` | Port **3000**; loads `.env` automatically |
+| Background worker | `npm run worker` | Requires Redis; **known issue**: may throw `ReferenceError: Cannot access 'updateMarketingMemory' before initialization` in `src/modules/ai/infrastructure/container.ts` — app smoke tests work without it |
+| Health | `curl http://localhost:3000/api/health` | `{ "status": "ok" }` |
+| Readiness | `curl http://localhost:3000/api/ready` | Checks DB + Redis |
+
+Use **tmux** for long-running `npm run dev` / `npm run worker` sessions.
+
+### Quality gates
+
+Standard commands from `package.json`: `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` (includes `build:worker`). Unit tests (Vitest) do not require Postgres. Build and migrate smoke need a running database.
+
+### Hello-world smoke path
+
+1. Register at `/register` (email + password, min 8 chars)
+2. Complete onboarding (organization name) → `/dashboard`
+3. Optional: connect a store with blank credentials to use the built-in **MOCK** connector and sync demo products
+
+See `.agents/skills/testing-omniconnect-ai/SKILL.md` for integration-test gotchas (staff isolation, soft deletes, analytics redirects).
