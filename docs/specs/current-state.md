@@ -222,6 +222,36 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Direct Meta content publishing/scheduling is out of scope for MVP.
 - Real load/accessibility/penetration testing has not been performed.
 
+### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
+
+`PRODUCTION_READINESS_AUDIT.md` returned a NO-GO verdict. All 33 findings were re-verified as
+**open** at commit `33e2e0b`. The release-blocking defects are:
+
+- **C1** — NextAuth `trustHost` is unset, so authentication returns HTTP 500 on the documented
+  Fly.io/Docker deployment path.
+- **C2** — `RedisEventBus.publish()` dispatches locally *and* re-receives its own Pub/Sub message,
+  so every event runs twice on the publishing instance (duplicate AI replies, duplicate coupons,
+  doubled OpenAI spend).
+- **H1** — unguarded `ensureSuperAdmin` in `instrumentation.ts` makes a transient database outage a
+  total startup failure, including `/api/health`.
+- **H2/H3** — Stripe webhooks have no `event.id` idempotency ledger, and `past_due` is a terminal
+  state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
+- **H4** — `/api/export/[id]` uses `auth()` instead of `getCurrentUser()`, bypassing `tokenVersion`
+  revocation on a full personal-data export.
+- **H5** — `archiveProject` hard-deletes and cascades to `ProjectMember`.
+- **H6/H7** — event delivery has no durability, retry, or dead-letter path; abandoned-cart events
+  fire on every cart edit and have no subscriber.
+- **H9** — `/api/shopify/webhooks` is absent from `publicPaths`, so Shopify webhooks are redirected
+  to `/login` before HMAC verification. *(The audit's §4 addendum reports this as fixed; it is not —
+  see the corrections table in the remediation index.)*
+- **H10** — the plan seat limit is read and enforced outside a transaction, so concurrent invites
+  can exceed the cap.
+- **H8** — 43 tests across 524 source files, with zero coverage of auth, the tenant guard, RBAC,
+  billing, webhooks, or the event bus. CI sets `REDIS_URL` but provisions no Redis service.
+
+Remediation is planned across `REQ-0067` … `REQ-0075`. The complete finding-to-requirement
+traceability map is `docs/audit/2026-07-31-remediation-index.md`.
+
 ---
 
 ## 12. Where Work Is Tracked
@@ -233,6 +263,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 - **Trackers:** `docs/trackers/TRACKER-*.md` (progress)
 - **Status checker:** `scripts/task-status.ts`
 - **Changelog:** `CHANGELOG.md`
+- **Production readiness audit:** `PRODUCTION_READINESS_AUDIT.md`
+- **Audit remediation index:** `docs/audit/2026-07-31-remediation-index.md` (maps every finding to
+  its owning REQ/TASK/TRACKER)
 
 ---
 
