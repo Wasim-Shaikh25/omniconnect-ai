@@ -1,10 +1,10 @@
 # OmniConnect AI — Production Readiness Audit
 
-> **Report version:** 2026-07-29 (extended by second audit pass)
+> **Report version:** 2026-07-29 (extended by second audit pass); **addendum 2026-07-31**
 > **Auditor:** Cross-functional review (Principal Engineer, Security, QA, DevOps/SRE, DBA, PM, UX, Accessibility, Performance)
 > **Repository:** `Wasim-Shaikh25/omniconnect-ai`
-> **Commit audited:** `06395c4` (level with `origin/main` at audit time)
-> **Branch:** `claude/production-readiness-audit-mc9a3m`
+> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum verification)
+> **Branch:** `main`
 > **Classification:** Internal — redact before external distribution.
 
 ---
@@ -26,13 +26,9 @@ exact commit:
    `RedisEventBus.publish()` dispatches handlers locally *and* re-receives its own Redis
    Pub/Sub message. In production this means duplicate AI replies sent to real customers,
    duplicate coupons, and duplicated OpenAI spend.
-3. **Shopify webhooks are rejected by NextAuth middleware** (new in this pass, §4). The
-   `authorized` callback's `publicPaths` list covers Meta and Stripe webhooks but omits
-   `/api/shopify/webhooks`; unauthenticated Shopify POSTs receive a `307` to `/login` and
-   never reach the HMAC verifier or the business logic. Product, order, and abandoned-cart
-   automation is effectively disabled.
+3. **Shopify webhooks are rejected by NextAuth middleware** (baseline finding; status updated in §8/H9). At commit `06395c4` the `authorized` callback omitted `/api/shopify/webhooks`; static review at `f64cf84` shows the path is now whitelisted and the HMAC-verifying route handler exists. This should be re-verified with a live `POST` in staging before closing.
 
-All three were reproduced and are documented with exact commands and output in §4.
+The first two findings (C1, C2) were reproduced and are documented with exact commands and output in §4.
 
 This is not a verdict on the codebase as a whole. The architecture is genuinely good — clean DDD
 layering, a real tenant guard that **I verified holds under cross-tenant probing**, correct
@@ -1390,20 +1386,22 @@ detects the defect). 3. Apply the fixes. 4. Confirm each passes.
 
 ### 🟠 H9 — Shopify webhooks are blocked by NextAuth middleware
 
+> **Addendum update (commit `f64cf84`):** The `publicPaths` array in `src/modules/auth/infrastructure/auth.ts` now includes `/api/shopify/webhooks`, and the route handler at `src/app/api/shopify/webhooks/route.ts` verifies HMAC signatures. The original 307-redirect reproduction was valid at baseline `06395c4` but is no longer expected. Re-verify with a live `POST` before closing.
+
 | Field | Value |
 |---|---|
-| **Status** | Confirmed Defect (reproduced) |
+| **Status** | Fixed — Awaiting Verification |
 | **Severity** | **High** |
 | **Category** | Authentication / Webhook integration |
-| **Release-blocking** | **Yes** |
+| **Release-blocking** | **No** |
 | **Affected roles** | Shopify-integrated merchants, anonymous webhook callers |
 
 **Affected locations**
-- `src/modules/auth/infrastructure/auth.ts:213-243` — `authorized` callback `publicPaths` omits `/api/shopify/webhooks`
-- `src/middleware.ts:1-19` — `matcher` runs the auth wrapper on `/api/shopify/webhooks`
-- `src/app/api/shopify/webhooks/route.ts` — HMAC verification and business logic are never reached
+- `src/modules/auth/infrastructure/auth.ts:215-237` — `authorized` callback `publicPaths` now includes `/api/shopify/webhooks`
+- `src/middleware.ts:1-19` — auth wrapper runs on all non-static routes; `/api/shopify/webhooks` is whitelisted
+- `src/app/api/shopify/webhooks/route.ts` — HMAC verification and business logic are reachable
 
-**Evidence.** A running production bundle (PostgreSQL + Redis up, `NODE_ENV=production`) returns `307 Temporary Redirect` to `/login` for an anonymous `POST` to the Shopify webhook endpoint:
+**Historical evidence (baseline commit `06395c4`).** A running production bundle returned `307 Temporary Redirect` to `/login` for an anonymous `POST` to the Shopify webhook endpoint:
 
 ```text
 $ curl -i -X POST http://localhost:3000/api/shopify/webhooks
@@ -1420,11 +1418,13 @@ $ curl -s -o /dev/null -w "HTTP=%{http_code}\n" http://localhost:3000/api/stripe
 HTTP=400
 ```
 
-**Root cause.** The `authorized` callback lists public paths including `/api/meta/webhook` and `/api/stripe/webhook`, but not `/api/shopify/webhooks`. The middleware `matcher` applies to all routes except static assets, so Shopify webhook requests are redirected to `/login` before the route handler can verify the HMAC.
+**Current evidence (commit `f64cf84`, static review).** `src/modules/auth/infrastructure/auth.ts` now includes `/api/shopify/webhooks` in `publicPaths`, and `src/app/api/shopify/webhooks/route.ts` exists and verifies `x-shopify-hmac-sha256`. A live `POST` should now reach the HMAC verifier and return `401` for a missing/invalid signature rather than `307`. This addendum did not include a runtime re-test.
 
-**Technical and business impact.** All Shopify webhooks (products, orders, checkouts) fail silently from Shopify's perspective. Product and order synchronization, abandoned-cart detection, and inventory-driven AI replies are effectively disabled for every Shopify-connected store. This also blocks Shopify App Store review, because webhooks are mandatory.
+**Historical root cause (baseline `06395c4`).** The `authorized` callback listed `/api/meta/webhook` and `/api/stripe/webhook` but omitted `/api/shopify/webhooks`, so Shopify webhook requests were redirected to `/login` before the route handler could verify the HMAC.
 
-**Recommended solution.** Add `/api/shopify/webhooks` to the `publicPaths` array in `src/modules/auth/infrastructure/auth.ts:215`. This is the minimal fix. If the route is meant to be public only for `POST`, also verify the `authorized` callback's `pathname.startsWith` logic does not accidentally expose sub-routes.
+**Technical and business impact (if not re-verified).** If the route is still unreachable in the deployed environment, all Shopify webhooks (products, orders, checkouts) would fail silently from Shopify's perspective. Product and order synchronization, abandoned-cart detection, and inventory-driven AI replies would be disabled for every Shopify-connected store. The code fix appears present, but a staging re-test is required before release.
+
+**Recommended solution.** Re-test in staging: an anonymous `POST /api/shopify/webhooks` should return `401` or `400`, not `3xx`. If the route is meant to be public only for `POST`, verify the `authorized` callback's `pathname.startsWith` logic does not accidentally expose sub-routes. Add an integration test to prevent regression.
 
 ```typescript
 // src/modules/auth/infrastructure/auth.ts
@@ -2310,3 +2310,163 @@ the available evidence, and the residual risks recorded above.
 
 The two Critical findings were reproduced against a running production build. They are not
 speculative, and neither is caught by the existing CI pipeline.
+
+---
+
+## 8. User-Requested Focus Assessment (2026-07-31)
+
+This addendum answers the founder's specific questions about auth, account management, workspace/project scoping, payments, super-admin operations, and help/ticket support. It was produced by re-reading the current code at commit `f64cf84`, running `npm run lint`, `npm run typecheck`, and `npm run test` (all passed), and spot-checking the routes and schema referenced below.
+
+### 8.1 Super-admin login, logout, and verification
+
+| Question | Status | Evidence |
+|---|---|---|
+| Super-admin login with user ID and password | Implemented | `src/modules/auth/infrastructure/auth.ts` credentials provider + `src/modules/auth/presentation/actions.ts` `loginAction` |
+| Email-based MFA for super admin | Implemented | `loginAction` sends an MFA code when `account.isSuperAdmin` is true; `auth.ts` `authorize` verifies it via `verifyCode(email, mfaCode, "mfa")` |
+| Mobile verification for super admin | Not implemented | `User.phone` exists and is seeded from `SUPER_ADMIN_PHONE`, but no SMS/mobile OTP flow is present |
+| Logout | Implemented | `signOutAction` in `src/modules/auth/presentation/actions.ts` calls `signOut({ redirectTo: "/login" })`; `SignOutButton` appears in `src/components/app-shell.tsx` |
+| Hardcoded super-admin seed | Implemented | `instrumentation.ts` calls `ensureSuperAdmin`; `src/modules/auth/infrastructure/super-admin.ts` creates a user with `isSuperAdmin = true` from env vars |
+
+Findings:
+
+- **Super-admin MFA is email-only.** `SUPER_ADMIN_PHONE` is stored but never used for a second factor or recovery. If the email provider fails, the super admin is locked out.
+- **Super-admin seed does not update existing users.** `ensureSuperAdmin` returns early when an account with `SUPER_ADMIN_EMAIL` already exists, so changing `SUPER_ADMIN_PASSWORD` or `isSuperAdmin` in env after first boot requires a manual database update.
+- **There is no logout confirmation or session management UI.** Users can sign out, but there is no "sign out all devices" or session list.
+
+### 8.2 User account creation form
+
+| Field / Capability | Status | Evidence |
+|---|---|---|
+| Name | Implemented | `AuthForm` (`mode="register"`) collects `name`; `registerUserSchema` accepts it |
+| Email | Implemented | Required email field; validated with `z.string().email()` |
+| Password | Implemented | Required password, min 8 chars, max 200 |
+| Re-enter password (confirm) | Missing | No `confirmPassword` field in `AuthForm` or `registerUserSchema` |
+| Date of birth | Missing | `User` schema has no `dob` or `dateOfBirth` field; no form input |
+| Mobile number | Partial | `phone` column exists in `User`, but registration does not collect it for normal users and there is no mobile verification flow |
+| Email verification for new accounts | Missing | `emailVerified` column exists but is never set for credentials users; no verification email is sent at registration |
+| Mobile verification | Missing | No `phoneVerified` column, no SMS/OTP infrastructure |
+
+Findings:
+
+- **Confirmed missing: email verification for credentials registrations.** The `emailVerified` field is a NextAuth adapter leftover and is not populated. This means any typo or malicious email can create an account, and the user cannot recover access to that typo'd account.
+- **Confirmed missing: confirm password.** A single password field with `minLength=8` is the only guard; typos during registration are not caught.
+- **Confirmed missing: DOB and mobile.** The `User` model does not support them, and the registration form does not request them.
+
+### 8.3 Standard account settings UI
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Update name | Implemented | `/settings/page.tsx` -> `ProfileForm` -> `updateProfileAction` |
+| Update avatar/image | Implemented | `ProfileForm` accepts an image URL |
+| Update email | Missing | No action or UI to change email; `email` is not in `updateProfileSchema` |
+| Change password in-app | Missing | No "change password" form or action in `/settings` or `/settings/account`; only forgot/reset flow exists |
+| Delete account | Implemented | `/settings/account/page.tsx` -> `AccountActions` -> `deleteAccountAction`; 30-day soft delete via `deletedAt` |
+| Other options (team, billing, notifications, audit) | Partial | `/settings` has links to billing, notifications, audit, and dead links to `/settings/quality`, `/settings/rollout`, `/settings/operating-model`, `/settings/unified-context` |
+
+Findings:
+
+- **Confirmed missing: email change and password change in settings.** A user who wants to change their password must sign out and use `/forgot-password`; a user who wants to change their email cannot do it themselves.
+- **Dead navigation links in `/settings`.** Cards link to `/settings/quality`, `/settings/rollout`, `/settings/operating-model`, and `/settings/unified-context`; `find_file_by_name` returned no `page.tsx` files for these paths. These routes return 404.
+- **Account deletion uses a confirmation input.** The user must type "DELETE" and the account is soft-deleted with a 30-day grace period. This matches best practice.
+
+### 8.4 Workspace and project creation (one project = one Instagram/Meta ID)
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Create workspace (organization) | Implemented | `/onboarding` -> `OnboardingForm` -> `completeOnboardingAction` creates an `Organization`; `createOrganization.ts` |
+| List/manage workspaces | Partial | Organizations are auto-created; users cannot create multiple organizations or switch between them from the UI |
+| Create project inside workspace | Backend only | `Project` and `ProjectMember` models exist; `createProjectAction`, `listProjectsAction`, `archiveProjectAction`, `addProjectMemberAction` are implemented in `src/modules/organizations/presentation/project-actions.ts` |
+| Project UI | Missing | `find_file_by_name('src/app/projects/**/*.tsx')` returned zero matches; `revalidatePath('/projects')` in actions targets a non-existent route |
+| Project maps to Instagram handle | Implemented in schema | `Project.instagramHandle` is a field; `createProjectSchema` accepts it; the intended model is "one project = one IG identity" |
+| Project maps to Meta Integration | Implemented in schema | `Project.integrationId` links to `Integration`; not exposed in the create-project action schema, but the column exists |
+
+Findings:
+
+- **Confirmed: project functionality is orphaned backend code.** The feature has a full Prisma model, repository, application service, and server actions, but no pages, no navigation link, and no route. Per the product charter cleanup, the `/projects` route was removed in `TASK-0061`, yet the backend was not removed.
+- **Project "archive" is a hard delete.** `PrismaProjectRepository.archive` calls `prisma.project.delete`, which removes the row and cascades to `ProjectMember`. This is mislabeled and dangerous.
+- **Workspace onboarding only creates an organization, not a project.** A new user lands on `/dashboard` after naming their organization, with no prompt to create the first project/IG identity.
+- **Recommendation:** either ship the `/projects` UI and fix the hard delete, or remove the `Project`/`ProjectMember` tables, actions, and repository to eliminate dead code. Leaving reachable mutating server actions with no UI is the worst of both states.
+
+### 8.5 Payment flow (failed, successful, plan upgrade/downgrade)
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Checkout creation | Implemented | `/api/stripe/checkout/route.ts` calls `billingService.createCheckoutSession`; `PricingCards` on `/settings/billing` initiates it |
+| Successful payment fulfillment | Implemented | `billing.ts` handles `checkout.session.completed` with `payment_status === "paid"` and updates `Organization.plan` |
+| Failed/canceled payment UI | Partial | `/settings/billing` shows `canceled=1` alert; `invoice.payment_failed` marks the org `past_due` |
+| Payment details / invoice history | Missing | No invoice list, receipts, or payment method UI |
+| Upgrade plan | Implemented | `PricingCards` on `/settings/billing` lets owner select a higher paid plan |
+| Downgrade plan | Missing | No explicit downgrade or cancel-subscription UI; selecting a lower paid plan still initiates a new checkout rather than changing the existing Stripe subscription |
+| Recover from `past_due` | Missing | `invoice.payment_succeeded` / `invoice.paid` / `customer.subscription.updated` events are not handled, so an org that becomes `past_due` is never returned to `active` automatically |
+| Webhook idempotency | Missing | `billing.ts` does not deduplicate by Stripe `event.id`; replays can update the organization multiple times |
+
+Findings:
+
+- **Confirmed: billing lifecycle is a one-way door for `past_due`.** The webhook listens for `checkout.session.completed`, `customer.subscription.deleted`, and `invoice.payment_failed`. It does not listen for `invoice.paid` / `invoice.payment_succeeded` or `customer.subscription.updated`, so a failed invoice that is later paid will not reactivate the account.
+- **Confirmed missing: downgrade UX.** There is no "Cancel" or "Switch to lower plan" flow. The only way to downgrade is to let the subscription be deleted by Stripe.
+- **Confirmed missing: payment history.** Users cannot see past invoices, receipts, or payment methods, which increases support burden and may not satisfy legal/tax requirements.
+
+### 8.6 Super-admin dashboard for user/tenant management
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Admin dashboard overview | Implemented | `/admin/page.tsx` shows counts for orgs, users, coupons, tickets, logs |
+| List users | Implemented | `/admin/users/page.tsx` paginated list; `listAllUsersAction` |
+| Toggle super-admin flag | Implemented | `ToggleSuperAdminButton` + `toggleUserSuperAdminAction` |
+| Suspend user | Missing | `User` model has no `suspended` / `isActive` / `status` field; no suspend/unsuspend action or UI |
+| Delete user as admin | Missing | No admin delete/deactivate action; only the user can soft-delete their own account |
+| List organizations | Implemented | `/admin/organizations/page.tsx` |
+| Manage organization status | Missing | No suspend/terminate organization UI or action |
+| List tickets | Implemented | `/admin/tickets/page.tsx` |
+| Create SaaS coupons | Implemented | `/admin/coupons/page.tsx` |
+| View system logs | Implemented | `/admin/logs/page.tsx` |
+
+Findings:
+
+- **Confirmed missing: suspend/delete user actions.** The admin can toggle the super-admin flag, but cannot suspend, disable, or delete a problematic account. This is a gap for platform safety and abuse handling.
+- **Confirmed missing: password reset/admin-initiated password reset.** There is no admin action to force a password reset or unlock an account.
+- **Admin routes are guarded.** `/admin/layout.tsx` redirects non-super-admins to `/dashboard`, and the server actions call `requireSuperAdmin`. Authorization is sound; the capability set is just incomplete.
+
+### 8.7 Help page and support tickets
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Help / FAQ page | Implemented | `/help/page.tsx` is a large static help page with searchable sections |
+| Help page reachable from app | Implemented | Sidebar in `app-shell.tsx` links to `/help` |
+| Create support ticket | Implemented | `/support/page.tsx` -> `CreateTicketForm` -> `createTicketAction` |
+| Discover support ticket page | Partial | `/support` is not in the sidebar; it is only reachable if the user knows the URL or finds it via `/help` content |
+| `/support` as public route | Misconfigured | `publicPaths` in `auth.ts` includes `/support`, but `/support/page.tsx` itself redirects anonymous users to `/login` |
+| List my tickets | Implemented | `/support/page.tsx` lists `listMyTicketsAction` |
+| Admin ticket triage | Implemented | `/admin/tickets/page.tsx` lists, selects, updates status, and adds comments |
+| Internal/admin comments | Implemented | `TicketCommentForm` with `isInternal` flag on `TicketComment` |
+
+Findings:
+
+- **Navigation gap:** `/support` is not exposed in the main sidebar. Only `/help` is. The help page text refers to "Support" in "top navigation," but the top navigation does not exist; the sidebar only links to `/help`. Users are likely to miss the ticket creation flow.
+- **Auth inconsistency:** `/support` is in `publicPaths` but the page redirects to `/login`. This matches the existing M14 finding. The route should either be public (and allow anonymous ticket creation) or removed from `publicPaths`.
+- **Ticket system is otherwise complete** for MVP: create, list, status updates, priority, category, comments, and admin triage.
+
+### 8.8 Synthesis and release impact
+
+The founder's seven focus areas confirm that the application has a solid auth scaffold, Stripe checkout plumbing, admin list pages, and ticket backend, but several user-facing capabilities expected for a SaaS platform are missing or incomplete:
+
+1. **Registration and account settings lack standard self-service fields:** no confirm password, no email verification, no DOB, no mobile, no in-app password/email change.
+2. **Projects are dead backend code** with no UI and a dangerous hard-delete "archive."
+3. **Billing is not end-to-end:** no downgrade UX, no invoice/payment history, no recovery from `past_due`, and no webhook idempotency.
+4. **Admin user management is read-only:** super admins cannot suspend, delete, or reset a user's password.
+
+These gaps, combined with the previously identified Critical/High blockers (C1, C2, H1-H3, etc.), keep the overall recommendation at **NO-GO**. The focus-area issues are not release blockers on their own, but the missing email verification, the orphaned project backend, and the billing one-way door increase support cost and user confusion at launch.
+
+### 8.9 Recommended priority order for the focus-area gaps
+
+| Priority | Item | Category | Effort estimate |
+|---|---|---|---|
+| Required before release | Add `trustHost` / `AUTH_TRUST_HOST` and fix event double-dispatch (C1, C2) | Auth / infra | 1-2 days |
+| Required before release | Fix billing `past_due` recovery (`invoice.paid`) and add Stripe event idempotency | Billing | 1 day |
+| Recommended before release | Add email verification flow for credentials registrations | Auth | 1-2 days |
+| Recommended before release | Add confirm password field to registration | Auth | 30 min |
+| Recommended before release | Add change-password and change-email UI in settings | Auth | 1 day |
+| Recommended before release | Decide on Projects: ship UI + soft archive, or remove backend entirely | Product | 1-2 days |
+| Post-release | Add admin suspend/delete/force-password-reset actions | Admin | 1 day |
+| Post-release | Add payment history/invoices and cancel/downgrade UI | Billing | 1-2 days |
+| Post-release | Add mobile number (optional) and SMS verification if required | Auth | 2-3 days |
