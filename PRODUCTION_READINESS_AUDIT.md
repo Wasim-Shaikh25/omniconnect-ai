@@ -95,6 +95,18 @@ Ship only when all of the following hold:
 3. A rollback procedure is documented and rehearsed once.
 4. Alerting exists on webhook failure rate, event-handler error rate, and `/api/ready`.
 
+### 1.7 User-Requested Focus Area Summary
+
+The addendum in §8 reviews the specific capabilities the founder asked about. The current state is:
+
+- Super-admin login/logout and email MFA exist; mobile verification does not.
+- Registration has name/email/password but is missing confirm password, DOB, mobile, and email verification.
+- Settings handles name/avatar/export/delete, but not email change, password change, or mobile.
+- Workspaces (organizations) are created on onboarding; `Project` backend exists but has no UI and its "archive" is a hard delete.
+- Stripe checkout/success flow works; downgrade UX, invoice history, `past_due` recovery, and webhook idempotency are missing.
+- Admin dashboard lists users/orgs/tickets/coupons/logs, but cannot suspend/delete/reset users.
+- `/help` is reachable; `/support` ticket creation works but is not in the sidebar and has a `publicPaths`/auth mismatch.
+
 ---
 
 ## 2. System and Audit Overview
