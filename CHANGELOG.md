@@ -13,7 +13,52 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ## [Unreleased]
 
+### 🚧 In Progress
+
+- **Production readiness remediation planning (REQ-0067 → REQ-0075):** every finding in
+  `PRODUCTION_READINESS_AUDIT.md` is now owned by a requirement, task, and tracker. Implementation
+  has not started — these are planning documents only.
+
+### ⏭️ Next
+
+- **REQ-0074 Package A** — add the `redis:7-alpine` service, `npm audit`, secret scanning, and a
+  deeper smoke test to CI. This is ~1 hour of work and unblocks every Redis-dependent test in
+  REQ-0067.
+- **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
+  REQ-0067's H5 migration is written, or that migration is wasted.
+- **REQ-0067** — the twelve release blockers (C1, C2, H1–H10), each with a regression test that
+  fails against current `main`.
+
 ### ✅ Done
+
+- **Production readiness audit remediation plan — documented all 33 findings as actionable work:**
+  - Re-verified every finding in `PRODUCTION_READINESS_AUDIT.md` against the working tree at
+    `33e2e0b`. **All 33 remain open.**
+  - Created nine requirement/task/tracker sets:
+    - `REQ-0067` — release blockers (C1, C2, H1–H10) with per-finding acceptance criteria,
+      code-level implementation steps, and regression tests.
+    - `REQ-0068` — medium-severity hardening (M1, M2, M4–M15).
+    - `REQ-0069` — low-severity findings (L1–L5, L7) and a domain-event census.
+    - `REQ-0070` — identity and account self-service (§8.1–8.3, L6, Q6).
+    - `REQ-0071` — billing and monetization completeness (§8.5, §3.4).
+    - `REQ-0072` — platform admin, support, and discoverability (§8.6, §8.7, §3.4, §3.5 #7).
+    - `REQ-0073` — Projects/workspace lifecycle with an explicit ship-or-remove decision gate (Q1, Q2, M3).
+    - `REQ-0074` — test coverage and CI quality gates (H8, missing CI Redis service).
+    - `REQ-0075` — release engineering, DR, observability, and residual-risk closure (M12, §1.6
+      conditions 3–4, §6.1).
+  - Added `docs/audit/2026-07-31-remediation-index.md` — a one-to-one traceability map from every
+    audit finding, product gap, decision (Q1–Q6), residual risk, and release condition to its
+    owning requirement, with a coverage assertion that nothing is unowned.
+  - Recorded four **corrections to the audit report**, each verified against the code:
+    - **H9 is not fixed.** `/api/shopify/webhooks` is absent from `publicPaths`, so Shopify
+      webhooks are still blocked. The addendum's "Fixed — Awaiting Verification" is wrong; the
+      finding is open and release-blocking.
+    - **M11 is worse than reported.** No admin page calls `requireSuperAdmin()` — the report
+      credits `admin/users/page.tsx` with two guards. Authorization rests entirely on the layout.
+    - **Event count is 89, not 88** (23 subscribed).
+    - §6.2's "Webhook route reachability ❌ Fail" is correct where §4's H9 addendum is not.
+  - Recorded proposed defaults for every blocking product decision (Q1–Q6) so implementation is
+    never stalled waiting for an answer.
 
 - **Follow-up to TASK-0007 + TASK-0012 — Close remaining gaps identified in the line-by-line audit:**
   - Persisted marketing-insights domain (`MediaPost`, `MediaInsight`, `AccountInsight`, `TrendSnapshot`, `ContentRecommendation`, `Report`) with Prisma migration `20260729094742_add_marketing_insights_tables`.
