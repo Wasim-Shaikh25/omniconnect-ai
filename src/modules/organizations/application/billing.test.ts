@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, beforeEach } from "vitest";
+import type { Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import { Plan } from "../domain/plan";
@@ -33,7 +34,10 @@ class FakeOrganizationRepository implements OrganizationRepository {
     return this.orgs.get(id) ?? null;
   }
 
-  async findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null> {
+  async findBySubscriptionId(
+    subscriptionId: string,
+    _tx?: Prisma.TransactionClient,
+  ): Promise<OrganizationRecord | null> {
     return Array.from(this.orgs.values()).find((o) => o.subscriptionId === subscriptionId) ?? null;
   }
 
@@ -54,6 +58,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
   async updatePlan(
     id: string,
     input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
+    _tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
     const org = this.orgs.get(id);
     if (!org) return null;
@@ -107,7 +112,7 @@ class FakeSaaSCouponRepository implements SaaSCouponRepository {
     return coupon;
   }
 
-  async findByCode(code: string) {
+  async findByCode(code: string, _tx?: Prisma.TransactionClient) {
     return Array.from(this.coupons.values()).find((c) => c.code === code) ?? null;
   }
 
@@ -119,7 +124,7 @@ class FakeSaaSCouponRepository implements SaaSCouponRepository {
     return { items: Array.from(this.coupons.values()), total: this.coupons.size, page: 1, limit: 10, totalPages: 1 };
   }
 
-  async incrementUsage(id: string, _maxUses: number | null): Promise<boolean> {
+  async incrementUsage(id: string, _maxUses: number | null, _tx?: Prisma.TransactionClient): Promise<boolean> {
     const coupon = this.coupons.get(id);
     if (!coupon) return false;
     coupon.usedCount += 1;
@@ -154,11 +159,18 @@ class FakeSaaSCouponRepository implements SaaSCouponRepository {
 class FakeProcessedEventsRepository implements ProcessedEventsRepository {
   private events = new Set<string>();
 
-  async record(input: { id: string; provider: string; type: string }): Promise<{ recorded: boolean }> {
+  async record(
+    input: { id: string; provider: string; type: string },
+    _tx?: Prisma.TransactionClient,
+  ): Promise<{ recorded: boolean }> {
     const key = `${input.provider}:${input.id}:${input.type}`;
     if (this.events.has(key)) return { recorded: false };
     this.events.add(key);
     return { recorded: true };
+  }
+
+  async runInTransaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+    return fn(undefined as unknown as Prisma.TransactionClient);
   }
 
   has(input: { id: string; provider: string; type: string }): boolean {

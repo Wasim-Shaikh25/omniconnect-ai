@@ -761,7 +761,7 @@ grep -rn "planLimits(" src/modules
 
 ## 5. Acceptance Criteria
 
-- [ ] All acceptance criteria in `REQ-0067` §7 are met. *(FALSE — H5.6, H2 transactional fulfillment, and route-level tests remain open; H7 cart-sweep atomicity is fixed.)*
+- [ ] All acceptance criteria in `REQ-0067` §7 are met. *(FALSE — H5.6 delete-site inventory and route-level export tests remain open; H2/H7 transactionality is fixed.)*
 - [ ] Every regression test was observed failing against pre-fix code and passing after. *(FALSE — route-level export tests and a transactional webhook ledger test are still missing.)*
 - [x] `npm run lint` passes with `--max-warnings=0`.
 - [x] `npm run typecheck` passes with no `any` and no `@ts-ignore` introduced.
@@ -787,7 +787,7 @@ grep -rn "planLimits(" src/modules
   2, 3, 4 are independent and safe to land first as a hotfix set.
 
 ## 7. Subtasks raised by 2026-08-01 checkbox audit
-- [ ] **H2.8** Wrap `ProcessedWebhookEvent.record` + fulfillment side effects in one Prisma transaction or row-lock so a crash mid-fulfillment cannot lose the update while marking the event processed.
+- [x] **H2.8** Wrap `ProcessedWebhookEvent.record` + fulfillment side effects in one Prisma transaction or row-lock so a crash mid-fulfillment cannot lose the update while marking the event processed.
 - [ ] **H5.6** Complete the `prisma.*.delete(` / `deleteMany(` call-site inventory for all modules; record tenant scoping and honest-naming decisions in §6.
 - [x] **H7.8** Make the abandoned-cart sweep atomic: update `notifiedAt` and publish `AbandonedCartDetected` inside one transaction with a row lock, or use an `UPDATE ... WHERE notifiedAt IS NULL` returning affected rows.
 - [ ] **H4.5** Add route-level integration tests for `/api/export/[id]`: stale `tokenVersion` → `401`; soft-deleted user → `401`; cross-user export id → `404`.

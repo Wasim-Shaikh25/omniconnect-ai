@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import { logger } from "@/shared/observability";
 import { PaginationInput, paginatedResult, toSkip } from "@/shared/kernel";
@@ -36,8 +37,12 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     return org ? mapOrg(org) : null;
   }
 
-  async findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null> {
-    const org = await prisma.organization.findUnique({ where: { subscriptionId } });
+  async findBySubscriptionId(
+    subscriptionId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<OrganizationRecord | null> {
+    const client = tx ?? prisma;
+    const org = await client.organization.findUnique({ where: { subscriptionId } });
     return org ? mapOrg(org) : null;
   }
 
@@ -61,11 +66,13 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
   async updatePlan(
     id: string,
     input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
+    tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
+    const client = tx ?? prisma;
     const data: Record<string, unknown> = { plan: input.plan };
     if (input.subscriptionId !== undefined) data.subscriptionId = input.subscriptionId;
     if (input.subscriptionStatus !== undefined) data.subscriptionStatus = input.subscriptionStatus;
-    const org = await prisma.organization.update({ where: { id }, data });
+    const org = await client.organization.update({ where: { id }, data });
     return mapOrg(org);
   }
 

@@ -16,14 +16,25 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - H7 — make abandoned-cart sweep atomic (`cart.repository.ts` `markNotified` now returns `boolean` from `UPDATE ... WHERE notifiedAt IS NULL`); sweep skips publishing when another process already marked the cart.
-  - H2 — wrap `ProcessedWebhookEvent.record` + Stripe fulfillment side effects in one Prisma transaction so a crash mid-fulfillment cannot lose the update while marking the event processed.
+  - H5.6 — complete the `prisma.*.delete(` / `deleteMany(` inventory across modules and record tenant-scoping decisions.
+  - S2/S5 — add action-level and admin-route guard census tests.
+  - T4/T9/T10 — add route-level tests for `/api/auth/session` and `/api/export/[id]`.
+  - M6 — set `typescript: true` in Stripe client config.
+  - L5 — set `auto_stop_machines = "off"` in `fly.toml`.
 
 ### ⏭️ Next
 
-- Continue closing audit gaps: H2 transactional webhook fulfillment, H5.6 delete-site inventory, S2/S5 action/admin census tests, T4/T9/T10 route-level tests, M6 `typescript: true`, L5 `auto_stop_machines`.
+- Continue with remaining audit gaps; update `REQ-0067/0074` trackers and add regression tests where missing.
 
 ### ✅ Done
+
+- **Audit gap closure — H2/H7 transactional boundaries:**
+  - `ProcessedWebhookEvent.record` + Stripe `fulfillCheckout` side effects now run inside one
+    `prisma.$transaction` via `runInTransaction` on the repository. A crash mid-fulfillment
+    aborts the transaction, leaving the event unrecorded so Stripe retries safely.
+  - `CartRepository.markNotified` now uses `updateMany({ where: { id, notifiedAt: null } })` and
+    returns `boolean`; `AbandonedCartSweep` skips `eventBus.publish` when another process already
+    marked the cart, preventing duplicate `AbandonedCartDetected` events.
 
 - **REQ-0075 Packages A, B, C, G6, H — Release-engineering foundation:**
   - Fixed `Dockerfile` runner stage so `npx prisma migrate deploy` works inside the image.

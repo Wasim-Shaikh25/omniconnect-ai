@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect } from "vitest";
+import type { Prisma } from "@prisma/client";
 import type {
   CreateInviteInput,
   CreateInviteResult,
@@ -31,7 +33,10 @@ class InMemoryOrganizations implements OrganizationRepository {
     return Promise.resolve(this.orgs.get(id) ?? null);
   }
 
-  findBySubscriptionId(): Promise<OrganizationRecord | null> {
+  findBySubscriptionId(
+    _subscriptionId?: string,
+    _tx?: Prisma.TransactionClient,
+  ): Promise<OrganizationRecord | null> {
     return Promise.resolve(null);
   }
 
@@ -39,7 +44,11 @@ class InMemoryOrganizations implements OrganizationRepository {
     throw new Error("not implemented");
   }
 
-  updatePlan(): Promise<OrganizationRecord | null> {
+  updatePlan(
+    _id?: string,
+    _input?: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
+    _tx?: Prisma.TransactionClient,
+  ): Promise<OrganizationRecord | null> {
     throw new Error("not implemented");
   }
 

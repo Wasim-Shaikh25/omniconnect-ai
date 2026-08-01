@@ -162,7 +162,8 @@ founder disagrees, update this section and the linked task before coding.
 - [x] Delivering the same `checkout.session.completed` twice updates the plan once and increments
       `SaaSCoupon.usedCount` exactly once.
 - [x] Two *different* events are both processed.
-- [ ] Concurrent duplicate delivery results in exactly one fulfillment. *(PARTIAL — record and fulfillment are not in the same transaction/lock; see audit subtask.)*
+- [x] Concurrent duplicate delivery results in exactly one fulfillment. `ProcessedWebhookEvent.record`
+      and the Stripe fulfillment side effects run inside the same `prisma.$transaction`.
 - [x] A retention job prunes `ProcessedWebhookEvent` rows older than 30 days.
 
 ### H3 — Subscription lifecycle

@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import { logger } from "@/shared/observability";
@@ -63,162 +64,224 @@ export function makeBillingService(deps: {
       }
       const event = rawEvent as Stripe.Event;
 
-      // Stripe delivers at least once and retries for 3 days. Record first;
-      // a unique-constraint violation means the event was already fulfilled.
-      const recorded = await deps.processedEvents.record({
-        id: event.id,
-        provider: "stripe",
-        type: event.type,
-      });
-      if (!recorded.recorded) {
-        logger.info("stripe.webhook.duplicate", { eventId: event.id, type: event.type });
-        return;
-      }
-
-      switch (event.type) {
-        case "checkout.session.completed": {
-          const session = event.data.object as Stripe.Checkout.Session;
-          if (session.payment_status !== "paid") {
-            logger.info("stripe.checkout.unpaid", {
-              sessionId: session.id,
-              status: session.status,
-              paymentStatus: session.payment_status,
-            });
+      try {
+        await deps.processedEvents.runInTransaction(async (tx) => {
+          // Stripe delivers at least once and retries for 3 days. Record first inside
+          // the transaction; a unique-constraint violation aborts the whole transaction
+          // and is caught below as a duplicate.
+          const recorded = await deps.processedEvents.record(
+            {
+              id: event.id,
+              provider: "stripe",
+              type: event.type,
+            },
+            tx,
+          );
+          if (!recorded.recorded) {
+            // This branch is reachable when the repository does not throw on duplicates
+            // (e.g. in-memory fakes or a non-transactional caller).
             return;
           }
 
-          const metadata = session.metadata ?? {};
-          const organizationId = metadata.organizationId ?? session.client_reference_id;
-          const plan = metadata.plan;
-          const subscriptionId =
-            typeof session.subscription === "string" ? session.subscription : undefined;
+          switch (event.type) {
+            case "checkout.session.completed": {
+              const session = event.data.object as Stripe.Checkout.Session;
+              if (session.payment_status !== "paid") {
+                logger.info("stripe.checkout.unpaid", {
+                  sessionId: session.id,
+                  status: session.status,
+                  paymentStatus: session.payment_status,
+                });
+                return;
+              }
 
-          if (!organizationId || !plan || !isPlan(plan)) {
-            logger.error("stripe.checkout.missingMetadata", {
-              sessionId: session.id,
-              organizationId,
-              plan,
-            });
-            return;
+              const metadata = session.metadata ?? {};
+              const organizationId = metadata.organizationId ?? session.client_reference_id;
+              const plan = metadata.plan;
+              const subscriptionId =
+                typeof session.subscription === "string" ? session.subscription : undefined;
+
+              if (!organizationId || !plan || !isPlan(plan)) {
+                logger.error("stripe.checkout.missingMetadata", {
+                  sessionId: session.id,
+                  organizationId,
+                  plan,
+                });
+                return;
+              }
+
+              await deps.organizations.updatePlan(
+                organizationId,
+                {
+                  plan,
+                  subscriptionId,
+                  subscriptionStatus: "active",
+                },
+                tx,
+              );
+
+              const couponCode = metadata.couponCode;
+              if (couponCode) {
+                await incrementCouponUsage(deps.coupons, couponCode, tx);
+              }
+
+              logger.info("stripe.checkout.fulfilled", {
+                organizationId,
+                plan,
+                subscriptionId,
+              });
+              return;
+            }
+
+            case "customer.subscription.created":
+            case "customer.subscription.updated": {
+              const subscription = event.data.object as Stripe.Subscription;
+              const metadata = subscription.metadata ?? {};
+              const organizationId = metadata.organizationId;
+              if (!organizationId) {
+                logger.error("stripe.subscription.missingMetadata", {
+                  subscriptionId: subscription.id,
+                });
+                return;
+              }
+
+              const priceId = subscription.items.data[0]?.price.id;
+              const pricePlan = planFromPriceId(priceId);
+              const existingOrg = await findOrganizationBySubscriptionId(
+                deps.organizations,
+                subscription.id,
+                tx,
+              );
+
+              // An unknown price must not silently downgrade. Keep the current plan
+              // when the price is not in the catalog.
+              const basePlan = pricePlan ?? existingOrg?.plan ?? Plan.FREE;
+              const entitledPlan = RETAINED_STATUSES.has(subscription.status)
+                ? basePlan
+                : Plan.FREE;
+
+              await deps.organizations.updatePlan(
+                organizationId,
+                {
+                  plan: entitledPlan,
+                  subscriptionId: subscription.id,
+                  subscriptionStatus: subscription.status,
+                },
+                tx,
+              );
+              logger.info("stripe.subscription.synced", {
+                organizationId,
+                plan: entitledPlan,
+                status: subscription.status,
+                subscriptionId: subscription.id,
+              });
+              return;
+            }
+
+            case "invoice.paid":
+            case "invoice.payment_succeeded": {
+              // Stripe dunning recovered the payment. Clear past_due back to active
+              // while preserving the plan the organization already had.
+              const invoice = event.data.object as Stripe.Invoice;
+              const subscriptionId = resolveSubscriptionId(invoice);
+              if (!subscriptionId) {
+                logger.error("stripe.invoice.missingSubscription", { invoiceId: invoice.id });
+                return;
+              }
+              const org = await findOrganizationBySubscriptionId(
+                deps.organizations,
+                subscriptionId,
+                tx,
+              );
+              if (!org) return;
+              await deps.organizations.updatePlan(
+                org.id,
+                {
+                  plan: org.plan,
+                  subscriptionId,
+                  subscriptionStatus: "active",
+                },
+                tx,
+              );
+              logger.info("stripe.invoice.paymentSucceeded", {
+                organizationId: org.id,
+                subscriptionId,
+              });
+              return;
+            }
+
+            case "customer.subscription.deleted": {
+              const subscription = event.data.object as Stripe.Subscription;
+              const metadata = subscription.metadata ?? {};
+              const organizationId = metadata.organizationId;
+              if (!organizationId) {
+                logger.error("stripe.subscription.missingMetadata", {
+                  subscriptionId: subscription.id,
+                });
+                return;
+              }
+              await deps.organizations.updatePlan(
+                organizationId,
+                {
+                  plan: Plan.FREE,
+                  subscriptionId: subscription.id,
+                  subscriptionStatus: "canceled",
+                },
+                tx,
+              );
+              logger.info("stripe.subscription.canceled", {
+                organizationId,
+                subscriptionId: subscription.id,
+              });
+              return;
+            }
+
+            case "invoice.payment_failed": {
+              const invoice = event.data.object as Stripe.Invoice;
+              const subscriptionId =
+                typeof invoice.subscription === "string" ? invoice.subscription : undefined;
+              if (!subscriptionId) {
+                logger.error("stripe.invoice.missingSubscription", { invoiceId: invoice.id });
+                return;
+              }
+              // Mark the organization as past_due while preserving the current plan.
+              const org = await findOrganizationBySubscriptionId(
+                deps.organizations,
+                subscriptionId,
+                tx,
+              );
+              if (org) {
+                await deps.organizations.updatePlan(
+                  org.id,
+                  {
+                    plan: org.plan,
+                    subscriptionId,
+                    subscriptionStatus: "past_due",
+                  },
+                  tx,
+                );
+                logger.info("stripe.invoice.pastDue", {
+                  organizationId: org.id,
+                  subscriptionId,
+                });
+              }
+              return;
+            }
+
+            default:
+              logger.info("stripe.webhook.unhandled", { type: event.type });
+              return;
           }
-
-          await deps.organizations.updatePlan(organizationId, {
-            plan,
-            subscriptionId,
-            subscriptionStatus: "active",
-          });
-
-          const couponCode = metadata.couponCode;
-          if (couponCode) {
-            await incrementCouponUsage(deps.coupons, couponCode);
-          }
-
-          logger.info("stripe.checkout.fulfilled", { organizationId, plan, subscriptionId });
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
+          logger.info("stripe.webhook.duplicate", { eventId: event.id, type: event.type });
           return;
         }
-
-        case "customer.subscription.created":
-        case "customer.subscription.updated": {
-          const subscription = event.data.object as Stripe.Subscription;
-          const metadata = subscription.metadata ?? {};
-          const organizationId = metadata.organizationId;
-          if (!organizationId) {
-            logger.error("stripe.subscription.missingMetadata", {
-              subscriptionId: subscription.id,
-            });
-            return;
-          }
-
-          const priceId = subscription.items.data[0]?.price.id;
-          const pricePlan = planFromPriceId(priceId);
-          const existingOrg = await deps.organizations.findBySubscriptionId(subscription.id);
-
-          // An unknown price must not silently downgrade. Keep the current plan
-          // when the price is not in the catalog.
-          const basePlan = pricePlan ?? existingOrg?.plan ?? Plan.FREE;
-          const entitledPlan = RETAINED_STATUSES.has(subscription.status)
-            ? basePlan
-            : Plan.FREE;
-
-          await deps.organizations.updatePlan(organizationId, {
-            plan: entitledPlan,
-            subscriptionId: subscription.id,
-            subscriptionStatus: subscription.status,
-          });
-          logger.info("stripe.subscription.synced", {
-            organizationId,
-            plan: entitledPlan,
-            status: subscription.status,
-            subscriptionId: subscription.id,
-          });
-          return;
-        }
-
-        case "invoice.paid":
-        case "invoice.payment_succeeded": {
-          // Stripe dunning recovered the payment. Clear past_due back to active
-          // while preserving the plan the organization already had.
-          const invoice = event.data.object as Stripe.Invoice;
-          const subscriptionId = resolveSubscriptionId(invoice);
-          if (!subscriptionId) {
-            logger.error("stripe.invoice.missingSubscription", { invoiceId: invoice.id });
-            return;
-          }
-          const org = await findOrganizationBySubscriptionId(deps.organizations, subscriptionId);
-          if (!org) return;
-          await deps.organizations.updatePlan(org.id, {
-            plan: org.plan,
-            subscriptionId,
-            subscriptionStatus: "active",
-          });
-          logger.info("stripe.invoice.paymentSucceeded", {
-            organizationId: org.id,
-            subscriptionId,
-          });
-          return;
-        }
-
-        case "customer.subscription.deleted": {
-          const subscription = event.data.object as Stripe.Subscription;
-          const metadata = subscription.metadata ?? {};
-          const organizationId = metadata.organizationId;
-          if (!organizationId) {
-            logger.error("stripe.subscription.missingMetadata", { subscriptionId: subscription.id });
-            return;
-          }
-          await deps.organizations.updatePlan(organizationId, {
-            plan: Plan.FREE,
-            subscriptionId: subscription.id,
-            subscriptionStatus: "canceled",
-          });
-          logger.info("stripe.subscription.canceled", { organizationId, subscriptionId: subscription.id });
-          return;
-        }
-
-        case "invoice.payment_failed": {
-          const invoice = event.data.object as Stripe.Invoice;
-          const subscriptionId =
-            typeof invoice.subscription === "string" ? invoice.subscription : undefined;
-          if (!subscriptionId) {
-            logger.error("stripe.invoice.missingSubscription", { invoiceId: invoice.id });
-            return;
-          }
-          // Mark the organization as past_due while preserving the current plan.
-          const org = await findOrganizationBySubscriptionId(deps.organizations, subscriptionId);
-          if (org) {
-            await deps.organizations.updatePlan(org.id, {
-              plan: org.plan,
-              subscriptionId,
-              subscriptionStatus: "past_due",
-            });
-            logger.info("stripe.invoice.pastDue", { organizationId: org.id, subscriptionId });
-          }
-          return;
-        }
-
-        default:
-          logger.info("stripe.webhook.unhandled", { type: event.type });
-          return;
+        throw error;
       }
     },
   };
@@ -241,12 +304,13 @@ function resolveSubscriptionId(invoice: Stripe.Invoice): string | undefined {
 async function incrementCouponUsage(
   coupons: SaaSCouponRepository,
   code: string,
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
   try {
-    const coupon = await coupons.findByCode(code);
+    const coupon = await coupons.findByCode(code, tx);
     if (!coupon || !coupon.isActive) return;
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) return;
-    const incremented = await coupons.incrementUsage(coupon.id, coupon.maxUses);
+    const incremented = await coupons.incrementUsage(coupon.id, coupon.maxUses, tx);
     if (!incremented) {
       logger.warn("saasCoupon.usageLimitReached", { code, couponId: coupon.id });
       return;
@@ -263,7 +327,8 @@ async function incrementCouponUsage(
 async function findOrganizationBySubscriptionId(
   organizations: OrganizationRepository,
   subscriptionId: string,
+  tx?: Prisma.TransactionClient,
 ): Promise<{ id: string; plan: Plan } | null> {
-  const org = await organizations.findBySubscriptionId(subscriptionId);
+  const org = await organizations.findBySubscriptionId(subscriptionId, tx);
   return org ? { id: org.id, plan: org.plan } : null;
 }
