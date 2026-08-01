@@ -177,6 +177,17 @@ Rotate these credentials immediately if compromise is suspected:
 
 After rotating `ENCRYPTION_KEY`, existing encrypted `Integration` tokens must be re-entered by users unless a re-encryption job is run.
 
+### Rotating `ENCRYPTION_KEY`
+
+1. Generate a new key: `openssl rand -base64 48`.
+2. Set `ENCRYPTION_KEY_PREVIOUS` to the current `ENCRYPTION_KEY` value.
+3. Set `ENCRYPTION_KEY` to the new key.
+4. Deploy the new environment.
+5. Run `npx tsx scripts/reencrypt-credentials.ts` against the production database. The script decrypts each `Integration.accessToken` / `refreshToken` with either the current or previous key and re-encrypts it with the current `ENCRYPTION_KEY` using HKDF (`enc:v2:`).
+6. Verify the script reports `failed: 0`.
+7. Unset `ENCRYPTION_KEY_PREVIOUS` and deploy again.
+8. After 2026-09-01, the plaintext-passthrough branch in `decryptString` is removed; all stored tokens must be encrypted by then.
+
 ## Common commands
 
 ```bash
