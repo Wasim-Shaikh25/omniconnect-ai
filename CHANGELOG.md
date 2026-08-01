@@ -113,7 +113,7 @@ All notable changes to **OmniConnect AI** are documented here.
   - Whitelisted `/api/shopify/webhooks` in the NextAuth middleware `publicPaths` so Shopify
     webhooks reach HMAC verification instead of being redirected to `/login`.
 
-- **REQ-0074 Package C/D — integration test harness and session revocation regression tests:**
+- **REQ-0074 Package C — integration test harness and session revocation regression tests:**
   - Added `src/test/fixtures.ts` with `createTenant`, `createSuperAdmin`, and `bcrypt`-hashed passwords.
   - Added `src/test/reset.ts` with a `resetDatabase` helper that truncates all non-migration tables using `TRUNCATE ... CASCADE`.
   - Added `src/test/session.ts` with `actingAs` and `requestWithSession` helpers that encode a valid `authjs.session-token` JWT for integration tests.
@@ -121,6 +121,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Configured `vitest.integration.config.ts` to use `pool: "forks"` with `singleFork: true` so DB-dependent integration tests run serially and avoid `resetDatabase` deadlocks.
   - Added `src/modules/auth/infrastructure/session.integration.test.ts` covering T9 (stale `tokenVersion` revokes the session) and T10 (soft-deleted user cannot act).
   - Recorded the unit-test coverage baseline: **6.37% statements, 59.49% branches, 50% functions, 6.37% lines**.
+
+- **REQ-0074 Package D — Tier 2 security invariant regression tests:**
+  - Added `src/modules/organizations/application/tenant.integration.test.ts` covering `tenantGuard.assertStoreAccess` and `assertOrganizationAccess`.
+  - Verified S1/S2 cross-tenant isolation: an owner from tenant A cannot access or mutate a store in tenant B.
+  - Verified S3 `STAFF` store pinning: staff can only access their assigned store.
+  - Verified S4 owner-only scope: staff cannot access other stores within the same organization.
 
 - **REQ-0067 H6 + H7 — durable event delivery and abandoned-cart correctness:**
   - Added `eventId` to `DomainEvent` and all publishers; `BaseDomainEvent` defaults to `${aggregateId}-${randomId()}`.

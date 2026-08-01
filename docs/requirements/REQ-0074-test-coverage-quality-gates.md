@@ -110,7 +110,9 @@ This requirement establishes the safety net that makes every other requirement's
       on regression.
 - [x] The coverage summary is visible in the CI job output.
 - [ ] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
+  - T9/T10 session revocation verified.
 - [ ] All 11 Tier 2 tests exist and pass.
+  - S1–S4 tenant-guard isolation verified as guard-level regression tests.
 - [x] `npm audit --audit-level=moderate` runs in CI and fails the build on a finding.
 - [x] Secret scanning runs on every pull request.
 - [x] The CI smoke test asserts: `/api/health` 200, `/api/auth/session` 200,
@@ -120,7 +122,7 @@ This requirement establishes the safety net that makes every other requirement's
 - [x] A documented way to run the full suite locally exists in `AGENTS.md` or
       `.agents/skills/testing-omniconnect-ai/SKILL.md`, including the Docker commands for Postgres
       and Redis.
-- [ ] Test helpers exist for the repeated setup: two isolated tenants, a super admin, an
+- [x] Test helpers exist for the repeated setup: two isolated tenants, a super admin, an
       authenticated request, and a signed webhook payload per provider.
 - [x] No test is weakened or skipped to make CI pass (`AGENTS.md` §3).
 - [x] Flaky tests are fixed or quarantined with a linked issue, never left failing intermittently.

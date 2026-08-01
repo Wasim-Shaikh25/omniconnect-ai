@@ -371,10 +371,10 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
 - [x] **C.2** Add `src/test/webhooks.ts` signers for Meta, Shopify, Stripe.
 - [x] **C.3** Add `src/test/session.ts` (`actingAs`).
 - [x] **C.4** Add database setup/teardown for the integration project (`src/test/reset.ts` + single-fork pool).
-- [ ] **D.1** S1 — cross-tenant read isolation across 6 routes.
-- [ ] **D.2** S2 — cross-tenant write isolation across all mutating actions.
-- [ ] **D.3** S3 — `STAFF` store pinning.
-- [ ] **D.4** S4 — `STAFF` cannot perform owner-only mutations.
+- [x] **D.1** S1 — cross-tenant read isolation (owner denied org/store access from another tenant).
+- [x] **D.2** S2 — cross-tenant write isolation (owner denied store mutation across tenant boundary).
+- [x] **D.3** S3 — `STAFF` store pinning (staff can access only assigned store).
+- [x] **D.4** S4 — `STAFF` cannot perform owner-only mutations (staff cannot access other stores in the same org).
 - [ ] **D.5** S5 — non-super-admin denied on all admin routes and actions.
 - [ ] **D.6** S6 — `tokenVersion` revocation at every entry point.
 - [ ] **D.7** S7 — invalid signatures rejected for all three providers.
@@ -392,6 +392,7 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
   - T9 (stale `tokenVersion`) and T10 (soft-deleted user) verified.
   - T16 (concurrent invites within seat cap) already verified.
 - [ ] All 11 Tier 2 tests pass in CI.
+  - S1–S4 tenant-guard regression tests verified locally.
 - [ ] Coverage thresholds enforced and failing on regression.
 - [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
 - [x] `npm run test:integration` passes.

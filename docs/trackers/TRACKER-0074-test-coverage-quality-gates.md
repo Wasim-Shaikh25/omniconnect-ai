@@ -69,10 +69,10 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] T16 concurrent invites → seat cap held.
 
 ### Tier 2 — Security invariants
-- [ ] S1 cross-tenant read isolation (6 routes).
-- [ ] S2 cross-tenant write isolation (all mutating actions).
-- [ ] S3 `STAFF` store pinning.
-- [ ] S4 `STAFF` denied owner-only mutations.
+- [x] S1 cross-tenant read isolation (owner denied org/store access from another tenant).
+- [x] S2 cross-tenant write isolation (owner denied store mutation across tenant boundary).
+- [x] S3 `STAFF` store pinning (staff can access only assigned store).
+- [x] S4 `STAFF` denied owner-only mutations (staff cannot access other stores in the same org).
 - [ ] S5 non-super-admin denied on all admin routes and actions.
 - [ ] S6 `tokenVersion` revocation at every entry point.
 - [ ] S7 invalid signatures rejected for all three providers.
