@@ -1,6 +1,6 @@
 # TRACKER-0074: Test Coverage and CI Quality Gates
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** All engineering
 - **Requirement:** `docs/requirements/REQ-0074-test-coverage-quality-gates.md`
 - **Task:** `docs/tasks/TASK-0074-test-coverage-quality-gates.md`
@@ -17,20 +17,20 @@ where `REDIS_URL` is set but no Redis service exists.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement reviewed and approved.
-- [ ] Decided: separate integration Vitest project (default: yes).
-- [ ] Decided: secret-scanning tool (default: gitleaks).
-- [ ] Branch created from `main`.
+- [x] Requirement reviewed and approved.
+- [x] Decided: separate integration Vitest project (default: yes).
+- [x] Decided: secret-scanning tool (default: gitleaks).
+- [x] Branch created from `main`.
 
 ### Package A — CI infrastructure *(land first, standalone)*
-- [ ] `redis:7-alpine` service added with a health check.
-- [ ] `npm audit --audit-level=moderate` added as a CI step.
-- [ ] Secret scanning added on pull requests.
-- [ ] Smoke test asserts `/api/health` 200.
-- [ ] Smoke test asserts `/api/auth/session` 200 (C1).
-- [ ] Smoke test asserts `/api/ready` 200.
-- [ ] Smoke test asserts `POST /api/shopify/webhooks` is not 3xx (H9).
-- [ ] A Redis-dependent test verified green in CI.
+- [x] `redis:7-alpine` service added with a health check.
+- [x] `npm audit --audit-level=moderate` added as a CI step.
+- [x] Secret scanning added on pull requests.
+- [x] Smoke test asserts `/api/health` 200.
+- [x] Smoke test asserts `/api/auth/session` 200 (C1).
+- [x] Smoke test asserts `/api/ready` 200.
+- [x] Smoke test asserts `POST /api/shopify/webhooks` is not 3xx (H9).
+- [x] A Redis-dependent test verified green in CI.
 
 ### Package B — Coverage tooling
 - [ ] `@vitest/coverage-v8` installed.
@@ -83,15 +83,15 @@ where `REDIS_URL` is set but no Redis service exists.
 - [ ] `AGENTS.md` records the "new mutating action requires a cross-tenant test row" rule.
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
 - [ ] `npm run test:integration` passes.
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` passes.
-- [ ] `npm run build:worker` passes.
-- [ ] No test weakened or skipped to make CI pass.
-- [ ] No flaky tests left failing intermittently.
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` passes.
+- [x] `npm run build:worker` passes.
+- [x] No test weakened or skipped to make CI pass.
+- [x] No flaky tests left failing intermittently.
 - [ ] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria

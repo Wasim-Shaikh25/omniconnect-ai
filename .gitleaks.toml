@@ -1,0 +1,10 @@
+title = "OmniConnect AI gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Placeholder environment template"
+paths = [
+  '''^\.env\.example$''',
+]

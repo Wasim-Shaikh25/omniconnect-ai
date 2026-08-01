@@ -227,8 +227,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 `PRODUCTION_READINESS_AUDIT.md` returned a NO-GO verdict. All 33 findings were re-verified as
 **open** at commit `33e2e0b`. The release-blocking defects are:
 
-- **C1** — NextAuth `trustHost` is unset, so authentication returns HTTP 500 on the documented
-  Fly.io/Docker deployment path.
+- **C1** — `trustHost` is now set from `AUTH_TRUST_HOST` (default `true` off Vercel) and the
+  `redirect` callback enforces same-origin against `APP_URL`; the CI smoke test asserts
+  `/api/auth/session` returns `200` on the standalone build.
 - **C2** — `RedisEventBus.publish()` dispatches locally *and* re-receives its own Pub/Sub message,
   so every event runs twice on the publishing instance (duplicate AI replies, duplicate coupons,
   doubled OpenAI spend).
@@ -241,13 +242,14 @@ Core tables (see `prisma/schema.prisma` for full model):
 - **H5** — `archiveProject` hard-deletes and cascades to `ProjectMember`.
 - **H6/H7** — event delivery has no durability, retry, or dead-letter path; abandoned-cart events
   fire on every cart edit and have no subscriber.
-- **H9** — `/api/shopify/webhooks` is absent from `publicPaths`, so Shopify webhooks are redirected
-  to `/login` before HMAC verification. *(The audit's §4 addendum reports this as fixed; it is not —
-  see the corrections table in the remediation index.)*
+- **H9** — `/api/shopify/webhooks` is now in `publicPaths`, so anonymous Shopify webhooks reach
+  HMAC verification; the CI smoke test asserts the route does not return `3xx`.
 - **H10** — the plan seat limit is read and enforced outside a transaction, so concurrent invites
   can exceed the cap.
-- **H8** — 43 tests across 524 source files, with zero coverage of auth, the tenant guard, RBAC,
-  billing, webhooks, or the event bus. CI sets `REDIS_URL` but provisions no Redis service.
+- **H8** — Package A addressed: `redis:7-alpine` is now a CI service, `npm audit` and gitleaks
+  secret scanning run in CI, and the smoke test covers `/api/health`, `/api/auth/session`,
+  `/api/ready`, and `POST /api/shopify/webhooks`. A Redis ping test is added; Tier 1–2 regression
+  suites are still pending.
 
 Remediation is planned across `REQ-0067` … `REQ-0075`. The complete finding-to-requirement
 traceability map is `docs/audit/2026-07-31-remediation-index.md`.

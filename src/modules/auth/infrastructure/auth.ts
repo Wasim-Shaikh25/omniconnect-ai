@@ -152,6 +152,9 @@ export const authConfig: NextAuthConfig = {
   adapter: EncryptedPrismaAdapter(prisma),
   session: { strategy: "jwt" },
   secret: env.NEXTAUTH_SECRET,
+  // Auth.js v5 only auto-trusts on Vercel; on Fly.io/Docker the Host header
+  // must be trusted or every /api/auth/* route returns 500 UntrustedHost.
+  trustHost: env.AUTH_TRUST_HOST,
   pages: { signIn: "/login" },
   providers,
   callbacks: {
@@ -210,6 +213,14 @@ export const authConfig: NextAuthConfig = {
       }
       return session;
     },
+    redirect({ url, baseUrl }) {
+      // Only same-origin redirects; a spoofed Host must not steer the callback.
+      const canonical = new URL(env.APP_URL ?? baseUrl);
+      const target = new URL(url, canonical);
+      return target.origin === canonical.origin
+        ? target.toString()
+        : canonical.toString();
+    },
     authorized({ request, auth }) {
       const { pathname } = request.nextUrl;
       const publicPaths = [
@@ -223,6 +234,7 @@ export const authConfig: NextAuthConfig = {
         "/api/auth",
         "/api/meta/webhook",
         "/api/stripe/webhook",
+        "/api/shopify/webhooks", // Shopify signs with HMAC; the route verifies before any side effect.
         "/api/health",
         "/api/ready",
         "/_next",

@@ -18,6 +18,12 @@ const envSchema = z.object({
 
   NEXTAUTH_SECRET: z.string().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
+  // Auth.js v5 cannot infer a trusted host behind Fly.io/Docker/nginx;
+  // default true so proxy deployments do not return UntrustedHost.
+  AUTH_TRUST_HOST: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   FACEBOOK_CLIENT_ID: z.string().optional(),
@@ -85,6 +91,7 @@ const PRODUCTION_REQUIRED: Array<keyof Env> = [
   "REDIS_URL",
   "NEXTAUTH_SECRET",
   "NEXTAUTH_URL",
+  "AUTH_TRUST_HOST",
   "APP_URL",
   "ENCRYPTION_KEY",
   "META_APP_ID",

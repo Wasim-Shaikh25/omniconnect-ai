@@ -169,6 +169,7 @@ production needs:
 | `REDIS_URL` | Redis connection string |
 | `NEXTAUTH_SECRET` | Random secret for JWT signing |
 | `NEXTAUTH_URL` | Public app URL |
+| `AUTH_TRUST_HOST` | `true` off Vercel so Auth.js trusts the proxy `Host` header |
 | `OPENAI_API_KEY` | AI replies and content generation |
 | `META_APP_SECRET` | Webhook HMAC verification |
 | `META_WEBHOOK_VERIFY_TOKEN` | Meta webhook subscription token |
