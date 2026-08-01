@@ -1,4 +1,5 @@
 import { DomainEvent } from "@/shared/kernel";
+import { logger } from "@/shared/observability";
 
 export type EventHandler<T extends DomainEvent = DomainEvent> = (
   event: T,
@@ -25,6 +26,16 @@ export class InMemoryEventBus implements EventBus {
 
   async publish(event: DomainEvent): Promise<void> {
     const handlers = this.handlers.get(event.name) ?? [];
-    await Promise.all(handlers.map((handler) => handler(event)));
+    const results = await Promise.allSettled(
+      handlers.map((handler) => handler(event)),
+    );
+    for (const result of results) {
+      if (result.status === "rejected") {
+        logger.error("inMemoryEventBus.handlerError", {
+          eventName: event.name,
+          error: String(result.reason),
+        });
+      }
+    }
   }
 }

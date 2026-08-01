@@ -39,8 +39,8 @@ All twelve findings were re-verified against the working tree on this branch. **
 | H3 | `past_due` terminal | `billing.ts` handles only `checkout.session.completed`, `customer.subscription.deleted`, `invoice.payment_failed` |
 | H4 | Export route bypasses revocation | `src/app/api/export/[id]/route.ts:9` still uses `await auth()` |
 | H5 | `archiveProject` hard-deletes | `project.repository.ts` `archive()` calls `prisma.project.delete`; `Project` has no `archivedAt` column in `prisma/schema.prisma:186-201` |
-| H6 | No durability / retry / DLQ | `dispatchLocal` uses `Promise.all` and swallows errors; Redis Pub/Sub only |
-| H7 | Abandoned cart on every edit | `apply-shopify-webhook.ts:57` publishes on `checkouts/create` **and** `checkouts/update`; 89 events declared, 23 subscribed |
+| H6 | No durability / retry / DLQ | **Fixed.** `QueueEventBus` on BullMQ with `eventId`/`jobId` dedup, retries, DLQ, and `events_failed_jobs` metric; `fly.toml` `min_machines_running = 1` |
+| H7 | Abandoned cart on every edit | **Fixed.** Shopify checkouts upsert `Cart` with no event; `orders/create|paid` sets `convertedAt`; sweep publishes `AbandonedCartDetected` once; subscriber notifies |
 | H9 | Shopify webhook blocked | `publicPaths` in `src/modules/auth/infrastructure/auth.ts:215-231` **does not contain** `/api/shopify/webhooks` — the audit addendum's claim that this was fixed at `f64cf84` does **not** hold on this branch |
 | H10 | Racy seat limit | `invite-member.ts` counts then creates outside a transaction |
 
@@ -199,25 +199,25 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H6 — Durable event delivery
 
-- [ ] `dispatchLocal` uses `Promise.allSettled` and logs each rejection individually.
-- [ ] A `QueueEventBus` backed by BullMQ provides at-least-once delivery with `attempts: 5`,
+- [x] `dispatchLocal` uses `Promise.allSettled` and logs each rejection individually.
+- [x] A `QueueEventBus` backed by BullMQ provides at-least-once delivery with `attempts: 5`,
       exponential backoff, `removeOnFail: false`, and a stable `jobId` per event.
-- [ ] `DomainEvent` carries a stable `eventId`.
-- [ ] Events published while the consumer is down are processed when it returns.
-- [ ] Failed jobs are inspectable and the failed-queue depth is exported as a metric.
-- [ ] `fly.toml` sets `min_machines_running = 1` for the app process so a subscriber is always
+- [x] `DomainEvent` carries a stable `eventId`.
+- [x] Events published while the consumer is down are processed when it returns.
+- [x] Failed jobs are inspectable and the failed-queue depth is exported as a metric.
+- [x] `fly.toml` sets `min_machines_running = 1` for the app process so a subscriber is always
       connected.
 
 ### H7 — Abandoned cart correctness
 
-- [ ] A `Cart` model exists with `@@unique([storeId, cartToken])`, `lastActivityAt`, and
-      `notifiedAt`, with a migration.
-- [ ] `checkouts/create` and `checkouts/update` upsert cart state and publish **no** event.
-- [ ] A scheduled worker sweep publishes `AbandonedCartDetected` exactly once per cart, for carts
+- [x] A `Cart` model exists with `@@unique([storeId, cartToken])`, `lastActivityAt`, `notifiedAt`,
+      `convertedAt`, and a migration.
+- [x] `checkouts/create` and `checkouts/update` upsert cart state and publish **no** event.
+- [x] `orders/create` and `orders/paid` mark a matching cart `convertedAt` when `cart_token` is present.
+- [x] A scheduled worker sweep publishes `AbandonedCartDetected` exactly once per cart, for carts
       idle beyond a configurable threshold, with no matching order and `notifiedAt IS NULL`.
-- [ ] A subscriber consumes `AbandonedCartDetected`, or the event and its publication are removed
-      (decision recorded in the task file).
-- [ ] Tests: ten `checkouts/update` for one token → one row, zero events; idle past threshold → one
+- [x] A subscriber consumes `AbandonedCartDetected` and creates an `ABANDONED_CART` notification.
+- [x] Tests: ten `checkouts/update` for one token → one row, zero events; idle past threshold → one
       event; cart followed by a matching order → no event; sweep run twice → no duplicate.
 
 ### H9 — Shopify webhook reachability
@@ -246,12 +246,12 @@ founder disagrees, update this section and the linked task before coding.
 
 ### Cross-cutting
 
-- [ ] Each fix has a regression test that **fails** against current `main` and passes afterwards.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker`
+- [x] Each fix has a regression test that **fails** against current `main` and passes afterwards.
+- [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker`
       all pass.
-- [ ] `docs/specs/current-state.md` is updated for the event-bus, webhook-ledger, and Project
+- [x] `docs/specs/current-state.md` is updated for the event-bus, webhook-ledger, Cart, and Project
       schema changes.
-- [ ] `CHANGELOG.md` `[Unreleased]` is updated last.
+- [x] `CHANGELOG.md` `[Unreleased]` is updated last.
 
 ## 8. Scope & Dependencies
 

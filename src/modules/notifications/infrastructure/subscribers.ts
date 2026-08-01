@@ -10,13 +10,14 @@ import type {
 } from "@/modules/crm";
 import type {
   CouponGeneratedPayload,
+  AbandonedCartDetectedPayload,
 } from "@/modules/ecommerce";
 import type { EscalationRequestedPayload } from "@/modules/ai/events";
 import { notificationService } from "./container";
 import type { NotificationService } from "../application/ports";
 
-function notify(storeId: string, type: Parameters<NotificationService["notify"]>[0]["type"], title: string, body: string, payload?: unknown) {
-  return notificationService.notify({ storeId, type, title, body, payload });
+function notify(storeId: string, type: Parameters<NotificationService["notify"]>[0]["type"], title: string, body: string, payload?: unknown, dedupKey?: string) {
+  return notificationService.notify({ storeId, type, title, body, payload, dedupKey });
 }
 
 const onNewMessage: EventHandler = async (event) => {
@@ -86,6 +87,20 @@ const onAIResumed: EventHandler = async (event) => {
   );
 };
 
+const onAbandonedCartDetected: EventHandler = async (event) => {
+  const p = event.payload as AbandonedCartDetectedPayload;
+  const summary = p.lineItemTitles.slice(0, 3).join(", ");
+  const suffix = p.lineItemTitles.length > 3 ? " and more" : "";
+  await notify(
+    p.storeId,
+    "ABANDONED_CART",
+    "Abandoned cart recovered",
+    `A cart was abandoned (${summary}${suffix}). Total: ${p.totalPrice ?? "unknown"} ${p.currency ?? ""}`,
+    { cartId: p.cartId, cartToken: p.cartToken },
+    `abandoned-cart:${p.cartId}`,
+  );
+};
+
 export function registerNotificationsSubscribers(
   bus: EventBus = eventBus,
 ): void {
@@ -95,4 +110,5 @@ export function registerNotificationsSubscribers(
   bus.subscribe("EscalationRequested", onEscalationRequested);
   bus.subscribe("ConversationTakenOver", onConversationTakenOver);
   bus.subscribe("AIResumed", onAIResumed);
+  bus.subscribe("AbandonedCartDetected", onAbandonedCartDetected);
 }

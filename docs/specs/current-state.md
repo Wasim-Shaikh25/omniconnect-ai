@@ -66,7 +66,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
   - `domain/` — entities, value objects, domain events, pure business rules (no Prisma/fetch/env).
   - `infrastructure/` — Prisma repositories, external API clients, queue adapters.
 - **Repository pattern** for persistence.
-- **Event-driven** across module boundaries via the shared event bus (Redis-backed in production, in-memory in dev).
+- **Event-driven** across module boundaries via the shared event bus. Client builds use a no-op in-memory bus; the server installs a durable `QueueEventBus` backed by BullMQ (or an in-memory fallback when Redis is unavailable). Events carry a stable `eventId` and are deduplicated by BullMQ `jobId`.
 - **Provider/connector extensibility:** e-commerce (`EcommerceConnector`) and AI (`AIProvider`) providers sit behind interfaces. Adding a provider requires only implementing the interface and registering it.
 
 ---
@@ -193,7 +193,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 ### E-commerce
 - `EcommerceConnector` interface: `fetchStoreInfo`, `getProducts`, `getOrders`, `getCustomers`, `fetchDiscounts`, `generateCoupon`, `disableCoupon`.
 - Implemented: `ShopifyConnector` (Admin REST API v2024-01), `WooCommerceConnector`, `BigCommerceConnector`, and `MockConnector` (deterministic dev data).
-- Shopify webhooks: `POST /api/shopify/webhooks` verifies HMAC-SHA256, maps shop domain to `Integration`, and handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` events. Delivery is deduplicated by `x-shopify-webhook-id` using the shared `ProcessedWebhookEvent` ledger. Product/order payloads are normalized and persisted; abandoned carts emit `AbandonedCartDetected` for DM follow-up.
+- Shopify webhooks: `POST /api/shopify/webhooks` verifies HMAC-SHA256, maps shop domain to `Integration`, and handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` events. Delivery is deduplicated by `x-shopify-webhook-id` using the shared `ProcessedWebhookEvent` ledger. Product/order payloads are normalized and persisted. Checkout payloads upsert a `Cart` row and do **not** publish domain events; `orders/create|paid` marks the matching cart `convertedAt` when `cart_token` is present. A periodic sweep identifies idle, unconverted, unnotified carts and publishes `AbandonedCartDetected` exactly once; a notification subscriber creates an in-app alert.
 
 ### Meta
 - Webhook verification: HMAC-SHA256, constant-time compare, payload dedup via the shared `ProcessedWebhookEvent` ledger.
@@ -247,13 +247,16 @@ Core tables (see `prisma/schema.prisma` for full model):
   Durable, exactly-once delivery across the cluster (BullMQ `jobId` dedup) is still pending H6.
 - **H1** — `ensureSuperAdmin` in `instrumentation.ts` is now wrapped in `try/catch` and only fails
   the release via `scripts/seed-super-admin.ts`; `/api/health` stays up during a transient DB outage.
-- **H2/H3** — Stripe webhooks have no `event.id` idempotency ledger, and `past_due` is a terminal
-  state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
+- **H2/H3** — `ProcessedWebhookEvent` ledger deduplicates Stripe, Shopify, and Meta webhook deliveries; Stripe subscription lifecycle now handles `customer.subscription.created/updated`, `invoice.paid/payment_succeeded/payment_failed`, `planFromPriceId`, `resolveSubscriptionId`, and `past_due` retains the current plan. A `scripts/backfill-past-due.ts` backfill is available.
 - **H4** — `/api/export/[id]` now uses `getCurrentUser()`, enforces a 10 req/min rate limit, and
   returns `Cache-Control: no-store, private`, so revoked sessions cannot download exports.
 - **H5** — `Project`/`ProjectMember` removed; no destructive archive path remains.
-- **H6/H7** — event delivery has no durability, retry, or dead-letter path; abandoned-cart events
-  fire on every cart edit and have no subscriber.
+- **H6** — `DomainEvent` now carries a stable `eventId`; `QueueEventBus` persists events to a BullMQ queue with `jobId` dedup, retries, and DLQ. The worker wires subscribers before consuming the `events` queue, and `/api/metrics` exports `events_failed_jobs`. `generateReply` is idempotent via `Message.inReplyToMessageId` and a composite unique constraint.
+- **H7** — Shopify `checkouts/create|update` upsert a `Cart` row without emitting events; `orders/create|paid` marks the matching cart `convertedAt`. The `Cart` model tracks `lastActivityAt`, `notifiedAt`, and `convertedAt`. A background sweep (every 15 minutes, threshold `ABANDONED_CART_THRESHOLD_MINUTES`, default 60) publishes `AbandonedCartDetected` exactly once per idle cart; the notifications module subscribes and creates an `ABANDONED_CART` in-app notification.
+- **H8** — Package A addressed: `redis:7-alpine` is now a CI service, `npm audit` and gitleaks
+  secret scanning run in CI, and the smoke test covers `/api/health`, `/api/auth/session`,
+  `/api/ready`, and `POST /api/shopify/webhooks`. A Redis ping test is added; Tier 1–2 regression
+  suites are still pending.
 - **H9** — `/api/shopify/webhooks` is now in `publicPaths`, so anonymous Shopify webhooks reach
   HMAC verification; the CI smoke test asserts the route does not return `3xx`.
 - **H10** — `invite-member.ts` now uses `createWithinSeatLimit`, a serializable transaction with

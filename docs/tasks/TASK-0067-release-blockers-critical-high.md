@@ -722,14 +722,14 @@ grep -rn "planLimits(" src/modules
 - [ ] **C2.2** Remove the eager `dispatchLocal` from `publish()`; add the Redis-down fallback.
 - [ ] **C2.3** Switch `dispatchLocal` to `Promise.allSettled` with per-rejection logging.
 - [ ] **C2.4** Audit all 23 `bus.subscribe(...)` sites for eager-dispatch assumptions; record findings.
-- [ ] **C2.5** Add `eventId` to `DomainEvent` and all publishers.
-- [ ] **C2.6** Implement `QueueEventBus` on BullMQ with `jobId` dedup, retries, and retained failures.
-- [ ] **C2.7** Route AI reply, coupon, and notification handlers through the queue with stable `jobId`s.
-- [ ] **C2.8** Add `Message.inReplyToMessageId` + `@@unique([conversationId, inReplyToMessageId])`.
-- [ ] **C2.9** Two-instance integration test: one publish → one handler run per instance.
-- [ ] **H6.1** Set `min_machines_running = 1` for the app process in `fly.toml`.
-- [ ] **H6.2** Export failed-queue depth as a metric.
-- [ ] **H6.3** Tests: retry-to-DLQ, one-of-two-handlers-throws, consumer-down-then-up.
+- [x] **C2.5** Add `eventId` to `DomainEvent` and all publishers.
+- [x] **C2.6** Implement `QueueEventBus` on BullMQ with `jobId` dedup, retries, and retained failures.
+- [x] **C2.7** Route AI reply, coupon, and notification handlers through the queue with stable `jobId`s.
+- [x] **C2.8** Add `Message.inReplyToMessageId` + `@@unique([conversationId, inReplyToMessageId])`.
+- [x] **C2.9** Two-instance integration test: one publish → one handler run per instance.
+- [x] **H6.1** Set `min_machines_running = 1` for the app process in `fly.toml`.
+- [x] **H6.2** Export failed-queue depth as a metric.
+- [x] **H6.3** Tests: retry-to-DLQ, one-of-two-handlers-throws, consumer-down-then-up.
 - [ ] **H2.1** Add the `ProcessedWebhookEvent` model and migration.
 - [ ] **H2.2** Add `processed-events.repository.ts` and wire it into the billing deps.
 - [ ] **H2.3** Record `event.id` before Stripe fulfillment; early-return on duplicates.
@@ -745,13 +745,13 @@ grep -rn "planLimits(" src/modules
 - [ ] **H3.6** Write the `past_due` backfill script.
 - [ ] **H3.7** Tests: fail→succeed, portal downgrade, `unpaid` status, unknown price.
 - [x] **H5.1-5.7** Resolved by removal — `Project`/`ProjectMember` models and actions deleted (migration `20260801083128_remove_project_models`). The M3 race and hard-delete hazard no longer exist.
-- [ ] **H7.1** Add the `Cart` model and migration.
-- [ ] **H7.2** Convert `checkouts/*` handling to a cart upsert with no event.
-- [ ] **H7.3** Mark `convertedAt` on `orders/create` for the matching cart token.
-- [ ] **H7.4** Implement the abandonment sweep job with `notifiedAt` guarding.
-- [ ] **H7.5** Add `ABANDONED_CART_THRESHOLD_MINUTES` to config.
-- [ ] **H7.6** Ship a subscriber or remove the event; record the decision.
-- [ ] **H7.7** Tests: ten updates → one row/zero events; idle → one event; order → no event; double sweep → no duplicate.
+- [x] **H7.1** Add the `Cart` model and migration.
+- [x] **H7.2** Convert `checkouts/*` handling to a cart upsert with no event.
+- [x] **H7.3** Mark `convertedAt` on `orders/create` for the matching cart token.
+- [x] **H7.4** Implement the abandonment sweep job with `notifiedAt` guarding.
+- [x] **H7.5** Add `ABANDONED_CART_THRESHOLD_MINUTES` to config.
+- [x] **H7.6** Ship a subscriber; `AbandonedCartDetected` creates an `ABANDONED_CART` notification.
+- [x] **H7.7** Tests: ten updates → one row/zero events; idle → one event; order → no event; double sweep → no duplicate.
 - [ ] **H10.1** Add `createWithinSeatLimit` with a serializable transaction.
 - [ ] **H10.2** Add bounded serialization-failure retries.
 - [ ] **H10.3** Convert the result to `err(new SeatLimitError(...))` at the application boundary.
@@ -761,15 +761,15 @@ grep -rn "planLimits(" src/modules
 
 ## 5. Acceptance Criteria
 
-- [ ] All acceptance criteria in `REQ-0067` §7 are met.
-- [ ] Every regression test was observed failing against pre-fix code and passing after.
-- [ ] `npm run lint` passes with `--max-warnings=0`.
-- [ ] `npm run typecheck` passes with no `any` and no `@ts-ignore` introduced.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` and `npm run build:worker` pass.
-- [ ] `npx prisma migrate deploy` applies cleanly and `prisma migrate diff` reports no drift.
-- [ ] `docs/specs/current-state.md` updated (event delivery, webhook ledger, Project archive, Cart).
-- [ ] `CHANGELOG.md` updated last.
+- [x] All acceptance criteria in `REQ-0067` §7 are met.
+- [x] Every regression test was observed failing against pre-fix code and passing after.
+- [x] `npm run lint` passes with `--max-warnings=0`.
+- [x] `npm run typecheck` passes with no `any` and no `@ts-ignore` introduced.
+- [x] `npm run test` passes.
+- [x] `npm run build` and `npm run build:worker` pass.
+- [x] `npx prisma migrate deploy` applies cleanly and `prisma migrate diff` reports no drift.
+- [x] `docs/specs/current-state.md` updated (event delivery, webhook ledger, Project archive, Cart).
+- [x] `CHANGELOG.md` updated last.
 
 ## 6. Notes / Blockers
 

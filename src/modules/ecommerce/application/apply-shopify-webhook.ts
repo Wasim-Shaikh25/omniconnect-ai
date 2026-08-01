@@ -1,9 +1,7 @@
-import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
-import type { IntegrationRepository, ProductRepository, OrderRepository } from "./ports";
+import type { IntegrationRepository, ProductRepository, OrderRepository, CartRepository } from "./ports";
 import type { ConnectorProduct, ConnectorOrder } from "../domain/connector";
-import { AbandonedCartDetected } from "../domain/events";
 
 export interface ShopifyWebhookInput {
   topic: string;
@@ -21,6 +19,7 @@ export function makeApplyShopifyWebhook(deps: {
   integrations: IntegrationRepository;
   products: ProductRepository;
   orders: OrderRepository;
+  carts: CartRepository;
   processedEvents?: ProcessedEventsRepository;
 }) {
   return async function applyShopifyWebhook(input: ShopifyWebhookInput): Promise<ShopifyWebhookResult> {
@@ -65,24 +64,26 @@ export function makeApplyShopifyWebhook(deps: {
       if (topic === "orders/create" || topic === "orders/paid") {
         const order = mapOrderPayload(input.payload);
         await deps.orders.upsertMany(storeId, [order]);
+        if (order.cartToken) {
+          await deps.carts.markConverted(storeId, order.cartToken);
+        }
         logger.info("shopify.webhook.orderUpserted", { storeId, externalId: order.externalId, topic });
         return { ok: true };
       }
 
       if (topic === "checkouts/create" || topic === "checkouts/update") {
         const cart = mapAbandonedCartPayload(input.payload);
-        await eventBus.publish(
-          new AbandonedCartDetected(storeId, {
-            cartToken: cart.cartToken,
-            email: cart.email,
-            lineItemTitles: cart.lineItemTitles,
-            totalPrice: cart.totalPrice,
-            currency: cart.currency,
-            recoveredUrl: cart.recoveredUrl,
-            detectedAt: new Date(),
-          }),
-        );
-        logger.info("shopify.webhook.abandonedCartDetected", { storeId, cartToken: cart.cartToken, topic });
+        await deps.carts.upsert({
+          storeId,
+          cartToken: cart.cartToken,
+          email: cart.email,
+          lineItemTitles: cart.lineItemTitles,
+          totalPrice: cart.totalPrice,
+          currency: cart.currency,
+          recoveredUrl: cart.recoveredUrl,
+          lastActivityAt: new Date(),
+        });
+        logger.info("shopify.webhook.cartUpserted", { storeId, cartToken: cart.cartToken, topic });
         return { ok: true };
       }
 
@@ -131,6 +132,7 @@ function mapOrderPayload(payload: Record<string, unknown>): ConnectorOrder {
     customerRef: customer && typeof customer.id === "number" ? String(customer.id) : null,
     customerEmail: typeof customer?.email === "string" ? customer.email : null,
     couponCode: typeof discountCodes[0]?.code === "string" ? discountCodes[0].code : null,
+    cartToken: typeof payload.cart_token === "string" ? payload.cart_token : null,
   };
 }
 

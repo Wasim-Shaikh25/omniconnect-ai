@@ -291,7 +291,7 @@ export async function refreshReadModelsAction(storeId?: string): Promise<{
     : (await organizationQueries.getOrganizationOverview(organizationId))?.stores.map((s) => s.id) ?? [];
 
   try {
-    const queue = getQueue(INTELLIGENCE_QUEUE);
+    const queue = await getQueue(INTELLIGENCE_QUEUE);
     const jobIds: string[] = [];
     for (const id of storeIds) {
       const readJobId = await queue.add(JOB_REFRESH_READ_MODELS, { organizationId, storeId: id });

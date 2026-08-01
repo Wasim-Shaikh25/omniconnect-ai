@@ -1,16 +1,26 @@
 import { logger } from "@/shared/observability";
 import { randomId } from "@/shared/security/random";
 import { jobRegistry } from "./registry";
-import type { Job, QueueService } from "./types";
+import type { Job, JobOptions, QueueService } from "./types";
 
 export class InMemoryQueue implements QueueService {
   private jobs: Job<unknown>[] = [];
   private processing = false;
+  private jobIds = new Set<string>();
 
   constructor(private name: string) {}
 
-  async add<T>(name: string, data: T): Promise<string> {
-    const id = `${this.name}:${Date.now()}:${randomId()}`;
+  async getFailedCount(): Promise<number> {
+    return 0;
+  }
+
+  async add<T>(name: string, data: T, opts?: JobOptions): Promise<string> {
+    const id = opts?.jobId ?? `${this.name}:${Date.now()}:${randomId()}`;
+    if (this.jobIds.has(id)) {
+      logger.info("queue.inMemory.duplicate", { queue: this.name, jobId: id, jobName: name });
+      return id;
+    }
+    this.jobIds.add(id);
     const job: Job<T> = { id, name, data };
     this.jobs.push(job);
     logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });

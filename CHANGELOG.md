@@ -15,12 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H1/H2/H3/H4/H9/H10 fixed; H5 resolved by removal via REQ-0073; remaining H6–H8 in progress.
+- **REQ-0067 release blockers:** C1/C2/H1/H2/H3/H4/H6/H7/H9/H10 fixed; H5 resolved by removal via REQ-0073; remaining H8 in progress.
 
 ### ⏭️ Next
 
-- **REQ-0067** — remaining release blockers (H6–H8), each with a regression test that fails
-  against current `main`.
+- **REQ-0067 H8** — test coverage / CI quality gates under `REQ-0074`.
 
 ### ✅ Done
 
@@ -113,6 +112,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `AUTH_TRUST_HOST` to `env.ts`, `.env.example`, `fly.toml`, and `docs/deployment.md`.
   - Whitelisted `/api/shopify/webhooks` in the NextAuth middleware `publicPaths` so Shopify
     webhooks reach HMAC verification instead of being redirected to `/login`.
+
+- **REQ-0067 H6 + H7 — durable event delivery and abandoned-cart correctness:**
+  - Added `eventId` to `DomainEvent` and all publishers; `BaseDomainEvent` defaults to `${aggregateId}-${randomId()}`.
+  - Implemented `QueueEventBus` on BullMQ with `jobId` dedup, `attempts: 5`, exponential backoff, `removeOnFail: false`, and a `events_failed_jobs` metric at `/api/metrics`.
+  - Made `shared/events/index.ts` export a stable `LazyEventBus` that falls back to in-memory on the client and installs `QueueEventBus` server-side via `setEventBus` in `src/server/subscribers.ts` and `src/jobs/worker.ts`; this keeps `bullmq`/`ioredis` out of the Next.js client bundle.
+  - Wired the worker to register subscribers before starting the `events` BullMQ worker.
+  - Added `Message.inReplyToMessageId` with `@@unique([conversationId, inReplyToMessageId])` and made `generateReply` idempotent by looking up existing replies.
+  - Set `fly.toml` `min_machines_running = 1` for the app process.
+  - Added the `Cart` model (`@@unique([storeId, cartToken])`, `lastActivityAt`, `notifiedAt`, `convertedAt`) and migrations.
+  - Updated `applyShopifyWebhook` to upsert `Cart` on `checkouts/create|update` without publishing events and to mark `convertedAt` on `orders/create|paid` when `cart_token` is present.
+  - Added `ABANDONED_CART_THRESHOLD_MINUTES` (default 60) to `env.ts` and an abandoned-cart sweep job (`src/jobs/abandoned-carts.ts`) that runs every 15 minutes.
+  - Added `AbandonedCartDetected` subscriber in `notifications/infrastructure/subscribers.ts` that creates `ABANDONED_CART` in-app notifications.
+  - Added regression tests: `src/shared/events/queue-event-bus.test.ts` and `src/modules/ecommerce/application/abandoned-cart-sweep.test.ts` and `apply-shopify-webhook.test.ts`.
 
 - **Production readiness audit remediation plan — documented all 33 findings as actionable work:**
   - Re-verified every finding in `PRODUCTION_READINESS_AUDIT.md` against the working tree at

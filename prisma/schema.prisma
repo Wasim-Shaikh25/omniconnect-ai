@@ -223,6 +223,7 @@ model Store {
   accountInsights          AccountInsight[]
   trendSnapshots           TrendSnapshot[]
   contentRecommendations   ContentRecommendation[]
+  carts                    Cart[]
 
   @@index([organizationId])
   @@index([deletedAt])
@@ -434,15 +435,38 @@ enum MessageSender {
 }
 
 model Message {
-  id             String        @id @default(cuid())
-  conversationId String
-  conversation   Conversation  @relation(fields: [conversationId], references: [id])
-  sender         MessageSender
-  content        String
-  createdAt      DateTime      @default(now())
+  id                 String        @id @default(cuid())
+  conversationId     String
+  conversation       Conversation  @relation(fields: [conversationId], references: [id])
+  inReplyToMessageId String?
+  sender             MessageSender
+  content            String
+  createdAt          DateTime      @default(now())
 
+  @@unique([conversationId, inReplyToMessageId])
   @@index([conversationId])
   @@index([createdAt])
+}
+
+model Cart {
+  id             String    @id @default(cuid())
+  storeId        String
+  store          Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  cartToken      String
+  email          String?
+  lineItemTitles String[]
+  totalPrice     Decimal?  @db.Decimal(12, 2)
+  currency       String?
+  recoveredUrl   String?
+  lastActivityAt DateTime
+  notifiedAt     DateTime?
+  convertedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([storeId, cartToken])
+  @@index([storeId, lastActivityAt])
+  @@index([notifiedAt])
 }
 
 model Follower {
@@ -676,6 +700,7 @@ enum NotificationType {
   ESCALATION
   CONVERSATION_TAKEN_OVER
   AI_RESUMED
+  ABANDONED_CART
   SYSTEM_ERROR
   INTELLIGENCE
 }

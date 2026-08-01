@@ -90,6 +90,7 @@ function fakeConversations(): ConversationQueries {
     }),
     countConversations: async () => 0,
     getConversation: async () => null,
+    findReplyByInReplyToMessageId: async () => null,
   };
 }
 

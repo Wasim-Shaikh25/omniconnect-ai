@@ -26,8 +26,15 @@ export function makeConversationCommands(deps: {
       storeId: string,
       sender: MessageSender,
       content: string,
+      inReplyToMessageId?: string | null,
     ): Promise<MessageRecord> {
-      return deps.messages.append({ conversationId, storeId, sender, content });
+      return deps.messages.append({
+        conversationId,
+        storeId,
+        sender,
+        content,
+        inReplyToMessageId,
+      });
     },
 
     async setHumanActive(conversationId: string, storeId: string): Promise<void> {

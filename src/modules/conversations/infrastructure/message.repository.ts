@@ -8,6 +8,7 @@ import type {
 type PrismaMessage = {
   id: string;
   conversationId: string;
+  inReplyToMessageId: string | null;
   sender: string;
   content: string;
   createdAt: Date;
@@ -23,6 +24,7 @@ function toRecord(m: PrismaMessage): MessageRecord {
   return {
     id: m.id,
     conversationId: m.conversationId,
+    inReplyToMessageId: m.inReplyToMessageId,
     sender: toSender(m.sender),
     content: m.content,
     createdAt: m.createdAt,
@@ -35,6 +37,7 @@ export class PrismaMessageRepository implements MessageRepository {
     storeId: string;
     sender: MessageSender;
     content: string;
+    inReplyToMessageId?: string | null;
   }): Promise<MessageRecord> {
     const conversation = await prisma.conversation.findUnique({
       where: { id: input.conversationId, storeId: input.storeId },
@@ -44,11 +47,21 @@ export class PrismaMessageRepository implements MessageRepository {
     const created = await prisma.message.create({
       data: {
         conversationId: input.conversationId,
+        inReplyToMessageId: input.inReplyToMessageId ?? null,
         sender: input.sender,
         content: input.content,
       },
     });
     return toRecord(created);
+  }
+
+  async findByInReplyToMessageId(
+    inReplyToMessageId: string,
+  ): Promise<MessageRecord | null> {
+    const row = await prisma.message.findFirst({
+      where: { inReplyToMessageId },
+    });
+    return row ? toRecord(row) : null;
   }
 
   async listByConversation(

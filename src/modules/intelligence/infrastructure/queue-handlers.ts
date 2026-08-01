@@ -86,7 +86,7 @@ export function registerIntelligenceQueueHandlers(deps: IntelligenceQueueHandler
 
 export function startIntelligenceWorker(): void {
   // Ensure handlers are registered before starting the worker.
-  getQueue(INTELLIGENCE_QUEUE);
+  void getQueue(INTELLIGENCE_QUEUE);
   if (env.REDIS_URL) {
     const concurrency = env.WORKER_CONCURRENCY ? Number(env.WORKER_CONCURRENCY) : 1;
     startBullMQWorker(INTELLIGENCE_QUEUE, Number.isNaN(concurrency) ? 1 : concurrency);

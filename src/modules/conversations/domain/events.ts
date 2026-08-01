@@ -8,6 +8,7 @@ export interface NewMessagePayload {
   externalUserId: string;
   customerId: string | null;
   content: string;
+  messageId: string;
 }
 
 /**

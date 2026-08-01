@@ -54,6 +54,12 @@ export function makeConversationQueries(deps: {
       const messages = await deps.messages.listByConversation(id);
       return { conversation, messages };
     },
+
+    async findReplyByInReplyToMessageId(
+      inReplyToMessageId: string,
+    ): Promise<MessageRecord | null> {
+      return deps.messages.findByInReplyToMessageId(inReplyToMessageId);
+    },
   };
 }
 

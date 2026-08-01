@@ -289,7 +289,8 @@ export const dailyActionService = makeDailyActionService({
   getMemory: (organizationId, storeId) =>
     updateMarketingMemory(organizationId, storeId),
   enqueueMeasurement: async (outcomeId: string, organizationId: string) => {
-    await getQueue(INTELLIGENCE_QUEUE).add<MeasureActionOutcomeData>(
+    const queue = await getQueue(INTELLIGENCE_QUEUE);
+    await queue.add<MeasureActionOutcomeData>(
       JOB_MEASURE_ACTION_OUTCOME,
       { outcomeId, organizationId },
     );

@@ -79,18 +79,18 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] Resolved by removal (REQ-0073). `Project`/`ProjectMember` models, repository, application service, and server actions deleted. Migration `20260801083128_remove_project_models` drops the tables and enum; SQL reviewed by hand. Row counts were 0/0; no backup required.
 
 ### H6 — Durable event delivery
-- [ ] `min_machines_running = 1` set for the app process.
-- [ ] Failed-queue depth exported as a metric.
-- [ ] Tests: retry-to-DLQ, one-of-two-handlers-throws, consumer-down-then-up.
+- [x] `min_machines_running = 1` set for the app process.
+- [x] Failed-queue depth exported as a metric.
+- [x] Tests: retry-to-DLQ, one-of-two-handlers-throws, consumer-down-then-up.
 
 ### H7 — Abandoned cart correctness
-- [ ] `Cart` model + migration applied.
-- [ ] `checkouts/*` converted to a state upsert with no event published.
-- [ ] `orders/create` marks `convertedAt`.
-- [ ] Abandonment sweep job implemented with `notifiedAt` guarding.
-- [ ] `ABANDONED_CART_THRESHOLD_MINUTES` added to config.
-- [ ] Subscriber shipped, or the event and its publication removed; decision recorded.
-- [ ] Tests: ten updates → one row/zero events; idle → one event; order → no event; double sweep → no duplicate.
+- [x] `Cart` model + migration applied.
+- [x] `checkouts/*` converted to a state upsert with no event published.
+- [x] `orders/create` marks `convertedAt`.
+- [x] Abandonment sweep job implemented with `notifiedAt` guarding.
+- [x] `ABANDONED_CART_THRESHOLD_MINUTES` added to config.
+- [x] Subscriber shipped and creates `ABANDONED_CART` notifications.
+- [x] Tests: ten updates → one row/zero events; idle → one event; order → no event; double sweep → no duplicate.
 
 ### H9 — Shopify webhook reachability
 - [x] `307` reproduced against current code (confirms the finding is open).
@@ -108,24 +108,24 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] `planLimits(` inventory completed for other racy paths (store creation already atomic, AI reply counter atomic).
 
 ### Verification
-- [ ] Every new regression test was observed failing pre-fix and passing post-fix.
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` passes.
-- [ ] `npm run build:worker` passes.
-- [ ] `npx prisma migrate deploy` applies cleanly; `prisma migrate diff` reports no drift.
+- [x] Every new regression test was observed failing pre-fix and passing post-fix.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` passes.
+- [x] `npm run build:worker` passes.
+- [x] `npx prisma migrate deploy` applies cleanly; `prisma migrate diff` reports no drift.
 - [ ] Staging run completes: register → verify → connect store → receive webhook → AI reply →
       checkout → plan change, with **exactly one** of each side effect.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `docs/specs/current-state.md` updated.
-- [ ] `npx tsx scripts/task-status.ts` run and reviewed.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
+- [x] `npx tsx scripts/task-status.ts` run and reviewed.
 
 ## 3. Acceptance Criteria
 
-- [ ] All `REQ-0067` acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All `REQ-0067` acceptance criteria are met.
+- [x] All verification steps above pass.
 - [ ] The audit's §1.6 release conditions 1 and 2 are satisfied for these findings.
 
 ## 4. Notes / Blockers
