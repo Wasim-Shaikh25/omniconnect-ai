@@ -48,6 +48,7 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().optional(),
 
   SENTRY_DSN: z.string().optional(),
+  SENTRY_RELEASE: z.string().optional(),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
 
   ENCRYPTION_KEY: z.string().min(32).optional(),

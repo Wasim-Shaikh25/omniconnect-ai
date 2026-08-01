@@ -138,6 +138,25 @@ Use `.env.test` for CI or a throwaway test environment.
    ./deploy.sh
    ```
 
+### Staging environment
+
+The staging environment mirrors production with separate infrastructure and sandbox credentials.
+
+1. Create the staging app and attach a separate Postgres/Redis:
+   ```bash
+   fly app create omniconnect-ai-staging
+   fly postgres create --name omniconnect-ai-staging-db
+   fly redis create --name omniconnect-ai-staging-redis
+   fly attach --app omniconnect-ai-staging omniconnect-ai-staging-db
+   fly attach --app omniconnect-ai-staging omniconnect-ai-staging-redis
+   ```
+2. Set staging secrets using `fly.staging.toml` and `fly secrets set --app omniconnect-ai-staging`.
+   Use sandbox/test credentials for Stripe (`STRIPE_SECRET_KEY`), Meta, Shopify, and OpenAI.
+3. Push to `main` to trigger the `deploy` workflow; staging deploys automatically before the
+   production approval gate.
+4. **Never copy production customer data into staging.** Use synthetic seed data and the
+   registration flow to populate test organizations.
+
 ### Docker / self-hosted
 
 Build and run with Docker:
@@ -193,6 +212,14 @@ production needs:
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook endpoint secret |
 | `STRIPE_PRICE_STARTER` | Stripe price ID for Starter plan |
 | `STRIPE_PRICE_PRO` | Stripe price ID for Pro plan |
+| `SENTRY_DSN` | Sentry DSN (optional) |
+| `SENTRY_RELEASE` | Sentry release tag (optional; defaults to `GIT_COMMIT_SHA`) |
+| `GIT_COMMIT_SHA` | Commit SHA exposed at `/api/health` (set via build arg) |
+| `BACKUP_BUCKET` | S3 bucket for weekly `pg_dump` backups (optional) |
+| `BACKUP_PREFIX` | S3 key prefix for backups (optional; defaults to `omniconnect-backups`) |
+| `BACKUP_AWS_ACCESS_KEY_ID` | AWS access key for backup uploads (optional) |
+| `BACKUP_AWS_SECRET_ACCESS_KEY` | AWS secret key for backup uploads (optional) |
+| `ALERT_WEBHOOK_URL` | Webhook to notify on backup failures (optional) |
 
 ## Health checks
 
