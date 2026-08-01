@@ -130,7 +130,7 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 - [ ] Tests exist for each of the four topics.
 
 ### M6 — Stripe API version
-- [ ] `new Stripe(...)` passes an explicit `apiVersion` matching the installed `stripe@^17.1.0`
+- [x] `new Stripe(...)` passes an explicit `apiVersion` matching the installed `stripe@^17.1.0`
       typings, plus `typescript: true`.
 - [ ] The pinned version is recorded in `docs/decisions/` as an ADR with the upgrade procedure.
 - [ ] `resolveSubscriptionId` (from `REQ-0067` H3) is verified against the pinned version's invoice

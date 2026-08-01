@@ -1,12 +1,12 @@
 # TASK-0073: Resolve and Implement the Projects / Workspace Lifecycle
 
-- **Status:** Todo (blocked on the Q1 decision)
+- **Status:** In Progress — Path B (remove) + Package C
 - **Owner:** Product / Backend / Frontend
 - **Requirement:** `docs/requirements/REQ-0073-projects-workspace-lifecycle.md`
 - **Tracker:** `docs/trackers/TRACKER-0073-projects-workspace-lifecycle.md`
 - **Module(s):** `organizations`, `auth`, presentation shell
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Resolved the orphaned Projects backend (shipped UI / removed feature) and documented the workspace model.
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -213,24 +213,24 @@ State plainly in `docs/specs/current-state.md` what exists immediately after sig
 - [x] **Q1 answered** — Option B (remove), 2026-08-01.
 - [x] **Q2 answered** (STAFF landing) — `STAFF` with `storeId` redirects to `/stores/{storeId}`; `STAFF` without `storeId` falls through to dashboard (no loop). Implemented in `src/app/dashboard/page.tsx`.
 - [x] Multi-workspace policy answered — single workspace per user; document in `current-state.md`.
-- [ ] ~~(Path A only) Project scoping model answered~~ — N/A under Option B.
+- ~~(Path A only) Project scoping model answered~~ *(N/A under Option B)*
 
 ### Path A — Ship *(only if Q1 = ship)*
-- [ ] **A1** `REQ-0067` H5 landed (soft archive, unique constraint, restore, list filter).
-- [ ] **A2** `integrationId` added to the create/edit schema with a cross-tenant ownership check.
-- [ ] **A3.1** `/projects` list page with the archived toggle.
-- [ ] **A3.2** `/projects/new` create form.
-- [ ] **A3.3** `/projects/[id]` detail with edit, members, archive, restore.
-- [ ] **A4.1** "Projects" added to the sidebar with a stable key.
-- [ ] **A4.2** Route-coverage expectations updated.
-- [ ] **A5** Onboarding prompt or dashboard empty state added.
-- [ ] **A6.1** Test: create.
-- [ ] **A6.2** Test: duplicate name rejected via `P2002` with a friendly message.
-- [ ] **A6.3** Test: archive keeps the row and its members.
-- [ ] **A6.4** Test: archived excluded from the default list.
-- [ ] **A6.5** Test: restore round-trip.
-- [ ] **A6.6** Test: cross-tenant read and write denied.
-- [ ] **A6.7** Test: `integrationId` from another organization rejected.
+- **A1** `REQ-0067` H5 landed (soft archive, unique constraint, restore, list filter). *(N/A under Option B)*
+- **A2** `integrationId` added to the create/edit schema with a cross-tenant ownership check. *(N/A under Option B)*
+- **A3.1** `/projects` list page with the archived toggle. *(N/A under Option B)*
+- **A3.2** `/projects/new` create form. *(N/A under Option B)*
+- **A3.3** `/projects/[id]` detail with edit, members, archive, restore. *(N/A under Option B)*
+- **A4.1** "Projects" added to the sidebar with a stable key. *(N/A under Option B)*
+- **A4.2** Route-coverage expectations updated. *(N/A under Option B)*
+- **A5** Onboarding prompt or dashboard empty state added. *(N/A under Option B)*
+- **A6.1** Test: create. *(N/A under Option B)*
+- **A6.2** Test: duplicate name rejected via `P2002` with a friendly message. *(N/A under Option B)*
+- **A6.3** Test: archive keeps the row and its members. *(N/A under Option B)*
+- **A6.4** Test: archived excluded from the default list. *(N/A under Option B)*
+- **A6.5** Test: restore round-trip. *(N/A under Option B)*
+- **A6.6** Test: cross-tenant read and write denied. *(N/A under Option B)*
+- **A6.7** Test: `integrationId` from another organization rejected. *(N/A under Option B)*
 
 ### Path B — Remove *(only if Q1 = remove)*
 - [x] **B1.1** Row counts checked in production (local DB proxy): both 0.
@@ -277,3 +277,6 @@ State plainly in `docs/specs/current-state.md` what exists immediately after sig
   - (Path B) Residual references: zero functional matches; `grep -rn "Project\|project" src --include=*.ts --include=*.tsx | grep -vi "projection\|projected"` returns nothing.
   - (Path A) N/A.
   - The Q2 decision and the multi-workspace policy.
+
+## 7. Subtasks raised by 2026-08-01 checkbox audit
+- [ ] **C2.2-test** Add a test for the `STAFF` landing redirect: `user.role === "STAFF" && user.storeId` redirects to `/stores/{storeId}`; `STAFF` without `storeId` does not loop.

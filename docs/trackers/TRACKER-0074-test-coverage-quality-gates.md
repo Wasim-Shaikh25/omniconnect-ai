@@ -54,13 +54,13 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] T1 event published once → handler runs once (`queue-event-bus.test.ts`).
 - [x] T2 two bus instances → one handler run each (`redis-event-bus.test.ts`).
 - [x] T3 Redis unreachable → single local dispatch (`redis-event-bus.test.ts`).
-- [x] T4 `/api/auth/session` 200 on standalone boot (verified by `session.integration.test.ts` and health smoke tests).
+- [x] T4 `/api/auth/session` 200 on standalone boot (verified by the CI smoke test in `.github/workflows/ci.yml:149-154`).
 - [x] T5 DB down → health 200, ready 503 (`/api/ready` mocked DB failure test).
 - [x] T6 duplicate Stripe event → fulfilled once (`billing.test.ts`).
 - [x] T7 payment failed then succeeded → `active` (`billing.test.ts` subscription lifecycle).
 - [x] T8 portal downgrade reflected (`billing.test.ts` price-change downgrade).
-- [x] T9 stale `tokenVersion` on export → 401 (`session.integration.test.ts`).
-- [x] T10 soft-deleted user on export → 401 (`session.integration.test.ts`).
+- [ ] T9 stale `tokenVersion` on export → 401 (`session.integration.test.ts` tests `getCurrentUser` only; needs a route-level test on `/api/export/[id]`).
+- [ ] T10 soft-deleted user on export → 401 (`session.integration.test.ts` tests `getCurrentUser` only; needs a route-level test on `/api/export/[id]`).
 - [x] T11 project archive keeps row + members (feature removed in `REQ-0073`; N/A).
 - [x] T12 handler throws → retries → failed queue (`queue-event-bus.test.ts` publish options enforce `attempts: 5`, `removeOnFail: false`).
 - [x] T13 one of two handlers throws → other completes (`queue-event-bus.test.ts`).
@@ -70,10 +70,10 @@ where `REDIS_URL` is set but no Redis service exists.
 
 ### Tier 2 — Security invariants
 - [x] S1 cross-tenant read isolation (owner denied org/store access from another tenant).
-- [x] S2 cross-tenant write isolation (owner denied store mutation across tenant boundary).
+- [ ] S2 cross-tenant write isolation (owner denied store mutation across tenant boundary). *(PARTIAL — one `makeTenantGuard` helper test; 173 action functions not covered.)*
 - [x] S3 `STAFF` store pinning (staff can access only assigned store).
 - [x] S4 `STAFF` denied owner-only mutations (staff cannot access other stores in the same org).
-- [x] S5 non-super-admin denied on all admin routes and actions (`requireSuperAdmin` rejects non-super-admin users).
+- [ ] S5 non-super-admin denied on all admin routes and actions (`requireSuperAdmin` helper test only; admin pages use `getCurrentUser`/`isSuperAdmin`, no action-census test).
 - [x] S6 `tokenVersion` revocation at every entry point (`getCurrentUser` and all `require*` helpers load the canonical DB record and verify `tokenVersion`).
 - [x] S7 invalid signatures rejected for all three providers (Shopify, Meta, Stripe webhook signature verification tests).
 - [x] S8 login rate limiting engages (`rateLimit` blocks requests beyond the configured limit).
@@ -82,7 +82,7 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] S11 prompt-injection resistance (`OpenAIProvider` wraps user content, strips control chars, caps length, and injects a defensive system instruction).
 
 ### Tier 1 — Smoke/health routes
-- [x] T4 `/api/health` returns 200.
+- [x] `/api/health` returns 200 (renamed from mis-labelled T4; the real T4 is above).
 - [x] T5 `/api/ready` returns 503 when the database is down.
 - [x] T15 anonymous Shopify webhook `POST` returns 401/400 (covered by CI smoke test).
 

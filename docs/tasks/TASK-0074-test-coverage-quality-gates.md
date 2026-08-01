@@ -414,3 +414,11 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
 - **Record here during implementation:**
   - The measured coverage baseline and the thresholds set from it.
   - The count of mutating actions enumerated for S2 (expected ~168) and any deliberately excluded.
+
+## 8. Subtasks raised by 2026-08-01 checkbox audit
+- [ ] **T4-route** Add a dedicated test or CI assertion that `GET /api/auth/session` returns `200` on a standalone production boot (currently covered only by the smoke test).
+- [ ] **T9-route** Add a route-level test for `/api/export/[id]` with a stale `tokenVersion` → `401`.
+- [ ] **T10-route** Add a route-level test for `/api/export/[id]` with a soft-deleted user → `401`.
+- [ ] **S2-census** Add a test that inventories every `export async function *Action` and fails if it does not call a tenant/organization guard.
+- [ ] **S5-census** Add a test that every `src/app/admin/**/page.tsx` calls `requireSuperAdmin()` and every admin action enforces super-admin role.
+- [ ] **B.6-ratchet** Record a coverage ratchet schedule (e.g. weekly 5% increments) and update `vitest.config.ts` thresholds.

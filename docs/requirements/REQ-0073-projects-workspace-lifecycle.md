@@ -73,25 +73,25 @@ unreachable mutating surface into production is not.
 - Project membership is manageable and survives archiving.
 
 ### 5.2 Acceptance criteria
-- [ ] `REQ-0067` H5 is complete first: `archivedAt`, `@@unique([organizationId, name])`,
+- `REQ-0067` H5 is complete first: `archivedAt`, `@@unique([organizationId, name])`, *(N/A under Option B)*
       `updateMany`-based archive, `restore`, archived rows excluded from default lists.
-- [ ] `/projects` lists the organization's active projects with name, IG handle, linked
+- `/projects` lists the organization's active projects with name, IG handle, linked *(N/A under Option B)*
       integration, member count, and created date.
-- [ ] An "Include archived" toggle reveals archived projects with a restore action.
-- [ ] `/projects/new` creates a project with name (required), description, Instagram handle, and an
+- An "Include archived" toggle reveals archived projects with a restore action. *(N/A under Option B)*
+- `/projects/new` creates a project with name (required), description, Instagram handle, and an *(N/A under Option B)*
       optional `Integration` link.
-- [ ] Duplicate names are rejected by the database constraint with a friendly message, not by a
+- Duplicate names are rejected by the database constraint with a friendly message, not by a *(N/A under Option B)*
       check-then-insert race (M3).
-- [ ] `/projects/[id]` shows detail and allows editing name, description, and handle.
-- [ ] Members can be added and removed with a role; changes are audited.
-- [ ] Archive requires confirmation and states that it is reversible.
-- [ ] All project actions enforce tenant scope and RBAC (`STORE_OWNER`+ to mutate).
-- [ ] "Projects" appears in the sidebar (satisfying the `REQ-0069` L2 route-coverage test).
-- [ ] `revalidatePath("/projects")` now targets a real route.
-- [ ] `Project.integrationId` is exposed in the create/edit schema (currently a column with no
+- `/projects/[id]` shows detail and allows editing name, description, and handle. *(N/A under Option B)*
+- Members can be added and removed with a role; changes are audited. *(N/A under Option B)*
+- Archive requires confirmation and states that it is reversible. *(N/A under Option B)*
+- All project actions enforce tenant scope and RBAC (`STORE_OWNER`+ to mutate). *(N/A under Option B)*
+- "Projects" appears in the sidebar (satisfying the `REQ-0069` L2 route-coverage test). *(N/A under Option B)*
+- `revalidatePath("/projects")` now targets a real route. *(N/A under Option B)*
+- `Project.integrationId` is exposed in the create/edit schema (currently a column with no *(N/A under Option B)*
       action-level support).
-- [ ] Onboarding offers first-project creation, or explicitly defers it with a dashboard prompt.
-- [ ] Tests: create, duplicate-name rejection, archive/restore round-trip, member add/remove,
+- Onboarding offers first-project creation, or explicitly defers it with a dashboard prompt. *(N/A under Option B)*
+- Tests: create, duplicate-name rejection, archive/restore round-trip, member add/remove, *(N/A under Option B)*
       cross-tenant access denied, archived excluded from lists.
 
 ## 6. Option B — Remove the feature
