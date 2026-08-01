@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { requireStoreAccess } from "@/modules/organizations";
+import { notFound, redirect } from "next/navigation";
+import { checkStoreAccess } from "@/modules/organizations";
 import { getMarketingPerformance } from "@/modules/analytics/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,12 @@ export default async function CampaignAnalyticsPage({
 }) {
   const { storeId } = await params;
 
-  const { user, store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { user, store } = access;
   if (!user.organizationId) notFound();
 
   const view = await getMarketingPerformance({ organizationId: user.organizationId, storeId });

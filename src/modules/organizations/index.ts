@@ -70,7 +70,11 @@ export {
   completeOnboardingAction,
   listAllOrganizationsAction,
 } from "./presentation/actions";
-export { requireStoreAccess } from "./presentation/require-store-access";
+export {
+  checkStoreAccess,
+  requireStoreAccess,
+} from "./presentation/require-store-access";
+export type { StoreAccess } from "./presentation/require-store-access";
 export type { OnboardingActionState } from "./presentation/actions";
 export type { StoreActionState } from "./presentation/actions";
 export {

@@ -15,12 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **Close the audit gaps:**
-  - `REQ-0068` M7 — HTTP status codes (`require-store-access` predicate, admin redirects, `scripts/check-http-status.ts`).
+- `REQ-0068` M8 — Accessibility (skip link, `<main id="main-content">`, sidebar `aria-label`, focus-trapped mobile drawer).
 
 ### ⏭️ Next
 
-- Remaining `REQ-0068` items: M8, M9, M10, M15, then `REQ-0070`–`0075`.
+- `REQ-0068` M9, M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
 
@@ -30,6 +29,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Each compliance action writes an `AuditLog` record; duplicate deliveries are skipped via `ProcessedWebhookEvent`.
   - Unhandled `customers/*`, `shop/*`, and `app/*` topics no longer return `{ ok: true }`.
   - Unit tests for the dispatcher and an integration test for the compliance repository cover all four topics.
+
+- **Audit gap closure — M7 HTTP status codes:**
+  - Converted `src/modules/organizations/presentation/require-store-access.ts` to `checkStoreAccess` (pure predicate) and a thin `requireStoreAccess` wrapper for server actions.
+  - Updated 24 `src/app/stores/[storeId]/**/page.tsx` files to call `checkStoreAccess` and emit `notFound()` / `redirect("/login")` from the page body.
+  - Removed `src/app/loading.tsx` so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.
+  - Added `scripts/check-http-status.ts` and wired it into the CI smoke test; it asserts `/stores/{other-tenant-id}` → `404`, `/stores/does-not-exist` → `404`, `/admin/organizations` as non-admin → `307` → `/dashboard`, and verifies 404 bodies do not leak tenant/store data.
 
 - **Audit gap closure — M1/M2, M6/L5 ADRs, H10, L1/L2/L3/L4/L7, M11/M13/M14:**
   - Added `docs/decisions/0007-stripe-api-version-pinning.md` and `docs/decisions/0008-fly-machine-auto-stop.md`.

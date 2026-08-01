@@ -1,6 +1,7 @@
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { requireStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/organizations";
 import { couponsQueries } from "@/modules/coupons";
 import { growthQueries } from "@/modules/growth";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,12 @@ export default async function AutomationsHubPage({
 }) {
   const { storeId } = await params;
 
-  const { store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { store } = access;
 
   const [welcomeCampaign, dmCampaigns, backInStock, commentUnlocks] =
     await Promise.all([

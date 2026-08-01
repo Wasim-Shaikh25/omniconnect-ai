@@ -1,6 +1,7 @@
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { requireStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { metaQueries } from "@/modules/meta/server";
 import { formatNumber } from "@/lib/currency";
@@ -20,7 +21,12 @@ export default async function IntegrationsPage({
 }) {
   const { storeId } = await params;
 
-  const { store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { store } = access;
 
   const [ecommerce, meta] = await Promise.all([
     ecommerceQueries.getStoreConnection(storeId),

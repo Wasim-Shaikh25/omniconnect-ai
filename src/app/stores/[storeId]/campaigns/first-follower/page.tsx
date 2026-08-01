@@ -1,7 +1,8 @@
 
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { env } from "@/shared/config";
-import { requireStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/organizations";
 import { crmQueries } from "@/modules/crm";
 import {
   couponsQueries,
@@ -26,7 +27,12 @@ export default async function FirstTimeFollowerCampaignPage({
 }) {
   const { storeId } = await params;
 
-  const { user, store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { user, store } = access;
 
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
   const [campaign, followers] = await Promise.all([

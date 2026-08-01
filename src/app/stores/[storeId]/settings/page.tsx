@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ECOMMERCE_PROVIDERS, requireStoreAccess, updateStoreAction } from "@/modules/organizations";
+import { ECOMMERCE_PROVIDERS, checkStoreAccess, updateStoreAction } from "@/modules/organizations";
 import { StoreSettingsForm } from "@/components/store-settings-form";
 import {
   Card,
@@ -17,7 +17,12 @@ export default async function StoreSettingsPage({
   params: Promise<{ storeId: string }>;
 }) {
   const { storeId } = await params;
-  const { store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { store } = access;
   if (!store) notFound();
 
   return (

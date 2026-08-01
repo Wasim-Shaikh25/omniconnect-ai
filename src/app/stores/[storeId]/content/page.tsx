@@ -1,6 +1,7 @@
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { requireStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { Button } from "@/components/ui/button";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
@@ -13,7 +14,12 @@ export default async function ContentStudioPage({
 }) {
   const { storeId } = await params;
 
-  const { store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { store } = access;
 
   const products = await ecommerceQueries.listProducts(storeId, 100);
 
