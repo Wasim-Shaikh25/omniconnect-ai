@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { requireStoreAccess } from "@/modules/organizations";
+import { notFound, redirect } from "next/navigation";
+import { checkStoreAccess } from "@/modules/organizations";
 import { getMediaPostAction, analyzeMediaAction } from "@/modules/analytics";
 import { AnalyzeMediaForm } from "@/components/analyze-media-form";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,12 @@ export default async function MediaPostDetailPage({
 }) {
   const { storeId, mediaPostId } = await params;
 
-  const { user, store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { user, store } = access;
   if (!user.organizationId) notFound();
 
   const { post, error } = await getMediaPostAction(mediaPostId);

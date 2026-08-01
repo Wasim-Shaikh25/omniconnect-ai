@@ -1,5 +1,6 @@
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { requireStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +31,12 @@ export default async function StoreProductsPage({
   searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
   const { storeId } = await params;
-  const { store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { store } = access;
   const paramsResolved = (await searchParams) ?? {};
   const pagination = parsePagination(paramsResolved.page, paramsResolved.limit);
   const search = paramsResolved.q?.trim();

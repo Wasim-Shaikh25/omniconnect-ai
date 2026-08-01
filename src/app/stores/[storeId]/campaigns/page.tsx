@@ -1,6 +1,7 @@
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { requireStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/organizations";
 import { couponsQueries } from "@/modules/coupons";
 import { CampaignsNextBestAction } from "@/components/campaigns-next-best-action";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,12 @@ export default async function CampaignsHubPage({
 }) {
   const { storeId } = await params;
 
-  const { store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { store } = access;
 
   const campaign = await couponsQueries.getCampaign(storeId);
 

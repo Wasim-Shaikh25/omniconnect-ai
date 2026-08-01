@@ -527,10 +527,10 @@ abusive output blocked by moderation.
 - [x] **M6.2b** Confirm `resolveSubscriptionId` handles the pinned invoice payload shapes (verified by `billing.ts` tests covering `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`).
 - [x] **M6.2** Write the ADR in `docs/decisions/` (`docs/decisions/0007-stripe-api-version-pinning.md`).
 - [x] **M6.3** Verify `resolveSubscriptionId` against the pinned invoice shape.
-- [ ] **M7.1** Convert `require-store-access` into a pure predicate; guard in page bodies.
-- [ ] **M7.2** Fix the admin layout redirect status.
-- [ ] **M7.3** Add `scripts/check-http-status.ts` and wire it into CI.
-- [ ] **M7.4** Re-verify no data leaks on the three probes.
+- [x] **M7.1** Convert `require-store-access` into a pure predicate; guard in page bodies.
+- [x] **M7.2** Fix the admin layout redirect status (verified: `/admin/organizations` as non-admin returns `307` → `/dashboard`).
+- [x] **M7.3** Add `scripts/check-http-status.ts` and wire it into CI.
+- [x] **M7.4** Re-verify no data leaks on the three probes.
 - [ ] **M8.1** Add the skip link and `<main id="main-content" tabIndex={-1}>`.
 - [ ] **M8.2** Add `aria-label` to collapsed nav links; `aria-hidden` on icons.
 - [ ] **M8.3** Replace the mobile drawer with a focus-trapping Radix primitive; add `Escape` close and focus restore.

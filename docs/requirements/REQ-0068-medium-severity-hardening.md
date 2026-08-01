@@ -140,13 +140,13 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
       and `invoice.payment_failed`).
 
 ### M7 — HTTP status correctness
-- [ ] `/stores/{other-tenant-id}` returns `404`.
-- [ ] `/stores/does-not-exist` returns `404`.
-- [ ] `/admin/organizations` as a non-admin returns `307` to `/dashboard`.
-- [ ] Guards are invoked from page/route bodies rather than `"use server"` helpers where required
+- [x] `/stores/{other-tenant-id}` returns `404`.
+- [x] `/stores/does-not-exist` returns `404`.
+- [x] `/admin/organizations` as a non-admin returns `307` to `/dashboard`.
+- [x] Guards are invoked from page/route bodies rather than `"use server"` helpers where required
       to emit the status before streaming.
-- [ ] No data is leaked by any of these paths (re-verify the audit's passing probes).
-- [ ] A CI-runnable script asserts these three status codes.
+- [x] No data is leaked by any of these paths (re-verify the audit's passing probes).
+- [x] A CI-runnable script asserts these three status codes (`scripts/check-http-status.ts` is run in the smoke test).
 
 ### M8 — Accessibility
 - [ ] A skip link is the first focusable element in `src/app/layout.tsx` and targets

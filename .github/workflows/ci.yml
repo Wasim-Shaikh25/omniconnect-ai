@@ -161,6 +161,9 @@ jobs:
           echo "shopify -> $shopify" >&2
           case "$shopify" in 3*) echo "shopify webhook redirected ($shopify)" >&2; exit 1;; esac
 
+          # M7 regression: store and admin routes must emit the right HTTP status before streaming.
+          BASE_URL="$BASE" npx tsx scripts/check-http-status.ts
+
   container-scan:
     name: Container vulnerability scan
     runs-on: ubuntu-latest

@@ -134,6 +134,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `getCurrentUser()` loads the canonical DB record and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions.
 - `tenantGuard.assertStoreAccess(user, storeId)` enforces: staff only access `user.storeId`; owners/admins access any store in their organization.
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
+- Store pages use `checkStoreAccess(storeId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(storeId)` wrapper remains for server actions that need throwing semantics.
+- The global `src/app/loading.tsx` was removed so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.
 - Super admin requires email-based OTP in addition to login.
 
 ### 7.5 Tenancy and Workspace Model

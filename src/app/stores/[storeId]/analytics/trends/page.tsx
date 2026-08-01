@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { requireStoreAccess } from "@/modules/organizations";
+import { notFound, redirect } from "next/navigation";
+import { checkStoreAccess } from "@/modules/organizations";
 import { listTrendSnapshotsAction, searchTrendingHashtagsAction } from "@/modules/analytics";
 import { SearchTrendsForm } from "@/components/search-trends-form";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,12 @@ export default async function TrendsAnalyticsPage({
 }) {
   const { storeId } = await params;
 
-  const { user, store } = await requireStoreAccess(storeId);
+  const access = await checkStoreAccess(storeId);
+  if (!access.ok) {
+    if (access.reason === "unauthenticated") redirect("/login");
+    notFound();
+  }
+  const { user, store } = access;
   if (!user.organizationId) notFound();
 
   const { snapshots, error } = await listTrendSnapshotsAction(storeId);

@@ -56,13 +56,13 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] `resolveSubscriptionId` verified against the pinned invoice shape (`billing.test.ts`).
 
 ### M7 — HTTP status codes
-- [ ] `require-store-access` converted to a pure predicate.
-- [ ] Page-body guards emit correct statuses.
-- [ ] `/stores/{other-tenant}` → `404` verified.
-- [ ] `/stores/does-not-exist` → `404` verified.
-- [ ] `/admin/organizations` as non-admin → `307` verified.
-- [ ] `scripts/check-http-status.ts` added and wired into CI.
-- [ ] No data leaked on any probe.
+- [x] `require-store-access` converted to a pure predicate (`src/modules/organizations/presentation/require-store-access.ts`).
+- [x] Page-body guards emit correct statuses; 24 `src/app/stores/[storeId]/**/page.tsx` files call `checkStoreAccess` and `notFound()`/`redirect("/login")` directly in the page body.
+- [x] `/stores/{other-tenant}` → `404` verified by `scripts/check-http-status.ts`.
+- [x] `/stores/does-not-exist` → `404` verified by `scripts/check-http-status.ts`.
+- [x] `/admin/organizations` as non-admin → `307` verified by `scripts/check-http-status.ts`.
+- [x] `scripts/check-http-status.ts` added and wired into CI smoke test (`.github/workflows/ci.yml`).
+- [x] No data leaked on any probe; script asserts 404 bodies do not contain tenant/store names.
 
 ### M8 — Accessibility
 - [ ] Skip link added as the first focusable element.
