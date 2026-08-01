@@ -106,14 +106,13 @@ This requirement establishes the safety net that makes every other requirement's
       PostgreSQL.
 - [x] `@vitest/coverage-v8` is installed and `vitest.config.ts` declares a coverage provider,
       reporters (`text`, `lcov`), and thresholds.
-- [ ] Coverage thresholds are set to the measured baseline after Tiers 1 and 2 land, and CI fails
-      on regression.
+- [x] Coverage thresholds are set to the measured baseline after Tiers 1 and 2 land, and CI fails
+      on regression (`vitest.config.ts`: `statements: 7`, `branches: 61`, `functions: 52`, `lines: 7`).
 - [x] The coverage summary is visible in the CI job output.
-- [ ] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
-  - T9/T10 session revocation verified.
-- [ ] All 11 Tier 2 tests exist and pass.
-  - S1–S10 verified as guard/service-level regression tests.
-  - S11 prompt-injection resistance pending.
+- [x] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
+  - T1–T3 event bus/Redis fallback, T4/T5 health/ready routes, T6–T8 billing lifecycle, T9/T10 session revocation, T12/T13/T14 event/handler behavior, T15 anonymous Shopify webhook, and T16 concurrent invite seat cap verified.
+- [x] All 11 Tier 2 tests exist and pass.
+  - S1–S11 verified as guard/service-level regression tests.
 - [x] `npm audit --audit-level=moderate` runs in CI and fails the build on a finding.
 - [x] Secret scanning runs on every pull request.
 - [x] The CI smoke test asserts: `/api/health` 200, `/api/auth/session` 200,

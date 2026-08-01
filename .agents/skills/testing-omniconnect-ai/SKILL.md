@@ -62,6 +62,16 @@ Use this skill before running end-to-end or integration tests against the OmniCo
 - The `FREE` plan has only 1 team seat (occupied by the owner), so testing the STAFF invite flow requires upgrading `"Organization".plan` to `STARTER` or `PRO` in Postgres, or creating the STAFF user directly in the DB.
 - New STAFF users (via invite registration) are redirected from `/dashboard` to `/stores/{storeId}` when `role === "STAFF" && storeId` is set.
 
+## Cross-tenant regression-test rule
+
+For every new mutating action or repository method that touches tenant-scoped data, add a regression test row that proves the caller cannot act outside their boundary:
+
+- **Owner / cross-tenant:** a user from organization A cannot read or write a store/organization/customer/order in organization B.
+- **Staff pinning:** a `STAFF` user can only access their assigned `storeId`; other stores in the same organization are denied.
+- **Super-admin boundaries:** admin-only actions reject non-`isSuperAdmin` users.
+
+Use `createTenant` from `src/test/fixtures.ts` to create two isolated tenants in one test, and assert the guard throws `ForbiddenError` or the repository returns `null`/empty. Integration tests in `vitest.integration.config.ts` run serially (`singleFork: true`) so `resetDatabase` does not deadlock.
+
 ## Useful smoke checks
 
 ```bash
