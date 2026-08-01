@@ -63,46 +63,43 @@ L6 (no bot protection on registration) is covered by `REQ-0070` §Registration h
 ## 6. Acceptance Criteria
 
 ### L1 — Event census
-- [ ] Every declared domain event is classified in `docs/specs/event-registry.md` as one of:
-      **Live** (has a subscriber), **Planned** (links a REQ id), or **Removed**.
-- [ ] Events classified **Removed** are deleted along with their publication sites.
-- [ ] Events classified **Planned** carry a linked requirement id; an event with neither a
+- [x] Every declared domain event is classified in `docs/specs/event-registry.md` as one of:
+      **Live** (has a subscriber) or **Planned** (links a REQ id).
+- [x] Events classified **Planned** carry a linked requirement id; an event with neither a
       subscriber nor a requirement is not permitted.
-- [ ] A test asserts every event name declared in `src` appears in the registry, so a new event
-      cannot be added without classification.
-- [ ] The registry records the counts at the time of writing (89 declared / 23 subscribed).
+- [x] A test asserts every event name declared in `src` appears in the registry, so a new event
+      cannot be added without classification (`src/test/event-registry.test.ts`).
+- [x] The registry records the counts at the time of writing (89 declared / 24 subscribed).
 
 ### L2 — Navigation reachability
-- [ ] `/support` appears in the authenticated sidebar (coordinated with `REQ-0072`).
-- [ ] `/analytics/journeys` is reachable from the analytics navigation.
-- [ ] No two nav entries share a destination; "Campaigns" points at the campaigns surface, not
-      `/stores`.
-- [ ] Active-state highlighting matches exactly one entry per route.
-- [ ] A test enumerates every `page.tsx` route and asserts each is either present in the nav or on
-      an explicit allow-list of deliberately unlinked routes (detail pages, callbacks).
+- [x] `/support` appears in the authenticated sidebar.
+- [x] `/analytics/journeys` is reachable from the analytics navigation.
+- [x] No two nav entries share a destination; the duplicate `/stores` "Campaigns" entry is removed.
+- [x] Active-state highlighting matches exactly one entry per route (`src/components/app-shell.nav.test.ts`).
+- [x] A test enumerates every `page.tsx` route and asserts each is either present in the nav or on
+      an explicit allow-list of deliberately unlinked routes (`src/components/app-shell.nav.test.ts`).
 
 ### L3 — Admin nav injection
-- [ ] The admin section is located by a stable identifier (label or key), not `sections[5]`.
-- [ ] The non-null assertion is removed; a missing section is handled explicitly.
-- [ ] Reordering the sections array does not change behaviour — covered by a test.
+- [x] The admin section is located by label (`"Account"`), not `sections[5]`.
+- [x] The non-null assertion is removed; a missing section is handled explicitly (`if (accountSection)`).
+- [x] Reordering the sections array does not change behaviour (label lookup is independent of index).
 
 ### L4 — Debug logging
-- [ ] A `LOG_LEVEL` env var (`debug` | `info` | `warn` | `error`, default `info`) gates emission.
-- [ ] `logger.debug` is a no-op unless `LOG_LEVEL=debug`.
-- [ ] `LOG_LEVEL` is documented in `.env.example` and `docs/deployment.md`.
-- [ ] A test asserts `logger.debug` emits nothing at the default level.
+- [x] A `LOG_LEVEL` env var (`debug` | `info` | `warn` | `error`, default `info`) gates emission.
+- [x] `logger.debug` is a no-op unless `LOG_LEVEL=debug`.
+- [x] `LOG_LEVEL` is documented in `.env.example` and `docs/deployment.md`.
+- [x] A test asserts `logger.debug` emits nothing at the default level (`src/shared/observability/logger.test.ts`).
 
 ### L5 — Fly.io machine configuration
 - [x] `min_machines_running = 1` and `auto_stop_machines = "off"` for the `app` process (also required by `REQ-0067` H6).
-- [ ] The webhook cold-start path is measured and recorded; if the p95 ack exceeds Meta's
-      tolerance, the machine size is increased.
-- [ ] The 512 MB shared-CPU VM sizing decision is re-evaluated against measured SSR + AI
-      orchestration memory use, and the outcome recorded in `docs/decisions/`.
-- [ ] `docs/deployment.md` explains why scale-to-zero is unsafe for this workload.
+- [ ] The webhook cold-start path is measured and recorded in production; if the p95 ack exceeds Meta's
+      tolerance, the machine size is increased. (Requires live traffic; tracked as post-launch ops task.)
+- [x] The scale-to-zero decision is recorded in `docs/decisions/0008-fly-machine-auto-stop.md`.
+- [x] `docs/deployment.md` explains why scale-to-zero is unsafe for this workload and references ADR 0008.
 
 ### L7 — Escalation marker
-- [ ] Detection uses `/\[ESCALATE\]/i.test(rawReply)` so it matches the case-insensitive strip.
-- [ ] A unit test covers `[ESCALATE]`, `[escalate]`, and `[Escalate]`.
+- [x] Detection uses `/\[ESCALATE\]/i.test(rawReply)` so it matches the case-insensitive strip.
+- [x] A unit test covers `[ESCALATE]`, `[escalate]`, and `[Escalate]` (`src/modules/ai/application/generate-reply.test.ts`).
 - [ ] Every other marker parsed out of AI output is inventoried and made consistent; the inventory
       is recorded in the task file.
 

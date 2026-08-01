@@ -1,0 +1,781 @@
+{
+  "generatedAt": "2026-08-01T13:19:32.412Z",
+  "count": 89,
+  "events": [
+    {
+      "name": "EscalationRequested",
+      "module": "ai",
+      "file": "modules/ai/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0004",
+      "subscribers": [
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "ReplyGenerated",
+      "module": "ai",
+      "file": "modules/ai/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0004",
+      "subscribers": []
+    },
+    {
+      "name": "AccountAnalyticsSynced",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "CompetitorBenchmarkReady",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "CompetitorChangeDetected",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "CompetitorContentSynced",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "ContentRecommendationCreated",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "MarketingPerformanceUpdated",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "MediaAnalyticsSynced",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "ReportGenerated",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "TrendingHashtagDiscovered",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "UserLoggedIn",
+      "module": "auth",
+      "file": "modules/auth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0001",
+      "subscribers": []
+    },
+    {
+      "name": "UserRegistered",
+      "module": "auth",
+      "file": "modules/auth/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0001",
+      "subscribers": [
+        "modules/organizations/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "BrandDealCreated",
+      "module": "branddeals",
+      "file": "modules/branddeals/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0039",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "BrandDealInsightGenerated",
+      "module": "branddeals",
+      "file": "modules/branddeals/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0039",
+      "subscribers": []
+    },
+    {
+      "name": "BrandDealRecommendationGenerated",
+      "module": "branddeals",
+      "file": "modules/branddeals/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0039",
+      "subscribers": []
+    },
+    {
+      "name": "CatalogSynced",
+      "module": "commerce",
+      "file": "modules/commerce/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0002",
+      "subscribers": []
+    },
+    {
+      "name": "ShoppableMediaCreated",
+      "module": "commerce",
+      "file": "modules/commerce/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0002",
+      "subscribers": []
+    },
+    {
+      "name": "ContentIdeasGenerated",
+      "module": "content",
+      "file": "modules/content/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0018",
+      "subscribers": []
+    },
+    {
+      "name": "AIResumed",
+      "module": "conversations",
+      "file": "modules/conversations/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0016",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "ConversationInsightGenerated",
+      "module": "conversations",
+      "file": "modules/conversations/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0016",
+      "subscribers": []
+    },
+    {
+      "name": "ConversationRecommendationGenerated",
+      "module": "conversations",
+      "file": "modules/conversations/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0016",
+      "subscribers": []
+    },
+    {
+      "name": "ConversationTakenOver",
+      "module": "conversations",
+      "file": "modules/conversations/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0016",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "NewMessage",
+      "module": "conversations",
+      "file": "modules/conversations/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0016",
+      "subscribers": [
+        "modules/ai/infrastructure/subscribers.ts",
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "WelcomeCouponGenerated",
+      "module": "coupons",
+      "file": "modules/coupons/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0023",
+      "subscribers": []
+    },
+    {
+      "name": "WelcomeMessageSent",
+      "module": "coupons",
+      "file": "modules/coupons/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0023",
+      "subscribers": []
+    },
+    {
+      "name": "CrmInsightGenerated",
+      "module": "crm",
+      "file": "modules/crm/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0006",
+      "subscribers": []
+    },
+    {
+      "name": "CrmRecommendationGenerated",
+      "module": "crm",
+      "file": "modules/crm/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0006",
+      "subscribers": []
+    },
+    {
+      "name": "CustomerProfileUpdated",
+      "module": "crm",
+      "file": "modules/crm/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0006",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "FirstTimeFollowerDetected",
+      "module": "crm",
+      "file": "modules/crm/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0006",
+      "subscribers": [
+        "modules/coupons/infrastructure/subscribers.ts",
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "AbandonedCartDetected",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0002",
+      "subscribers": [
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "CommerceInsightGenerated",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0002",
+      "subscribers": []
+    },
+    {
+      "name": "CommerceRecommendationGenerated",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0002",
+      "subscribers": []
+    },
+    {
+      "name": "CouponDisabled",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0002",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "CouponGenerated",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0002",
+      "subscribers": [
+        "modules/crm/infrastructure/subscribers.ts",
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/notifications/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "ProductsSynced",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0002",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/organizations/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "StoreConnected",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0002",
+      "subscribers": []
+    },
+    {
+      "name": "AmbassadorEnrolled",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0013",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "BackInStockAlertSent",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "BackInStockSubscribed",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "CommentUnlockSent",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "CommentUnlockTriggered",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "DmCampaignCreated",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0013",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "DmCampaignSent",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0013",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "GrowthInsightGenerated",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "GrowthRecommendationGenerated",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "ReferralConverted",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0013",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "UgcAssetCollected",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0013",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "UgcRightsApproved",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "UgcRightsRequested",
+      "module": "growth",
+      "file": "modules/growth/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0013",
+      "subscribers": []
+    },
+    {
+      "name": "ActionOutcomeMeasured",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "ActionPlanApproved",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "ActionPlanExecuted",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "BusinessInsightGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0007",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "BusinessLearningUpdated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "CommentPatternDetected",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "CompetitorInsightGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0007",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "ConfidenceChanged",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "DailyActionCompleted",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "DailyActionSkipped",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "DailyActionsGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "DailyMarketingBriefGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "DataQualityIssueDetected",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "DmPatternDetected",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "EntityLinked",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "GoalPacingChanged",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "HypothesisProposed",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "JourneyUpdated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "MarketingMemoryUpdated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "OutcomeMeasured",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "PortfolioSnapshotGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "PredictionGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "RecommendationAccepted",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "RecommendationConflictDetected",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "RecommendationDismissed",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "RecommendationExpired",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "RecommendationGenerated",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0007",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "RecommendationObjectiveTagged",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "SignalIngested",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "SystemMetricRecorded",
+      "module": "intelligence",
+      "file": "modules/intelligence/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0007",
+      "subscribers": []
+    },
+    {
+      "name": "MetaCommentReceived",
+      "module": "meta",
+      "file": "modules/meta/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0003",
+      "subscribers": [
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/social/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "MetaFollowReceived",
+      "module": "meta",
+      "file": "modules/meta/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0003",
+      "subscribers": [
+        "modules/crm/infrastructure/subscribers.ts",
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/social/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "MetaMessageReceived",
+      "module": "meta",
+      "file": "modules/meta/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0003",
+      "subscribers": [
+        "modules/conversations/infrastructure/subscribers.ts",
+        "modules/crm/infrastructure/subscribers.ts",
+        "modules/intelligence/infrastructure/subscribers.ts",
+        "modules/social/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "OrganizationCreated",
+      "module": "organizations",
+      "file": "modules/organizations/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0011",
+      "subscribers": [
+        "modules/users/infrastructure/subscribers.ts"
+      ]
+    },
+    {
+      "name": "StoreCreated",
+      "module": "organizations",
+      "file": "modules/organizations/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0011",
+      "subscribers": []
+    },
+    {
+      "name": "CommentHidden",
+      "module": "social",
+      "file": "modules/social/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0003",
+      "subscribers": []
+    },
+    {
+      "name": "CommentReplied",
+      "module": "social",
+      "file": "modules/social/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0003",
+      "subscribers": []
+    },
+    {
+      "name": "UserProfileUpdated",
+      "module": "users",
+      "file": "modules/users/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0011",
+      "subscribers": []
+    },
+    {
+      "name": "UserRoleChanged",
+      "module": "users",
+      "file": "modules/users/domain/events.ts",
+      "status": "Planned",
+      "reqId": "REQ-0011",
+      "subscribers": []
+    }
+  ]
+}

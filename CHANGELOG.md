@@ -16,13 +16,30 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - B.6 — record a coverage ratchet schedule in `vitest.config.ts`.
+  - L2 route-coverage test (enumerate `page.tsx` routes, allow-list unlinked detail pages) and `REQ-0072` support discoverability coordination.
 
 ### ⏭️ Next
 
-- Continue with remaining audit gaps (M6/L5 ADRs, H10 serialization retry verification, L1/L3/L4/L7 low-severity items); update trackers and `task-status`.
+- Finish L2 route-coverage test, then move on to remaining `REQ-0068` M7/M8/M9/M10/M11/M14/M15 and `REQ-0070`–`0075` items.
 
 ### ✅ Done
+
+- **Audit gap closure — M6/L5 ADRs, H10, L1/L3/L4/L7:**
+  - Added `docs/decisions/0007-stripe-api-version-pinning.md` and `docs/decisions/0008-fly-machine-auto-stop.md`.
+  - H10: `OrganizationInviteRepository.createWithinSeatLimit` uses Serializable + bounded `P2034`
+    retries; `invite-member` sends email only after the transaction commits; test verifies no email
+    when the seat limit is reached.
+  - L1: created `docs/specs/event-registry.{md,json}` with every declared domain event classified
+    Live/Planned and linked to a REQ id; added `src/test/event-registry.test.ts` so new events must
+    be classified.
+  - L3: removed `sections[5]!` non-null assertion and index-based mutation in `app-shell.tsx`;
+    admin nav item is now injected by `sections.find((s) => s.label === "Account")`.
+  - L4: added `LOG_LEVEL` to `env.ts`, gated all logger calls in `logger.ts`, added a startup
+    warning when `LOG_LEVEL=debug` in production, documented it in `.env.example` and
+    `docs/deployment.md`, and added a unit test.
+  - L7: escalation detection/stripping is case-insensitive; added `generate-reply.test.ts`; inventoried
+    other AI output markers (only `[ESCALATE]` is parsed from model output; prompt delimiters are
+    input hardening).
 
 - **Audit gap closure — H2/H7 transactional boundaries:**
   - `ProcessedWebhookEvent.record` + Stripe `fulfillCheckout` side effects now run inside one

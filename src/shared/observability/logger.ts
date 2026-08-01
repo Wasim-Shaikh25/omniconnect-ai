@@ -1,8 +1,19 @@
+import { env } from "@/shared/config";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogFields {
   [key: string]: unknown;
 }
+
+const LEVEL_ORDER: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+};
+
+const MIN_LEVEL = env.LOG_LEVEL ?? "info";
 
 const SENSITIVE_KEYS = new RegExp(
   "token|password|secret|api[-_]?key|authorization|auth|cookie|session|credential|credit[-_]?card|ssn|phone|email",
@@ -37,6 +48,7 @@ export function redactValue(value: unknown): unknown {
  * observability stack is implemented. Never log secrets, tokens, or PII.
  */
 function log(level: LogLevel, message: string, fields: LogFields = {}): void {
+  if (LEVEL_ORDER[level] < LEVEL_ORDER[MIN_LEVEL]) return;
   const entry = {
     level,
     message,

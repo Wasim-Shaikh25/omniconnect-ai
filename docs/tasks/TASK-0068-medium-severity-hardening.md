@@ -503,7 +503,7 @@ abusive output blocked by moderation.
 - [x] **M6.1** Pin `apiVersion` and set `typescript: true`.
 - [x] **M6.1b** Add `typescript: true` to the Stripe constructor and verify typecheck passes.
 - [x] **M6.2b** Confirm `resolveSubscriptionId` handles the pinned invoice payload shapes (verified by `billing.ts` tests covering `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`).
-- [ ] **M6.2** Write the ADR in `docs/decisions/`.
+- [x] **M6.2** Write the ADR in `docs/decisions/` (`docs/decisions/0007-stripe-api-version-pinning.md`).
 - [x] **M6.3** Verify `resolveSubscriptionId` against the pinned invoice shape.
 - [ ] **M7.1** Convert `require-store-access` into a pure predicate; guard in page bodies.
 - [ ] **M7.2** Fix the admin layout redirect status.

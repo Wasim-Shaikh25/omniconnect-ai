@@ -1,10 +1,17 @@
-import { validateProductionSecrets } from "@/shared/config";
+import { env, validateProductionSecrets } from "@/shared/config";
 import { initSentry, initTelemetry, logger } from "@/shared/observability";
 
 export async function register() {
   initSentry();
   initTelemetry();
   validateProductionSecrets();
+
+  if (env.NODE_ENV === "production" && env.LOG_LEVEL === "debug") {
+    logger.warn("bootstrap.debugLoggingEnabled", {
+      message:
+        "LOG_LEVEL is set to debug in production. Debug logs are not redacted beyond the standard rules; rotate the level back to info once diagnostics are complete.",
+    });
+  }
 
   // Seeding is best-effort. A transient database outage must never stop the process
   // from serving traffic, including /api/health.

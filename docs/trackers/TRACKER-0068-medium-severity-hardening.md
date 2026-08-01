@@ -52,8 +52,8 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 
 ### M6 — Stripe API version
 - [x] `apiVersion` pinned; `typescript: true` set.
-- [ ] ADR written in `docs/decisions/`.
-- [ ] `resolveSubscriptionId` verified against the pinned invoice shape.
+- [x] ADR written in `docs/decisions/` (`docs/decisions/0007-stripe-api-version-pinning.md`).
+- [x] `resolveSubscriptionId` verified against the pinned invoice shape (`billing.test.ts`).
 
 ### M7 — HTTP status codes
 - [ ] `require-store-access` converted to a pure predicate.

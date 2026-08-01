@@ -132,9 +132,11 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 ### M6 — Stripe API version
 - [x] `new Stripe(...)` passes an explicit `apiVersion` matching the installed `stripe@^17.1.0`
       typings, plus `typescript: true`.
-- [ ] The pinned version is recorded in `docs/decisions/` as an ADR with the upgrade procedure.
-- [ ] `resolveSubscriptionId` (from `REQ-0067` H3) is verified against the pinned version's invoice
-      payload shape.
+- [x] The pinned version is recorded in `docs/decisions/` as an ADR with the upgrade procedure
+      (`docs/decisions/0007-stripe-api-version-pinning.md`).
+- [x] `resolveSubscriptionId` (from `REQ-0067` H3) is verified against the pinned version's invoice
+      payload shape (`billing.test.ts` covers `invoice.paid`, `invoice.payment_succeeded`,
+      and `invoice.payment_failed`).
 
 ### M7 — HTTP status correctness
 - [ ] `/stores/{other-tenant-id}` returns `404`.
