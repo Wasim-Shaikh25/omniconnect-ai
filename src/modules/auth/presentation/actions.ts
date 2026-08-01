@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { z } from "zod";
 import { registerUser, verificationCodeService, accounts, hasher } from "../infrastructure/container";
-import { signIn, signOut } from "../infrastructure/auth";
+import { signIn, signOut, RateLimitAuthError } from "../infrastructure/auth";
 import { registerUserSchema } from "../application/register-user";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
 
@@ -85,19 +85,9 @@ export async function loginAction(
 
   const email = parsed.data.email.toLowerCase().trim();
 
-  const ip = clientIp(await headers());
-  const limit = await rateLimit({
-    key: `login-action:${email}:${ip}`,
-    limit: 5,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (!limit.allowed) {
-    return { error: "Too many attempts. Try again later." };
-  }
-
   const account = await accounts.findByEmailIncludingDeleted(email);
   if (!account?.passwordHash) {
-    return { error: "Invalid email or password." };
+    return { error: "Invalid email, password, or verification code." };
   }
 
   if (account.isSuperAdmin && !parsed.data.mfaCode) {
@@ -113,6 +103,12 @@ export async function loginAction(
       redirectTo: redirectPathForUser(account.organizationId),
     });
   } catch (error) {
+    if (error instanceof RateLimitAuthError) {
+      const minutes = Math.max(1, Math.ceil(error.retryAfterMs / 60_000));
+      return {
+        error: `Too many attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`,
+      };
+    }
     if (error instanceof AuthError) {
       return { error: "Invalid email, password, or verification code." };
     }

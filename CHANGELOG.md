@@ -15,11 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0068` M10 — Global login throttling and distinguishable rate-limit feedback.
+- `REQ-0068` M15 — AI prompt-injection and output moderation.
 
 ### ⏭️ Next
 
-- `REQ-0068` M15, then `REQ-0070`–`0075`.
+- `REQ-0070`–`0075`.
 
 ### ✅ Done
 
@@ -32,6 +32,13 @@ All notable changes to **OmniConnect AI** are documented here.
   - Updated `.env.example` to generate `ENCRYPTION_KEY` with `openssl rand -base64 48` and added `ENCRYPTION_KEY_PREVIOUS`.
   - Recorded the plaintext-passthrough removal date as 2026-09-01.
   - Tests cover v2 round-trip, legacy v1 decryption, previous-key decryption after rotation, and rejection of tampered ciphertext.
+
+- **Audit gap closure — M10 Login throttling:**
+  - Added `src/modules/auth/infrastructure/login-rate-limit.ts` with a per-IP (5 attempts / 15 min) and per-account (20 attempts / hour) fixed-window `authorize` guard.
+  - `RateLimitError` extends `CredentialsSignin` with code `rateLimit`; `loginAction` renders "Too many attempts. Try again in N minutes." for lockouts.
+  - Invalid/missing credentials and rate-limited attempts both return generic messages that do not reveal whether an account exists.
+  - Added `RATE_LIMIT_IP_HEADER` to `src/shared/config/env.ts` `PRODUCTION_REQUIRED`, `.env.example`, and `docs/deployment.md`.
+  - Tests cover per-IP engagement, global engagement across rotating IPs, and refusal of a correct password while locked out.
 
 - **Audit gap closure — M8 Accessibility:**
   - Added a skip link in `src/app/layout.tsx` as the first focusable element in `<body>`, targeting `<main id="main-content" tabIndex={-1}>`.

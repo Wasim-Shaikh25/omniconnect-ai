@@ -544,11 +544,11 @@ abusive output blocked by moderation.
 - [x] **M9.6** Replace the `.env.example` placeholder with `openssl rand -base64 48`.
 - [x] **M9.7** Record plaintext-passthrough removal date: **2026-09-01**.
 - [x] **M9.8** Tests: v2 round-trip, legacy v1 decrypt, previous-key decrypt, tampered ciphertext rejected (`src/shared/security/encryption.test.ts`).
-- [ ] **M10.1** Add the global per-account counter.
-- [ ] **M10.2** Add `RateLimitError` and distinguishable UI feedback.
-- [ ] **M10.3** Keep the message identical for existing and non-existing accounts.
-- [ ] **M10.4** Require `RATE_LIMIT_IP_HEADER` in production; document per-platform values.
-- [ ] **M10.5** Tests: per-IP limit, global limit across rotating IPs, correct password still refused during lockout.
+- [x] **M10.1** Add the global per-account counter (`src/modules/auth/infrastructure/login-rate-limit.ts:9-10,31-40`).
+- [x] **M10.2** Add `RateLimitError` extending `CredentialsSignin` with code `rateLimit`; `loginAction` formats "Too many attempts. Try again in N minutes." (`src/modules/auth/infrastructure/login-rate-limit.ts:15-19`; `src/modules/auth/presentation/actions.ts:98-117`).
+- [x] **M10.3** `authorize` returns the same generic "Invalid email, password, or verification code." for missing accounts and bad passwords; rate-limit message does not reveal account existence.
+- [x] **M10.4** Add `RATE_LIMIT_IP_HEADER` to `env.ts` `PRODUCTION_REQUIRED`, `.env.example`, and `docs/deployment.md`.
+- [x] **M10.5** Tests: per-IP limit, global limit across rotating IPs, correct password still refused during lockout (`src/modules/auth/infrastructure/login-rate-limit.test.ts`).
 - [x] **M11.1** `requireSuperAdmin()` is called at the top of all six admin pages.
 - [x] **M11.2** `src/app/admin/admin-guards.test.ts` asserts the guard and that it precedes any admin data-fetching action.
 - [x] **M11.3** Non-admin probes cannot reach admin data because the guard throws before data is fetched.

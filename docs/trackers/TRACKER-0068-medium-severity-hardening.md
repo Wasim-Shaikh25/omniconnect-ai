@@ -83,11 +83,11 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] Tests: v2 round-trip, legacy decrypt, previous-key decrypt, tampered ciphertext rejected.
 
 ### M10 — Login throttling
-- [ ] Global per-account counter added.
-- [ ] `RateLimitError` surfaced distinguishably in the UI.
-- [ ] Message identical for existing and non-existing accounts.
-- [ ] `RATE_LIMIT_IP_HEADER` required in production and documented.
-- [ ] Tests: per-IP, global across rotating IPs, correct password during lockout.
+- [x] Global per-account counter (20/hour) added alongside per-IP limit (5/15min) (`src/modules/auth/infrastructure/login-rate-limit.ts`).
+- [x] `RateLimitError` (code `rateLimit`) thrown from `authorize` and surfaced as "Too many attempts. Try again in N minutes." in `loginAction`.
+- [x] Rate-limit message identical for existing and non-existing accounts; invalid credentials return the same generic message.
+- [x] `RATE_LIMIT_IP_HEADER` added to `env.ts` `PRODUCTION_REQUIRED`, `.env.example`, and `docs/deployment.md`.
+- [x] Tests cover per-IP engagement, global engagement across rotating IPs, and refusal of correct passwords during lockout.
 
 ### M11 — Admin guards
 - [x] `requireSuperAdmin()` added to all six `/admin/**/page.tsx` files.

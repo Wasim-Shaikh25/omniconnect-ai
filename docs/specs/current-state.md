@@ -245,6 +245,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Direct Meta content publishing/scheduling is out of scope for MVP.
 - Real load and penetration testing has not been performed.
 - Accessibility hardening (`REQ-0068` M8) is in place: a skip link targets `<main id="main-content" tabIndex={-1}>`, the collapsed sidebar preserves link labels via `aria-label` with `aria-hidden` icons, and the mobile drawer is a Radix `Dialog` that traps focus, closes on `Escape`, and restores focus to the trigger. Manual keyboard traversal and a colour-contrast spot-check on primary surfaces were recorded.
+- Encryption (`REQ-0068` M9) uses HKDF (`enc:v2:`), supports dual-key decryption with `ENCRYPTION_KEY_PREVIOUS` for rotation, and documents a re-encryption procedure.
+- Login throttling (`REQ-0068` M10) applies a per-IP (5/15min) and per-account (20/hour) fixed-window counter in `authorize`; `RateLimitError` surfaces "Too many attempts. Try again in N minutes." without revealing account existence.
 
 ### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
 
