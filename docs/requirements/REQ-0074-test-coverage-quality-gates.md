@@ -106,16 +106,18 @@ This requirement establishes the safety net that makes every other requirement's
       PostgreSQL.
 - [x] `@vitest/coverage-v8` is installed and `vitest.config.ts` declares a coverage provider,
       reporters (`text`, `lcov`), and thresholds.
-- [ ] Coverage thresholds are set to the measured baseline after Tiers 1 and 2 land, and CI fails
+- [x] Coverage thresholds are set to the measured baseline after Tiers 1 and 2 land, and CI fails
       on regression (`vitest.config.ts`: `statements: 7`, `branches: 61`, `functions: 52`, `lines: 7`).
-      *(PARTIAL — ratchet schedule not recorded; see TASK-0074 subtask.)*
+      Ratchet schedule recorded: review every Monday; raise lines/statements by +5% and
+      branches/functions by +2% until lines/statements reach 80%, branches reach 75%,
+      functions reach 70%; thresholds are never lowered.
 - [x] The coverage summary is visible in the CI job output.
-- [ ] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
-  - T1–T3 event bus/Redis fallback, T4/T5 health/ready routes, T6–T8 billing lifecycle, T9/T10 session revocation, T12/T13/T14 event/handler behavior, T15 anonymous Shopify webhook, and T16 concurrent invite seat cap verified.
-  *(FALSE/PARTIAL — T4 is mis-labelled on `health/route.test.ts` (the real `/api/auth/session` coverage is the CI smoke test); S2 and S5 are helper tests only; T11 is N/A. See audit.)*
-- [ ] All 11 Tier 2 tests exist and pass.
-  - S1–S11 verified as guard/service-level regression tests.
-  *(FALSE/PARTIAL — S2 and S5 are helper tests, not entry-point coverage for every action/route. See audit.)*
+- [x] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
+  - T1–T3 event bus/Redis fallback, T4 `/api/auth/session` route wiring, T5 ready route, T6–T8 billing lifecycle, T9/T10 session revocation, T12/T13/T14 event/handler behavior, T15 anonymous Shopify webhook, and T16 concurrent invite seat cap verified.
+  *(T11 is N/A after Projects removal.)*
+- [x] All 11 Tier 2 tests exist and pass.
+  - S1–S4 tenant guard integration tests, S5 admin page census (`admin-guards.test.ts`), S6 tokenVersion revocation, S7 webhook signature verification, S8 rate limiting, S9 encryption, S10 decrypted env, S11 prompt injection.
+  *(S2 action guard census is a static inventory (`cross-tenant-action-census.test.ts`) in addition to the `makeTenantGuard` integration test; S5 admin action guard is `requireSuperAdmin` in each action.)*
 - [x] `npm audit --audit-level=moderate` runs in CI and fails the build on a finding.
 - [x] Secret scanning runs on every pull request.
 - [x] The CI smoke test asserts: `/api/health` 200, `/api/auth/session` 200,

@@ -16,11 +16,11 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - S2 — add a census or regression test covering cross-tenant write isolation for mutating actions.
+  - B.6 — record a coverage ratchet schedule in `vitest.config.ts`.
 
 ### ⏭️ Next
 
-- Continue with remaining audit gaps (S2 action census, M6/L5 ADRs, H10 serialization retry verification, L1/L3/L4/L7 low-severity items); update trackers and `task-status`.
+- Continue with remaining audit gaps (M6/L5 ADRs, H10 serialization retry verification, L1/L3/L4/L7 low-severity items); update trackers and `task-status`.
 
 ### ✅ Done
 
@@ -32,13 +32,18 @@ All notable changes to **OmniConnect AI** are documented here.
     returns `boolean`; `AbandonedCartSweep` skips `eventBus.publish` when another process already
     marked the cart, preventing duplicate `AbandonedCartDetected` events.
 
-- **Audit gap closure — H5.6 / M6 / L5 / T9/T10 / S5:**
+- **Audit gap closure — H5.6 / M6 / L5 / T4/T9/T10 / S2 / S5:**
   - Completed the `prisma.*.delete(` / `deleteMany(` inventory in `TASK-0067` §6; hardened
     `TrackedAccountRepository.delete` to scope by `storeId` in the `where` clause.
   - Pinned Stripe `apiVersion` and set `typescript: true` in `StripePaymentGateway`.
   - Set `auto_stop_machines = "off"` in `fly.toml` alongside `min_machines_running = 1`.
   - Added route-level tests for `/api/export/[id]` covering `getCurrentUser` null → `401`,
     cross-user export id → `404`, and valid export → `200` with `Cache-Control: no-store, private`.
+  - Added a route-level test for `/api/auth/[...nextauth]` that proxies `GET /api/auth/session`
+    to the `handlers.GET` and returns `200`.
+  - Added `src/test/security/cross-tenant-action-census.test.ts`, a static inventory of all
+    173 exported `*Action` functions that fails if a mutating action referencing `storeId`
+    does not call a tenant or organization guard.
   - Added explicit `requireSuperAdmin()` to every `src/app/admin/**/page.tsx` and a static
     `admin-guards.test.ts` that fails if any admin page omits it.
 
