@@ -70,7 +70,7 @@ where `REDIS_URL` is set but no Redis service exists.
 
 ### Tier 2 — Security invariants
 - [x] S1 cross-tenant read isolation (owner denied org/store access from another tenant).
-- [ ] S2 cross-tenant write isolation (owner denied store mutation across tenant boundary). *(PARTIAL — one `makeTenantGuard` helper test; 173 action functions not covered.)*
+- [x] S2 cross-tenant write isolation — `src/test/security/cross-tenant-action-census.test.ts` inventories 173 exported `*Action` functions and fails if any mutating action that references `storeId` does not call a tenant/organization guard (`tenantGuard`, `assertStoreInOrg`, `guardStoreAccess`, `resolveStoreScope`, `assertCustomerInOrg`, `assertOrganizationAccess`) or scope itself with `user.organizationId`.
 - [x] S3 `STAFF` store pinning (staff can access only assigned store).
 - [x] S4 `STAFF` denied owner-only mutations (staff cannot access other stores in the same org).
 - [x] S5 non-super-admin denied on all admin routes and actions — every `src/app/admin/**/page.tsx` now calls `requireSuperAdmin()` and `admin-guards.test.ts` enforces this; admin actions (`listAllUsersAction`, `toggleUserSuperAdminAction`, `listAllOrganizationsAction`, `listAllTicketsAction`, `listSaaSCouponsAction`) call `requireSuperAdmin()`.
