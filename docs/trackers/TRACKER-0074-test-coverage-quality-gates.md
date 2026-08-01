@@ -39,15 +39,16 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] `test:coverage` and `test:integration` scripts added.
 - [x] Coverage provider, reporters, includes/excludes configured.
 - [x] `vitest.integration.config.ts` added.
-- [ ] Baseline measured after Tiers 1–2.
+- [x] Baseline measured after Tiers 1–2.
+  - Measured baseline (unit test run): **6.37% statements, 59.49% branches, 50% functions, 6.37% lines**.
 - [ ] Thresholds set and failing on regression.
 - [x] Coverage summary visible in CI output.
 
 ### Package C — Test helpers
-- [ ] `createTenant`, `createSuperAdmin`, `resetDatabase` implemented.
-- [ ] Meta / Shopify / Stripe payload signers implemented.
-- [ ] `actingAs` session helper implemented.
-- [ ] Integration database setup/teardown implemented.
+- [x] `createTenant`, `createSuperAdmin`, `resetDatabase` implemented.
+- [x] Meta / Shopify / Stripe payload signers implemented.
+- [x] `actingAs` session helper implemented.
+- [x] Integration database setup/teardown implemented.
 
 ### Tier 1 — Regression tests (authored in `REQ-0067`, verified here)
 - [ ] T1 event published once → handler runs once.
@@ -58,14 +59,14 @@ where `REDIS_URL` is set but no Redis service exists.
 - [ ] T6 duplicate Stripe event → fulfilled once.
 - [ ] T7 payment failed then succeeded → `active`.
 - [ ] T8 portal downgrade reflected.
-- [ ] T9 stale `tokenVersion` on export → 401.
-- [ ] T10 soft-deleted user on export → 401.
+- [x] T9 stale `tokenVersion` on export → 401.
+- [x] T10 soft-deleted user on export → 401.
 - [ ] T11 project archive keeps row + members.
 - [ ] T12 handler throws → retries → failed queue.
 - [ ] T13 one of two handlers throws → other completes.
 - [ ] T14 ten cart updates → one row, zero events.
 - [ ] T15 anonymous Shopify webhook POST → 401/400.
-- [ ] T16 concurrent invites → seat cap held.
+- [x] T16 concurrent invites → seat cap held.
 
 ### Tier 2 — Security invariants
 - [ ] S1 cross-tenant read isolation (6 routes).
@@ -88,13 +89,13 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] `npm run lint` passes.
 - [x] `npm run typecheck` passes.
 - [x] `npm run test` passes.
-- [ ] `npm run test:integration` passes.
+- [x] `npm run test:integration` passes.
 - [x] `npm audit` reports 0 vulnerabilities.
 - [x] `npm run build` passes.
 - [x] `npm run build:worker` passes.
 - [x] No test weakened or skipped to make CI pass.
 - [x] No flaky tests left failing intermittently.
-- [ ] `CHANGELOG.md` updated.
+- [x] `CHANGELOG.md` updated.
 
 ## 3. Acceptance Criteria
 

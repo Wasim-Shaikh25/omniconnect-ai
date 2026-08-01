@@ -361,15 +361,16 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
 - [x] **A.3** Add gitleaks secret scanning on pull requests.
 - [x] **A.4** Extend the smoke test to assert auth, readiness, and Shopify webhook reachability.
 - [x] **A.5** Verify a Redis-dependent test now runs green in CI.
-- [ ] **B.1** Install `@vitest/coverage-v8`.
-- [ ] **B.2** Add `test:coverage` and `test:integration` scripts.
-- [ ] **B.3** Configure coverage provider, reporters, includes/excludes.
-- [ ] **B.4** Add `vitest.integration.config.ts`.
+- [x] **B.1** Install `@vitest/coverage-v8`.
+- [x] **B.2** Add `test:coverage` and `test:integration` scripts.
+- [x] **B.3** Configure coverage provider, reporters, includes/excludes.
+- [x] **B.4** Add `vitest.integration.config.ts`.
 - [ ] **B.5** Measure the baseline after Tiers 1–2; set thresholds; enable failure on regression.
-- [ ] **C.1** Add `src/test/fixtures.ts` (`createTenant`, `createSuperAdmin`, `resetDatabase`).
-- [ ] **C.2** Add `src/test/webhooks.ts` signers for Meta, Shopify, Stripe.
-- [ ] **C.3** Add `src/test/session.ts` (`actingAs`).
-- [ ] **C.4** Add database setup/teardown for the integration project.
+  - Baseline measured with unit tests: **6.37% statements, 59.49% branches, 50% functions, 6.37% lines**.
+- [x] **C.1** Add `src/test/fixtures.ts` (`createTenant`, `createSuperAdmin`, `resetDatabase`).
+- [x] **C.2** Add `src/test/webhooks.ts` signers for Meta, Shopify, Stripe.
+- [x] **C.3** Add `src/test/session.ts` (`actingAs`).
+- [x] **C.4** Add database setup/teardown for the integration project (`src/test/reset.ts` + single-fork pool).
 - [ ] **D.1** S1 — cross-tenant read isolation across 6 routes.
 - [ ] **D.2** S2 — cross-tenant write isolation across all mutating actions.
 - [ ] **D.3** S3 — `STAFF` store pinning.
@@ -388,11 +389,14 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
 
 - [ ] All `REQ-0074` acceptance criteria are met.
 - [ ] All 16 Tier 1 tests (owned by `REQ-0067`) pass in CI.
+  - T9 (stale `tokenVersion`) and T10 (soft-deleted user) verified.
+  - T16 (concurrent invites within seat cap) already verified.
 - [ ] All 11 Tier 2 tests pass in CI.
 - [ ] Coverage thresholds enforced and failing on regression.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
-- [ ] No test was weakened or skipped to make CI pass.
-- [ ] `CHANGELOG.md` updated last.
+- [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
+- [x] `npm run test:integration` passes.
+- [x] No test was weakened or skipped to make CI pass.
+- [x] `CHANGELOG.md` updated last.
 
 ## 6. Notes / Blockers
 
