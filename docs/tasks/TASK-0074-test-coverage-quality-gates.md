@@ -6,7 +6,7 @@
 - **Tracker:** `docs/trackers/TRACKER-0074-test-coverage-quality-gates.md`
 - **Module(s):** CI configuration, test infrastructure, all modules
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Added CI Redis service, coverage thresholds, `npm audit` and secret scanning, and Tier 1/2 regression and security test suites.
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -128,33 +128,56 @@ Add a separate secret-scan job on pull requests:
 A `.gitleaks.toml` extending the default config allowlists `.env.example`, which contains
 only placeholder values.
 
-Extend the smoke test to cover what the audit's blockers actually broke:
+Extend the smoke test to cover what the audit's blockers actually broke. Use the IPv4
+loopback address and force IPv4 with `curl -4` to avoid `localhost` resolution surprises in
+GitHub Actions runners; capture response bodies when an unexpected status is returned so
+failures are diagnosable.
 
 ```yaml
       - name: Smoke test
         run: |
+          set -e
           node .next/standalone/server.js &
           APP_PID=$!
           trap 'kill $APP_PID || true' EXIT
 
+          BASE=http://127.0.0.1:3000
           ok=0
           for i in {1..30}; do
-            if curl -sf http://localhost:3000/api/health > /dev/null; then ok=1; break; fi
+            if curl -4sf --max-time 5 "$BASE/api/health" > /dev/null; then ok=1; break; fi
             sleep 2
           done
-          if [ "$ok" != "1" ]; then echo "health failed"; exit 1; fi
+          if [ "$ok" != "1" ]; then echo "health failed" >&2; exit 1; fi
 
           check() {
-            code=$(curl -s -o /dev/null -w '%{http_code}' "${@:2}")
-            echo "$1 -> $code"
+            local label=$1
+            shift
+            local body_file
+            body_file=$(mktemp)
+            code=$(curl -4sS --max-time 10 -o "$body_file" -w '%{http_code}' "$@")
+            echo "$label -> $code" >&2
+            if [ "$code" != "200" ]; then
+              echo "$label body:" >&2
+              cat "$body_file" >&2 || true
+            fi
+            rm -f "$body_file"
             echo "$code"
           }
 
-          [ "$(check health http://localhost:3000/api/health)" = "200" ] || exit 1
-          [ "$(check auth http://localhost:3000/api/auth/session)" = "200" ] || exit 1   # C1
-          [ "$(check ready http://localhost:3000/api/ready)" = "200" ] || exit 1
-          shopify=$(check shopify -X POST http://localhost:3000/api/shopify/webhooks)     # H9
-          case "$shopify" in 3*) echo "shopify webhook redirected ($shopify)"; exit 1;; esac
+          health=$(check health "$BASE/api/health")
+          [ "$health" = "200" ] || { echo "health not 200" >&2; exit 1; }
+
+          # C1 regression: auth must not 500 with UntrustedHost behind a proxy-less host.
+          auth=$(check auth "$BASE/api/auth/session")
+          [ "$auth" = "200" ] || { echo "auth not 200" >&2; exit 1; }
+
+          ready=$(check ready "$BASE/api/ready")
+          [ "$ready" = "200" ] || { echo "ready not 200" >&2; exit 1; }
+
+          # H9 regression: the Shopify webhook must reach HMAC verification, not redirect.
+          shopify=$(curl -4sS --max-time 10 -o /dev/null -w '%{http_code}' -X POST "$BASE/api/shopify/webhooks")
+          echo "shopify -> $shopify" >&2
+          case "$shopify" in 3*) echo "shopify webhook redirected ($shopify)" >&2; exit 1;; esac
 ```
 
 ---
