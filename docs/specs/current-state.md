@@ -233,8 +233,7 @@ Core tables (see `prisma/schema.prisma` for full model):
   `docs/operations.md`; `scripts/backup.sh` and `scripts/restore.sh` support one-off operations.
 - **Observability:** Sentry + OpenTelemetry initialized in app and worker; spans around AI, Meta,
   and Shopify calls. Alert table and risk register in `docs/operations.md`.
-- **Secrets:** all tokens encrypted at rest; no secrets in logs; `env.ts` validates required
-  production variables. `.dockerignore` excludes `.env*` from the image.
+- **Secrets:** all tokens encrypted at rest using HKDF-derived AES-GCM keys with the `enc:v2:` format; `decryptString` falls back to `ENCRYPTION_KEY_PREVIOUS` for key rotation and still reads legacy `enc:` (v1 SHA-256) and plaintext tokens. The rotation runbook and `scripts/reencrypt-credentials.ts` are in `docs/operations.md`. No secrets in logs; `env.ts` validates required production variables. `.dockerignore` excludes `.env*` from the image.
 
 ---
 

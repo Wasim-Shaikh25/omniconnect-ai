@@ -160,17 +160,16 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 - [x] Colour contrast is spot-checked on primary surfaces (full machine audit is `REQ-0075`).
 
 ### M9 — Encryption
-- [ ] Key derivation uses HKDF (or PBKDF2 with a documented iteration count) rather than a single
-      SHA-256 pass.
-- [ ] The ciphertext prefix is versioned (`enc:v2:`).
-- [ ] Decryption supports the current key and one previous key so `ENCRYPTION_KEY` can be rotated.
-- [ ] A documented rotation procedure exists in `docs/operations.md`, including re-encryption of
+- [x] Key derivation uses HKDF rather than a single SHA-256 pass.
+- [x] The ciphertext prefix is versioned (`enc:v2:`).
+- [x] Decryption supports the current key and one previous key so `ENCRYPTION_KEY` can be rotated.
+- [x] A documented rotation procedure exists in `docs/operations.md`, including re-encryption of
       stored tokens.
-- [ ] The plaintext-passthrough branch in `decryptString` is time-boxed with a removal date
+- [x] The plaintext-passthrough branch in `decryptString` is time-boxed with a removal date
       recorded in the task file.
-- [ ] `.env.example` no longer ships a placeholder that reads like a usable passphrase; the
+- [x] `.env.example` no longer ships a placeholder that reads like a usable passphrase; the
       generation command is documented.
-- [ ] Round-trip tests cover: v2 encrypt/decrypt, v1 legacy decrypt, previous-key decrypt, and
+- [x] Round-trip tests cover: v2 encrypt/decrypt, v1 legacy decrypt, previous-key decrypt, and
       rejection of a tampered ciphertext.
 
 ### M10 — Login throttling

@@ -536,14 +536,14 @@ abusive output blocked by moderation.
 - [x] **M8.3** Replace the mobile drawer with a focus-trapping Radix primitive (`@radix-ui/react-dialog`); `Escape` close and focus restore handled by the library (`src/components/app-shell.tsx:238-273`).
 - [x] **M8.4** Manual keyboard traversal verified and recorded.
 - [x] **M8.5** Spot-check colour contrast on primary surfaces.
-- [ ] **M9.1** Replace SHA-256 derivation with HKDF.
-- [ ] **M9.2** Version the ciphertext prefix (`enc:v2:`).
-- [ ] **M9.3** Add `ENCRYPTION_KEY_PREVIOUS` and dual-key decryption.
-- [ ] **M9.4** Write `scripts/reencrypt-credentials.ts`.
-- [ ] **M9.5** Document the rotation procedure in `docs/operations.md`.
-- [ ] **M9.6** Replace the `.env.example` placeholder with a generation command.
-- [ ] **M9.7** Record the plaintext-passthrough removal date.
-- [ ] **M9.8** Tests: v2 round-trip, legacy v1 decrypt, previous-key decrypt, tampered ciphertext rejected.
+- [x] **M9.1** Replace SHA-256 derivation with HKDF (`src/shared/security/encryption.ts:20-41`).
+- [x] **M9.2** Version the ciphertext prefix (`enc:v2:`) and keep `enc:` for legacy v1 (`src/shared/security/encryption.ts:1-5,110-138`).
+- [x] **M9.3** Add `ENCRYPTION_KEY_PREVIOUS` and dual-key decryption (`src/shared/config/env.ts:54-61`; `src/shared/security/encryption.ts:63-66,141-149`).
+- [x] **M9.4** Write `scripts/reencrypt-credentials.ts`.
+- [x] **M9.5** Document the rotation procedure in `docs/operations.md`.
+- [x] **M9.6** Replace the `.env.example` placeholder with `openssl rand -base64 48`.
+- [x] **M9.7** Record plaintext-passthrough removal date: **2026-09-01**.
+- [x] **M9.8** Tests: v2 round-trip, legacy v1 decrypt, previous-key decrypt, tampered ciphertext rejected (`src/shared/security/encryption.test.ts`).
 - [ ] **M10.1** Add the global per-account counter.
 - [ ] **M10.2** Add `RateLimitError` and distinguishable UI feedback.
 - [ ] **M10.3** Keep the message identical for existing and non-existing accounts.
