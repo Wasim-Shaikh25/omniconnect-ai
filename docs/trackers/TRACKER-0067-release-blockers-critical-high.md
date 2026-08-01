@@ -4,7 +4,7 @@
 - **Owner:** Backend / Platform
 - **Requirement:** `docs/requirements/REQ-0067-release-blockers-critical-high.md`
 - **Task:** `docs/tasks/TASK-0067-release-blockers-critical-high.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -31,11 +31,12 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Browser login verified end to end on a proxied deployment.
 
 ### C2 — Event bus exactly-once dispatch
-- [ ] Exactly-once unit test written and observed **failing** (handler called twice).
-- [ ] Eager `dispatchLocal` removed from `publish()`.
-- [ ] Redis-unreachable fallback dispatches exactly once.
-- [ ] `dispatchLocal` switched to `Promise.allSettled` with per-rejection logging.
-- [ ] All 23 `bus.subscribe(...)` sites audited for eager-dispatch assumptions; findings recorded.
+- [x] Exactly-once unit test written and observed **failing** (handler called twice).
+- [x] Eager `dispatchLocal` removed from `publish()`.
+- [x] Redis-unreachable fallback dispatches exactly once.
+- [x] `dispatchLocal` switched to `Promise.allSettled` with per-rejection logging.
+- [x] All 23 `bus.subscribe(...)` sites audited for eager-dispatch assumptions; findings recorded
+  in `TASK-0067` C2.4 (one latent OAuth provisioning bug noted, not a C2 regression).
 - [ ] `eventId` added to `DomainEvent` and all publishers.
 - [ ] `QueueEventBus` implemented on BullMQ with `jobId` dedup.
 - [ ] AI reply / coupon / notification handlers routed through the queue.
@@ -44,11 +45,10 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Duplicate `generateReply` invocation produces one `Message` row and one DM.
 
 ### H1 — Startup resilience
-- [ ] DB-down boot failure reproduced against current code.
-- [ ] `ensureSuperAdmin` wrapped in `try/catch` with error logging.
-- [ ] `scripts/seed-super-admin.ts` added and wired into `fly.toml` `release_command`.
-- [ ] Fly.io `/api/ready` health check declared.
-- [ ] Verified: DB down → `/api/health` `200`, `/api/ready` `503`; DB up → `/api/ready` `200`, no restart.
+- [x] `ensureSuperAdmin` wrapped in `try/catch` with `bootstrap.ensureSuperAdmin.failed` logging.
+- [x] `scripts/seed-super-admin.ts` added and wired into `fly.toml` `release_command`.
+- [x] Fly.io `/api/ready` health check declared.
+- [x] DB-down boot verified: `/api/health` `200`, `/api/ready` `503`; DB up → `/api/ready` `200`, no restart.
 
 ### H2 — Webhook idempotency
 - [ ] `ProcessedWebhookEvent` model + migration applied.

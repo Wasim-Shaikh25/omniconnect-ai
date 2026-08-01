@@ -2,7 +2,7 @@
 
 - **Status:** Living document
 - **Owner:** Devin
-- **Last updated:** 2026-07-29
+- **Last updated:** 2026-08-01
 - **Changelog:** `CHANGELOG.md`
 - **Product charter:** `docs/requirements/REQ-0061-product-charter.md`
 
@@ -230,11 +230,11 @@ Core tables (see `prisma/schema.prisma` for full model):
 - **C1** — `trustHost` is now set from `AUTH_TRUST_HOST` (default `true` off Vercel) and the
   `redirect` callback enforces same-origin against `APP_URL`; the CI smoke test asserts
   `/api/auth/session` returns `200` on the standalone build.
-- **C2** — `RedisEventBus.publish()` dispatches locally *and* re-receives its own Pub/Sub message,
-  so every event runs twice on the publishing instance (duplicate AI replies, duplicate coupons,
-  doubled OpenAI spend).
-- **H1** — unguarded `ensureSuperAdmin` in `instrumentation.ts` makes a transient database outage a
-  total startup failure, including `/api/health`.
+- **C2** — `RedisEventBus` no longer echoes its own published messages back to handlers on the
+  publishing instance (handlers fire once via Pub/Sub, or once locally when Redis is unreachable).
+  Durable, exactly-once delivery across the cluster (BullMQ `jobId` dedup) is still pending H6.
+- **H1** — `ensureSuperAdmin` in `instrumentation.ts` is now wrapped in `try/catch` and only fails
+  the release via `scripts/seed-super-admin.ts`; `/api/health` stays up during a transient DB outage.
 - **H2/H3** — Stripe webhooks have no `event.id` idempotency ledger, and `past_due` is a terminal
   state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
 - **H4** — `/api/export/[id]` uses `auth()` instead of `getCurrentUser()`, bypassing `tokenVersion`

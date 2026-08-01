@@ -1,24 +1,18 @@
 import { prisma } from "@/shared/database";
-import bcrypt from "bcryptjs";
+import {
+  accounts,
+  hasher,
+  ensureSuperAdmin,
+} from "@/modules/auth/infrastructure/container";
 
 async function main() {
-  const hash = await bcrypt.hash("Password123!", 12);
-  const user = await prisma.user.upsert({
-    where: { email: "admin@example.com" },
-    update: { isSuperAdmin: true },
-    create: {
-      email: "admin@example.com",
-      name: "Super Admin",
-      passwordHash: hash,
-      role: "STORE_OWNER",
-      isSuperAdmin: true,
-    },
-  });
-  console.log("Super admin:", user.id, user.email, user.isSuperAdmin);
+  await ensureSuperAdmin({ accounts, hasher });
+  console.log("Super admin seeding completed successfully");
   await prisma.$disconnect();
 }
 
-main().catch((error) => {
+main().catch(async (error) => {
   console.error(error);
+  await prisma.$disconnect().catch(() => undefined);
   process.exit(1);
 });
