@@ -135,6 +135,13 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
 - Super admin requires email-based OTP in addition to login.
 
+### 7.5 Tenancy and Workspace Model
+
+- A user belongs to **exactly one `Organization`** at a time. The organization is created automatically during registration/onboarding.
+- Inviting an existing user to a different organization updates their `organizationId` (and bumps `tokenVersion`); this effectively moves them rather than adding a secondary membership.
+- Owners/admins can access any store in their organization. `STAFF` users are pinned to a single `storeId`; on login they are redirected from `/dashboard` to `/stores/{storeId}`.
+- `Project` and `ProjectMember` models have been removed (see CHANGELOG and `REQ-0073`). `Store` + `Integration` provide the same scoping.
+
 ---
 
 ## 8. Key User Flows
@@ -142,8 +149,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 ### 8.1 Registration and Onboarding
 1. `/register` → `registerUserAction` → `UserRegistered` event.
 2. `organizations` module auto-creates `Organization` and links owner.
-3. `/onboarding` prompts user to create a store (or connect existing source).
-4. `completeOnboardingAction` updates the session with new `organizationId`/`tokenVersion`.
+3. Immediately after signup the user has a `User` and an `Organization`, but no `Store` and no `Integration`.
+4. `/onboarding` prompts the user to create a store (or connect an existing source).
+5. `completeOnboardingAction` updates the session with new `organizationId`/`tokenVersion`.
 
 ### 8.2 Connect E-commerce Store
 1. Owner/admin visits `/stores` or `/stores/[storeId]`.
@@ -218,7 +226,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 - Only **Shopify** e-commerce connector is live; WooCommerce/BigCommerce/Magento are planned (REQ-0062).
 - Analytics `couponsUsed` and strict coupon-to-order attribution are not yet implemented (TASK-0062).
-- Out-of-scope UI routes (projects, affiliates, media-kit, brand-deals, UGC growth, revenue, daily-marketing, engagement, orders) have been removed. The remaining navigation is grouped in a collapsible sidebar (Home / Connect / Create / Engage / Analyze / Account).
+- Out-of-scope UI routes (affiliates, media-kit, brand-deals, UGC growth, revenue, daily-marketing, engagement, orders) have been removed. The remaining navigation is grouped in a collapsible sidebar (Home / Connect / Create / Engage / Analyze / Account).
 - Direct Meta content publishing/scheduling is out of scope for MVP.
 - Real load/accessibility/penetration testing has not been performed.
 
@@ -239,7 +247,7 @@ Core tables (see `prisma/schema.prisma` for full model):
   state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
 - **H4** — `/api/export/[id]` now uses `getCurrentUser()`, enforces a 10 req/min rate limit, and
   returns `Cache-Control: no-store, private`, so revoked sessions cannot download exports.
-- **H5** — `archiveProject` hard-deletes and cascades to `ProjectMember`.
+- **H5** — `Project`/`ProjectMember` removed; no destructive archive path remains.
 - **H6/H7** — event delivery has no durability, retry, or dead-letter path; abandoned-cart events
   fire on every cart edit and have no subscriber.
 - **H9** — `/api/shopify/webhooks` is now in `publicPaths`, so anonymous Shopify webhooks reach

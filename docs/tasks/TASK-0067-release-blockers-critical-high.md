@@ -565,88 +565,18 @@ currently stuck in `past_due` with a one-off script.
 
 ---
 
-### Step 9 — H5: Soft-archive projects
+### Step 9 — H5: Project removal
 
-**Files:** `prisma/schema.prisma` + migration,
-`src/modules/organizations/infrastructure/project.repository.ts`,
-`src/modules/organizations/presentation/project-actions.ts`
+**Status:** Resolved by removal via `REQ-0073` (2026-08-01).
 
-Pre-migration check (duplicate names would break the new unique constraint):
+The `Project`/`ProjectMember` models, `project.repository.ts`, `project.ts` application service,
+and `project-actions.ts` server actions were removed. `Store` + `Integration` already provide the
+same scoping, and `project-actions.ts` had no UI consumer, so the hard-delete hazard is gone rather
+than fixed.
 
-```sql
-SELECT "organizationId", name, COUNT(*)
-FROM "Project" GROUP BY 1, 2 HAVING COUNT(*) > 1;
-```
-
-```prisma
-model Project {
-  id              String       @id @default(cuid())
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  name            String
-  description     String?
-  instagramHandle String?
-  integrationId   String?
-  integration     Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
-  archivedAt      DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  members ProjectMember[]
-
-  @@unique([organizationId, name])
-  @@index([organizationId])
-  @@index([archivedAt])
-}
-```
-
-```typescript
-// src/modules/organizations/infrastructure/project.repository.ts
-async archive(id: string, organizationId: string): Promise<ProjectRecord | null> {
-  // updateMany: a missing or cross-tenant id yields count 0 instead of throwing P2025.
-  const result = await prisma.project.updateMany({
-    where: { id, organizationId, archivedAt: null },
-    data: { archivedAt: new Date() },
-  });
-  if (result.count === 0) return null;
-  return this.findById(id, organizationId);
-}
-
-async restore(id: string, organizationId: string): Promise<ProjectRecord | null> {
-  const result = await prisma.project.updateMany({
-    where: { id, organizationId, archivedAt: { not: null } },
-    data: { archivedAt: null },
-  });
-  if (result.count === 0) return null;
-  return this.findById(id, organizationId);
-}
-
-async listByOrganization(
-  organizationId: string,
-  options?: { includeArchived?: boolean },
-): Promise<ProjectRecord[]> {
-  const projects = await prisma.project.findMany({
-    where: {
-      organizationId,
-      ...(options?.includeArchived ? {} : { archivedAt: null }),
-    },
-    orderBy: { createdAt: "desc" },
-  });
-  return projects.map(mapProject);
-}
-```
-
-`archiveProjectAction` must surface the `null` result as a user-facing error instead of throwing.
-Also replace the check-then-insert in `create` with a `P2002` catch now that the unique constraint
-exists (this closes the M3 race).
-
-Inventory every other hard delete:
-
-```bash
-grep -rn "prisma\.\w*\.delete(" src/modules
-```
-
-Record each with a keep/change decision in §6.
+Migration `20260801083128_remove_project_models` drops the `Project` and `ProjectMember` tables
+and the `ProjectMemberRole` enum; the SQL was reviewed by hand. Local row counts before the drop
+were 0/0; no backup was required.
 
 ---
 
@@ -814,13 +744,7 @@ grep -rn "planLimits(" src/modules
 - [ ] **H3.5** Document required Stripe dashboard events in `docs/deployment.md`.
 - [ ] **H3.6** Write the `past_due` backfill script.
 - [ ] **H3.7** Tests: fail→succeed, portal downgrade, `unpaid` status, unknown price.
-- [ ] **H5.1** Run the duplicate-project-name pre-check.
-- [ ] **H5.2** Add `archivedAt`, `@@unique([organizationId, name])`, `@@index([archivedAt])` + migration.
-- [ ] **H5.3** Convert `archive` to `updateMany`; add `restore`; filter archived from lists.
-- [ ] **H5.4** Replace the check-then-insert in `create` with a `P2002` catch (closes M3's race).
-- [ ] **H5.5** Handle the `null` result in `archiveProjectAction`.
-- [ ] **H5.6** Inventory all `prisma.*.delete(` call sites; record decisions.
-- [ ] **H5.7** Tests: archive keeps row + members, excluded from list, cross-tenant → null, restore round-trip.
+- [x] **H5.1-5.7** Resolved by removal — `Project`/`ProjectMember` models and actions deleted (migration `20260801083128_remove_project_models`). The M3 race and hard-delete hazard no longer exist.
 - [ ] **H7.1** Add the `Cart` model and migration.
 - [ ] **H7.2** Convert `checkouts/*` handling to a cart upsert with no event.
 - [ ] **H7.3** Mark `convertedAt` on `orders/create` for the matching cart token.

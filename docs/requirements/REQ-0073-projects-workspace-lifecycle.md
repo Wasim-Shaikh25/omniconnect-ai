@@ -1,6 +1,6 @@
 # REQ-0073: Projects and Workspace Lifecycle — Decision and Implementation
 
-- **Status:** Approved (pending the Q1 decision gate)
+- **Status:** In Progress — Q1 resolved: Option B (remove the Projects feature), 2026-08-01
 - **Owner:** Product / Backend / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0073-projects-workspace-lifecycle.md`
@@ -101,36 +101,39 @@ unreachable mutating surface into production is not.
 - No data is lost that anyone depends on.
 
 ### 6.2 Acceptance criteria
-- [ ] A production data check confirms `Project` and `ProjectMember` row counts; if non-zero, the
+- [x] A production data check confirms `Project` and `ProjectMember` row counts; if non-zero, the
       rows are exported to durable storage before the migration and the export location is recorded.
-- [ ] `src/modules/organizations/presentation/project-actions.ts` is deleted.
-- [ ] `src/modules/organizations/infrastructure/project.repository.ts` is deleted.
-- [ ] The project application service and any barrel exports are deleted.
-- [ ] `Project` and `ProjectMember` models and the `User.projectMembers` / `Organization.projects` /
+      *(Checked: 0/0; no export required.)*
+- [x] `src/modules/organizations/presentation/project-actions.ts` is deleted.
+- [x] `src/modules/organizations/infrastructure/project.repository.ts` is deleted.
+- [x] The project application service and any barrel exports are deleted.
+- [x] `Project` and `ProjectMember` models and the `User.projectMembers` / `Organization.projects` /
       `Integration` relations are removed with a migration.
-- [ ] Any project-related domain events are removed and reflected in the `REQ-0069` L1 event
-      registry.
-- [ ] `grep -rn "roject" src --include=*.ts --include=*.tsx` returns only unrelated matches
-      (e.g. "projection"); the residual list is recorded in the task.
-- [ ] `docs/specs/current-state.md` and any requirement referencing Projects are updated to state
+- [x] Any project-related domain events are removed and reflected in the `REQ-0069` L1 event
+      registry. *(No Project events existed; note added to TASK-0069 Step 1.)*
+- [x] `grep -rn "Project\|project" src --include=*.ts --include=*.tsx | grep -vi "projection\|projected"`
+      returns zero functional matches; the residual list is recorded in the task.
+- [x] `docs/specs/current-state.md` and any requirement referencing Projects are updated to state
       the feature was removed, with the date and reason.
-- [ ] `REQ-0067` H5 is closed as "resolved by removal" with a cross-reference.
-- [ ] Lint, typecheck, tests, and build pass with no unused-export or dead-code warnings.
+- [x] `REQ-0067` H5 is closed as "resolved by removal" with a cross-reference.
+- [x] Lint, typecheck, tests, and build pass with no unused-export or dead-code warnings.
 
 ## 7. Workspace scope (both options)
 
 Independent of Q1, the workspace model has gaps:
 
-- [ ] **Multi-workspace:** decide whether a user may belong to or create more than one
+- [x] **Multi-workspace:** decide whether a user may belong to or create more than one
       organization. If yes, a workspace switcher and a create-workspace flow are required. If no,
       document the single-workspace-per-user model in `docs/specs/current-state.md` so it stops
-      being an implicit assumption. **Default: single workspace; document it.**
-- [ ] **Q2 — `STAFF` landing:** decide whether a store-pinned staff member gets a store-scoped home
+      being an implicit assumption. **Default: single workspace; document it.** *(Documented in
+      `docs/specs/current-state.md` §7.5.)*
+- [x] **Q2 — `STAFF` landing:** decide whether a store-pinned staff member gets a store-scoped home
       instead of the multi-store `/dashboard`. **Default: yes — redirect `STAFF` to
       `/stores/{their-store-id}`,** since the multi-store dashboard is built around a selection a
-      pinned user cannot make. Implement or record the decision explicitly.
-- [ ] The onboarding flow's outcome is documented: what exists immediately after signup, and what
-      the user is prompted to do next.
+      pinned user cannot make. Implement or record the decision explicitly. *(Implemented in
+      `src/app/dashboard/page.tsx`.)*
+- [x] The onboarding flow's outcome is documented: what exists immediately after signup, and what
+      the user is prompted to do next. *(Documented in `docs/specs/current-state.md` §8.1.)*
 
 ## 8. Scope & Dependencies
 

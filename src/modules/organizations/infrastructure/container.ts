@@ -18,18 +18,9 @@ import {
   makeValidateInvite,
   makeAcceptInvite,
 } from "../application/validate-accept-invite";
-import {
-  makeCreateProject,
-  makeListProjects,
-  makeArchiveProject,
-  makeAddProjectMember,
-  makeRemoveProjectMember,
-  makeListProjectMembers,
-} from "../application/project";
 import { PrismaOrganizationRepository } from "./organization.repository";
 import { PrismaStoreRepository } from "./store.repository";
 import { PrismaSaaSCouponRepository } from "./saas-coupon.repository";
-import { PrismaProjectRepository } from "./project.repository";
 import { PrismaOrganizationInviteRepository } from "./organization-invite.repository";
 import { StripePaymentGateway } from "./stripe-payment-gateway";
 import { setUserOrganization } from "@/modules/users";
@@ -38,7 +29,6 @@ import { env } from "@/shared/config";
 
 const organizations = new PrismaOrganizationRepository();
 const stores = new PrismaStoreRepository();
-const projects = new PrismaProjectRepository();
 
 function createPaymentGateway() {
   try {
@@ -121,10 +111,4 @@ export const acceptOrganizationInvite = makeAcceptInvite({
   now: () => new Date(),
 });
 
-export { projects };
-export const createProject = makeCreateProject({ projects });
-export const listProjects = makeListProjects({ projects });
-export const archiveProject = makeArchiveProject({ projects });
-export const addProjectMember = makeAddProjectMember({ projects });
-export const removeProjectMember = makeRemoveProjectMember({ projects });
-export const listProjectMembers = makeListProjectMembers({ projects });
+

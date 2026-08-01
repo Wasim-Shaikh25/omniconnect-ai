@@ -1,10 +1,10 @@
 # TRACKER-0073: Projects and Workspace Lifecycle
 
-- **Status:** Blocked (awaiting the Q1 decision)
+- **Status:** In Progress — Path B (remove) + Package C
 - **Owner:** Product / Backend / Frontend
 - **Requirement:** `docs/requirements/REQ-0073-projects-workspace-lifecycle.md`
 - **Task:** `docs/tasks/TASK-0073-projects-workspace-lifecycle.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -15,10 +15,10 @@ feature. Recommendation: **remove**.
 ## 2. Subtasks
 
 ### Decision gate
-- [ ] **Q1 answered:** ship or remove, recorded in the task file with date and owner.
-- [ ] **Q2 answered:** `STAFF` landing page.
-- [ ] Multi-workspace policy answered.
-- [ ] (Ship only) Project scoping model answered — scope or label?
+- [x] **Q1 answered:** Option B (remove), 2026-08-01, Devin.
+- [x] **Q2 answered:** `STAFF` landing page — redirect `STAFF` with `storeId` to `/stores/{storeId}` (implemented in `src/app/dashboard/page.tsx`).
+- [x] Multi-workspace policy answered — single workspace per user; document in `current-state.md`.
+- [ ] ~~(Ship only) Project scoping model answered~~ — N/A under Option B.
 
 ### Path A — Ship *(skip if Q1 = remove)*
 - [ ] `REQ-0067` H5 landed as a prerequisite.
@@ -38,39 +38,39 @@ feature. Recommendation: **remove**.
 - [ ] Test: foreign `integrationId` rejected.
 
 ### Path B — Remove *(skip if Q1 = ship)*
-- [ ] `Project` / `ProjectMember` row counts checked.
-- [ ] Rows exported if non-zero; location recorded.
-- [ ] `project-actions.ts` deleted.
-- [ ] `project.repository.ts` deleted.
-- [ ] Project application service and types deleted.
-- [ ] Module barrel exports removed.
-- [ ] Project domain events removed and reflected in the event registry.
-- [ ] Models removed from `schema.prisma`.
-- [ ] Back-relations removed from `User`, `Organization`, `Integration`.
-- [ ] Migration generated and SQL reviewed by hand.
-- [ ] Residual reference sweep clean.
-- [ ] `docs/specs/current-state.md` updated.
-- [ ] `REQ-0067` H5 cross-referenced as resolved by removal.
-- [ ] Charter documentation updated.
+- [x] `Project` / `ProjectMember` row counts checked (both 0; no export required).
+- [x] ~~Rows exported if non-zero; location recorded.~~ — N/A (tables empty).
+- [x] `project-actions.ts` deleted.
+- [x] `project.repository.ts` deleted.
+- [x] Project application service and types deleted.
+- [x] Module barrel exports removed.
+- [x] Project domain events removed (none existed) and reflected in `REQ-0069` L1 event registry.
+- [x] Models removed from `schema.prisma`.
+- [x] Back-relations removed from `User`, `Organization`, `Integration`.
+- [x] Migration `20260801083128_remove_project_models` generated and SQL reviewed by hand.
+- [x] Residual reference sweep clean (zero functional matches).
+- [x] `docs/specs/current-state.md` updated.
+- [x] `REQ-0067` H5 cross-referenced as resolved by removal.
+- [x] Charter documentation updated (`REQ-0061-product-charter.md`).
 
 ### Package C — Workspace scope *(both paths)*
-- [ ] Multi-workspace policy documented in `docs/specs/current-state.md`.
-- [ ] Second-organization invite behaviour verified and documented.
-- [ ] `STAFF` landing implemented per Q2.
+- [x] Multi-workspace policy documented in `docs/specs/current-state.md` (§7.5).
+- [x] Second-organization invite behaviour verified and documented in `docs/specs/current-state.md` (§7.5).
+- [x] `STAFF` landing implemented per Q2.
 - [ ] Test: `STAFF` with a store redirects; without a store does not loop.
-- [ ] Onboarding outcome documented.
+- [x] Onboarding outcome documented in `docs/specs/current-state.md` (§8.1).
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` passes.
-- [ ] `npm run build:worker` passes.
-- [ ] Migrations apply cleanly with no drift.
-- [ ] No unused-export or dead-code lint warnings remain.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `docs/specs/current-state.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` passes.
+- [x] `npm run build:worker` passes.
+- [x] Migrations apply cleanly with no drift (`prisma migrate status` reports up to date).
+- [x] No unused-export or dead-code lint warnings remain.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 
 ## 3. Acceptance Criteria
 

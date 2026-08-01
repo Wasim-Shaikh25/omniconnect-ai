@@ -90,7 +90,7 @@ These are explicitly **not** part of the current product. They may become future
 - UGC collection and rights management.
 - Brand-deals marketplace.
 - Media kit generator.
-- Project management module (separate from store workspace).
+- Project management module (separate from store workspace) — removed; `Store` + `Integration` provide the same scoping (see REQ-0073).
 - Revenue/profit dashboards that duplicate Shopify's finance tools.
 - Generic lead scoring outside Meta conversation context.
 - TikTok, Pinterest, YouTube, or other social platforms.

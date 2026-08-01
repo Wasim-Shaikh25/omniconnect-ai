@@ -195,19 +195,7 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H5 — Project archive is non-destructive
 
-- [ ] `Project` gains `archivedAt DateTime?` plus `@@unique([organizationId, name])` and
-      `@@index([archivedAt])`, with a Prisma migration.
-- [ ] The migration is preceded by a duplicate-name check; the task documents the query to run.
-- [ ] `PrismaProjectRepository.archive` uses `updateMany` (setting `archivedAt`) and returns `null`
-      when `count === 0` instead of throwing `P2025`.
-- [ ] A `restore` method exists and round-trips.
-- [ ] `listByOrganization` excludes archived projects by default and accepts an explicit
-      `includeArchived` option.
-- [ ] `ProjectMember` rows survive archiving.
-- [ ] `archiveProjectAction` handles the `null` result with a user-facing message instead of an
-      unhandled exception.
-- [ ] Every `prisma.<model>.delete(` call site under `src/modules` is inventoried in the task file
-      and each is confirmed intentional.
+**Resolved by removal** via `REQ-0073` (2026-08-01). The `Project` and `ProjectMember` models, repository, server actions, and barrel exports were removed; `archiveProject` no longer exists. `Store` + `Integration` provide the same scoping, and `project-actions.ts` had no UI consumer.
 
 ### H6 — Durable event delivery
 

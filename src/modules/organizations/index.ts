@@ -31,14 +31,8 @@ export { createStoreSchema } from "./application/create-store";
 export type { CreateStoreInput } from "./application/create-store";
 export { createOrganizationSchema } from "./application/create-organization";
 export type { CreateOrganizationInput } from "./application/create-organization";
-export type {
-  OrganizationRecord,
-  StoreRecord,
-  ProjectRecord,
-  ProjectMemberRole,
-} from "./application/ports";
+export type { OrganizationRecord, StoreRecord } from "./application/ports";
 export type { OrganizationOverview } from "./application/queries";
-export { createProjectSchema } from "./application/project";
 export { inviteMemberSchema } from "./application/invite-member";
 export type { InviteMemberInput } from "./application/invite-member";
 
@@ -99,14 +93,4 @@ export {
   removeOrganizationMemberAction,
 } from "./presentation/invite-member.actions";
 export type { InviteMemberActionState } from "./presentation/invite-member.actions";
-export {
-  createProjectAction,
-  listProjectsAction,
-  getProjectAction,
-  archiveProjectAction,
-  addProjectMemberAction,
-  removeProjectMemberAction,
-} from "./presentation/project-actions";
-export type { ProjectActionState } from "./presentation/project-actions";
-export type { ProjectMemberRecord } from "./application/ports";
 export { registerOrganizationSubscribers } from "./infrastructure/subscribers";
