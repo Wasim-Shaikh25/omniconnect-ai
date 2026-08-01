@@ -1,21 +1,11 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { env } from "@/shared/config";
 import { logger } from "@/shared/observability";
+import { verifyShopifyWebhookSignature } from "@/shared/security/shopify-webhook";
 import { applyShopifyWebhook } from "@/modules/ecommerce";
 import { ensureSubscribers } from "@/server/subscribers";
 
 export const runtime = "nodejs";
-
-function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
-  if (!signature) return false;
-  const expected = createHmac("sha256", secret).update(rawBody, "utf8").digest("base64");
-  try {
-    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(request: Request): Promise<Response> {
   ensureSubscribers();
@@ -31,7 +21,7 @@ export async function POST(request: Request): Promise<Response> {
     return new NextResponse("Webhook not configured", { status: 500 });
   }
 
-  if (!verifySignature(rawBody, signature, secret)) {
+  if (!verifyShopifyWebhookSignature(rawBody, signature, secret)) {
     logger.warn("shopify.webhook.invalidSignature", { topic, shopDomain });
     return new NextResponse("Invalid signature", { status: 401 });
   }

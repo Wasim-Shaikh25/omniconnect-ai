@@ -73,12 +73,12 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] S2 cross-tenant write isolation (owner denied store mutation across tenant boundary).
 - [x] S3 `STAFF` store pinning (staff can access only assigned store).
 - [x] S4 `STAFF` denied owner-only mutations (staff cannot access other stores in the same org).
-- [ ] S5 non-super-admin denied on all admin routes and actions.
-- [ ] S6 `tokenVersion` revocation at every entry point.
-- [ ] S7 invalid signatures rejected for all three providers.
-- [ ] S8 login rate limiting engages.
-- [ ] S9 encryption round-trip and tamper rejection.
-- [ ] S10 logger redaction.
+- [x] S5 non-super-admin denied on all admin routes and actions (`requireSuperAdmin` rejects non-super-admin users).
+- [x] S6 `tokenVersion` revocation at every entry point (`getCurrentUser` and all `require*` helpers load the canonical DB record and verify `tokenVersion`).
+- [x] S7 invalid signatures rejected for all three providers (Shopify, Meta, Stripe webhook signature verification tests).
+- [x] S8 login rate limiting engages (`rateLimit` blocks requests beyond the configured limit).
+- [x] S9 encryption round-trip and tamper rejection (`encryptString`/`decryptString` round-trip and reject tampered ciphertext).
+- [x] S10 logger redaction (sensitive keys, emails, and phone numbers are masked before logging).
 - [ ] S11 prompt-injection resistance.
 
 ### Package E — Documentation

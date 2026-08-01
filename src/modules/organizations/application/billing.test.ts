@@ -6,7 +6,7 @@ import { Plan } from "../domain/plan";
 import type { OrganizationRepository, OrganizationRecord } from "./ports";
 import type { SaaSCouponRepository, SaaSCouponRecord } from "./saas-coupon";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
-import { makeBillingService, type BillingService } from "./billing";
+import { makeBillingService, type BillingService, BillingSignatureError } from "./billing";
 import type { CheckoutSessionInput, PaymentGateway } from "./payment-gateway";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
@@ -168,12 +168,22 @@ class FakeProcessedEventsRepository implements ProcessedEventsRepository {
 
 class FakePaymentGateway implements PaymentGateway {
   private events: Stripe.Event[] = [];
+  private shouldThrowSignature = false;
 
   queue(event: Stripe.Event): void {
     this.events.push(event);
   }
 
+  throwSignatureError(): void {
+    this.shouldThrowSignature = true;
+  }
+
   constructWebhookEvent(_payload: string | Buffer, _signature: string, _secret: string): unknown {
+    if (this.shouldThrowSignature) {
+      const err = Object.create(Stripe.errors.StripeSignatureVerificationError.prototype) as Error;
+      err.message = "Invalid signature";
+      throw err;
+    }
     return this.events.shift();
   }
 
@@ -469,6 +479,15 @@ describe("billing service", () => {
       const updated = await ctx.organizations.findById(org.id);
       expect(updated?.plan).toBe(Plan.PRO);
       expect(updated?.subscriptionStatus).toBe("active");
+    });
+  });
+
+  describe("security", () => {
+    it("rejects a Stripe webhook with an invalid signature (S7)", async () => {
+      const ctx = makeContext();
+      ctx.paymentGateway.throwSignatureError();
+
+      await expect(ctx.billing.fulfillCheckout("payload", "invalid-sig")).rejects.toBeInstanceOf(BillingSignatureError);
     });
   });
 });

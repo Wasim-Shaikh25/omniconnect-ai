@@ -375,12 +375,12 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
 - [x] **D.2** S2 — cross-tenant write isolation (owner denied store mutation across tenant boundary).
 - [x] **D.3** S3 — `STAFF` store pinning (staff can access only assigned store).
 - [x] **D.4** S4 — `STAFF` cannot perform owner-only mutations (staff cannot access other stores in the same org).
-- [ ] **D.5** S5 — non-super-admin denied on all admin routes and actions.
-- [ ] **D.6** S6 — `tokenVersion` revocation at every entry point.
-- [ ] **D.7** S7 — invalid signatures rejected for all three providers.
-- [ ] **D.8** S8 — login rate limiting.
-- [ ] **D.9** S9 — encryption round-trip and tamper rejection.
-- [ ] **D.10** S10 — logger redaction.
+- [x] **D.5** S5 — non-super-admin denied on all admin routes and actions (`requireSuperAdmin` integration test).
+- [x] **D.6** S6 — `tokenVersion` revocation at every entry point (`getCurrentUser` + `require*` helpers).
+- [x] **D.7** S7 — invalid signatures rejected for all three providers (Shopify, Meta, Stripe webhook signature verification tests).
+- [x] **D.8** S8 — login rate limiting (`rateLimit` unit test with in-memory store).
+- [x] **D.9** S9 — encryption round-trip and tamper rejection (`encryptString`/`decryptString` unit test).
+- [x] **D.10** S10 — logger redaction (`redactValue` + `logger` unit tests).
 - [ ] **D.11** S11 — prompt-injection resistance.
 - [ ] **E.1** Update the testing skill documentation.
 - [ ] **E.2** Add the "new mutating action requires a cross-tenant test row" rule to `AGENTS.md`.
@@ -392,7 +392,7 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
   - T9 (stale `tokenVersion`) and T10 (soft-deleted user) verified.
   - T16 (concurrent invites within seat cap) already verified.
 - [ ] All 11 Tier 2 tests pass in CI.
-  - S1–S4 tenant-guard regression tests verified locally.
+  - S1–S10 regression tests verified locally; S11 pending.
 - [ ] Coverage thresholds enforced and failing on regression.
 - [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
 - [x] `npm run test:integration` passes.

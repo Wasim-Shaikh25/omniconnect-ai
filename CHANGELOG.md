@@ -127,6 +127,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Verified S1/S2 cross-tenant isolation: an owner from tenant A cannot access or mutate a store in tenant B.
   - Verified S3 `STAFF` store pinning: staff can only access their assigned store.
   - Verified S4 owner-only scope: staff cannot access other stores within the same organization.
+  - Added `src/modules/auth/infrastructure/session.integration.test.ts` coverage for S5 (`requireSuperAdmin` rejects non-super-admins) and confirmed S6 (`tokenVersion` revocation flows through `getCurrentUser` to all `require*` helpers).
+  - Extracted Shopify webhook HMAC verification to `src/shared/security/shopify-webhook.ts` and added unit tests for S7 covering Shopify, Meta (`verify-webhook.test.ts`), and Stripe (`billing.test.ts` invalid signature path).
+  - Added `src/shared/security/rate-limit.test.ts` for S8 login rate limiting.
+  - Added `src/shared/security/encryption.test.ts` for S9 encryption round-trip and tamper rejection.
+  - Added `src/shared/observability/logger.test.ts` for S10 logger redaction of sensitive keys, emails, and phone numbers.
+  - Remaining: S11 prompt-injection resistance and the remaining Tier 1 route-level tests (T4/T5/T15).
 
 - **REQ-0067 H6 + H7 — durable event delivery and abandoned-cart correctness:**
   - Added `eventId` to `DomainEvent` and all publishers; `BaseDomainEvent` defaults to `${aggregateId}-${randomId()}`.

@@ -1,7 +1,8 @@
 import { describe, expect, it, beforeAll, afterAll, vi, type Mock } from "vitest";
 import { prisma } from "@/shared/database";
 import { resetDatabase } from "@/test/reset";
-import { getCurrentUser } from "./session";
+import { getCurrentUser, requireSuperAdmin } from "./session";
+import { ForbiddenError } from "../domain/errors";
 
 vi.mock("./auth", () => ({
   auth: vi.fn(),
@@ -93,5 +94,66 @@ describe("getCurrentUser", () => {
 
     const result = await getCurrentUser();
     expect(result).toBeNull();
+  });
+});
+
+describe("requireSuperAdmin", () => {
+  it("returns the user when they are a super admin (S5)", async () => {
+    const admin = await prisma.user.create({
+      data: {
+        email: "super@example.com",
+        passwordHash: "hash",
+        name: "Super Admin",
+        role: "ADMIN",
+        isSuperAdmin: true,
+        tokenVersion: 1,
+      },
+    });
+
+    mockAuth.mockResolvedValue({
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      user: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
+        isSuperAdmin: admin.isSuperAdmin,
+        organizationId: admin.organizationId,
+        storeId: admin.storeId,
+        tokenVersion: admin.tokenVersion,
+      },
+    });
+
+    const result = await requireSuperAdmin();
+    expect(result.id).toBe(admin.id);
+  });
+
+  it("throws ForbiddenError when the user is not a super admin (S5)", async () => {
+    const owner = await prisma.user.create({
+      data: {
+        email: "owner@example.com",
+        passwordHash: "hash",
+        name: "Owner",
+        role: "STORE_OWNER",
+        isSuperAdmin: false,
+        tokenVersion: 1,
+      },
+    });
+
+    mockAuth.mockResolvedValue({
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      user: {
+        id: owner.id,
+        email: owner.email,
+        name: owner.name,
+        role: owner.role,
+        isSuperAdmin: owner.isSuperAdmin,
+        organizationId: owner.organizationId,
+        storeId: owner.storeId,
+        tokenVersion: owner.tokenVersion,
+      },
+    });
+
+    await expect(requireSuperAdmin()).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
