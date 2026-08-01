@@ -204,9 +204,16 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure.
 
 ### OpenAI
-- `OpenAIProvider` implements `AIProvider`.
+- `OpenAIProvider` implements `AIProvider` and `ContentModerator`.
 - All AI calls route through `AIUsageGuard` which enforces plan quota.
 - Model allowlist, user-message delimiters, output PII redaction.
+- Prompt-injection defences: `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` /
+  `wrapExternalData` live in `src/modules/ai/domain/prompt-safety.ts` (pure, no IO). The reply
+  system prompt instructs the model that `<<<USER_MESSAGE>>>` and every `<<<DATA>>>` region are
+  untrusted data, not instructions, and that discounts must come from `<<<COUPONS>>>`.
+- Output moderation: `OpenAIProvider.moderate` calls the OpenAI moderations endpoint; `generateReply`
+  withholds flagged output, logs the categories (not the text), writes an audit log without PII,
+  and escalates to a human before any Meta send.
 
 ### Stripe
 - Checkout sessions for plan upgrades; webhook fulfillment updates `Organization` subscription.
@@ -247,6 +254,10 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Accessibility hardening (`REQ-0068` M8) is in place: a skip link targets `<main id="main-content" tabIndex={-1}>`, the collapsed sidebar preserves link labels via `aria-label` with `aria-hidden` icons, and the mobile drawer is a Radix `Dialog` that traps focus, closes on `Escape`, and restores focus to the trigger. Manual keyboard traversal and a colour-contrast spot-check on primary surfaces were recorded.
 - Encryption (`REQ-0068` M9) uses HKDF (`enc:v2:`), supports dual-key decryption with `ENCRYPTION_KEY_PREVIOUS` for rotation, and documents a re-encryption procedure.
 - Login throttling (`REQ-0068` M10) applies a per-IP (5/15min) and per-account (20/hour) fixed-window counter in `authorize`; `RateLimitError` surfaces "Too many attempts. Try again in N minutes." without revealing account existence.
+- AI prompt safety (`REQ-0068` M15) uses `<<<USER_MESSAGE>>>` and `<<<DATA>>>` delimiter regions,
+  escapes `&`/`<`/`>` in user-editable fragments and external data, adds a system instruction that
+  only delimited user input is untrusted, and runs generated replies through OpenAI moderation
+  before sending to Meta; flagged content is withheld and escalated.
 
 ### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
 
