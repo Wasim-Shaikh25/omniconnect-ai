@@ -1,5 +1,6 @@
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
+import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import type { IntegrationRepository, ProductRepository, OrderRepository } from "./ports";
 import type { ConnectorProduct, ConnectorOrder } from "../domain/connector";
 import { AbandonedCartDetected } from "../domain/events";
@@ -7,6 +8,7 @@ import { AbandonedCartDetected } from "../domain/events";
 export interface ShopifyWebhookInput {
   topic: string;
   shopDomain: string;
+  eventId: string;
   payload: Record<string, unknown>;
 }
 
@@ -19,6 +21,7 @@ export function makeApplyShopifyWebhook(deps: {
   integrations: IntegrationRepository;
   products: ProductRepository;
   orders: OrderRepository;
+  processedEvents?: ProcessedEventsRepository;
 }) {
   return async function applyShopifyWebhook(input: ShopifyWebhookInput): Promise<ShopifyWebhookResult> {
     const integration = await deps.integrations.findByShopDomain(input.shopDomain);
@@ -28,6 +31,18 @@ export function makeApplyShopifyWebhook(deps: {
     }
     const storeId = integration.storeId;
     const topic = input.topic;
+
+    if (deps.processedEvents) {
+      const recorded = await deps.processedEvents.record({
+        id: input.eventId,
+        provider: "shopify",
+        type: topic,
+      });
+      if (!recorded.recorded) {
+        logger.info("shopify.webhook.duplicate", { shopDomain: input.shopDomain, eventId: input.eventId, topic });
+        return { ok: true, message: "Already processed" };
+      }
+    }
 
     try {
       if (topic === "products/create" || topic === "products/update") {

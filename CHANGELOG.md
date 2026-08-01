@@ -15,11 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H1/H4/H9/H10 fixed; H5 resolved by removal via REQ-0073; remaining H2–H3, H6–H8 in progress.
+- **REQ-0067 release blockers:** C1/C2/H1/H2/H3/H4/H9/H10 fixed; H5 resolved by removal via REQ-0073; remaining H6–H8 in progress.
 
 ### ⏭️ Next
 
-- **REQ-0067** — remaining release blockers (H2–H3, H6–H8), each with a regression test that fails
+- **REQ-0067** — remaining release blockers (H6–H8), each with a regression test that fails
   against current `main`.
 
 ### ✅ Done
@@ -88,6 +88,24 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `organization-invite.repository.integration.test.ts` firing `teamSeats + 5` parallel
     invites and asserting pending invites never exceed `teamSeats`.
   - Inventoried other `planLimits()` paths: store creation and AI reply counter are already atomic.
+
+- **REQ-0067 H2 + H3 — webhook idempotency and subscription lifecycle:**
+  - Added `ProcessedWebhookEvent` Prisma model and `20260801093359_add_processed_webhook_events` migration.
+  - Created shared `src/shared/webhooks/processed-events.repository.ts` with unique-constraint-aware `record()`; injected into `billingService` and `applyShopifyWebhook`.
+  - Stripe `fulfillCheckout` records `event.id` before fulfillment and early-returns on duplicates.
+  - Shopify `/api/shopify/webhooks` deduplicates by `x-shopify-webhook-id`.
+  - Meta `/api/meta/webhook` migrated dedup from the Redis raw-body hash guard to the shared ledger.
+  - Added `startWebhookRetention` in `src/jobs/retention.ts` and wired it into the worker to prune ledger rows older than 30 days.
+  - Extended `billing.ts` to handle `customer.subscription.created`, `customer.subscription.updated`, `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`.
+  - Implemented `planFromPriceId`, `resolveSubscriptionId`, and `RETAINED_STATUSES` (`active`, `trialing`, `past_due`) so `past_due` keeps the current plan and `unpaid`/`canceled` drops to `FREE`.
+  - Pinned the Stripe client to API version `2024-09-30.acacia`.
+  - Added `scripts/backfill-past-due.ts` to sync organizations stuck in `past_due`.
+  - Documented required Stripe webhook events in `docs/deployment.md` and updated `docs/specs/current-state.md`.
+  - Added `src/modules/organizations/application/billing.test.ts` with regression tests for duplicate checkout, coupon idempotency, plan downgrade, `past_due` retention, dunning recovery, `unpaid` downgrade, and unknown-price preservation.
+
+- **Circular dependency mitigation (test failure):**
+  - Added `updateMarketingMemory`, `generateDailyBrief`, `businessBrainContextService`, `dailyActionService`, and `journeyService` to `src/modules/intelligence/server.ts`.
+  - Switched `src/modules/ai/infrastructure/container.ts` and `src/modules/commerce/presentation/actions.ts` to import those services from `@/modules/intelligence/server` instead of the public barrel, removing the `ai` ↔ `intelligence` ↔ `analytics` runtime initialization cycle.
 
 - **REQ-0067 C1 + H9 (required by the new smoke test):
   - `authConfig` now sets `trustHost: env.AUTH_TRUST_HOST` (default `true`) and adds a

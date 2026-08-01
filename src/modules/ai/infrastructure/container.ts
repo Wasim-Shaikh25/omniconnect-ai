@@ -15,7 +15,7 @@ import {
   businessBrainContextService,
   dailyActionService,
   journeyService,
-} from "@/modules/intelligence";
+} from "@/modules/intelligence/server";
 import { makeGenerateReply } from "../application/generate-reply";
 import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";

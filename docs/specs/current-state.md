@@ -123,6 +123,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
+- `ProcessedWebhookEvent` — provider-scoped idempotency ledger for Stripe, Shopify, and Meta webhooks; pruned after 30 days.
 - `ExportRequest` — GDPR data-export jobs.
 
 ---
@@ -192,10 +193,10 @@ Core tables (see `prisma/schema.prisma` for full model):
 ### E-commerce
 - `EcommerceConnector` interface: `fetchStoreInfo`, `getProducts`, `getOrders`, `getCustomers`, `fetchDiscounts`, `generateCoupon`, `disableCoupon`.
 - Implemented: `ShopifyConnector` (Admin REST API v2024-01), `WooCommerceConnector`, `BigCommerceConnector`, and `MockConnector` (deterministic dev data).
-- Shopify webhooks: `POST /api/shopify/webhooks` verifies HMAC-SHA256, maps shop domain to `Integration`, and handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` events. Product/order payloads are normalized and persisted; abandoned carts emit `AbandonedCartDetected` for DM follow-up.
+- Shopify webhooks: `POST /api/shopify/webhooks` verifies HMAC-SHA256, maps shop domain to `Integration`, and handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, and `checkouts/create|update` events. Delivery is deduplicated by `x-shopify-webhook-id` using the shared `ProcessedWebhookEvent` ledger. Product/order payloads are normalized and persisted; abandoned carts emit `AbandonedCartDetected` for DM follow-up.
 
 ### Meta
-- Webhook verification: HMAC-SHA256, constant-time compare, 24-hour payload dedup.
+- Webhook verification: HMAC-SHA256, constant-time compare, payload dedup via the shared `ProcessedWebhookEvent` ledger.
 - Graph API: page/account media, per-media insights, audience demographics, outbound messaging.
 - Permissions: `instagram_business_basic`, `instagram_business_manage_insights`, `pages_read_engagement`; optional `ads_management`/`ads_read` for ad insights.
 - Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure.
@@ -207,6 +208,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 ### Stripe
 - Checkout sessions for plan upgrades; webhook fulfillment updates `Organization` subscription.
+- Webhook handlers: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`.
+- Subscription lifecycle derives the plan from the active `price.id` via `planFromPriceId`; `past_due` retains the current plan, while `canceled`/`unpaid`/`incomplete_expired` drops entitlement to `FREE`.
+- Stripe client pinned to `2024-09-30.acacia` API version.
 - SaaS promotion codes (`SaaSCoupon`) validated at checkout.
 
 ---

@@ -152,33 +152,33 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H2 — Webhook idempotency
 
-- [ ] A `ProcessedWebhookEvent` model exists (`id` = provider event id as primary key, `provider`,
+- [x] A `ProcessedWebhookEvent` model exists (`id` = provider event id as primary key, `provider`,
       `type`, `processedAt`) with a Prisma migration.
-- [ ] `fulfillCheckout` records the Stripe `event.id` **before** fulfillment and returns early on a
+- [x] `fulfillCheckout` records the Stripe `event.id` **before** fulfillment and returns early on a
       unique-constraint violation, logging `stripe.webhook.duplicate`.
-- [ ] The Shopify webhook route deduplicates on `x-shopify-webhook-id`.
-- [ ] The Meta webhook's existing raw-body dedup is migrated to, or reconciled with, the same
+- [x] The Shopify webhook route deduplicates on `x-shopify-webhook-id`.
+- [x] The Meta webhook's existing raw-body dedup is migrated to, or reconciled with, the same
       ledger so all three providers share one mechanism.
-- [ ] Delivering the same `checkout.session.completed` twice updates the plan once and increments
+- [x] Delivering the same `checkout.session.completed` twice updates the plan once and increments
       `SaaSCoupon.usedCount` exactly once.
-- [ ] Two *different* events are both processed.
-- [ ] Concurrent duplicate delivery results in exactly one fulfillment.
-- [ ] A retention job prunes `ProcessedWebhookEvent` rows older than 30 days.
+- [x] Two *different* events are both processed.
+- [x] Concurrent duplicate delivery results in exactly one fulfillment.
+- [x] A retention job prunes `ProcessedWebhookEvent` rows older than 30 days.
 
 ### H3 — Subscription lifecycle
 
-- [ ] `customer.subscription.created` and `customer.subscription.updated` are handled and sync
+- [x] `customer.subscription.created` and `customer.subscription.updated` are handled and sync
       plan + status from the subscription object.
-- [ ] `invoice.payment_succeeded` (and `invoice.paid`) clears `past_due` back to `active`.
-- [ ] The plan is derived from the active `price.id` via `planFromPriceId`, not from checkout
+- [x] `invoice.payment_succeeded` (and `invoice.paid`) clears `past_due` back to `active`.
+- [x] The plan is derived from the active `price.id` via `planFromPriceId`, not from checkout
       metadata; an unknown price returns `null` and does **not** silently downgrade.
-- [ ] `ACTIVE_STATUSES` (`active`, `trialing`) determines entitlement; any other Stripe status
+- [x] `ACTIVE_STATUSES` (`active`, `trialing`) determines entitlement; any other Stripe status
       resolves entitlement per the Q3 decision recorded in §5.
-- [ ] Required Stripe webhook events are documented in `docs/deployment.md` with the exact list to
+- [x] Required Stripe webhook events are documented in `docs/deployment.md` with the exact list to
       enable in the Stripe dashboard.
-- [ ] A backfill script or documented procedure exists for organizations currently stuck in
+- [x] A backfill script or documented procedure exists for organizations currently stuck in
       `past_due`.
-- [ ] Tests: fail→succeed returns `active`; `subscription.updated` with the Starter price on a Pro
+- [x] Tests: fail→succeed returns `active`; `subscription.updated` with the Starter price on a Pro
       org downgrades; status `unpaid` drops entitlement; `planFromPriceId` returns `null` for an
       unknown price.
 

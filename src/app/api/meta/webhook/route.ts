@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { logger } from "@/shared/observability";
 import {
@@ -8,6 +9,13 @@ import {
 } from "@/modules/meta/server";
 import { ensureSubscribers } from "@/server/subscribers";
 import { clientIp } from "@/shared/security/rate-limit";
+import { PrismaProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
+
+const processedEvents = new PrismaProcessedEventsRepository();
+
+function hashRawBody(rawBody: string): string {
+  return createHash("sha256").update(rawBody, "utf8").digest("hex");
+}
 
 export const runtime = "nodejs";
 
@@ -46,8 +54,14 @@ export async function POST(request: Request): Promise<Response> {
     return new NextResponse("Invalid signature", { status: 401 });
   }
 
-  if (await webhookGuard.isDuplicate(rawBody)) {
-    logger.info("meta.webhook.duplicate", {});
+  const eventId = hashRawBody(rawBody);
+  const recorded = await processedEvents.record({
+    id: eventId,
+    provider: "meta",
+    type: "events",
+  });
+  if (!recorded.recorded) {
+    logger.info("meta.webhook.duplicate", { eventId });
     return new NextResponse("EVENT_RECEIVED", { status: 200 });
   }
 

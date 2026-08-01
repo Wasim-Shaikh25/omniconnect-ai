@@ -1,6 +1,6 @@
 # TASK-0067: Implement Release-Blocker Fixes (C1–C2, H1–H10)
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** Backend / Platform
 - **Requirement:** `docs/requirements/REQ-0067-release-blockers-critical-high.md`
 - **Tracker:** `docs/trackers/TRACKER-0067-release-blockers-critical-high.md`
