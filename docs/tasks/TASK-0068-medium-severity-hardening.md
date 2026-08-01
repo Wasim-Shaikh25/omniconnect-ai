@@ -515,13 +515,13 @@ abusive output blocked by moderation.
   - Updated repository `application/ports.ts` interfaces to expose optional `limit` parameters where needed.
   - `change-role.ts` now requests `listByOrganization(..., { page: 1, limit: 10000 })` for the last-admin guard so the safety check is not constrained by list-view defaults.
   - Note: a static CI guard for new unbounded `findMany` calls is deferred to a follow-up lint/architecture rule; current inventory is recorded here.
-- [ ] **M5.1** Implement `customers/data_request`.
-- [ ] **M5.2** Implement `customers/redact` with audit trail.
-- [ ] **M5.3** Implement `shop/redact`.
-- [ ] **M5.4** Implement `app/uninstalled` (disconnect, purge token, cancel jobs).
-- [ ] **M5.5** Make all four idempotent via the `ProcessedWebhookEvent` ledger.
-- [ ] **M5.6** Tests for each topic.
-- [ ] **M5.7** Pass Shopify's automated compliance checks in a development store.
+- [x] **M5.1** Implement `customers/data_request` (`src/modules/ecommerce/application/apply-shopify-webhook.ts:132-148`; `src/modules/ecommerce/application/shopify-compliance.ts`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:10-68`).
+- [x] **M5.2** Implement `customers/redact` with audit trail (`src/modules/ecommerce/application/apply-shopify-webhook.ts:150-173`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:71-113`).
+- [x] **M5.3** Implement `shop/redact` (`src/modules/ecommerce/application/apply-shopify-webhook.ts:155-167`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:115-174`).
+- [x] **M5.4** Implement `app/uninstalled` (disconnect, purge token, cancel jobs) (`src/modules/ecommerce/application/apply-shopify-webhook.ts:176-198`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:176-192`).
+- [x] **M5.5** Make all four idempotent via the `ProcessedWebhookEvent` ledger (`src/modules/ecommerce/application/apply-shopify-webhook.ts:40-49`).
+- [x] **M5.6** Tests for each topic (`src/modules/ecommerce/application/apply-shopify-webhook.test.ts:174-239`; `src/modules/ecommerce/infrastructure/shopify-compliance.integration.test.ts`).
+- [ ] **M5.7** Pass Shopify's automated compliance checks in a development store (requires a live development store and `SHOPIFY_API_SECRET`).
 - [x] **M6.1** Pin `apiVersion` and set `typescript: true`.
 - [x] **M6.1b** Add `typescript: true` to the Stripe constructor and verify typecheck passes.
 - [x] **M6.2b** Confirm `resolveSubscriptionId` handles the pinned invoice payload shapes (verified by `billing.ts` tests covering `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`).

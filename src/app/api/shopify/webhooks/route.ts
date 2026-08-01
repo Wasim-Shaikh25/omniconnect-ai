@@ -50,5 +50,9 @@ export async function POST(request: Request): Promise<Response> {
     return new NextResponse(result.message ?? "Processing failed", { status: 400 });
   }
 
+  if (result.data) {
+    return NextResponse.json(result.data, { status: 200 });
+  }
+
   return new NextResponse("OK", { status: 200 });
 }

@@ -16,13 +16,20 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - `REQ-0068` M5 — Shopify compliance webhooks (`customers/data_request`, `customers/redact`, `shop/redact`, `app/uninstalled`).
+  - `REQ-0068` M7 — HTTP status codes (`require-store-access` predicate, admin redirects, `scripts/check-http-status.ts`).
 
 ### ⏭️ Next
 
-- Remaining `REQ-0068` items: M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
+- Remaining `REQ-0068` items: M8, M9, M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
+
+- **Audit gap closure — M5 Shopify compliance webhooks:**
+  - `makeApplyShopifyWebhook` now handles `customers/data_request`, `customers/redact`, `shop/redact`, and `app/uninstalled`.
+  - `PrismaShopifyComplianceRepository` fetches customer data, anonymizes/erases customer PII, deletes shop-scoped data and tokens, and disconnects the integration.
+  - Each compliance action writes an `AuditLog` record; duplicate deliveries are skipped via `ProcessedWebhookEvent`.
+  - Unhandled `customers/*`, `shop/*`, and `app/*` topics no longer return `{ ok: true }`.
+  - Unit tests for the dispatcher and an integration test for the compliance repository cover all four topics.
 
 - **Audit gap closure — M1/M2, M6/L5 ADRs, H10, L1/L2/L3/L4/L7, M11/M13/M14:**
   - Added `docs/decisions/0007-stripe-api-version-pinning.md` and `docs/decisions/0008-fly-machine-auto-stop.md`.
