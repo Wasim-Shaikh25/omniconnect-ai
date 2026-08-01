@@ -106,20 +106,20 @@ standard SaaS.
 ### 6.2 Email verification and change
 - [x] `User.emailVerified` is set on successful verification and is the authoritative flag.
 - [x] A `VerificationRequest` record stores hashed tokens, never plaintext.
-- [ ] Changing an email sends a confirmation to the **new** address and a notification to the
+- [x] Changing an email sends a confirmation to the **new** address and a notification to the
       **old** address.
-- [ ] The change takes effect only after the new address is confirmed.
-- [ ] The change increments `tokenVersion`, invalidating other sessions.
-- [ ] Changing to an address already in use fails without revealing that the address exists.
-- [ ] An `AuditLog` entry records every email change.
+- [x] The change takes effect only after the new address is confirmed.
+- [x] The change increments `tokenVersion`, invalidating other sessions.
+- [x] Changing to an address already in use fails without revealing that the address exists.
+- [x] An `AuditLog` entry records every email change.
 
 ### 6.3 Password change
-- [ ] `/settings/account` exposes a change-password form requiring the current password.
-- [ ] A wrong current password is rejected and rate-limited.
-- [ ] A successful change increments `tokenVersion`, terminating all other sessions.
-- [ ] The current session remains valid (the user is not signed out of the device they used).
-- [ ] A notification email is sent on change.
-- [ ] An `AuditLog` entry records every password change.
+- [x] `/settings/account` exposes a change-password form requiring the current password.
+- [x] A wrong current password is rejected and rate-limited.
+- [x] A successful change increments `tokenVersion`, terminating all other sessions.
+- [x] The current session remains valid (the user is not signed out of the device they used).
+- [x] A notification email is sent on change.
+- [x] An `AuditLog` entry records every password change.
 
 ### 6.4 Mobile number and verification
 - [ ] `User.phoneVerified DateTime?` is added via migration.

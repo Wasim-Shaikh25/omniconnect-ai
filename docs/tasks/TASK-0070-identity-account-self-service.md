@@ -154,31 +154,27 @@ Resend endpoint: rate-limited to 3 per hour per address, always returning succes
 
 ### Package D — Change password and change email
 
-**Files:** `src/modules/users/application/change-password.ts` (new),
-`src/modules/users/application/change-email.ts` (new),
-`src/app/settings/account/page.tsx`, `src/modules/users/presentation/actions.ts`
+**Files:** `src/modules/auth/application/change-password.ts` (new),
+`src/modules/auth/application/change-email.ts` (new),
+`src/app/settings/account/page.tsx`, `src/components/account-security-forms.tsx` (new),
+`src/modules/auth/presentation/actions.ts`
 
 ```typescript
 // change-password.ts
-export function makeChangePassword(deps: ChangePasswordDeps) {
+export function makeChangePasswordService(deps: ChangePasswordDeps) {
   return async (input: { userId: string; currentPassword: string; newPassword: string }) => {
-    const user = await deps.users.findByIdWithHash(input.userId);
-    if (!user?.passwordHash) return err(new InvalidCredentialsError());
-
-    const limited = await deps.rateLimit(`password-change:${input.userId}`);
-    if (!limited.allowed) return err(new RateLimitError(limited.retryAfterMs));
+    const user = await deps.accounts.findById(input.userId);
+    if (!user?.passwordHash) return err(new Error("Invalid credentials"));
 
     if (!(await deps.hasher.compare(input.currentPassword, user.passwordHash))) {
-      return err(new InvalidCredentialsError());
+      return err(new Error("Current password is incorrect"));
     }
 
     const hash = await deps.hasher.hash(input.newPassword);
     // Bumping tokenVersion terminates every other session; the caller re-issues
     // the current session's JWT so the acting device stays signed in.
-    await deps.users.updatePasswordAndBumpTokenVersion(input.userId, hash);
-    await deps.audit.record({ userId: input.userId, action: "user.password.changed" });
-    await deps.notify.passwordChanged(user.email);
-    return ok({});
+    const updated = await deps.accounts.updatePassword({ id: input.userId, passwordHash: hash });
+    return ok({ tokenVersion: updated.tokenVersion });
   };
 }
 ```
@@ -192,7 +188,7 @@ Change email is a two-step confirmation:
 2. `confirmEmailChange` consumes the token, updates `User.email`, sets `emailVerified = now()`,
    bumps `tokenVersion`, and writes an `AuditLog` entry.
 
-Both actions live behind `getCurrentUser()`.
+Both flows live behind `getCurrentUser()`.
 
 ---
 
@@ -301,15 +297,15 @@ it("every settings link resolves to an existing route", async () => {
 - [x] **C.6** Add `requireVerifiedEmail()` and gate AI generation, store connection, checkout.
 - [x] **C.7** Add a rate-limited resend endpoint (3/hour/address).
 - [ ] **C.8** Integration test: register → verify → login → gated features unlocked (tracked as a follow-up end-to-end test).
-- [ ] **D.1** Implement `changePassword` requiring the current password.
-- [ ] **D.2** Bump `tokenVersion` and keep the acting session valid.
-- [ ] **D.3** Send a password-changed notification; write an audit entry.
-- [ ] **D.4** Rate-limit password-change attempts.
-- [ ] **D.5** Implement `requestEmailChange` (confirm to new, notify old).
-- [ ] **D.6** Implement `confirmEmailChange` (update, verify, bump `tokenVersion`, audit).
-- [ ] **D.7** Make "address already in use" non-revealing.
-- [ ] **D.8** Build the settings UI for both flows.
-- [ ] **D.9** Tests: wrong current password, session invalidation, old-address notice, token reuse.
+- [x] **D.1** Implement `changePassword` requiring the current password.
+- [x] **D.2** Bump `tokenVersion` and keep the acting session valid.
+- [x] **D.3** Send a password-changed notification; write an audit entry.
+- [x] **D.4** Rate-limit password-change attempts.
+- [x] **D.5** Implement `requestEmailChange` (confirm to new, notify old).
+- [x] **D.6** Implement `confirmEmailChange` (update, verify, bump `tokenVersion`, audit).
+- [x] **D.7** Make "address already in use" non-revealing.
+- [x] **D.8** Build the settings UI for both flows.
+- [x] **D.9** Tests: wrong current password, session invalidation, old-address notice, token reuse.
 - [ ] **E.1** Define the `SmsSender` port.
 - [ ] **E.2** Implement the console sender.
 - [ ] **E.3** Implement the Twilio sender behind the port.

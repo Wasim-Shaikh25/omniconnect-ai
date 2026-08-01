@@ -5,11 +5,26 @@ import { redirect } from "next/navigation";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { z } from "zod";
 import { env } from "@/shared/config";
-import { registerUser, verificationCodeService, accounts, hasher, emailVerificationService } from "../infrastructure/container";
-import { signIn, signOut, RateLimitAuthError } from "../infrastructure/auth";
+import { createEmailSender } from "@/shared/email";
+import { auditCommands } from "@/modules/users";
+import {
+  registerUser,
+  verificationCodeService,
+  accounts,
+  hasher,
+  emailVerificationService,
+  changePasswordService,
+  changeEmailService,
+} from "../infrastructure/container";
+import { signIn, signOut, RateLimitAuthError, unstable_update } from "../infrastructure/auth";
+import { requireUser } from "../infrastructure/session";
 import { registerUserSchema } from "../application/register-user";
+import { changePasswordSchema } from "../application/change-password";
+import { requestEmailChangeSchema } from "../application/change-email";
 import { verifyTurnstileToken } from "../infrastructure/turnstile";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
+
+const emailSender = createEmailSender();
 
 export interface ActionState {
   error?: string;
@@ -266,3 +281,104 @@ export async function resendVerificationEmailAction(
   await emailVerificationService.resend(email);
   return { ok: true, message: "If this account is unverified, a new verification link has been sent." };
 }
+
+export async function changePasswordAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmNewPassword: formData.get("confirmNewPassword"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const limit = await rateLimit({
+    key: `password-change:${user.id}`,
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { error: "Too many attempts. Try again later." };
+  }
+
+  const result = await changePasswordService.change({
+    userId: user.id,
+    currentPassword: parsed.data.currentPassword,
+    newPassword: parsed.data.newPassword,
+  });
+  if (!result.ok) return { error: result.error.message };
+
+  await emailSender.send(
+    user.email,
+    "Your OmniConnect password has been changed",
+    "Your password was changed. If this was not you, reset your password immediately.",
+  );
+
+  await auditCommands.create({
+    organizationId: user.organizationId ?? null,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "USER_PASSWORD_CHANGED",
+    resource: "User",
+    resourceId: user.id,
+  });
+
+  try {
+    await unstable_update({});
+  } catch {
+    // Session refresh is best-effort; the password change is already persisted.
+  }
+
+  return { ok: true, message: "Password changed successfully." };
+}
+
+export async function requestEmailChangeAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+
+  const parsed = requestEmailChangeSchema.safeParse({
+    newEmail: formData.get("newEmail"),
+    confirmNewEmail: formData.get("confirmNewEmail"),
+    currentPassword: formData.get("currentPassword"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const limit = await rateLimit({
+    key: `email-change:${user.id}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { error: "Too many attempts. Try again later." };
+  }
+
+  const result = await changeEmailService.request({
+    userId: user.id,
+    newEmail: parsed.data.newEmail,
+    currentPassword: parsed.data.currentPassword,
+  });
+  if (!result.ok) return { error: result.error.message };
+
+  await auditCommands.create({
+    organizationId: user.organizationId ?? null,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "USER_EMAIL_CHANGE_REQUESTED",
+    resource: "User",
+    resourceId: user.id,
+    details: `Requested change to ${parsed.data.newEmail.toLowerCase().trim()}`,
+  });
+
+  return { ok: true, message: "Check your new email address to confirm the change." };
+}
+
+

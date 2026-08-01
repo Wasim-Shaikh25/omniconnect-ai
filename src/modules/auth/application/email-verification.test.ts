@@ -51,6 +51,7 @@ describe("email-verification service", () => {
       findByEmailIncludingDeleted: vi.fn(async () => null),
       restoreAccount: vi.fn(async () => null),
       updatePassword: vi.fn(async () => null),
+      updateEmail: vi.fn(async () => null),
       bumpTokenVersion: vi.fn(async () => null),
       setEmailVerified: vi.fn(async (id, emailVerified) => {
         if (account) account = { ...account, emailVerified };
@@ -92,7 +93,34 @@ describe("email-verification service", () => {
     expect(sent[0].subject).toBe("Verify your OmniConnect account");
   });
 
-  it("consumes a valid token and marks the account verified", async () => {
+  it("inspects a valid token without consuming it", async () => {
+    const { service, setAccount } = makeSut();
+    setAccount({
+      id: "user-1",
+      email: "test@example.com",
+      name: null,
+      passwordHash: "hash",
+      phone: null,
+      emailVerified: null,
+      phoneVerified: null,
+      role: "STORE_OWNER",
+      isSuperAdmin: false,
+      organizationId: null,
+      storeId: null,
+      tokenVersion: 0,
+      deletedAt: null,
+    });
+
+    const token = await service.issue("user-1", "test@example.com", "signup");
+    const result = await service.inspect(token);
+
+    expect(result).toEqual({ userId: "user-1", target: "test@example.com", purpose: "signup" });
+
+    const consumed = await service.consume(token);
+    expect(consumed).not.toBeNull();
+  });
+
+  it("verifies a signup token and marks the account verified", async () => {
     const { service, accounts, setAccount } = makeSut();
     setAccount({
       id: "user-1",
@@ -111,9 +139,9 @@ describe("email-verification service", () => {
     });
 
     const token = await service.issue("user-1", "test@example.com", "signup");
-    const result = await service.consume(token);
+    const result = await service.verifySignupEmail(token);
 
-    expect(result).toEqual({ userId: "user-1", email: "test@example.com" });
+    expect(result).not.toBeNull();
     expect(accounts.setEmailVerified).toHaveBeenCalledWith("user-1", expect.any(Date));
   });
 

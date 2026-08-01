@@ -5,7 +5,12 @@ import {
   generateVerificationToken,
   hashVerificationToken,
 } from "../domain/verification-token";
-import { AccountRepository, VerificationRequestRepository } from "./ports";
+import {
+  AccountRecord,
+  AccountRepository,
+  VerificationRequestRecord,
+  VerificationRequestRepository,
+} from "./ports";
 
 const TTL_MS: Record<"signup" | "email_change" | "phone_verify", number> = {
   signup: 24 * 60 * 60 * 1000,
@@ -15,7 +20,9 @@ const TTL_MS: Record<"signup" | "email_change" | "phone_verify", number> = {
 
 export interface EmailVerificationService {
   issue(userId: string, email: string, purpose: "signup" | "email_change"): Promise<string>;
-  consume(token: string): Promise<{ userId: string; email: string } | null>;
+  inspect(token: string): Promise<{ userId: string; target: string; purpose: VerificationRequestRecord["purpose"] } | null>;
+  consume(token: string): Promise<{ userId: string; target: string; purpose: VerificationRequestRecord["purpose"] } | null>;
+  verifySignupEmail(token: string): Promise<AccountRecord | null>;
   resend(email: string): Promise<void>;
   sendRegistrationAttempt(email: string): Promise<void>;
 }
@@ -57,6 +64,14 @@ export function makeEmailVerificationService(deps: EmailVerificationDeps): Email
       return token;
     },
 
+    async inspect(token) {
+      const tokenHash = await hashVerificationToken(token);
+      const request = await deps.repository.findByTokenHash(tokenHash);
+      if (!request) return null;
+      if (request.consumedAt || request.expiresAt.getTime() < Date.now()) return null;
+      return { userId: request.userId ?? "", target: request.target, purpose: request.purpose };
+    },
+
     async consume(token) {
       const tokenHash = await hashVerificationToken(token);
       const request = await deps.repository.findByTokenHash(tokenHash);
@@ -67,10 +82,14 @@ export function makeEmailVerificationService(deps: EmailVerificationDeps): Email
       }
 
       await deps.repository.consume(request.id);
-      const account = await deps.accounts.setEmailVerified(request.userId ?? "", new Date());
-      if (!account) return null;
+      return { userId: request.userId ?? "", target: request.target, purpose: request.purpose };
+    },
 
-      return { userId: account.id, email: account.email };
+    async verifySignupEmail(token) {
+      const consumed = await (this as EmailVerificationService).consume(token);
+      if (!consumed || consumed.purpose !== "signup") return null;
+      const account = await deps.accounts.setEmailVerified(consumed.userId, new Date());
+      return account;
     },
 
     async resend(email) {

@@ -69,6 +69,14 @@ export class PrismaAccountRepository implements AccountRepository {
     return mapUser(user);
   }
 
+  async updateEmail(id: string, email: string): Promise<AccountRecord | null> {
+    const user = await prisma.user.update({
+      where: { id, deletedAt: null },
+      data: { email: email.toLowerCase().trim(), emailVerified: new Date(), tokenVersion: { increment: 1 } },
+    });
+    return mapUser(user);
+  }
+
   async bumpTokenVersion(id: string): Promise<AccountRecord | null> {
     const user = await prisma.user.update({
       where: { id, deletedAt: null },
