@@ -219,6 +219,7 @@ production needs:
 | `STRIPE_PRICE_PRO` | Stripe price ID for Pro plan |
 | `SENTRY_DSN` | Sentry DSN (optional) |
 | `SENTRY_RELEASE` | Sentry release tag (optional; defaults to `GIT_COMMIT_SHA`) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OpenTelemetry OTLP endpoint (recommended for production; omitting it disables tracing in production) |
 | `GIT_COMMIT_SHA` | Commit SHA exposed at `/api/health` (set via build arg) |
 | `BACKUP_BUCKET` | S3 bucket for weekly `pg_dump` backups (optional) |
 | `BACKUP_PREFIX` | S3 key prefix for backups (optional; defaults to `omniconnect-backups`) |

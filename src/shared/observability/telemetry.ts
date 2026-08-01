@@ -14,11 +14,24 @@ import {
 import { resourceFromAttributes } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { logger } from "./logger";
 
 let tracer: Tracer | null = null;
+let disabledLogged = false;
 
 export function initTelemetry() {
   if (tracer) return;
+
+  if (!env.OTEL_EXPORTER_OTLP_ENDPOINT && env.NODE_ENV === "production") {
+    if (!disabledLogged) {
+      logger.info("telemetry.disabled", {
+        reason: "OTEL_EXPORTER_OTLP_ENDPOINT is unset in production; tracing disabled",
+      });
+      disabledLogged = true;
+    }
+    tracer = trace.getTracer("omniconnect-ai");
+    return;
+  }
 
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: "omniconnect-ai",

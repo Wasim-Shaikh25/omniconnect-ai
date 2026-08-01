@@ -481,14 +481,14 @@ abusive output blocked by moderation.
 
 ## 4. Subtasks
 
-- [ ] **M1.1** Strip `error` strings from the `/api/ready` body; log `readiness.failed` server-side.
-- [ ] **M1.2** Reuse a shared Redis client; add `getSharedRedis()` if absent.
-- [ ] **M1.3** Add `Cache-Control: no-store` and rate limiting.
-- [ ] **M1.4** Test: failing readiness response contains no `error` key.
-- [ ] **M2.1** Disable tracing (no console exporter) in production when the OTLP endpoint is unset.
-- [ ] **M2.2** Log `telemetry.disabled` once.
-- [ ] **M2.3** Document `OTEL_EXPORTER_OTLP_ENDPOINT` in `.env.example` and `docs/deployment.md`.
-- [ ] **M2.4** Test: no console span export with `NODE_ENV=production`.
+- [x] **M1.1** Strip `error` strings from the `/api/ready` body; log `readiness.failed` server-side.
+- [x] **M1.2** Reuse `getSharedRedis()` in `/api/ready`.
+- [x] **M1.3** Add `Cache-Control: no-store` and per-IP rate limiting.
+- [x] **M1.4** Test: failing readiness response contains no `error` key.
+- [x] **M2.1** Disable tracing (no console exporter) in production when the OTLP endpoint is unset.
+- [x] **M2.2** Log `telemetry.disabled` once.
+- [x] **M2.3** Document `OTEL_EXPORTER_OTLP_ENDPOINT` in `docs/deployment.md`.
+- [x] **M2.4** Test: no global tracer provider set with `NODE_ENV=production` and the var unset.
 - [ ] **M4.1** Convert `listLatestByConversationIds` to `DISTINCT ON`.
 - [ ] **M4.2** Add the `Message(conversationId, createdAt DESC)` index migration.
 - [ ] **M4.3** Test: 3 conversations × 50 messages → exactly 3 rows read.

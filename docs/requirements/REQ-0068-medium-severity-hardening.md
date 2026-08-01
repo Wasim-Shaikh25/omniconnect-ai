@@ -94,19 +94,19 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 ## 6. Acceptance Criteria
 
 ### M1 — `/api/ready` disclosure and connection churn
-- [ ] The response body contains only `{ name, ok }` per check; no `error` strings.
-- [ ] Failures are logged server-side as `readiness.failed` with full detail.
-- [ ] `Cache-Control: no-store` is set.
-- [ ] The route reuses a shared Redis client instead of `createStandaloneRedis` per request.
-- [ ] The route is rate-limited.
-- [ ] A test asserts no `error` key is present in a failing response body.
+- [x] The response body contains only `{ name, ok }` per check; no `error` strings.
+- [x] Failures are logged server-side as `readiness.failed` with full detail.
+- [x] `Cache-Control: no-store` is set.
+- [x] The route reuses `getSharedRedis()` instead of `createStandaloneRedis` per request.
+- [x] The route is rate-limited per IP.
+- [x] `route.test.ts` asserts no `error` key is present in a failing response body.
 
 ### M2 — Telemetry exporter
-- [ ] When `OTEL_EXPORTER_OTLP_ENDPOINT` is unset **and** `NODE_ENV === "production"`, tracing is
+- [x] When `OTEL_EXPORTER_OTLP_ENDPOINT` is unset **and** `NODE_ENV === "production"`, tracing is
       disabled and `telemetry.disabled` is logged exactly once.
-- [ ] `ConsoleSpanExporter` is used only outside production.
-- [ ] `docs/deployment.md` documents `OTEL_EXPORTER_OTLP_ENDPOINT` as recommended for production.
-- [ ] A test asserts no console span export occurs with `NODE_ENV=production` and the var unset.
+- [x] `ConsoleSpanExporter` is used only outside production.
+- [x] `docs/deployment.md` documents `OTEL_EXPORTER_OTLP_ENDPOINT` as recommended for production.
+- [x] `telemetry.test.ts` asserts no global tracer provider is set with `NODE_ENV=production` and the var unset.
 
 ### M4 — Inbox query
 - [ ] `listLatestByConversationIds` returns at most one row per conversation from the database.
