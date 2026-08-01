@@ -26,6 +26,14 @@ if [ ! -f "$LOCAL_DUMP" ]; then
 fi
 
 echo "Restoring to target database ..."
-pg_restore -d "$TARGET_URL" --clean --if-exists --no-owner --no-privileges "$LOCAL_DUMP"
+
+# Use a Postgres 16 client container when available to avoid version mismatches.
+if command -v docker &>/dev/null && docker ps --format '{{.Names}}' | grep -qx omniconnect-postgres && [[ "$TARGET_URL" == *"localhost"* || "$TARGET_URL" == *"127.0.0.1"* ]]; then
+  docker exec -i omniconnect-postgres pg_restore -d "$TARGET_URL" --clean --if-exists --no-owner --no-privileges < "$LOCAL_DUMP"
+elif command -v docker &>/dev/null; then
+  docker run --rm -i postgres:16 pg_restore -d "$TARGET_URL" --clean --if-exists --no-owner --no-privileges < "$LOCAL_DUMP"
+else
+  pg_restore -d "$TARGET_URL" --clean --if-exists --no-owner --no-privileges "$LOCAL_DUMP"
+fi
 
 echo "Restore complete. Verify with: DATABASE_URL=\"$TARGET_URL\" npx prisma migrate status"

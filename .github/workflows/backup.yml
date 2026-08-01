@@ -21,11 +21,6 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
       ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
     steps:
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -40,7 +35,8 @@ jobs:
           file="omniconnect-${stamp}.dump"
           # Strip any ?schema=... query params that pg_dump does not understand.
           db_url="${DATABASE_URL%%\?*}"
-          pg_dump "${db_url}" -Fc -f "${file}"
+          # Use the Postgres 16 client image so the dump format always matches the server version.
+          docker run --rm postgres:16 pg_dump "${db_url}" -Fc > "${file}"
           aws s3 cp "${file}" "s3://${BACKUP_BUCKET}/${BACKUP_PREFIX}/${file}"
           echo "uploaded=s3://${BACKUP_BUCKET}/${BACKUP_PREFIX}/${file}" >> "$GITHUB_OUTPUT"
 

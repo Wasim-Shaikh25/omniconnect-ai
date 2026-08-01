@@ -16,8 +16,14 @@ fi
 # Strip ?schema=... query params that pg_dump does not understand.
 db_url="${DATABASE_URL%%\?*}"
 
-echo "Creating backup: $file"
-pg_dump "${db_url}" -Fc -f "$file"
+# Prefer the local Postgres container's pg_dump so the client version always matches the server.
+if command -v docker &>/dev/null && docker ps --format '{{.Names}}' | grep -qx omniconnect-postgres; then
+  echo "Creating backup via omniconnect-postgres container: $file"
+  docker exec omniconnect-postgres pg_dump -U postgres -Fc omniconnect > "$file"
+else
+  echo "Creating backup with local pg_dump: $file"
+  pg_dump "${db_url}" -Fc -f "$file"
+fi
 
 prefix="${BACKUP_PREFIX:-omniconnect-backups}"
 echo "Uploading to s3://${BACKUP_BUCKET}/${prefix}/${file}"
