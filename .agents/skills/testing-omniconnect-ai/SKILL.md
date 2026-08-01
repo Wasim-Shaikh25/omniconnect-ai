@@ -55,6 +55,12 @@ Use this skill before running end-to-end or integration tests against the OmniCo
 - `ProductRepository.sync` now runs `upsert` and stale-deletion in a single Prisma transaction, so `syncProducts` should leave the 6 MOCK products active on a fresh store.
 - `/settings/account` has separate `<AccountActions mode="export" />` and `<AccountActions mode="delete" />` cards, so selectors should target the card title (`Data export` or `Delete account`).
 - Product/coupon bulk-delete success messages are owned by `ProductList`/`CouponList` (not `BulkDeleteToolbar`) and persist through `router.refresh()` and the empty-list transition; they should read `N product(s) deleted.` / `N coupon(s) deleted.` and auto-dismiss after ~3 seconds.
+- Browser automation gotchas:
+  - Input fields may not focus/click reliably in the headless environment; set values and submit forms via JS (`document.forms[i].requestSubmit()`).
+  - Use `/api/auth/signout` to end a session reliably, then navigate to `/register?inviteToken=...&storeId=...` to test invite acceptance.
+- A pre-existing circular dependency between `@/modules/ai` and `@/modules/intelligence` containers can cause `ReferenceError: Cannot access 'X' before initialization` on server actions such as `/register` and invite creation. If this happens, the smoke test can be unblocked with temporary lazy wrappers in `src/modules/ai/infrastructure/container.ts`, but the real fix is to break the circular dependency.
+- The `FREE` plan has only 1 team seat (occupied by the owner), so testing the STAFF invite flow requires upgrading `"Organization".plan` to `STARTER` or `PRO` in Postgres, or creating the STAFF user directly in the DB.
+- New STAFF users (via invite registration) are redirected from `/dashboard` to `/stores/{storeId}` when `role === "STAFF" && storeId` is set.
 
 ## Useful smoke checks
 
