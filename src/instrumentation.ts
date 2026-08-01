@@ -4,7 +4,12 @@ import { initSentry, initTelemetry, logger } from "@/shared/observability";
 export async function register() {
   initSentry();
   initTelemetry();
-  validateProductionSecrets();
+
+  // Skip production secret validation during the static build phase; env is
+  // injected at runtime in the production image.
+  if (process.env.NEXT_PHASE !== "phase-production-build") {
+    validateProductionSecrets();
+  }
 
   if (env.NODE_ENV === "production" && env.LOG_LEVEL === "debug") {
     logger.warn("bootstrap.debugLoggingEnabled", {
