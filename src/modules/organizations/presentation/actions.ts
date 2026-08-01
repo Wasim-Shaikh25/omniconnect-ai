@@ -5,6 +5,7 @@ import {
   requireRole,
   requireUser,
   requireSuperAdmin,
+  requireVerifiedEmail,
   ForbiddenError,
   unstable_update,
 } from "@/modules/auth";
@@ -22,6 +23,7 @@ export async function createStoreAction(
   formData: FormData,
 ): Promise<StoreActionState> {
   const user = await requireRole("STORE_OWNER");
+  await requireVerifiedEmail(user);
   if (!user.organizationId) {
     return { error: "No organization is linked to your account yet." };
   }

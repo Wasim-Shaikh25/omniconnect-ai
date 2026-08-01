@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireRole, ForbiddenError, UnauthorizedError } from "@/modules/auth";
+import { requireRole, requireVerifiedEmail, ForbiddenError, UnauthorizedError } from "@/modules/auth";
 import { billingService, isPlan, validateSaaSCoupon } from "@/modules/organizations";
 import { env } from "@/shared/config";
 import { rateLimit, clientIp } from "@/shared/security/rate-limit";
@@ -8,6 +8,7 @@ import { logSystemError } from "@/shared/observability";
 export async function POST(request: Request) {
   try {
     const user = await requireRole("STORE_OWNER");
+    await requireVerifiedEmail(user);
     if (!user.organizationId) {
       return NextResponse.json({ error: "No organization" }, { status: 400 });
     }

@@ -96,6 +96,7 @@ describe("makeTenantGuard", () => {
       tokenVersion: 0,
       storeId: null,
       name: null,
+      emailVerified: new Date(),
     } as unknown as SessionUser;
 
     const tenantA = await createTenant("A-Orphan");

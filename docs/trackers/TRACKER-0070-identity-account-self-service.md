@@ -33,24 +33,24 @@ bot protection.
 - [x] Migration `20260801162632_add_identity_self_service` applies cleanly.
 
 ### Package B — Registration
-- [ ] `confirmPassword` in schema with mismatch refinement.
-- [ ] Confirm-password field rendered with inline error.
-- [ ] Password rules displayed before submission.
-- [ ] Optional `dateOfBirth` with age policy.
-- [ ] Optional E.164 `phone` validated client and server side.
-- [ ] Turnstile verified server-side; no-op when unconfigured.
-- [ ] Registration is enumeration-safe.
+- [x] `confirmPassword` in schema with mismatch refinement.
+- [x] Confirm-password field rendered with inline error.
+- [x] Password rules displayed before submission.
+- [ ] Optional `dateOfBirth` with age policy — **N/A** per Q1 (omitted for MVP).
+- [x] Optional E.164 `phone` validated client and server side.
+- [x] Turnstile verified server-side; no-op when unconfigured.
+- [x] Registration is enumeration-safe.
 
 ### Package C — Email verification
-- [ ] Users created unverified.
-- [ ] Hashed 24h single-use token issued.
-- [ ] Verification email template added and sent.
-- [ ] `/verify-email` page handles valid / expired / consumed / invalid distinctly.
-- [ ] `/verify-email` added to `publicPaths`.
-- [ ] Unverified login returns a distinguishable code with a resend affordance.
-- [ ] `requireVerifiedEmail()` gates AI generation, store connection, and checkout.
-- [ ] Resend rate-limited to 3/hour/address.
-- [ ] Integration test: register → verify → login → gated features unlocked.
+- [x] Users created unverified.
+- [x] Hashed 24h single-use token issued.
+- [x] Verification email template added and sent.
+- [x] `/verify-email` page handles valid / expired / consumed / invalid distinctly.
+- [x] `/verify-email` added to `publicPaths`.
+- [x] Unverified login returns a distinguishable code with a resend affordance.
+- [x] `requireVerifiedEmail()` gates AI generation, store connection, and checkout.
+- [x] Resend rate-limited to 3/hour/address.
+- [ ] Integration test: register → verify → login → gated features unlocked (tracked as a follow-up test).
 
 ### Package D — Password and email change
 - [ ] `changePassword` requires and validates the current password.
@@ -90,15 +90,15 @@ bot protection.
 - [ ] Neither appears in logs; redaction verified.
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` passes.
-- [ ] `npm run build:worker` passes.
-- [ ] Migrations apply cleanly with no drift.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `docs/specs/current-state.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` passes.
+- [x] `npm run build:worker` passes.
+- [x] Migrations apply cleanly with no drift.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 
 ## 3. Acceptance Criteria
 

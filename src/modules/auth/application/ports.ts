@@ -5,6 +5,9 @@ export interface AccountRecord {
   email: string;
   name: string | null;
   passwordHash: string | null;
+  phone: string | null;
+  emailVerified: Date | null;
+  phoneVerified: Date | null;
   role: Role;
   isSuperAdmin: boolean;
   organizationId: string | null;
@@ -21,16 +24,40 @@ export interface AccountRepository {
   restoreAccount(id: string): Promise<AccountRecord | null>;
   updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
   bumpTokenVersion(id: string): Promise<AccountRecord | null>;
+  setEmailVerified(id: string, emailVerified: Date): Promise<AccountRecord | null>;
   create(input: {
     email: string;
     name: string | null;
     passwordHash: string;
     role: Role;
     phone?: string | null;
+    emailVerified?: Date | null;
     isSuperAdmin?: boolean;
     organizationId?: string | null;
     storeId?: string | null;
   }): Promise<AccountRecord>;
+}
+
+/** Hashed, time-bounded verification request for email signup, email change, and phone verification. */
+export interface VerificationRequestRecord {
+  id: string;
+  userId: string | null;
+  channel: "email" | "phone";
+  purpose: "signup" | "email_change" | "phone_verify" | "mfa";
+  target: string;
+  tokenHash: string;
+  attempts: number;
+  expiresAt: Date;
+  consumedAt: Date | null;
+  createdAt: Date;
+}
+
+export interface VerificationRequestRepository {
+  save(request: Omit<VerificationRequestRecord, "id" | "createdAt">): Promise<VerificationRequestRecord>;
+  findByTokenHash(tokenHash: string): Promise<VerificationRequestRecord | null>;
+  consume(id: string): Promise<void>;
+  incrementAttempts(id: string): Promise<void>;
+  countRecentByTarget(target: string, purpose: string, since: Date): Promise<number>;
 }
 
 /** Persistence port for short-lived verification codes (MFA, password reset). */

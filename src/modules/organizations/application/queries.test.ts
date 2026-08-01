@@ -56,6 +56,7 @@ function makeUser(role: SessionUser["role"], storeId: string | null): SessionUse
     name: "User",
     role,
     isSuperAdmin: false,
+    emailVerified: new Date(),
     organizationId: "org-1",
     storeId,
   };

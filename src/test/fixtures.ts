@@ -5,8 +5,8 @@ import { prisma } from "@/shared/database";
 export interface TenantFixture {
   organization: { id: string; name: string; plan: string };
   store: { id: string; name: string; organizationId: string };
-  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; organizationId: string | null; storeId: string | null; tokenVersion: number };
-  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; organizationId: string | null; storeId: string | null; tokenVersion: number };
+  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; organizationId: string | null; storeId: string | null; tokenVersion: number };
+  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; organizationId: string | null; storeId: string | null; tokenVersion: number };
 }
 
 export interface SuperAdminFixture {
@@ -39,6 +39,7 @@ export async function createTenant(label: string, password = "password"): Promis
         name: `Owner ${label}`,
         role: "STORE_OWNER",
         isSuperAdmin: false,
+        emailVerified: new Date(),
         organizationId: organization.id,
         storeId: null,
         passwordHash,
@@ -50,6 +51,7 @@ export async function createTenant(label: string, password = "password"): Promis
         name: `Staff ${label}`,
         role: "STAFF",
         isSuperAdmin: false,
+        emailVerified: new Date(),
         organizationId: organization.id,
         storeId: store.id,
         passwordHash,
@@ -74,6 +76,7 @@ export async function createSuperAdmin(password = "password"): Promise<SuperAdmi
       name: "Super Admin",
       role: "ADMIN",
       isSuperAdmin: true,
+      emailVerified: new Date(),
       organizationId: null,
       storeId: null,
       passwordHash,

@@ -286,21 +286,21 @@ it("every settings link resolves to an existing route", async () => {
 - [x] **A.2** Add `VerificationRequest` table storing hashed `tokenHash` only.
 - [x] **A.3** Add new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
       `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) to `env.ts`, `.env.example`, `docs/deployment.md`.
-- [ ] **B.1** Add `confirmPassword` to the schema with a mismatch refinement.
-- [ ] **B.2** Render the confirm-password field with an inline error.
-- [ ] **B.3** State the password rules in the UI.
-- [ ] **B.4** Add optional `dateOfBirth` with the age policy (per Q1).
-- [ ] **B.5** Add optional E.164 `phone` with client + server validation.
-- [ ] **B.6** Add Turnstile verification server-side; disabled when unconfigured.
-- [ ] **B.7** Make registration enumeration-safe.
-- [ ] **C.1** Create users unverified; generate and store a hashed 24h token.
-- [ ] **C.2** Send the verification email; add the template.
-- [ ] **C.3** Build `/verify-email` with distinct expired / consumed / invalid messages.
-- [ ] **C.4** Add `/verify-email` to `publicPaths`.
-- [ ] **C.5** Reject unverified logins with a distinguishable code + resend affordance.
-- [ ] **C.6** Add `requireVerifiedEmail()` and gate AI generation, store connection, checkout.
-- [ ] **C.7** Add a rate-limited resend endpoint (3/hour/address).
-- [ ] **C.8** Integration test: register → verify → login → gated features unlocked.
+- [x] **B.1** Add `confirmPassword` to the schema with a mismatch refinement.
+- [x] **B.2** Render the confirm-password field with an inline error.
+- [x] **B.3** State the password rules in the UI.
+- [ ] **B.4** Add optional `dateOfBirth` with the age policy (per Q1) — **N/A** (omitted for MVP).
+- [x] **B.5** Add optional E.164 `phone` with client + server validation.
+- [x] **B.6** Add Turnstile verification server-side; disabled when unconfigured.
+- [x] **B.7** Make registration enumeration-safe.
+- [x] **C.1** Create users unverified; generate and store a hashed 24h token.
+- [x] **C.2** Send the verification email; add the template.
+- [x] **C.3** Build `/verify-email` with distinct expired / consumed / invalid messages.
+- [x] **C.4** Add `/verify-email` to `publicPaths`.
+- [x] **C.5** Reject unverified logins with a distinguishable code + resend affordance.
+- [x] **C.6** Add `requireVerifiedEmail()` and gate AI generation, store connection, checkout.
+- [x] **C.7** Add a rate-limited resend endpoint (3/hour/address).
+- [ ] **C.8** Integration test: register → verify → login → gated features unlocked (tracked as a follow-up end-to-end test).
 - [ ] **D.1** Implement `changePassword` requiring the current password.
 - [ ] **D.2** Bump `tokenVersion` and keep the acting session valid.
 - [ ] **D.3** Send a password-changed notification; write an audit entry.
@@ -328,14 +328,14 @@ it("every settings link resolves to an existing route", async () => {
 
 ## 5. Acceptance Criteria
 
-- [ ] All `REQ-0070` acceptance criteria are met.
-- [ ] No new server action uses `auth()` — all use `getCurrentUser()`.
-- [ ] All new mutations write `AuditLog` entries.
-- [ ] Domain policy (password, age, phone normalisation) is pure and unit-tested.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
-- [ ] Migrations apply cleanly with no drift.
-- [ ] `docs/specs/current-state.md` updated (identity flows, verification states, gating policy).
-- [ ] `CHANGELOG.md` updated last.
+- [ ] All `REQ-0070` acceptance criteria are met (Packages B–C complete; D–G remain).
+- [x] No new server action uses `auth()` — all use `getCurrentUser()`.
+- [ ] All new mutations write `AuditLog` entries (tracked for Package D).
+- [x] Domain policy (password, phone normalisation) is pure and unit-tested.
+- [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
+- [x] Migrations apply cleanly with no drift.
+- [x] `docs/specs/current-state.md` updated (identity flows, verification states, gating policy).
+- [x] `CHANGELOG.md` updated last.
 
 ## 6. Notes / Blockers
 

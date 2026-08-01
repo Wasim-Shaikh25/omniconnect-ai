@@ -258,10 +258,17 @@ Core tables (see `prisma/schema.prisma` for full model):
   escapes `&`/`<`/`>` in user-editable fragments and external data, adds a system instruction that
   only delimited user input is untrusted, and runs generated replies through OpenAI moderation
   before sending to Meta; flagged content is withheld and escalated.
-- Identity self-service (`REQ-0070`) is in progress. Schema decisions: `User.phoneVerified` added,
-  a new `VerificationRequest` table stores hashed tokens for email/phone verification and email
-  changes, `dateOfBirth` omitted for the MVP, and new env vars (`REQUIRE_EMAIL_VERIFICATION`,
-  `TURNSTILE_*`, `SMS_PROVIDER`, `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.
+- Identity self-service (`REQ-0070`) Package A/B/C is complete. Registration now requires a
+  matching confirm password, enforces an optional E.164 phone number, verifies Cloudflare Turnstile
+  on the server (no-op when unconfigured), and is enumeration-safe (existing emails receive a
+  "someone tried to register" notice without leaking account existence).
+- Email verification at signup: credential users are created with `emailVerified: null`, receive a
+  24-hour hashed token by email, and consume it at `/verify-email`. `authorize` returns a
+  distinguishable `unverifiedEmail` code with a resend affordance; resends are rate-limited to
+  3/hour/address. `requireVerifiedEmail()` gates AI generation, store creation, and Stripe checkout.
+- `User.phoneVerified` and the `VerificationRequest` table are in place; `dateOfBirth` remains
+  omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
+  `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.
 
 ### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
 

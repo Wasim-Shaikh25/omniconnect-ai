@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
-import { requireRole, registerUser, registerUserSchema, signIn } from "@/modules/auth";
+import { requireRole, registerUser, registerUserSchema, signIn, emailVerificationService } from "@/modules/auth";
+import { env } from "@/shared/config";
 import { inviteMemberSchema } from "../application/invite-member";
 import {
   inviteMember,
@@ -83,6 +84,8 @@ export async function registerWithInviteAction(
     name: formData.get("name") || undefined,
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+    phone: formData.get("phone") || undefined,
   };
 
   const parsed = registerUserSchema.safeParse(raw);
@@ -114,18 +117,32 @@ export async function registerWithInviteAction(
     assignedStoreId = storeId;
   }
 
+  const emailVerified = env.REQUIRE_EMAIL_VERIFICATION ? null : new Date();
   const registerResult = await registerUser(parsed.data, {
     organizationId: invite.organizationId,
     role: invite.role,
     storeId: assignedStoreId,
+    emailVerified,
   });
   if (!registerResult.ok) {
     return { error: registerResult.error.message };
   }
 
+  if (registerResult.value.isExisting) {
+    return {
+      ok: true,
+      message: "An account with this email already exists. Sign in to accept the invite.",
+    };
+  }
+
   const acceptResult = await acceptOrganizationInvite(token);
   if (!acceptResult.ok) {
     return { error: acceptResult.error.message };
+  }
+
+  if (env.REQUIRE_EMAIL_VERIFICATION) {
+    await emailVerificationService.issue(registerResult.value.id, registerResult.value.email, "signup");
+    return { ok: true, message: "Check your email to verify your account before signing in." };
   }
 
   try {

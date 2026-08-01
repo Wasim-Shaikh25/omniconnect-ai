@@ -15,22 +15,30 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0070` Package A — Identity and account self-service schema/configuration:
-  - Added `User.phoneVerified` and a new `VerificationRequest` table for hashed verification tokens.
-  - Omitted `dateOfBirth` for the MVP (Q1 decision).
-  - Added env vars: `REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`,
-    `SMS_PROVIDER`, `TWILIO_*`, `SUPER_ADMIN_RECONCILE`.
-  - Migration `20260801162632_add_identity_self_service` applies cleanly.
+- `REQ-0070` Package D — Change password and email from settings.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 
 ### ⏭️ Next
 
-- `REQ-0070` Packages B–G — confirm password, email verification, password/email change, phone
-  verification, session management, super-admin reconciliation, and settings dead links.
+- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
+  and settings dead links.
 - `REQ-0071`–`0075`.
 
 ### ✅ Done
+
+- **`REQ-0070` Packages B–C — Registration hardening and email verification at signup:**
+  - Added `confirmPassword` refinement to the registration schema and `AuthForm` with inline mismatch validation.
+  - Added optional E.164 `phone` validation in `src/modules/auth/domain/phone.ts` and wired it through `registerUser`/`registerAction` and `AuthForm`.
+  - Added `passwordRuleDescription()` and password min/max (8–200) feedback in the registration UI.
+  - Added `verifyTurnstileToken` in `src/modules/auth/infrastructure/turnstile.ts` (server-side, no-op when `TURNSTILE_SECRET_KEY` is unset) and rendered the Turnstile widget in `AuthForm`.
+  - `registerAction` is enumeration-safe: existing emails return the same "check your email" message and trigger a "someone tried to register" notification.
+  - New `EmailVerificationService` issues a 32-byte token, stores only `SHA-256(tokenHash)` in `VerificationRequest` with a 24-hour expiry, and sends a `/verify-email?token=...` link.
+  - Added `src/app/verify-email/page.tsx` with distinct success/invalid/expired messages and a link back to `/login`.
+  - `authorize` returns `UnverifiedEmailError` (`code: "unverifiedEmail"`) when `REQUIRE_EMAIL_VERIFICATION` is true and the credential user is unverified; `loginAction` pre-empts this and renders a resend affordance.
+  - `resendVerificationEmailAction` is rate-limited to 3 attempts per hour per address.
+  - `requireVerifiedEmail()` blocks AI actions (`src/modules/ai/presentation/actions.ts`), `createStoreAction`, and Stripe checkout (`/api/stripe/checkout`).
+  - Added unit tests for `password-policy` and `register-user` and integration tests for `PrismaVerificationRequestRepository` and `requireVerifiedEmail`.
 
 - **Audit gap closure — M9 Encryption:**
   - Replaced the single SHA-256 pass in `src/shared/security/encryption.ts` with HKDF (`deriveKey`) to derive a 256-bit AES-GCM key.

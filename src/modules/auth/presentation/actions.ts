@@ -2,16 +2,20 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { z } from "zod";
-import { registerUser, verificationCodeService, accounts, hasher } from "../infrastructure/container";
+import { env } from "@/shared/config";
+import { registerUser, verificationCodeService, accounts, hasher, emailVerificationService } from "../infrastructure/container";
 import { signIn, signOut, RateLimitAuthError } from "../infrastructure/auth";
 import { registerUserSchema } from "../application/register-user";
+import { verifyTurnstileToken } from "../infrastructure/turnstile";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
 
 export interface ActionState {
   error?: string;
   mfaRequired?: boolean;
+  unverified?: boolean;
+  email?: string;
   message?: string;
   ok?: boolean;
 }
@@ -30,19 +34,47 @@ export async function registerAction(
     name: formData.get("name") || undefined,
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+    phone: formData.get("phone") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const result = await registerUser(parsed.data);
+  const turnstileToken = formData.get("cf-turnstile-response");
+  const ip = clientIp(await headers());
+  if (
+    env.TURNSTILE_SECRET_KEY &&
+    !(await verifyTurnstileToken(typeof turnstileToken === "string" ? turnstileToken : "", ip))
+  ) {
+    return { error: "Bot verification failed. Please try again." };
+  }
+
+  const emailVerified = env.REQUIRE_EMAIL_VERIFICATION ? null : new Date();
+  const result = await registerUser(parsed.data, { emailVerified });
   if (!result.ok) return { error: result.error.message };
+
+  if (result.value.isExisting) {
+    await emailVerificationService.sendRegistrationAttempt(result.value.email);
+    return {
+      ok: true,
+      message: "If this email is available, a verification link has been sent.",
+    };
+  }
+
+  if (env.REQUIRE_EMAIL_VERIFICATION) {
+    await emailVerificationService.issue(result.value.id, result.value.email, "signup");
+    return {
+      ok: true,
+      message: "Check your email to verify your account.",
+    };
+  }
 
   try {
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo: "/onboarding",
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -50,7 +82,7 @@ export async function registerAction(
     }
     throw error;
   }
-  redirect("/dashboard");
+  redirect("/onboarding");
 }
 
 export async function signOutAction(): Promise<void> {
@@ -95,6 +127,14 @@ export async function loginAction(
     return { mfaRequired: true, message: "A verification code was sent to your email." };
   }
 
+  if (env.REQUIRE_EMAIL_VERIFICATION && !account.emailVerified) {
+    return {
+      unverified: true,
+      email,
+      message: "Please verify your email address before signing in.",
+    };
+  }
+
   try {
     await signIn("credentials", {
       email,
@@ -107,6 +147,13 @@ export async function loginAction(
       const minutes = Math.max(1, Math.ceil(error.retryAfterMs / 60_000));
       return {
         error: `Too many attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`,
+      };
+    }
+    if (error instanceof CredentialsSignin && error.code === "unverifiedEmail") {
+      return {
+        unverified: true,
+        email,
+        message: "Please verify your email address before signing in.",
       };
     }
     if (error instanceof AuthError) {
@@ -190,4 +237,32 @@ export async function resetPasswordAction(
   // updatePassword already increments tokenVersion, invalidating existing sessions.
 
   return { ok: true, message: "Password updated. You can now sign in." };
+}
+
+const resendVerificationEmailSchema = z.object({
+  email: z.string().email(),
+});
+
+export async function resendVerificationEmailAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = resendVerificationEmailSchema.safeParse({
+    email: formData.get("email"),
+  });
+  if (!parsed.success) return { error: "Enter a valid email address." };
+
+  const email = parsed.data.email.toLowerCase().trim();
+  const ip = clientIp(await headers());
+  const limit = await rateLimit({
+    key: `resend-verification:${email}:${ip}`,
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { ok: true, message: "If this account is unverified, a new verification link has been sent." };
+  }
+
+  await emailVerificationService.resend(email);
+  return { ok: true, message: "If this account is unverified, a new verification link has been sent." };
 }
