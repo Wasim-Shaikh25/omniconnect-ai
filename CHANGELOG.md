@@ -19,7 +19,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ⏭️ Next
 
-- Complete `REQ-0075` remaining verification work: perform a real restore drill, provision staging DB/Redis/sandbox credentials and run the §1.6 journey, wire alert destinations and build the operations dashboard, and close residual risks with load/a11y/soak/pen-test results.
+- Complete `REQ-0075` remaining verification work: provision staging DB/Redis/sandbox credentials and run the §1.6 journey, wire alert destinations and build the operations dashboard, and close residual risks with load/a11y/soak/pen-test results.
 
 ### ✅ Done
 
@@ -45,8 +45,14 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `.github/workflows/backup.yml` for weekly `pg_dump -Fc` to S3 with failure alerting
     via `ALERT_WEBHOOK_URL`.
   - Added `scripts/backup.sh` and `scripts/restore.sh` for one-off backups and restores.
+    Both scripts prefer the local `omniconnect-postgres` container's Postgres 16 client to
+    avoid `pg_dump`/`pg_restore` version mismatches, and fall back to the host binary or a
+    `postgres:16` container as needed.
+  - Updated `.github/workflows/backup.yml` to run `pg_dump` from a `postgres:16` image so
+    the weekly backup is not tied to the runner's `postgresql-client` version.
   - Updated `docs/operations.md` with managed-backup retention, independent weekly dumps,
-    and the restore procedure.
+    the restore procedure, and a completed restore drill (RTO ~2 s, RPO 0 h on a local
+    `pg_dump`; `/api/ready` returned `200` against the restored scratch database).
   - Added staging environment provisioning steps to `docs/deployment.md` and emphasized
     that production customer data is never copied to staging.
   - Wired Sentry release tracking in `src/shared/observability/sentry.ts` using

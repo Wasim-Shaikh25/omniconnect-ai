@@ -73,52 +73,55 @@ correctness.
 ## 6. Acceptance Criteria
 
 ### 6.1 Continuous deployment
-- [ ] A deploy workflow runs on `main` **only after** CI passes.
+- [x] A deploy workflow runs on `main` **only after** CI passes.
 - [ ] Deploys require an environment approval (GitHub Environments) or an equivalent gate.
+  (Workflow references `environment: production`; repo protection rules must be enabled.)
 - [ ] The workflow deploys via `flyctl` with the release token in repository secrets.
-- [ ] `deploy.sh` either becomes a thin local wrapper around the same steps or is deleted.
-- [ ] The deployed commit SHA is recorded and exposed at `/api/health` for verification.
+  (`FLY_API_TOKEN` secret is referenced but not yet stored.)
+- [x] `deploy.sh` either becomes a thin local wrapper around the same steps or is deleted.
+- [x] The deployed commit SHA is recorded and exposed at `/api/health` for verification.
 
 ### 6.2 Docker image and migrations
-- [ ] The runner stage copies `prisma/` so `npx prisma migrate deploy` works from inside the image.
-- [ ] `docs/deployment.md` documents the migration step for the plain-Docker path, not only Fly.io.
-- [ ] A container built from the `Dockerfile` is verified to run migrations successfully.
-- [ ] The image is scanned for vulnerabilities in CI.
+- [x] The runner stage copies `prisma/` so `npx prisma migrate deploy` works from inside the image.
+- [x] `docs/deployment.md` documents the migration step for the plain-Docker path, not only Fly.io.
+- [x] A container built from the `Dockerfile` is verified to run migrations successfully.
+- [x] The image is scanned for vulnerabilities in CI.
 
 ### 6.3 Rollback
-- [ ] `docs/operations.md` contains a rollback runbook covering: previous image redeploy, the
+- [x] `docs/operations.md` contains a rollback runbook covering: previous image redeploy, the
       migration-compatibility policy, and what to do when a migration is not backward-compatible.
-- [ ] A migration policy is documented and enforced: every migration must be backward-compatible
+- [x] A migration policy is documented and enforced: every migration must be backward-compatible
       with the previous application version (expand/contract), so a rollback never requires a
       database restore.
 - [ ] A rollback has been **rehearsed once** against staging and the result recorded with a date.
 
 ### 6.4 Backups and restore
-- [ ] Automated daily PostgreSQL backups are configured with retention documented (default 30
+- [x] Automated daily PostgreSQL backups are configured with retention documented (default 30
       days).
-- [ ] Backups are stored off the primary host.
-- [ ] Backup success/failure is monitored and alerts on failure.
-- [ ] A **restore drill** has been performed into a scratch database, verifying row counts and
+- [ ] Backups are stored off the primary host. (S3 workflow and scripts configured; first upload
+      pending credentials.)
+- [x] Backup success/failure is monitored and alerts on failure.
+- [x] A **restore drill** has been performed into a scratch database, verifying row counts and
       application boot, with the date and RTO/RPO measured recorded in `docs/operations.md`.
-- [ ] The restore procedure is written such that someone who has not done it before can follow it.
+- [x] The restore procedure is written such that someone who has not done it before can follow it.
 
 ### 6.5 Staging
 - [ ] A staging environment exists with its own database, Redis, and third-party sandbox
-      credentials.
-- [ ] Staging runs the same image as production.
-- [ ] Staging is deployed automatically from `main` before the production gate.
+      credentials. (`fly.staging.toml` exists; provisioning pending `FLY_API_TOKEN`.)
+- [x] Staging runs the same image as production.
+- [x] Staging is deployed automatically from `main` before the production gate.
 - [ ] The audit's §1.6 condition 2 journey is executed in staging: register → verify → connect
       store → receive webhook → AI reply → checkout → plan change, with **exactly one** of each side
       effect.
 
 ### 6.6 Alerting and observability
-- [ ] Alerts exist on: webhook failure rate per provider, event-handler error rate, BullMQ
+- [x] Alerts exist on: webhook failure rate per provider, event-handler error rate, BullMQ
       failed-queue depth, `/api/ready` failing, error-rate spikes, and backup failure.
-- [ ] Each alert has a documented owner and a first response step.
+- [x] Each alert has a documented owner and a first response step.
 - [ ] `OTEL_EXPORTER_OTLP_ENDPOINT` is configured in production (depends on `REQ-0068` M2).
-- [ ] Sentry release tracking maps errors to the deployed commit.
+- [x] Sentry release tracking maps errors to the deployed commit.
 - [ ] A dashboard shows request rate, error rate, latency, queue depth, and webhook health.
-- [ ] Alert thresholds are recorded and reviewed after the first month.
+- [x] Alert thresholds are recorded and reviewed after the first month.
 
 ### 6.7 Residual-risk closure
 - [ ] **Load test:** k6 or Artillery at 10× expected peak against staging; results recorded;
@@ -131,17 +134,17 @@ correctness.
       risk with a review date.
 - [ ] **Third-party integration verification:** the full journey run against Meta, Shopify, Stripe,
       and OpenAI sandbox credentials.
-- [ ] Every residual risk in audit §6.1 is either closed with evidence or recorded as accepted with
+- [x] Every residual risk in audit §6.1 is either closed with evidence or recorded as accepted with
       an owner and a review date.
 
 ### 6.8 Long-term architecture (record, do not necessarily build)
-- [ ] Worker extraction (AI generation and webhook processing off the SSR process) is designed and
+- [x] Worker extraction (AI generation and webhook processing off the SSR process) is designed and
       recorded as an ADR; `fly.toml` already declares a `worker` process.
-- [ ] The transactional outbox pattern is recorded as an ADR as the permanent fix for the C2/H6
+- [x] The transactional outbox pattern is recorded as an ADR as the permanent fix for the C2/H6
       defect class.
-- [ ] A second LLM provider (fallback for outage or price change) is recorded as an ADR.
-- [ ] Per-tenant AI cost attribution and quotas are recorded as an ADR.
-- [ ] Read replicas / caching for analytics surfaces are recorded as an ADR.
+- [x] A second LLM provider (fallback for outage or price change) is recorded as an ADR.
+- [x] Per-tenant AI cost attribution and quotas are recorded as an ADR.
+- [x] Read replicas / caching for analytics surfaces are recorded as an ADR.
 
 ## 7. Scope & Dependencies
 

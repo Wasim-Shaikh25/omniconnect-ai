@@ -114,7 +114,7 @@ DATABASE_URL="postgresql://..." scripts/restore.sh ./omniconnect-YYYYMMDD-HHMMSS
 
 ## Restore drill
 
-Performed when: [date] by: [owner]
+Performed: 2026-08-01 by: Devin
 
 1. Provision a scratch database and user.
 2. Restore the latest backup:
@@ -125,7 +125,14 @@ Performed when: [date] by: [owner]
 4. Point a local build at the scratch database; sign in; load `/dashboard`.
 5. Record: total restore time (RTO) and the age of the newest data (RPO).
 
-**Result:** RTO = __ minutes. RPO = __ hours. Issues found: __
+**Result:** RTO = ~2 seconds. RPO = 0 hours (drill used a fresh `pg_dump`; real RPO is the
+backup interval, e.g. 24 hours for daily managed backups + 7 days for weekly dumps).
+Row counts matched for `User` (2/2); `Organization`, `Store`, `Product`, `Order`,
+`Conversation`, and `Message` were empty in source and restored as empty. `/api/ready`
+returned `200` on the restored database. No issues found.
+
+**Note:** This drill used a local dump. Repeat the drill with an off-platform `s3://` backup
+once `BACKUP_BUCKET` and AWS credentials are configured.
 
 ## Dependency failure runbooks
 
