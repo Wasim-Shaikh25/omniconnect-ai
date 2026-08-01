@@ -15,7 +15,8 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0068` M15 — AI prompt-injection and output moderation.
+- `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
+  development store and `SHOPIFY_API_SECRET`).
 
 ### ⏭️ Next
 
@@ -39,6 +40,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Invalid/missing credentials and rate-limited attempts both return generic messages that do not reveal whether an account exists.
   - Added `RATE_LIMIT_IP_HEADER` to `src/shared/config/env.ts` `PRODUCTION_REQUIRED`, `.env.example`, and `docs/deployment.md`.
   - Tests cover per-IP engagement, global engagement across rotating IPs, and refusal of a correct password while locked out.
+
+- **Audit gap closure — M15 AI prompt-injection and output moderation:**
+  - Added `src/modules/ai/domain/prompt-safety.ts` with `sanitizePromptFragment`, `escapePromptDelimiters`, `wrapUserMessage`, and `wrapExternalData` (pure, no IO).
+  - `generate-reply.ts` `buildSystemPrompt` now instructs the model that `<<<USER_MESSAGE>>>` and every `<<<DATA>>>` region are untrusted data, not instructions, and that discounts must come from `<<<COUPONS>>>`.
+  - `generate-welcome.ts` wraps `TONE`, `MESSAGE_TEMPLATE`, `FOLLOWER`, and `COUPON` as external data and sanitises the configured system prompt.
+  - `OpenAIProvider.sanitize` wraps user messages with `wrapUserMessage` and escapes `&`/`<`/`>`.
+  - Added `ContentModerator` / `ModerationResult` port in `src/modules/ai/application/content-moderation.ts`; `OpenAIProvider` implements it with the OpenAI moderations endpoint.
+  - `generateReply` withholds flagged output, logs `ai.reply.moderationBlocked` with categories only, writes an audit log without PII, and escalates to a human before any Meta send.
+  - Adversarial unit tests cover delimiter injection in a product title, system-prompt exfiltration via merchant configuration, instruction override, unauthorised discount guard, and abusive output blocked by moderation.
 
 - **Audit gap closure — M8 Accessibility:**
   - Added a skip link in `src/app/layout.tsx` as the first focusable element in `<body>`, targeting `<main id="main-content" tabIndex={-1}>`.

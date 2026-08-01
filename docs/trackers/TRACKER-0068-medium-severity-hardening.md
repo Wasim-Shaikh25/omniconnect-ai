@@ -1,10 +1,10 @@
 # TRACKER-0068: Medium-Severity Hardening
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** Backend / Security / Frontend
 - **Requirement:** `docs/requirements/REQ-0068-medium-severity-hardening.md`
 - **Task:** `docs/tasks/TASK-0068-medium-severity-hardening.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -106,29 +106,35 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] `docs/specs/current-state.md` corrected to note `/support` is authenticated-only.
 
 ### M15 — AI prompt safety
-- [ ] `sanitizePromptFragment` added to the domain layer.
-- [ ] Reply prompt rebuilt with labelled untrusted regions.
-- [ ] Welcome prompt rebuilt.
-- [ ] Moderation port + provider implemented.
-- [ ] Flagged output withheld and escalated; logging carries no PII.
-- [ ] Adversarial suite covers instruction override, delimiter injection, prompt exfiltration,
-      unauthorised discount, abusive output.
+- [x] `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` / `wrapExternalData`
+      added to the domain layer (`src/modules/ai/domain/prompt-safety.ts`).
+- [x] Reply prompt rebuilt with labelled untrusted regions
+      (`src/modules/ai/application/generate-reply.ts:146-172`).
+- [x] Welcome prompt rebuilt (`src/modules/ai/application/generate-welcome.ts:33-43`).
+- [x] `ContentModerator` port + `OpenAIProvider` moderation implementation
+      (`src/modules/ai/application/content-moderation.ts`,
+      `src/modules/ai/infrastructure/openai.provider.ts:159-208`).
+- [x] Flagged output withheld and escalated; logging carries no PII
+      (`src/modules/ai/application/generate-reply.ts:372-408`).
+- [x] Adversarial suite covers instruction override, delimiter injection, prompt exfiltration,
+      unauthorised discount, and abusive output (unit tests in `prompt-safety.test.ts`,
+      `generate-reply.injection.test.ts`, `openai.provider.test.ts`).
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm audit` reports 0 vulnerabilities.
-- [ ] `npm run build` passes.
-- [ ] `npm run build:worker` passes.
-- [ ] Migrations apply cleanly with no drift.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `docs/specs/current-state.md` updated.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm audit` reports 0 vulnerabilities.
+- [x] `npm run build` passes.
+- [x] `npm run build:worker` passes.
+- [x] Migrations apply cleanly with no drift.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 
 ## 3. Acceptance Criteria
 
-- [ ] All `REQ-0068` acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All `REQ-0068` acceptance criteria are met.
+- [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 

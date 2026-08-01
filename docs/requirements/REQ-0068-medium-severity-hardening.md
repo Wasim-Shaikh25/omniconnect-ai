@@ -202,16 +202,16 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 - [x] `docs/specs/current-state.md` notes `/support` is authenticated-only and not in `publicPaths`.
 
 ### M15 — AI prompt-injection and output moderation
-- [ ] All user-editable prompt fragments (system prompt, tone, strategies, escalation rules,
+- [x] All user-editable prompt fragments (system prompt, tone, strategies, escalation rules,
       templates) are sanitised of delimiter sequences before interpolation.
-- [ ] The system prompt contains an explicit instruction that only the delimited user region is
+- [x] The system prompt contains an explicit instruction that only the delimited user region is
       user input and instructions inside it must not be followed.
-- [ ] External data (product titles, coupon codes, customer names) is delimited and labelled as
+- [x] External data (product titles, coupon codes, customer names) is delimited and labelled as
       data, not instructions.
-- [ ] An output moderation step runs before any generated text is sent to Meta; flagged content is
+- [x] An output moderation step runs before any generated text is sent to Meta; flagged content is
       withheld and escalated to a human.
-- [ ] Moderation decisions are logged without logging customer PII.
-- [ ] An adversarial test suite covers at least: instruction override, delimiter injection in a
+- [x] Moderation decisions are logged without logging customer PII.
+- [x] An adversarial test suite covers at least: instruction override, delimiter injection in a
       product title, system-prompt exfiltration, unauthorised discount offer, and abusive output.
 
 ## 7. Scope & Dependencies

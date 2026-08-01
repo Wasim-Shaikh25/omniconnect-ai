@@ -49,6 +49,7 @@ export const generateWelcome = makeGenerateWelcome({
 
 export const generateReply = makeGenerateReply({
   aiProvider,
+  contentModerator: aiProvider,
   aiConfigurationRepository,
   conversationQueries,
   conversationCommands,
