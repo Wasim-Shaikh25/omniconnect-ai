@@ -120,11 +120,20 @@ export interface OrganizationInviteRecord {
   expiresAt: Date;
 }
 
+export type CreateInviteInput = Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & {
+  status?: InviteStatus;
+};
+
+export type CreateInviteResult =
+  | { ok: true; invite: OrganizationInviteRecord }
+  | { ok: false; reason: "seat_limit"; limit: number };
+
 export interface OrganizationInviteRepository {
   findByToken(token: string): Promise<OrganizationInviteRecord | null>;
   findPendingByEmail(organizationId: string, email: string): Promise<OrganizationInviteRecord | null>;
   findById(id: string, organizationId: string): Promise<OrganizationInviteRecord | null>;
-  create(input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & { status?: InviteStatus }): Promise<OrganizationInviteRecord>;
+  create(input: CreateInviteInput): Promise<OrganizationInviteRecord>;
+  createWithinSeatLimit(input: CreateInviteInput, teamSeats: number | null): Promise<CreateInviteResult>;
   updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord>;
   updateToken(id: string, organizationId: string, token: string, expiresAt: Date): Promise<OrganizationInviteRecord | null>;
   deleteInvite(id: string, organizationId: string): Promise<void>;

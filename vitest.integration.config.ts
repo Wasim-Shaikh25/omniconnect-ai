@@ -6,7 +6,7 @@ export default defineConfig({
     name: "integration",
     environment: "node",
     include: ["src/**/*.integration.test.ts"],
-    exclude: ["src/**/*.test.ts"],
+    exclude: ["node_modules", ".next"],
     globals: false,
     passWithNoTests: true,
     hookTimeout: 30000,

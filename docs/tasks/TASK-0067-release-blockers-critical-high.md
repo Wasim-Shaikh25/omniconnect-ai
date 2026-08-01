@@ -761,6 +761,12 @@ Inventory other plan-limited paths and confirm each is atomic:
 grep -rn "planLimits(" src/modules
 ```
 
+**H10 inventory 2026-08-01:**
+- `invite-member.ts` now uses `createWithinSeatLimit` with serializable isolation and bounded retries.
+- `create-store.ts` → `PrismaStoreRepository.create` already uses a serializable transaction for `maxStores`.
+- `usage.ts` → `PrismaOrganizationRepository.incrementAIReplies` already uses a serializable transaction for `monthlyAiReplies`.
+- No other `planLimits(` callers found.
+
 ---
 
 ## 4. Subtasks

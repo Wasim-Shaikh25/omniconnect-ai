@@ -15,13 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H1/H4/H9 fixed; remaining H2–H3, H5–H8, H10 in progress.
+- **REQ-0067 release blockers:** C1/C2/H1/H4/H9/H10 fixed; remaining H2–H3, H5–H8 in progress.
 
 ### ⏭️ Next
 
 - **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
   REQ-0067's H5 migration is written, or that migration is wasted.
-- **REQ-0067** — remaining release blockers (H2–H3, H5–H8, H10), each with a regression test that fails
+- **REQ-0067** — remaining release blockers (H2–H3, H5–H8), each with a regression test that fails
   against current `main`.
 
 ### ✅ Done
@@ -70,6 +70,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added a 10 req/min rate limit keyed by user + IP.
   - Added `Cache-Control: no-store, private` to the export response.
   - Confirmed `grep -rn "await auth()" src --include=*.ts --include=*.tsx | grep -v "modules/auth/"` returns nothing.
+
+- **REQ-0067 H10 — atomic seat-limit enforcement:**
+  - Added `OrganizationInviteRepository.createWithinSeatLimit` with a serializable Prisma
+    transaction and bounded retries on `P2034` serialization failures.
+  - `invite-member.ts` now calls `createWithinSeatLimit`, sending the invite email only after
+    the transaction commits and returning `SeatLimitError` when the cap is reached.
+  - Added `organization-invite.repository.integration.test.ts` firing `teamSeats + 5` parallel
+    invites and asserting pending invites never exceed `teamSeats`.
+  - Inventoried other `planLimits()` paths: store creation and AI reply counter are already atomic.
 
 - **REQ-0067 C1 + H9 (required by the new smoke test):
   - `authConfig` now sets `trustHost: env.AUTH_TRUST_HOST` (default `true`) and adds a

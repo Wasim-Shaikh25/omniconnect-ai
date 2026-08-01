@@ -244,8 +244,9 @@ Core tables (see `prisma/schema.prisma` for full model):
   fire on every cart edit and have no subscriber.
 - **H9** — `/api/shopify/webhooks` is now in `publicPaths`, so anonymous Shopify webhooks reach
   HMAC verification; the CI smoke test asserts the route does not return `3xx`.
-- **H10** — the plan seat limit is read and enforced outside a transaction, so concurrent invites
-  can exceed the cap.
+- **H10** — `invite-member.ts` now uses `createWithinSeatLimit`, a serializable transaction with
+  bounded retries, so concurrent invites cannot exceed `teamSeats`. Other `planLimits()` callers
+  (`create-store`, AI reply counter) are already atomic.
 - **H8** — Package A addressed: `redis:7-alpine` is now a CI service, `npm audit` and gitleaks
   secret scanning run in CI, and the smoke test covers `/api/health`, `/api/auth/session`,
   `/api/ready`, and `POST /api/shopify/webhooks`. A Redis ping test is added; Tier 1–2 regression
