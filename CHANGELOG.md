@@ -15,11 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0075** — release engineering, DR, observability, and residual-risk closure.
+- **2026-08-01 checkbox verification audit** — line-by-line re-verification of `REQ-0067`–`REQ-0075` acceptance criteria, tasks, and trackers; report produced and doc corrections applied.
 
 ### ⏭️ Next
 
-- Complete `REQ-0075` remaining verification work: provision staging DB/Redis/sandbox credentials and run the §1.6 journey, wire alert destinations and build the operations dashboard, and close residual risks with load/a11y/soak/pen-test results.
+- Close the audit gaps (H2/H7 transactional boundaries, H5.6 delete-site inventory, S2/S5 route/action-level tests, T4/T9/T10 export and auth/session route tests, M6 `typescript: true`, L5 `auto_stop_machines`).
 
 ### ✅ Done
 

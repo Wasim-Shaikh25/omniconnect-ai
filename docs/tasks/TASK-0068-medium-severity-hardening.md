@@ -500,7 +500,9 @@ abusive output blocked by moderation.
 - [ ] **M5.5** Make all four idempotent via the `ProcessedWebhookEvent` ledger.
 - [ ] **M5.6** Tests for each topic.
 - [ ] **M5.7** Pass Shopify's automated compliance checks in a development store.
-- [ ] **M6.1** Pin `apiVersion` and set `typescript: true`.
+- [x] **M6.1** Pin `apiVersion` and set `typescript: true`.
+- [ ] **M6.1b** Add `typescript: true` to the Stripe constructor and verify typecheck passes.
+- [ ] **M6.2b** Confirm `resolveSubscriptionId` handles the pinned invoice payload shapes (already verified by `billing.ts` tests).
 - [ ] **M6.2** Write the ADR in `docs/decisions/`.
 - [ ] **M6.3** Verify `resolveSubscriptionId` against the pinned invoice shape.
 - [ ] **M7.1** Convert `require-store-access` into a pure predicate; guard in page bodies.

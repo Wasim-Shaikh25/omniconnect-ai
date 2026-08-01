@@ -744,7 +744,7 @@ grep -rn "planLimits(" src/modules
 - [ ] **H3.5** Document required Stripe dashboard events in `docs/deployment.md`.
 - [ ] **H3.6** Write the `past_due` backfill script.
 - [ ] **H3.7** Tests: fail→succeed, portal downgrade, `unpaid` status, unknown price.
-- [x] **H5.1-5.7** Resolved by removal — `Project`/`ProjectMember` models and actions deleted (migration `20260801083128_remove_project_models`). The M3 race and hard-delete hazard no longer exist.
+- [ ] **H5.1-5.5, H5.7** Resolved by removal — `Project`/`ProjectMember` models and actions deleted (migration `20260801083128_remove_project_models`). The M3 race and hard-delete hazard no longer exist. — Project removal complete; **H5.6 delete-site inventory still open** (see audit subtask).
 - [x] **H7.1** Add the `Cart` model and migration.
 - [x] **H7.2** Convert `checkouts/*` handling to a cart upsert with no event.
 - [x] **H7.3** Mark `convertedAt` on `orders/create` for the matching cart token.
@@ -752,17 +752,17 @@ grep -rn "planLimits(" src/modules
 - [x] **H7.5** Add `ABANDONED_CART_THRESHOLD_MINUTES` to config.
 - [x] **H7.6** Ship a subscriber; `AbandonedCartDetected` creates an `ABANDONED_CART` notification.
 - [x] **H7.7** Tests: ten updates → one row/zero events; idle → one event; order → no event; double sweep → no duplicate.
-- [ ] **H10.1** Add `createWithinSeatLimit` with a serializable transaction.
-- [ ] **H10.2** Add bounded serialization-failure retries.
-- [ ] **H10.3** Convert the result to `err(new SeatLimitError(...))` at the application boundary.
-- [ ] **H10.4** Send the invite email only after commit.
-- [ ] **H10.5** Concurrency test: `teamSeats + 5` parallel invites.
-- [ ] **H10.6** Inventory other `planLimits(` call sites for the same race.
+- [x] **H10.1** Add `createWithinSeatLimit` with a serializable transaction.
+- [x] **H10.2** Add bounded serialization-failure retries.
+- [x] **H10.3** Convert the result to `err(new SeatLimitError(...))` at the application boundary.
+- [x] **H10.4** Send the invite email only after commit.
+- [x] **H10.5** Concurrency test: `teamSeats + 5` parallel invites.
+- [x] **H10.6** Inventory other `planLimits(` call sites for the same race.
 
 ## 5. Acceptance Criteria
 
-- [x] All acceptance criteria in `REQ-0067` §7 are met.
-- [x] Every regression test was observed failing against pre-fix code and passing after.
+- [ ] All acceptance criteria in `REQ-0067` §7 are met. *(FALSE — H5.6, H2/H7 transactionality, and route-level tests remain open.)*
+- [ ] Every regression test was observed failing against pre-fix code and passing after. *(FALSE — route-level export tests and concurrency tests for cart sweep/webhook ledger are missing.)*
 - [x] `npm run lint` passes with `--max-warnings=0`.
 - [x] `npm run typecheck` passes with no `any` and no `@ts-ignore` introduced.
 - [x] `npm run test` passes.
@@ -785,3 +785,9 @@ grep -rn "planLimits(" src/modules
   - The `AbandonedCartDetected` subscriber decision (H7.6).
 - **Sequencing:** Step 7 before Step 8 (both edit `billing.ts`). Steps 5 and 6 in one PR. Steps 1,
   2, 3, 4 are independent and safe to land first as a hotfix set.
+
+## 7. Subtasks raised by 2026-08-01 checkbox audit
+- [ ] **H2.8** Wrap `ProcessedWebhookEvent.record` + fulfillment side effects in one Prisma transaction or row-lock so a crash mid-fulfillment cannot lose the update while marking the event processed.
+- [ ] **H5.6** Complete the `prisma.*.delete(` / `deleteMany(` call-site inventory for all modules; record tenant scoping and honest-naming decisions in §6.
+- [ ] **H7.8** Make the abandoned-cart sweep atomic: update `notifiedAt` and publish `AbandonedCartDetected` inside one transaction with a row lock, or use an `UPDATE ... WHERE notifiedAt IS NULL` returning affected rows.
+- [ ] **H4.5** Add route-level integration tests for `/api/export/[id]`: stale `tokenVersion` → `401`; soft-deleted user → `401`; cross-user export id → `404`.

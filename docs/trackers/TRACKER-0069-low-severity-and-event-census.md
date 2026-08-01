@@ -47,7 +47,7 @@ open at `33e2e0b`. L6 (registration bot protection) is tracked in `REQ-0070`.
 - [ ] Test: `logger.debug` silent at the default level.
 
 ### L5 — Fly.io machine policy
-- [ ] `min_machines_running = 1` set.
+- [x] `min_machines_running = 1` set. *(PARTIAL — `auto_stop_machines` still `"stop"` in `fly.toml`.)*
 - [ ] `auto_stop_machines` disabled for the app process.
 - [ ] Memory measured under SSR + AI generation load.
 - [ ] VM sizing ADR recorded.
