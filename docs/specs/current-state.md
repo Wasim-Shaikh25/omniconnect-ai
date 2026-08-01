@@ -105,7 +105,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
-| `support` | Support tickets, admin triage, system logs. |
+| `support` | Support tickets, admin triage, system logs. `/support` is authenticated-only and not in `publicPaths`. |
 
 ---
 
