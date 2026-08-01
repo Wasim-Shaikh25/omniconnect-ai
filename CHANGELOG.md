@@ -16,11 +16,11 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - `REQ-0068` M1, M2 — `/api/ready` readiness disclosure/rate-limit, and telemetry exporter controls.
+  - `REQ-0068` M4 — inbox latest-message query bounded in the database with a composite index.
 
 ### ⏭️ Next
 
-- Remaining `REQ-0068` items: M4, M5, M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
+- Remaining `REQ-0068` items: M5, M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
 

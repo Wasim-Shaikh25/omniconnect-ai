@@ -446,6 +446,7 @@ model Message {
   @@unique([conversationId, inReplyToMessageId])
   @@index([conversationId])
   @@index([createdAt])
+  @@index([conversationId, createdAt(sort: Desc)])
 }
 
 model Cart {
