@@ -73,14 +73,14 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] Colour contrast spot-checked.
 
 ### M9 — Encryption
-- [ ] HKDF derivation implemented.
-- [ ] `enc:v2:` versioned prefix implemented.
-- [ ] `ENCRYPTION_KEY_PREVIOUS` dual-key decryption implemented.
-- [ ] `scripts/reencrypt-credentials.ts` written and dry-run.
-- [ ] Rotation procedure documented in `docs/operations.md`.
-- [ ] `.env.example` placeholder replaced with a generation command.
-- [ ] Plaintext-passthrough removal date recorded.
-- [ ] Tests: v2 round-trip, legacy decrypt, previous-key decrypt, tampered ciphertext rejected.
+- [x] HKDF derivation implemented (`src/shared/security/encryption.ts:20-41`).
+- [x] `enc:v2:` versioned prefix implemented; legacy `enc:` still decrypts.
+- [x] `ENCRYPTION_KEY_PREVIOUS` dual-key decryption implemented.
+- [x] `scripts/reencrypt-credentials.ts` written.
+- [x] Rotation procedure documented in `docs/operations.md`.
+- [x] `.env.example` placeholder replaced with `openssl rand -base64 48`.
+- [x] Plaintext-passthrough removal date recorded: **2026-09-01**.
+- [x] Tests: v2 round-trip, legacy decrypt, previous-key decrypt, tampered ciphertext rejected.
 
 ### M10 — Login throttling
 - [ ] Global per-account counter added.

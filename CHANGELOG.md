@@ -15,13 +15,23 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0068` M9 — Encryption (HKDF key derivation, key rotation, dual-key decryption).
+- `REQ-0068` M10 — Global login throttling and distinguishable rate-limit feedback.
 
 ### ⏭️ Next
 
-- `REQ-0068` M10, M15, then `REQ-0070`–`0075`.
+- `REQ-0068` M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
+
+- **Audit gap closure — M9 Encryption:**
+  - Replaced the single SHA-256 pass in `src/shared/security/encryption.ts` with HKDF (`deriveKey`) to derive a 256-bit AES-GCM key.
+  - Versioned new ciphertexts as `enc:v2:<base64(iv||ciphertext)>` while preserving `enc:` (legacy v1 SHA-256) and plaintext passthrough.
+  - Added `ENCRYPTION_KEY_PREVIOUS` to `src/shared/config/env.ts`; `decryptString` retries with the previous key before failing, enabling key rotation without downtime.
+  - Added `scripts/reencrypt-credentials.ts` to re-encrypt `Integration.accessToken` and `refreshToken` values during a rotation.
+  - Documented the full rotation procedure in `docs/operations.md`.
+  - Updated `.env.example` to generate `ENCRYPTION_KEY` with `openssl rand -base64 48` and added `ENCRYPTION_KEY_PREVIOUS`.
+  - Recorded the plaintext-passthrough removal date as 2026-09-01.
+  - Tests cover v2 round-trip, legacy v1 decryption, previous-key decryption after rotation, and rejection of tampered ciphertext.
 
 - **Audit gap closure — M8 Accessibility:**
   - Added a skip link in `src/app/layout.tsx` as the first focusable element in `<body>`, targeting `<main id="main-content" tabIndex={-1}>`.
