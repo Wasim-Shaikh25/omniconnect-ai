@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { makeApplyShopifyWebhook } from "./apply-shopify-webhook";
-import type { CartRepository, IntegrationRepository, OrderRepository, ProductRepository } from "./ports";
+import type {
+  CartRepository,
+  IntegrationRepository,
+  OrderRepository,
+  ProductRepository,
+} from "./ports";
+import type { ShopifyComplianceRepository } from "./shopify-compliance";
+import type { AuditLogCommands } from "@/modules/users";
 
 function makeDeps() {
   const integrations: IntegrationRepository = {
@@ -42,7 +49,47 @@ function makeDeps() {
     markNotified: vi.fn().mockResolvedValue(true),
     findAbandoned: vi.fn(),
   };
-  return { integrations, products, orders, carts };
+  const compliance: ShopifyComplianceRepository = {
+    fetchCustomerData: vi.fn().mockResolvedValue({
+      customer: { id: "123", email: "shopper@example.com" },
+      orders: [],
+      carts: [],
+    }),
+    redactCustomer: vi.fn().mockResolvedValue({
+      orders: 1,
+      carts: 0,
+      customers: 0,
+      followers: 0,
+      conversations: 0,
+      messages: 0,
+    }),
+    redactShop: vi.fn().mockResolvedValue({
+      products: 0,
+      orders: 0,
+      carts: 0,
+      coupons: 0,
+      customers: 0,
+      followers: 0,
+      conversations: 0,
+      messages: 0,
+      integrations: 1,
+    }),
+    disconnectStore: vi.fn().mockResolvedValue(undefined),
+  };
+  const auditLog: AuditLogCommands = {
+    create: vi.fn().mockResolvedValue({
+      id: "log-1",
+      organizationId: null,
+      actorId: null,
+      actorEmail: null,
+      action: "test",
+      resource: "test",
+      resourceId: null,
+      details: null,
+      createdAt: new Date(),
+    }),
+  };
+  return { integrations, products, orders, carts, compliance, auditLog };
 }
 
 function checkoutPayload(token = "abc123") {
@@ -122,5 +169,87 @@ describe("applyShopifyWebhook", () => {
 
     expect(deps.carts.upsert).toHaveBeenCalledTimes(10);
     expect(deps.carts.upsert).toHaveBeenLastCalledWith(expect.objectContaining({ cartToken: "abc123" }));
+  });
+
+  it("produces a data payload for customers/data_request and logs an audit record", async () => {
+    const deps = makeDeps();
+    const apply = makeApplyShopifyWebhook(deps);
+
+    const result = await apply({
+      topic: "customers/data_request",
+      shopDomain: "test.myshopify.com",
+      eventId: "evt-data-1",
+      payload: { customer: { id: 123, email: "shopper@example.com" } },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.data).toEqual(expect.objectContaining({ customer: { id: "123", email: "shopper@example.com" } }));
+    expect(deps.compliance.fetchCustomerData).toHaveBeenCalledWith({ storeId: "store-1", customerRef: "123", customerEmail: "shopper@example.com" });
+    expect(deps.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({ action: "shopify.customers.data_request" }));
+  });
+
+  it("redacts customer PII for customers/redact and logs an audit record", async () => {
+    const deps = makeDeps();
+    const apply = makeApplyShopifyWebhook(deps);
+
+    const result = await apply({
+      topic: "customers/redact",
+      shopDomain: "test.myshopify.com",
+      eventId: "evt-redact-1",
+      payload: { customer: { id: 123, email: "shopper@example.com" } },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(deps.compliance.redactCustomer).toHaveBeenCalledWith({ storeId: "store-1", customerRef: "123", customerEmail: "shopper@example.com" });
+    expect(deps.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({ action: "shopify.customers.redact" }));
+  });
+
+  it("erases shop data and tokens for shop/redact and logs an audit record", async () => {
+    const deps = makeDeps();
+    const apply = makeApplyShopifyWebhook(deps);
+
+    const result = await apply({
+      topic: "shop/redact",
+      shopDomain: "test.myshopify.com",
+      eventId: "evt-shop-redact-1",
+      payload: { shop_id: 42 },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(deps.compliance.redactShop).toHaveBeenCalledWith("store-1");
+    expect(deps.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({ action: "shopify.shop.redact" }));
+  });
+
+  it("disconnects the integration and cancels scheduled jobs for app/uninstalled", async () => {
+    const deps = makeDeps();
+    const scheduler = { cancelForStore: vi.fn().mockResolvedValue(undefined) };
+    const apply = makeApplyShopifyWebhook({ ...deps, jobScheduler: scheduler });
+
+    const result = await apply({
+      topic: "app/uninstalled",
+      shopDomain: "test.myshopify.com",
+      eventId: "evt-uninstall-1",
+      payload: { shop_id: 42 },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(deps.compliance.disconnectStore).toHaveBeenCalledWith("store-1");
+    expect(scheduler.cancelForStore).toHaveBeenCalledWith("store-1");
+    expect(deps.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({ action: "shopify.app.uninstalled" }));
+  });
+
+  it("does not return { ok: true } for an unhandled compliance topic", async () => {
+    const deps = makeDeps();
+    const apply = makeApplyShopifyWebhook(deps);
+
+    const result = await apply({
+      topic: "customers/unknown",
+      shopDomain: "test.myshopify.com",
+      eventId: "evt-unknown-1",
+      payload: {},
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toBe("Unhandled compliance topic: customers/unknown");
   });
 });

@@ -116,18 +116,19 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
       equivalent bound; the inventory is recorded in `TASK-0068` M4.4.
 
 ### M5 — Shopify compliance webhooks
-- [ ] `customers/data_request`, `customers/redact`, `shop/redact`, and `app/uninstalled` are
-      handled in `apply-shopify-webhook.ts`.
-- [ ] `customers/redact` erases or anonymises the identified customer's PII within the store scope
-      and writes an audit record.
-- [ ] `shop/redact` erases the shop's data and stored tokens.
-- [ ] `customers/data_request` produces an export payload for the merchant to relay, recorded and
-      logged.
-- [ ] `app/uninstalled` marks the integration disconnected, purges the encrypted access token, and
-      stops scheduled sync jobs for that store.
-- [ ] Unhandled topics no longer return `{ ok: true }` for compliance topics.
-- [ ] Shopify's automated compliance checks pass in a test store.
-- [ ] Tests exist for each of the four topics.
+- [x] `customers/data_request`, `customers/redact`, `shop/redact`, and `app/uninstalled` are
+      handled in `apply-shopify-webhook.ts` (`src/modules/ecommerce/application/apply-shopify-webhook.ts:96-115`).
+- [x] `customers/redact` erases or anonymises the identified customer's PII within the store scope
+      and writes an audit record (`src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:71-113`).
+- [x] `shop/redact` erases the shop's data and stored tokens (`src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:115-174`).
+- [x] `customers/data_request` produces an export payload for the merchant to relay, recorded and
+      logged (`src/modules/ecommerce/application/apply-shopify-webhook.ts:132-148`).
+- [x] `app/uninstalled` marks the integration disconnected, purges the encrypted access token, and
+      invokes the injected job scheduler to stop scheduled sync jobs for that store
+      (`src/modules/ecommerce/application/apply-shopify-webhook.ts:176-198`).
+- [x] Unhandled topics no longer return `{ ok: true }` for compliance topics (`src/modules/ecommerce/application/apply-shopify-webhook.ts:260-269`).
+- [ ] Shopify's automated compliance checks pass in a test store (requires a live development store).
+- [x] Tests exist for each of the four topics (`src/modules/ecommerce/application/apply-shopify-webhook.test.ts:174-239`; `src/modules/ecommerce/infrastructure/shopify-compliance.integration.test.ts`).
 
 ### M6 — Stripe API version
 - [x] `new Stripe(...)` passes an explicit `apiVersion` matching the installed `stripe@^17.1.0`

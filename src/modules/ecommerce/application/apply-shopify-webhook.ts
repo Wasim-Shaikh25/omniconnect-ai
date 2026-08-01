@@ -1,7 +1,9 @@
 import { logger } from "@/shared/observability";
+import type { AuditLogCommands } from "@/modules/users";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import type { IntegrationRepository, ProductRepository, OrderRepository, CartRepository } from "./ports";
 import type { ConnectorProduct, ConnectorOrder } from "../domain/connector";
+import type { ShopifyComplianceRepository } from "./shopify-compliance";
 
 export interface ShopifyWebhookInput {
   topic: string;
@@ -13,6 +15,7 @@ export interface ShopifyWebhookInput {
 export interface ShopifyWebhookResult {
   ok: boolean;
   message?: string;
+  data?: Record<string, unknown>;
 }
 
 export function makeApplyShopifyWebhook(deps: {
@@ -21,6 +24,9 @@ export function makeApplyShopifyWebhook(deps: {
   orders: OrderRepository;
   carts: CartRepository;
   processedEvents?: ProcessedEventsRepository;
+  compliance: ShopifyComplianceRepository;
+  auditLog: AuditLogCommands;
+  jobScheduler?: { cancelForStore(storeId: string): Promise<void> };
 }) {
   return async function applyShopifyWebhook(input: ShopifyWebhookInput): Promise<ShopifyWebhookResult> {
     const integration = await deps.integrations.findByShopDomain(input.shopDomain);
@@ -87,6 +93,31 @@ export function makeApplyShopifyWebhook(deps: {
         return { ok: true };
       }
 
+      if (topic === "customers/data_request") {
+        return handleDataRequest({ input, storeId, compliance: deps.compliance, auditLog: deps.auditLog });
+      }
+
+      if (topic === "customers/redact") {
+        return handleCustomerRedact({ input, storeId, compliance: deps.compliance, auditLog: deps.auditLog });
+      }
+
+      if (topic === "shop/redact") {
+        return handleShopRedact({ storeId, compliance: deps.compliance, auditLog: deps.auditLog });
+      }
+
+      if (topic === "app/uninstalled") {
+        return handleAppUninstalled({
+          storeId,
+          compliance: deps.compliance,
+          auditLog: deps.auditLog,
+          jobScheduler: deps.jobScheduler,
+        });
+      }
+
+      if (isUnhandledComplianceTopic(topic)) {
+        return { ok: false, message: `Unhandled compliance topic: ${topic}` };
+      }
+
       logger.info("shopify.webhook.ignored", { storeId, topic });
       return { ok: true, message: "Topic ignored" };
     } catch (error) {
@@ -95,6 +126,96 @@ export function makeApplyShopifyWebhook(deps: {
       return { ok: false, message: msg };
     }
   };
+}
+
+async function handleDataRequest(input: {
+  input: ShopifyWebhookInput;
+  storeId: string;
+  compliance: ShopifyComplianceRepository;
+  auditLog: AuditLogCommands;
+}): Promise<ShopifyWebhookResult> {
+  const { customerRef, customerEmail } = extractCustomer(input.input.payload);
+  const data = await input.compliance.fetchCustomerData({ storeId: input.storeId, customerRef, customerEmail });
+
+  await input.auditLog.create({
+    organizationId: null,
+    action: "shopify.customers.data_request",
+    resource: "shopify_webhook",
+    resourceId: input.input.eventId,
+    details: JSON.stringify({ shopDomain: input.input.shopDomain, customerRef, customerEmail }),
+  });
+
+  return { ok: true, data: data as unknown as Record<string, unknown> };
+}
+
+async function handleCustomerRedact(input: {
+  input: ShopifyWebhookInput;
+  storeId: string;
+  compliance: ShopifyComplianceRepository;
+  auditLog: AuditLogCommands;
+}): Promise<ShopifyWebhookResult> {
+  const { customerRef, customerEmail } = extractCustomer(input.input.payload);
+  const summary = await input.compliance.redactCustomer({ storeId: input.storeId, customerRef, customerEmail });
+
+  await input.auditLog.create({
+    organizationId: null,
+    action: "shopify.customers.redact",
+    resource: "shopify_webhook",
+    resourceId: input.input.eventId,
+    details: JSON.stringify({ shopDomain: input.input.shopDomain, customerRef, customerEmail, summary }),
+  });
+
+  return { ok: true, data: summary as unknown as Record<string, unknown> };
+}
+
+async function handleShopRedact(input: {
+  storeId: string;
+  compliance: ShopifyComplianceRepository;
+  auditLog: AuditLogCommands;
+}): Promise<ShopifyWebhookResult> {
+  const summary = await input.compliance.redactShop(input.storeId);
+
+  await input.auditLog.create({
+    organizationId: null,
+    action: "shopify.shop.redact",
+    resource: "shopify_webhook",
+    resourceId: input.storeId,
+    details: JSON.stringify({ summary }),
+  });
+
+  return { ok: true, data: summary as unknown as Record<string, unknown> };
+}
+
+async function handleAppUninstalled(input: {
+  storeId: string;
+  compliance: ShopifyComplianceRepository;
+  auditLog: AuditLogCommands;
+  jobScheduler?: { cancelForStore(storeId: string): Promise<void> };
+}): Promise<ShopifyWebhookResult> {
+  await input.compliance.disconnectStore(input.storeId);
+
+  if (input.jobScheduler) {
+    await input.jobScheduler.cancelForStore(input.storeId);
+  }
+
+  await input.auditLog.create({
+    organizationId: null,
+    action: "shopify.app.uninstalled",
+    resource: "shopify_webhook",
+    resourceId: input.storeId,
+    details: JSON.stringify({ storeId: input.storeId }),
+  });
+
+  return { ok: true };
+}
+
+function extractCustomer(payload: Record<string, unknown>): { customerRef: string | null; customerEmail: string | null } {
+  const customer = payload.customer as Record<string, unknown> | undefined;
+  const id = customer?.id;
+  const customerRef = typeof id === "number" || typeof id === "string" ? String(id) : null;
+  const email = customer?.email;
+  const customerEmail = typeof email === "string" ? email : null;
+  return { customerRef, customerEmail };
 }
 
 function mapProductPayload(payload: Record<string, unknown>): ConnectorProduct {
@@ -134,6 +255,18 @@ function mapOrderPayload(payload: Record<string, unknown>): ConnectorOrder {
     couponCode: typeof discountCodes[0]?.code === "string" ? discountCodes[0].code : null,
     cartToken: typeof payload.cart_token === "string" ? payload.cart_token : null,
   };
+}
+
+function isUnhandledComplianceTopic(topic: string): boolean {
+  const handled = [
+    "customers/data_request",
+    "customers/redact",
+    "shop/redact",
+    "app/uninstalled",
+  ];
+  if (handled.includes(topic)) return false;
+  if (topic.startsWith("customers/") || topic.startsWith("shop/") || topic.startsWith("app/")) return true;
+  return false;
 }
 
 function mapAbandonedCartPayload(payload: Record<string, unknown>) {

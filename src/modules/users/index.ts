@@ -23,6 +23,8 @@ export type { UserProfile, ExportRequestRecord } from "./application/ports";
 export type {
   AuditLogRecord,
   CreateAuditLogInput,
+  AuditLogQueries,
+  AuditLogCommands,
 } from "./application/audit-ports";
 export type { UserDataExport } from "./application/data-export";
 

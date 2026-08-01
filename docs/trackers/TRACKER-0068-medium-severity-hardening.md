@@ -42,13 +42,13 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] Unbounded `findMany(` inventory complete; all list-view methods now bound by `take`/pagination. Exceptions (`OrderRepository.sync`/`upsertMany` diff load, `data-export.ts` full workspace export) documented in `TASK-0068` M4.4.
 
 ### M5 — Shopify compliance
-- [ ] `customers/data_request` implemented.
-- [ ] `customers/redact` implemented with audit trail.
-- [ ] `shop/redact` implemented.
-- [ ] `app/uninstalled` implemented (disconnect, purge token, cancel jobs).
-- [ ] All four idempotent via the shared webhook ledger.
-- [ ] Tests for all four topics.
-- [ ] Shopify automated compliance checks pass in a development store.
+- [x] `customers/data_request` implemented (`src/modules/ecommerce/application/apply-shopify-webhook.ts:132-148`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:10-68`).
+- [x] `customers/redact` implemented with audit trail (`src/modules/ecommerce/application/apply-shopify-webhook.ts:150-173`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:71-113`).
+- [x] `shop/redact` implemented (`src/modules/ecommerce/application/apply-shopify-webhook.ts:155-167`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:115-174`).
+- [x] `app/uninstalled` implemented (disconnect, purge token, cancel jobs) (`src/modules/ecommerce/application/apply-shopify-webhook.ts:176-198`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:176-192`).
+- [x] All four idempotent via the shared webhook ledger (`src/modules/ecommerce/application/apply-shopify-webhook.ts:40-49`).
+- [x] Tests for all four topics (`src/modules/ecommerce/application/apply-shopify-webhook.test.ts:174-239`; `src/modules/ecommerce/infrastructure/shopify-compliance.integration.test.ts`).
+- [ ] Shopify automated compliance checks pass in a development store (requires a live development store and `SHOPIFY_API_SECRET`).
 
 ### M6 — Stripe API version
 - [x] `apiVersion` pinned; `typescript: true` set.

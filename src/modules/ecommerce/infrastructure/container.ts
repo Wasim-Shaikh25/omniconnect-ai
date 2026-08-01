@@ -11,6 +11,7 @@ import { makeEcommerceQueries } from "../application/queries";
 import { makeDetectCommerceInsights } from "../application/detect-insights";
 import { makeAbandonedCartSweep } from "../application/abandoned-cart-sweep";
 import { eventBus } from "@/shared/events";
+import { auditCommands } from "@/modules/users";
 import { PrismaIntegrationRepository } from "./integration.repository";
 import { PrismaProductRepository } from "./product.repository";
 import { PrismaCouponRepository } from "./coupon.repository";
@@ -18,6 +19,7 @@ import { PrismaOrderRepository } from "./order.repository";
 import { PrismaCartRepository } from "./cart.repository";
 import { IntegrationConnectorFactory } from "./connector.factory";
 import { PrismaProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
+import { PrismaShopifyComplianceRepository } from "./shopify-compliance.repository";
 
 const integrations = new PrismaIntegrationRepository();
 const processedEvents = new PrismaProcessedEventsRepository();
@@ -26,12 +28,21 @@ const coupons = new PrismaCouponRepository();
 const orders = new PrismaOrderRepository();
 const carts = new PrismaCartRepository();
 const connectors = new IntegrationConnectorFactory(integrations);
+const compliance = new PrismaShopifyComplianceRepository();
 
 /** Composition root for the ecommerce module. */
 export const connectStore = makeConnectStore({ integrations });
 export const syncProducts = makeSyncProducts({ connectors, products });
 export const syncOrders = makeSyncOrders({ connectors, orders });
-export const applyShopifyWebhook = makeApplyShopifyWebhook({ integrations, products, orders, carts, processedEvents });
+export const applyShopifyWebhook = makeApplyShopifyWebhook({
+  integrations,
+  products,
+  orders,
+  carts,
+  processedEvents,
+  compliance,
+  auditLog: auditCommands,
+});
 export const generateCoupon = makeGenerateCoupon({ connectors, coupons });
 export const updateProduct = makeUpdateProduct({ products });
 export const deleteProduct = makeDeleteProduct({ products });
