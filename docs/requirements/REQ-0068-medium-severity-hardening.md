@@ -149,15 +149,15 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 - [x] A CI-runnable script asserts these three status codes (`scripts/check-http-status.ts` is run in the smoke test).
 
 ### M8 — Accessibility
-- [ ] A skip link is the first focusable element in `src/app/layout.tsx` and targets
+- [x] A skip link is the first focusable element in `src/app/layout.tsx` and targets
       `#main-content`.
-- [ ] `<main id="main-content" tabIndex={-1}>` exists.
-- [ ] Collapsed sidebar links expose an accessible name via `aria-label`; icons are
+- [x] `<main id="main-content" tabIndex={-1}>` exists.
+- [x] Collapsed sidebar links expose an accessible name via `aria-label`; icons are
       `aria-hidden="true"`.
-- [ ] The mobile drawer moves focus in on open, traps focus, closes on `Escape`, and restores focus
-      to the trigger on close.
-- [ ] Keyboard-only traversal of the app shell is manually verified and recorded.
-- [ ] Colour contrast is spot-checked on primary surfaces (full machine audit is `REQ-0075`).
+- [x] The mobile drawer uses a Radix `Dialog` primitive (`@radix-ui/react-dialog`); focus moves in
+      on open, is trapped, closes on `Escape`, and restores focus to the trigger on close.
+- [x] Keyboard-only traversal of the app shell is manually verified and recorded.
+- [x] Colour contrast is spot-checked on primary surfaces (full machine audit is `REQ-0075`).
 
 ### M9 — Encryption
 - [ ] Key derivation uses HKDF (or PBKDF2 with a documented iteration count) rather than a single

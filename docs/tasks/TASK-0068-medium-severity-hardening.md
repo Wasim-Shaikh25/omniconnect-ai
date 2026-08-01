@@ -531,11 +531,11 @@ abusive output blocked by moderation.
 - [x] **M7.2** Fix the admin layout redirect status (verified: `/admin/organizations` as non-admin returns `307` → `/dashboard`).
 - [x] **M7.3** Add `scripts/check-http-status.ts` and wire it into CI.
 - [x] **M7.4** Re-verify no data leaks on the three probes.
-- [ ] **M8.1** Add the skip link and `<main id="main-content" tabIndex={-1}>`.
-- [ ] **M8.2** Add `aria-label` to collapsed nav links; `aria-hidden` on icons.
-- [ ] **M8.3** Replace the mobile drawer with a focus-trapping Radix primitive; add `Escape` close and focus restore.
-- [ ] **M8.4** Manual keyboard traversal verified and recorded.
-- [ ] **M8.5** Spot-check colour contrast on primary surfaces.
+- [x] **M8.1** Add the skip link and `<main id="main-content" tabIndex={-1}>` (`src/app/layout.tsx:40-45`; `src/components/app-shell.tsx:76,277-278`).
+- [x] **M8.2** Add `aria-label` to collapsed nav links; `aria-hidden` on icons (`src/components/app-shell.tsx:152-155`).
+- [x] **M8.3** Replace the mobile drawer with a focus-trapping Radix primitive (`@radix-ui/react-dialog`); `Escape` close and focus restore handled by the library (`src/components/app-shell.tsx:238-273`).
+- [x] **M8.4** Manual keyboard traversal verified and recorded.
+- [x] **M8.5** Spot-check colour contrast on primary surfaces.
 - [ ] **M9.1** Replace SHA-256 derivation with HKDF.
 - [ ] **M9.2** Version the ciphertext prefix (`enc:v2:`).
 - [ ] **M9.3** Add `ENCRYPTION_KEY_PREVIOUS` and dual-key decryption.
