@@ -133,7 +133,11 @@ Use `.env.test` for CI or a throwaway test environment.
 4. Create Postgres and Redis addons, or connect external services.
 5. The `fly.toml` should run `npx prisma migrate deploy` as a release command before starting the
    web server.
-6. Deploy:
+6. Keep `auto_stop_machines = "off"` and `min_machines_running = 1` for the `app` process.
+   Scale-to-zero causes webhook cold starts: Shopify, Meta, and Stripe may time out or retry
+   the first event after an idle period, leading to duplicate processing. See ADR 0008 for the
+   full rationale and when to revisit the decision.
+7. Deploy:
    ```bash
    ./deploy.sh
    ```
@@ -201,6 +205,7 @@ production needs:
 |----------|---------|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `REDIS_URL` | Redis connection string |
+| `LOG_LEVEL` | One of `debug`, `info`, `warn`, `error` (defaults to `info`; set `debug` only locally) |
 | `NEXTAUTH_SECRET` | Random secret for JWT signing |
 | `NEXTAUTH_URL` | Public app URL |
 | `AUTH_TRUST_HOST` | `true` off Vercel so Auth.js trusts the proxy `Host` header |

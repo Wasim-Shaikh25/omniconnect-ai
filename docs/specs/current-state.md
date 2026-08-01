@@ -292,6 +292,8 @@ traceability map is `docs/audit/2026-07-31-remediation-index.md`.
 - **Status checker:** `scripts/task-status.ts`
 - **Changelog:** `CHANGELOG.md`
 - **Production readiness audit:** `PRODUCTION_READINESS_AUDIT.md`
+- **Domain event registry:** `docs/specs/event-registry.{md,json}` (89 declared events classified
+  Live/Planned with a REQ id; `src/test/event-registry.test.ts` enforces registration).
 - **Audit remediation index:** `docs/audit/2026-07-31-remediation-index.md` (maps every finding to
   its owning REQ/TASK/TRACKER)
 

@@ -43,4 +43,10 @@ describe("logger", () => {
     expect(entry.email).toBe("[REDACTED]");
     expect(entry.apiKey).toBe("[REDACTED]");
   });
+
+  it("does not emit debug logs when LOG_LEVEL is info (L4)", () => {
+    logger.debug("ai.promptSent", { messageCount: 5 });
+    expect(console.log).not.toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
+  });
 });

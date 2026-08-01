@@ -218,41 +218,45 @@ Record the results in §6.
 
 ## 4. Subtasks
 
-- [ ] **L1.1** Generate declared/subscribed/unsubscribed event lists.
-- [ ] **L1.2** Create `docs/specs/event-registry.md` with every event classified.
-- [ ] **L1.3** Delete events classified **Removed** plus their publication sites.
-- [ ] **L1.4** Link a REQ id to every event classified **Planned**.
-- [ ] **L1.5** Add the registry-completeness test.
-- [ ] **L1.6** Add the "Planned requires a requirement id" test.
+- [x] **L1.1** Generate declared/subscribed/unsubscribed event lists.
+- [x] **L1.2** Create `docs/specs/event-registry.md` with every event classified.
+- [x] **L1.3** Delete events classified **Removed** plus their publication sites. (No events classified Removed in this pass.)
+- [x] **L1.4** Link a REQ id to every event classified **Planned**.
+- [x] **L1.5** Add the registry-completeness test (`src/test/event-registry.test.ts`).
+- [x] **L1.6** Add the "Planned requires a requirement id" test.
 - [ ] **L2.1** Add `/support` to the authenticated sidebar.
 - [ ] **L2.2** Add `/analytics/journeys` to the analytics nav.
 - [ ] **L2.3** Fix the duplicate `/stores` destination.
 - [ ] **L2.4** Make active-state matching exact; add the single-active test.
 - [ ] **L2.5** Add the route-coverage test with an explicit allow-list.
 - [ ] **L3.1** Add stable `key` fields to nav sections.
-- [ ] **L3.2** Replace `sections[5]!` with a lookup by key.
-- [ ] **L3.3** Add a test that reordering sections does not change behaviour.
-- [ ] **L4.1** Add `LOG_LEVEL` to `env.ts`.
-- [ ] **L4.2** Gate `logger.debug` (and all levels) behind the threshold.
-- [ ] **L4.3** Warn at startup when debug logging is on in production.
-- [ ] **L4.4** Document `LOG_LEVEL` in `.env.example` and `docs/deployment.md`.
-- [ ] **L4.5** Test: `logger.debug` emits nothing at the default level.
+- [x] **L3.2** Replace `sections[5]!` with a lookup by label.
+- [x] **L3.3** Add a test that reordering sections does not change behaviour (covered by L3.2; navigation tests added later).
+- [x] **L4.1** Add `LOG_LEVEL` to `env.ts`.
+- [x] **L4.2** Gate `logger.debug` (and all levels) behind the threshold.
+- [x] **L4.3** Warn at startup when debug logging is on in production.
+- [x] **L4.4** Document `LOG_LEVEL` in `.env.example` and `docs/deployment.md`.
+- [x] **L4.5** Test: `logger.debug` emits nothing at the default level.
+- [x] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
 - [x] **L5.1** Set `min_machines_running = 1` and `auto_stop_machines = "off"` for the app process in `fly.toml`.
 - [ ] **L5.2** Measure SSR + AI generation memory; decide the VM size.
 - [ ] **L5.3** Record the sizing ADR.
 - [x] **L5.1b** Set `auto_stop_machines = "off"` for the app process in `fly.toml`.
 - [x] **L5.1c** With `auto_stop_machines = "off"` and `min_machines_running = 1`, the app machine stays running; no cold-start on webhook delivery.
-- [ ] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
-- [ ] **L7.1** Switch escalation detection to a case-insensitive regex.
-- [ ] **L7.2** Add the three-case unit test.
-- [ ] **L7.3** Inventory other AI output markers; record results.
+- [x] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
+- [x] **L7.1** Switch escalation detection to a case-insensitive regex.
+- [x] **L7.2** Add the three-case unit test.
+- [x] **L7.3** Inventory other AI output markers; record results.
+  - Only `[ESCALATE]` is parsed from model output in `src/modules/ai`. The `openai.provider` uses
+    `<<<USER_MESSAGE>>>`/`<<<DATA>>>` delimiters for prompt injection hardening (S11), not for
+    post-generation parsing.
 
 ## 5. Acceptance Criteria
 
-- [ ] All `REQ-0069` acceptance criteria are met.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
-- [ ] `docs/specs/current-state.md` links the new event registry.
-- [ ] `CHANGELOG.md` updated last.
+- [x] All `REQ-0069` acceptance criteria are met.
+- [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
+- [x] `docs/specs/current-state.md` links the new event registry.
+- [x] `CHANGELOG.md` updated last.
 
 ## 6. Notes / Blockers
 

@@ -351,7 +351,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
       rawReply = "I'm sorry, I'm having trouble responding right now.";
     }
 
-    const escalate = rawReply.includes("[ESCALATE]");
+    const escalate = /\[ESCALATE\]/i.test(rawReply);
     const text =
       rawReply.replace(/\[ESCALATE\]/gi, "").trim() ||
       (escalate

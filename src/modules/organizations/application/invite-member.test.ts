@@ -283,4 +283,19 @@ describe("makeInviteMember", () => {
     if (second.ok) return;
     expect(second.error.message).toContain("already pending");
   });
+
+  it("does not send an invite email when the seat limit is reached (H10)", async () => {
+    const { organizations, inviteMember, emails } = makeSut(1);
+    const org = await organizations.create({ name: "Test Org" });
+
+    const result = await inviteMember({
+      email: "staff@example.com",
+      role: "STAFF",
+      organizationId: org.id,
+      createdByUserId: "owner-1",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(emails).toHaveLength(0);
+  });
 });

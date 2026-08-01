@@ -21,8 +21,9 @@ import {
   Inbox,
   LayoutDashboard,
   Mail,
+  Map,
   Menu,
-  PlusCircle,
+  MessageCircle,
   Settings,
   Store,
   TrendingUp,
@@ -93,10 +94,7 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
     },
     {
       label: "Create",
-      items: [
-        { href: "/business-brain", label: "Marketing Brain", icon: Brain },
-        { href: "/stores", label: "Campaigns", icon: PlusCircle },
-      ],
+      items: [{ href: "/business-brain", label: "Marketing Brain", icon: Brain }],
     },
     {
       label: "Engage",
@@ -110,6 +108,7 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
       items: [
         { href: "/analytics", label: "Analytics", icon: BarChart3 },
         { href: "/analytics/growth", label: "Growth", icon: TrendingUp },
+        { href: "/analytics/journeys", label: "Journeys", icon: Map },
         { href: "/reports", label: "Reports", icon: DollarSign },
       ],
     },
@@ -117,13 +116,17 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
       label: "Account",
       items: [
         { href: "/settings", label: "Settings", icon: Settings },
+        { href: "/support", label: "Support", icon: MessageCircle },
         { href: "/help", label: "Help", icon: HelpCircle },
       ],
     },
   ];
 
   if (user.isSuperAdmin) {
-    sections[5]!.items.push({ href: "/admin", label: "Admin", icon: Building2, admin: true });
+    const accountSection = sections.find((section) => section.label === "Account");
+    if (accountSection) {
+      accountSection.items.push({ href: "/admin", label: "Admin", icon: Building2, admin: true });
+    }
   }
 
   const NavLink = ({
@@ -133,7 +136,7 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
     item: NavItem;
     onClick?: () => void;
   }) => {
-    const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    const active = pathname === item.href;
     const Icon = item.icon;
     return (
       <Link
