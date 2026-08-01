@@ -91,7 +91,12 @@ Use `.env.test` for CI or a throwaway test environment.
    - `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`.
    - `STRIPE_PRICE_STARTER` and `STRIPE_PRICE_PRO` price IDs.
    - Webhook endpoint: `https://your-domain.com/api/stripe/webhook`, listening to
-     `checkout.session.completed`.
+     `checkout.session.completed`, `customer.subscription.created`,
+     `customer.subscription.updated`, `customer.subscription.deleted`,
+     `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`.
+   - Run `npx tsx scripts/backfill-past-due.ts` once after deploy to sync any
+     organizations that are stuck in `past_due` before the new webhook handlers
+     were active.
 3. Create or configure Meta, Google, OpenAI, and S3 credentials.
 4. Set a strong `NEXTAUTH_SECRET` and point `NEXTAUTH_URL` to your public domain.
 

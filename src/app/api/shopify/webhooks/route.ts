@@ -47,9 +47,11 @@ export async function POST(request: Request): Promise<Response> {
     return new NextResponse("Bad request", { status: 400 });
   }
 
+  const eventId = request.headers.get("x-shopify-webhook-id") ?? `${shopDomain}:${topic}:${Date.now()}`;
   const result = await applyShopifyWebhook({
     topic,
     shopDomain,
+    eventId,
     payload: payload as Record<string, unknown>,
   });
 

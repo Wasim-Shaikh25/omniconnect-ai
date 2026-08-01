@@ -51,22 +51,22 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] DB-down boot verified: `/api/health` `200`, `/api/ready` `503`; DB up → `/api/ready` `200`, no restart.
 
 ### H2 — Webhook idempotency
-- [ ] `ProcessedWebhookEvent` model + migration applied.
-- [ ] `processed-events.repository.ts` added and injected into billing deps.
-- [ ] Stripe `event.id` recorded before fulfillment; duplicates early-return.
-- [ ] Shopify dedup on `x-shopify-webhook-id`.
-- [ ] Meta dedup migrated onto the shared ledger.
-- [ ] 30-day retention job scheduled.
-- [ ] Tests: duplicate delivery, distinct events, concurrent duplicates.
+- [x] `ProcessedWebhookEvent` model + migration applied.
+- [x] `processed-events.repository.ts` added and injected into billing deps.
+- [x] Stripe `event.id` recorded before fulfillment; duplicates early-return.
+- [x] Shopify dedup on `x-shopify-webhook-id`.
+- [x] Meta dedup migrated onto the shared ledger.
+- [x] 30-day retention job scheduled.
+- [x] Tests: duplicate delivery, distinct events, concurrent duplicates.
 
 ### H3 — Subscription lifecycle
-- [ ] `customer.subscription.created` / `.updated` handled.
-- [ ] `invoice.paid` / `invoice.payment_succeeded` clears `past_due`.
-- [ ] `planFromPriceId` + `ACTIVE_STATUSES` / `RETAINED_STATUSES` implemented per Q3.
-- [ ] `resolveSubscriptionId` handles both invoice payload shapes.
-- [ ] Required Stripe dashboard events documented in `docs/deployment.md`.
-- [ ] `past_due` backfill script written and dry-run.
-- [ ] Tests: fail→succeed, portal downgrade, `unpaid`, unknown price.
+- [x] `customer.subscription.created` / `.updated` handled.
+- [x] `invoice.paid` / `invoice.payment_succeeded` clears `past_due`.
+- [x] `planFromPriceId` + `ACTIVE_STATUSES` / `RETAINED_STATUSES` implemented per Q3.
+- [x] `resolveSubscriptionId` handles both invoice payload shapes.
+- [x] Required Stripe dashboard events documented in `docs/deployment.md`.
+- [x] `past_due` backfill script written and dry-run.
+- [x] Tests: fail→succeed, portal downgrade, `unpaid`, unknown price.
 
 ### H4 — Export route session revocation
 - [x] `getCurrentUser()` replaces `auth()` in `/api/export/[id]`.

@@ -26,6 +26,7 @@ import { StripePaymentGateway } from "./stripe-payment-gateway";
 import { setUserOrganization } from "@/modules/users";
 import { createEmailSender } from "@/shared/email";
 import { env } from "@/shared/config";
+import { PrismaProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 
 const organizations = new PrismaOrganizationRepository();
 const stores = new PrismaStoreRepository();
@@ -41,6 +42,7 @@ function createPaymentGateway() {
 const paymentGateway = createPaymentGateway();
 const saasCouponRepository = new PrismaSaaSCouponRepository();
 const inviteRepository = new PrismaOrganizationInviteRepository();
+const processedEvents = new PrismaProcessedEventsRepository();
 const emailSender = createEmailSender();
 
 function generateInviteToken(): string {
@@ -81,7 +83,7 @@ export const organizationQueries = makeOrganizationQueries({
 export const organizationUsage = makeOrganizationUsageService({ organizations });
 export const tenantGuard = makeTenantGuard({ queries: organizationQueries });
 export const billingService = paymentGateway
-  ? makeBillingService({ organizations, paymentGateway, coupons: saasCouponRepository })
+  ? makeBillingService({ organizations, paymentGateway, coupons: saasCouponRepository, processedEvents })
   : null;
 export const createSaaSCoupon = makeCreateSaaSCoupon({ coupons: saasCouponRepository });
 export const validateSaaSCoupon = makeValidateSaaSCoupon({ coupons: saasCouponRepository });

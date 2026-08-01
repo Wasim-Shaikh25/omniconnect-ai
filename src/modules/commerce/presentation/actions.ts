@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole, ForbiddenError } from "@/modules/auth";
 import { tenantGuard } from "@/modules/organizations";
-import { updateMarketingMemory } from "@/modules/intelligence";
+import { updateMarketingMemory } from "@/modules/intelligence/server";
 import type { ProductScoreRecord } from "@/modules/intelligence";
 import { commerceQueries, commerceService } from "../infrastructure/container";
 

@@ -13,6 +13,11 @@ export {
   readModelRefresher,
   businessLearningService,
   predictionService,
+  updateMarketingMemory,
+  generateDailyBrief,
+  businessBrainContextService,
+  dailyActionService,
+  journeyService,
 } from "./infrastructure/container";
 
 export {
@@ -33,4 +38,7 @@ export {
   portfolioSnapshots,
   systemMetrics,
   kpis,
+  dailyActions,
+  actionOutcomes,
+  journeys,
 } from "./infrastructure/container";

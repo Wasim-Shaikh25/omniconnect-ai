@@ -20,7 +20,9 @@ export class StripePaymentGateway implements PaymentGateway {
     if (!env.STRIPE_SECRET_KEY) {
       throw new Error("STRIPE_SECRET_KEY is not configured");
     }
-    this.client = new Stripe(env.STRIPE_SECRET_KEY);
+    this.client = new Stripe(env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-09-30.acacia",
+    });
   }
 
   async createCheckoutSession(input: CheckoutSessionInput): Promise<CheckoutSessionResult> {

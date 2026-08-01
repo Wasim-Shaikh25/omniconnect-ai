@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import { logger } from "@/shared/observability";
+import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import { Plan, isPlan } from "../domain/plan";
 import { OrganizationRepository } from "./ports";
 import { SaaSCouponRepository } from "./saas-coupon";
@@ -25,10 +26,18 @@ export interface BillingService {
   fulfillCheckout(payload: string | Buffer, signature: string): Promise<void>;
 }
 
+/** Subscription statuses that keep the current paid plan (Q3: past_due retains plan). */
+const RETAINED_STATUSES = new Set<Stripe.Subscription.Status>([
+  "active",
+  "trialing",
+  "past_due",
+]);
+
 export function makeBillingService(deps: {
   organizations: OrganizationRepository;
   paymentGateway: PaymentGateway;
   coupons: SaaSCouponRepository;
+  processedEvents: ProcessedEventsRepository;
 }): BillingService {
   return {
     async createCheckoutSession(input: CheckoutSessionInput) {
@@ -54,10 +63,21 @@ export function makeBillingService(deps: {
       }
       const event = rawEvent as Stripe.Event;
 
+      // Stripe delivers at least once and retries for 3 days. Record first;
+      // a unique-constraint violation means the event was already fulfilled.
+      const recorded = await deps.processedEvents.record({
+        id: event.id,
+        provider: "stripe",
+        type: event.type,
+      });
+      if (!recorded.recorded) {
+        logger.info("stripe.webhook.duplicate", { eventId: event.id, type: event.type });
+        return;
+      }
+
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
-          // Do not fulfill sessions that were not successfully paid.
           if (session.payment_status !== "paid") {
             logger.info("stripe.checkout.unpaid", {
               sessionId: session.id,
@@ -94,6 +114,67 @@ export function makeBillingService(deps: {
           }
 
           logger.info("stripe.checkout.fulfilled", { organizationId, plan, subscriptionId });
+          return;
+        }
+
+        case "customer.subscription.created":
+        case "customer.subscription.updated": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const metadata = subscription.metadata ?? {};
+          const organizationId = metadata.organizationId;
+          if (!organizationId) {
+            logger.error("stripe.subscription.missingMetadata", {
+              subscriptionId: subscription.id,
+            });
+            return;
+          }
+
+          const priceId = subscription.items.data[0]?.price.id;
+          const pricePlan = planFromPriceId(priceId);
+          const existingOrg = await deps.organizations.findBySubscriptionId(subscription.id);
+
+          // An unknown price must not silently downgrade. Keep the current plan
+          // when the price is not in the catalog.
+          const basePlan = pricePlan ?? existingOrg?.plan ?? Plan.FREE;
+          const entitledPlan = RETAINED_STATUSES.has(subscription.status)
+            ? basePlan
+            : Plan.FREE;
+
+          await deps.organizations.updatePlan(organizationId, {
+            plan: entitledPlan,
+            subscriptionId: subscription.id,
+            subscriptionStatus: subscription.status,
+          });
+          logger.info("stripe.subscription.synced", {
+            organizationId,
+            plan: entitledPlan,
+            status: subscription.status,
+            subscriptionId: subscription.id,
+          });
+          return;
+        }
+
+        case "invoice.paid":
+        case "invoice.payment_succeeded": {
+          // Stripe dunning recovered the payment. Clear past_due back to active
+          // while preserving the plan the organization already had.
+          const invoice = event.data.object as Stripe.Invoice;
+          const subscriptionId = resolveSubscriptionId(invoice);
+          if (!subscriptionId) {
+            logger.error("stripe.invoice.missingSubscription", { invoiceId: invoice.id });
+            return;
+          }
+          const org = await findOrganizationBySubscriptionId(deps.organizations, subscriptionId);
+          if (!org) return;
+          await deps.organizations.updatePlan(org.id, {
+            plan: org.plan,
+            subscriptionId,
+            subscriptionStatus: "active",
+          });
+          logger.info("stripe.invoice.paymentSucceeded", {
+            organizationId: org.id,
+            subscriptionId,
+          });
           return;
         }
 
@@ -141,6 +222,20 @@ export function makeBillingService(deps: {
       }
     },
   };
+}
+
+function planFromPriceId(priceId: string | undefined): Plan | null {
+  if (!priceId) return null;
+  if (priceId === env.STRIPE_PRICE_PRO) return Plan.PRO;
+  if (priceId === env.STRIPE_PRICE_STARTER) return Plan.STARTER;
+  return null;
+}
+
+function resolveSubscriptionId(invoice: Stripe.Invoice): string | undefined {
+  if (typeof invoice.subscription === "string") return invoice.subscription;
+  const parent = (invoice as unknown as { parent?: { subscription_details?: { subscription?: unknown } } }).parent;
+  const sub = parent?.subscription_details?.subscription;
+  return typeof sub === "string" ? sub : undefined;
 }
 
 async function incrementCouponUsage(
