@@ -25,6 +25,7 @@ model User {
   name                    String?
   passwordHash            String?
   phone                   String?
+  phoneVerified           DateTime?
   image                   String?
   role                    Role          @default(STORE_OWNER)
   isSuperAdmin            Boolean       @default(false)
@@ -44,6 +45,7 @@ model User {
   notifications                 Notification[]
   accounts                      Account[]
   sessions                      Session[]
+  verificationRequests          VerificationRequest[]
   auditLogs                     AuditLog[]
   tickets                       SupportTicket[]
   ticketComments                TicketComment[]
@@ -119,6 +121,26 @@ model PasswordResetCode {
 
   @@unique([email, code])
   @@index([email])
+  @@index([expiresAt])
+}
+
+// Hashed, time-bounded verification tokens for email signup, email change, and phone
+// verification. The plaintext token is never stored.
+model VerificationRequest {
+  id         String    @id @default(cuid())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel    String    // "email" | "phone"
+  purpose    String    // "signup" | "email_change" | "phone_verify" | "mfa"
+  target     String    // the address or E.164 number being proven
+  tokenHash  String    @unique
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, purpose])
+  @@index([target, purpose])
   @@index([expiresAt])
 }
 

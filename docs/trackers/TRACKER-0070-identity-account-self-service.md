@@ -1,10 +1,10 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -16,20 +16,21 @@ bot protection.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement reviewed and approved.
-- [ ] Q1 decided: is DOB collected at all?
-- [ ] Q2 decided: provision workspace before or after verification?
-- [ ] Q3 decided: SMS provider (or port-only for now).
-- [ ] Q4 decided: CAPTCHA provider.
-- [ ] Q5 decided: is mobile verification required or optional recovery?
-- [ ] Branch created from `main`.
+- [x] Requirement reviewed and approved.
+- [x] Q1 decided: omit `dateOfBirth` for the MVP.
+- [x] Q2 decided: create unverified, allow login, gate AI/store/checkout.
+- [x] Q3 decided: `SmsSender` port with `console`/`disabled`; pick provider later.
+- [x] Q4 decided: Cloudflare Turnstile, disabled when unconfigured.
+- [x] Q5 decided: optional recovery only.
+- [x] Branch created from `main` (`devin/20260801-identity-self-service-pkg-a`).
 
 ### Package A — Schema and config
-- [ ] `User.dateOfBirth` added (if Q1 = yes).
-- [ ] `User.phoneVerified` added.
-- [ ] Verification-token storage added or extended, storing hashes only.
-- [ ] New env vars added to `env.ts`, `.env.example`, `docs/deployment.md`.
-- [ ] Migration applies cleanly.
+- [x] `User.dateOfBirth` omitted (Q1 = no).
+- [x] `User.phoneVerified` added.
+- [x] `VerificationRequest` table added, storing hashed `tokenHash` only.
+- [x] New env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`, `TWILIO_*`,
+      `SUPER_ADMIN_RECONCILE`) added to `env.ts`, `.env.example`, `docs/deployment.md`.
+- [x] Migration `20260801162632_add_identity_self_service` applies cleanly.
 
 ### Package B — Registration
 - [ ] `confirmPassword` in schema with mismatch refinement.

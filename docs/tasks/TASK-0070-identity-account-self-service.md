@@ -1,12 +1,12 @@
 # TASK-0070: Implement Identity and Account Self-Service
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Tracker:** `docs/trackers/TRACKER-0070-identity-account-self-service.md`
 - **Module(s):** `auth`, `users`, `organizations`, `notifications`, `shared/security`
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Email verification, confirm password, in-app password/email change, phone verification, session management, super-admin reconciliation, registration bot protection.
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -33,25 +33,26 @@ All new code follows the DDD layering in `AGENTS.md` §1: pure policy in `domain
 ```prisma
 model User {
   // ... existing fields
-  dateOfBirth   DateTime?
   phoneVerified DateTime?
   // emailVerified already exists and becomes authoritative for credentials users
+  // dateOfBirth omitted for MVP (Q1 decision)
 }
 
 model VerificationRequest {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  channel   String   // "email" | "phone"
-  purpose   String   // "signup" | "email_change" | "phone_verify" | "mfa"
-  target    String   // the address or E.164 number being proven
-  tokenHash String   @unique  // never store the plaintext token
-  attempts  Int      @default(0)
-  expiresAt DateTime
+  id         String    @id @default(cuid())
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel    String    // "email" | "phone"
+  purpose    String    // "signup" | "email_change" | "phone_verify" | "mfa"
+  target     String    // the address or E.164 number being proven
+  tokenHash  String    @unique // never store the plaintext token
+  attempts   Int       @default(0)
+  expiresAt  DateTime
   consumedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@index([userId, purpose])
+  @@index([target, purpose])
   @@index([expiresAt])
 }
 ```
@@ -281,9 +282,10 @@ it("every settings link resolves to an existing route", async () => {
 
 ## 4. Subtasks
 
-- [ ] **A.1** Add `dateOfBirth`, `phoneVerified` to `User`; migration applied.
-- [ ] **A.2** Add or extend the verification-token table with hashed tokens.
-- [ ] **A.3** Add the new env vars to `env.ts`, `.env.example`, `docs/deployment.md`.
+- [x] **A.1** Add `phoneVerified` to `User` (`dateOfBirth` omitted per Q1); migration applied.
+- [x] **A.2** Add `VerificationRequest` table storing hashed `tokenHash` only.
+- [x] **A.3** Add new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
+      `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) to `env.ts`, `.env.example`, `docs/deployment.md`.
 - [ ] **B.1** Add `confirmPassword` to the schema with a mismatch refinement.
 - [ ] **B.2** Render the confirm-password field with an inline error.
 - [ ] **B.3** State the password rules in the UI.
@@ -342,7 +344,9 @@ it("every settings link resolves to an existing route", async () => {
 - **Decide before Package C:** provisioning before or after verification (Q2). The plan above
   implements the default (allow login, gate the expensive features).
 - **Record here during implementation:**
-  - Whether an existing token table was extended or a new one added (A.2).
+  - A new `VerificationRequest` table was added; `VerificationToken`, `MfaCode`, and `PasswordResetCode`
+    were left unchanged because they serve different flows (NextAuth magic-link, super-admin MFA,
+    password reset). Plaintext token storage in `VerificationRequest` is avoided by hashing.
   - The minimal vs full session-list decision (F.2).
   - The final password policy if it changed (B.3).
 - **Privacy note:** DOB and phone are personal data. Both must appear in the GDPR export
