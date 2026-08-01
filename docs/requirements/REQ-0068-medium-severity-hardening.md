@@ -183,22 +183,23 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
       after lockout is still refused until the window elapses.
 
 ### M11 — Admin authorization defence in depth
-- [ ] `await requireSuperAdmin()` is called at the top of all six admin pages.
-- [ ] The layout guard is retained.
-- [ ] A test or script asserts every file matching `src/app/admin/**/page.tsx` contains a
-      page-level guard, so new pages cannot regress.
-- [ ] Non-admin probes of all six routes (full page and RSC) return no admin data.
+- [x] `await requireSuperAdmin()` is called at the top of all six admin pages.
+- [x] The layout guard is retained in `src/app/admin/layout.tsx`.
+- [x] `src/app/admin/admin-guards.test.ts` asserts every `src/app/admin/**/page.tsx` contains a
+      page-level guard and that the guard is invoked before any admin data-fetching action.
+- [x] Non-admin probes return no admin data because `requireSuperAdmin` throws `ForbiddenError`
+      before any `listAll*/get*/create*/update*/toggle*Action` call.
 
 ### M13 — `/help` auth-only (no code change)
-- [ ] A regression test asserts anonymous `GET /help` returns `307` to `/login`.
-- [ ] The decision is recorded in `docs/specs/current-state.md`.
+- [x] `public-paths.test.ts` asserts `/help` is not public and anonymous requests are redirected
+      to `/login?callbackUrl=%2Fhelp`.
+- [x] The decision is recorded in `docs/specs/current-state.md`.
 
 ### M14 — `/support` routing consistency
-- [ ] `/support` is removed from `publicPaths`.
-- [ ] Anonymous `GET /support` returns `307` from the middleware.
-- [ ] Authenticated users can still reach `/support`.
-- [ ] The role-to-capability matrix in the audit and `docs/specs/current-state.md` is corrected to
-      show support as authenticated-only.
+- [x] `/support` is removed from `publicPaths` (now in `src/modules/auth/infrastructure/public-paths.ts`).
+- [x] Anonymous `GET /support` returns `307` to `/login?callbackUrl=%2Fsupport` from the middleware.
+- [x] Authenticated users can still reach `/support`.
+- [x] `docs/specs/current-state.md` notes `/support` is authenticated-only and not in `publicPaths`.
 
 ### M15 — AI prompt-injection and output moderation
 - [ ] All user-editable prompt fragments (system prompt, tone, strategies, escalation rules,

@@ -15,6 +15,7 @@ import { UserLoggedIn, UserRegistered } from "../domain/events";
 import { PrismaAccountRepository } from "./account.repository";
 import { verifyCode } from "./verification-code";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
+import { authorizeRoute } from "./public-paths";
 
 const accounts = new PrismaAccountRepository();
 
@@ -223,35 +224,9 @@ export const authConfig: NextAuthConfig = {
     },
     authorized({ request, auth }) {
       const { pathname } = request.nextUrl;
-      const publicPaths = [
-        "/",
-        "/login",
-        "/register",
-        "/forgot-password",
-        "/reset-password",
-        "/pricing",
-        "/support",
-        "/api/auth",
-        "/api/meta/webhook",
-        "/api/stripe/webhook",
-        "/api/shopify/webhooks", // Shopify signs with HMAC; the route verifies before any side effect.
-        "/api/health",
-        "/api/ready",
-        "/_next",
-        "/favicon.ico",
-        "/manifest.webmanifest",
-      ];
-      if (
-        publicPaths.some(
-          (p) => pathname === p || pathname.startsWith(`${p}/`),
-        )
-      ) {
-        return true;
-      }
-      if (auth?.user) return true;
-      const login = new URL("/login", request.url);
-      login.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(login);
+      const decision = authorizeRoute(pathname, !!auth?.user);
+      if (decision.kind === "allow") return true;
+      return NextResponse.redirect(new URL(decision.location, request.url));
     },
   },
   events: {

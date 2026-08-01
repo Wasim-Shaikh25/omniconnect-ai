@@ -16,15 +16,16 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - L2 route-coverage test (enumerate `page.tsx` routes, allow-list unlinked detail pages) and `REQ-0072` support discoverability coordination.
+  - `REQ-0068` M11, M13, M14 — admin authorization defence in depth, `/help` auth-only regression test,
+    and `/support` routing consistency.
 
 ### ⏭️ Next
 
-- Finish L2 route-coverage test, then move on to remaining `REQ-0068` M7/M8/M9/M10/M11/M14/M15 and `REQ-0070`–`0075` items.
+- Remaining `REQ-0068` items: M1, M2, M4, M5, M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
 
-- **Audit gap closure — M6/L5 ADRs, H10, L1/L3/L4/L7:**
+- **Audit gap closure — M6/L5 ADRs, H10, L1/L2/L3/L4/L7:**
   - Added `docs/decisions/0007-stripe-api-version-pinning.md` and `docs/decisions/0008-fly-machine-auto-stop.md`.
   - H10: `OrganizationInviteRepository.createWithinSeatLimit` uses Serializable + bounded `P2034`
     retries; `invite-member` sends email only after the transaction commits; test verifies no email
@@ -32,6 +33,9 @@ All notable changes to **OmniConnect AI** are documented here.
   - L1: created `docs/specs/event-registry.{md,json}` with every declared domain event classified
     Live/Planned and linked to a REQ id; added `src/test/event-registry.test.ts` so new events must
     be classified.
+  - L2: `app-shell.tsx` now links `/support` and `/analytics/journeys`, removes the duplicate
+    `/stores` destination, and `src/components/app-shell.nav.test.ts` enforces nav coverage with an
+    allow-list for detail pages and public routes.
   - L3: removed `sections[5]!` non-null assertion and index-based mutation in `app-shell.tsx`;
     admin nav item is now injected by `sections.find((s) => s.label === "Account")`.
   - L4: added `LOG_LEVEL` to `env.ts`, gated all logger calls in `logger.ts`, added a startup

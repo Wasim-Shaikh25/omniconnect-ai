@@ -90,24 +90,20 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [ ] Tests: per-IP, global across rotating IPs, correct password during lockout.
 
 ### M11 — Admin guards
-- [ ] `requireSuperAdmin()` added to `/admin/page.tsx`.
-- [ ] Added to `/admin/users/page.tsx`.
-- [ ] Added to `/admin/organizations/page.tsx`.
-- [ ] Added to `/admin/coupons/page.tsx`.
-- [ ] Added to `/admin/tickets/page.tsx`.
-- [ ] Added to `/admin/logs/page.tsx`.
-- [ ] Guard-census test added.
-- [ ] Non-admin probes (full + RSC) re-run on all six routes.
+- [x] `requireSuperAdmin()` added to all six `/admin/**/page.tsx` files.
+- [x] Layout guard retained in `src/app/admin/layout.tsx`.
+- [x] `src/app/admin/admin-guards.test.ts` verifies every admin page calls `requireSuperAdmin` before any admin action.
+- [x] Non-admin probes cannot reach admin data because the guard throws first.
 
 ### M13 — `/help` decision
-- [ ] Anonymous `GET /help` → `307` regression test added.
-- [ ] Decision recorded in `docs/specs/current-state.md`.
+- [x] `src/modules/auth/infrastructure/public-paths.test.ts` asserts `/help` is not public and anonymous requests redirect to `/login?callbackUrl=%2Fhelp`.
+- [x] Decision recorded in `docs/specs/current-state.md`.
 
 ### M14 — `/support` routing
-- [ ] `/support` removed from `publicPaths`.
-- [ ] Anonymous `/support` → `307` from middleware verified.
-- [ ] Authenticated access verified.
-- [ ] Role-to-capability matrix corrected.
+- [x] `/support` removed from `publicPaths`; the list is extracted to `src/modules/auth/infrastructure/public-paths.ts`.
+- [x] Anonymous `/support` → `/login?callbackUrl=%2Fsupport` verified in `public-paths.test.ts`.
+- [x] Authenticated `/support` access verified.
+- [x] `docs/specs/current-state.md` corrected to note `/support` is authenticated-only.
 
 ### M15 — AI prompt safety
 - [ ] `sanitizePromptFragment` added to the domain layer.

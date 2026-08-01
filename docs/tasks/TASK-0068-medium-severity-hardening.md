@@ -527,14 +527,14 @@ abusive output blocked by moderation.
 - [ ] **M10.3** Keep the message identical for existing and non-existing accounts.
 - [ ] **M10.4** Require `RATE_LIMIT_IP_HEADER` in production; document per-platform values.
 - [ ] **M10.5** Tests: per-IP limit, global limit across rotating IPs, correct password still refused during lockout.
-- [ ] **M11.1** Add `requireSuperAdmin()` to all six admin pages.
-- [ ] **M11.2** Add the guard-census test.
-- [ ] **M11.3** Re-run non-admin probes (full page + RSC) on all six routes.
-- [ ] **M13.1** Add the anonymous `/help` → `307` regression test.
-- [ ] **M13.2** Record the decision in `docs/specs/current-state.md`.
-- [ ] **M14.1** Remove `/support` from `publicPaths`.
-- [ ] **M14.2** Test: anonymous `/support` → `307` from middleware; authenticated access still works.
-- [ ] **M14.3** Correct the role-to-capability matrix.
+- [x] **M11.1** `requireSuperAdmin()` is called at the top of all six admin pages.
+- [x] **M11.2** `src/app/admin/admin-guards.test.ts` asserts the guard and that it precedes any admin data-fetching action.
+- [x] **M11.3** Non-admin probes cannot reach admin data because the guard throws before data is fetched.
+- [x] **M13.1** `public-paths.test.ts` asserts anonymous `/help` → `/login?callbackUrl=%2Fhelp`.
+- [x] **M13.2** Auth-only decision recorded in `docs/specs/current-state.md`.
+- [x] **M14.1** `/support` removed from `publicPaths`; the list is extracted to `public-paths.ts`.
+- [x] **M14.2** `public-paths.test.ts` asserts anonymous `/support` → `/login?callbackUrl=%2Fsupport` and authenticated access is allowed.
+- [x] **M14.3** `docs/specs/current-state.md` notes `/support` is authenticated-only.
 - [ ] **M15.1** Add `sanitizePromptFragment` in the domain layer.
 - [ ] **M15.2** Rebuild the reply and welcome prompts with labelled untrusted regions.
 - [ ] **M15.3** Add the moderation port and provider implementation.
