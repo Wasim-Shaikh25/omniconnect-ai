@@ -279,7 +279,7 @@ Record, do not necessarily build:
 - [x] **D.1** Enable managed daily backups; document retention.
 - [x] **D.2** Add the independent weekly `pg_dump` to off-platform storage.
 - [x] **D.3** Alert on backup failure.
-- [ ] **D.4** Perform the restore drill; record RTO and RPO.
+- [x] **D.4** Perform the restore drill; record RTO and RPO.
 - [x] **D.5** Write the restore procedure for someone who has never done it.
 - [x] **E.1** Create `fly.staging.toml` and the staging app.
 - [ ] **E.2** Provision staging database, Redis, and sandbox credentials.

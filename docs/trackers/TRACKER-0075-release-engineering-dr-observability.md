@@ -44,7 +44,7 @@ multi-replica correctness, live third-party integrations).
 - [x] Managed daily backups enabled; retention documented.
 - [x] Independent weekly `pg_dump` to off-platform storage configured.
 - [x] Backup failure alerting configured.
-- [ ] **Restore drill performed**; RTO and RPO recorded.
+- [x] **Restore drill performed**; RTO and RPO recorded.
 - [x] Restore procedure written for a first-time operator.
 
 ### Package E — Staging
