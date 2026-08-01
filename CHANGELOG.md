@@ -16,16 +16,15 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - `REQ-0068` M11, M13, M14 — admin authorization defence in depth, `/help` auth-only regression test,
-    and `/support` routing consistency.
+  - `REQ-0068` M1, M2 — `/api/ready` readiness disclosure/rate-limit, and telemetry exporter controls.
 
 ### ⏭️ Next
 
-- Remaining `REQ-0068` items: M1, M2, M4, M5, M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
+- Remaining `REQ-0068` items: M4, M5, M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
 
-- **Audit gap closure — M6/L5 ADRs, H10, L1/L2/L3/L4/L7:**
+- **Audit gap closure — M1/M2, M6/L5 ADRs, H10, L1/L2/L3/L4/L7, M11/M13/M14:**
   - Added `docs/decisions/0007-stripe-api-version-pinning.md` and `docs/decisions/0008-fly-machine-auto-stop.md`.
   - H10: `OrganizationInviteRepository.createWithinSeatLimit` uses Serializable + bounded `P2034`
     retries; `invite-member` sends email only after the transaction commits; test verifies no email
@@ -67,6 +66,22 @@ All notable changes to **OmniConnect AI** are documented here.
     does not call a tenant or organization guard.
   - Added explicit `requireSuperAdmin()` to every `src/app/admin/**/page.tsx` and a static
     `admin-guards.test.ts` that fails if any admin page omits it.
+
+- **Audit gap closure — M11/M13/M14:**
+  - `admin-guards.test.ts` asserts every `src/app/admin/**/page.tsx` calls `requireSuperAdmin()` and
+    that the guard precedes any admin data-fetching action.
+  - Extracted `publicPaths` to `src/modules/auth/infrastructure/public-paths.ts` with a pure
+    `authorizeRoute()` helper; removed `/support` from public paths.
+  - Added regression tests: anonymous `/help` and `/support` redirect to `/login`; authenticated
+    access is allowed. `docs/specs/current-state.md` notes `/support` is authenticated-only.
+
+- **Audit gap closure — M1/M2:**
+  - `/api/ready` now returns only `{ name, ok }` per check, logs failure details as
+    `readiness.failed`, sets `Cache-Control: no-store`, reuses `getSharedRedis()`, and is
+    rate-limited per IP.
+  - Telemetry disables tracing in production when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset, logs
+    `telemetry.disabled` once, and uses `ConsoleSpanExporter` only outside production. Documented
+    the variable in `docs/deployment.md`.
 
 - **REQ-0075 Packages A, B, C, G6, H — Release-engineering foundation:**
   - Fixed `Dockerfile` runner stage so `npx prisma migrate deploy` works inside the image.

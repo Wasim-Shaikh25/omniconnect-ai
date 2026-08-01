@@ -22,18 +22,18 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [ ] Branch created from `main`.
 
 ### M1 — Readiness endpoint
-- [ ] `error` strings removed from the public body.
-- [ ] `readiness.failed` logged server-side with detail.
-- [ ] Shared Redis client reused (no per-request connection).
-- [ ] `Cache-Control: no-store` set.
-- [ ] Rate limiting added.
-- [ ] Test: failing response contains no `error` key.
+- [x] `error` strings removed from the public body.
+- [x] `readiness.failed` logged server-side with detail.
+- [x] Shared Redis client `getSharedRedis()` reused.
+- [x] `Cache-Control: no-store` set.
+- [x] Per-IP rate limiting added.
+- [x] Test: failing response contains no `error` key.
 
 ### M2 — Telemetry
-- [ ] Console exporter disabled in production.
-- [ ] `telemetry.disabled` logged once.
-- [ ] `OTEL_EXPORTER_OTLP_ENDPOINT` documented.
-- [ ] Test passes.
+- [x] Console exporter disabled in production when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset.
+- [x] `telemetry.disabled` logged exactly once.
+- [x] `OTEL_EXPORTER_OTLP_ENDPOINT` documented in `docs/deployment.md`.
+- [x] Test passes.
 
 ### M4 — Inbox query
 - [ ] `DISTINCT ON` implementation landed.
