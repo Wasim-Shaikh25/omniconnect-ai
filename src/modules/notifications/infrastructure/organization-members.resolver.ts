@@ -14,6 +14,7 @@ export class PrismaOrganizationMembersResolver
     const users = await prisma.user.findMany({
       where: { organizationId: store.organizationId },
       select: { id: true },
+      take: 1000,
     });
     return users.map((u) => u.id);
   }

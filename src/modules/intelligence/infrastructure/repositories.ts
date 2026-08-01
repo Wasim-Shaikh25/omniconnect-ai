@@ -211,6 +211,7 @@ export class PrismaEntityLinkRepository implements EntityLinkRepository {
     entityType: string,
     entityId: string,
     activeOnly = true,
+    limit = 1000,
   ): Promise<EntityLinkRecord[]> {
     const rows = await prisma.entityLink.findMany({
       where: {
@@ -222,6 +223,7 @@ export class PrismaEntityLinkRepository implements EntityLinkRepository {
         ...(activeOnly ? { status: "ACTIVE" } : {}),
       },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows as StoredLink[];
   }
@@ -305,7 +307,7 @@ export class PrismaDataQualityRepository implements DataQualityRepository {
     return created as StoredIssue;
   }
 
-  async listOpen(organizationId: string, storeId?: string): Promise<DataQualityIssueRecord[]> {
+  async listOpen(organizationId: string, storeId?: string, limit = 1000): Promise<DataQualityIssueRecord[]> {
     const rows = await prisma.dataQualityIssue.findMany({
       where: {
         organizationId,
@@ -313,6 +315,7 @@ export class PrismaDataQualityRepository implements DataQualityRepository {
         ...(storeId ? { storeId } : {}),
       },
       orderBy: { detectedAt: "desc" },
+      take: limit,
     });
     return rows as StoredIssue[];
   }
@@ -395,9 +398,10 @@ export class PrismaMetricRepository implements MetricRepository {
     return (row as StoredMetricDefinition) ?? null;
   }
 
-  async listDefinitions(organizationId: string | null): Promise<MetricDefinitionRecord[]> {
+  async listDefinitions(organizationId: string | null, limit = 1000): Promise<MetricDefinitionRecord[]> {
     const rows = await prisma.metricDefinition.findMany({
       where: { organizationId },
+      take: limit,
     });
     return rows as StoredMetricDefinition[];
   }
@@ -714,10 +718,11 @@ export class PrismaDecisionRepository implements DecisionRepository {
     return created as StoredDecision;
   }
 
-  async listByActionPlan(actionPlanId: string): Promise<DecisionRecord[]> {
+  async listByActionPlan(actionPlanId: string, limit = 1000): Promise<DecisionRecord[]> {
     const rows = await prisma.decision.findMany({
       where: { actionPlanId },
       orderBy: { decidedAt: "desc" },
+      take: limit,
     });
     return rows as StoredDecision[];
   }

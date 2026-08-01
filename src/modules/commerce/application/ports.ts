@@ -51,7 +51,7 @@ export interface ProductMappingRepository {
     status: string;
     errorMessage?: string | null;
   }>): Promise<void>;
-  listByStore(storeId: string): Promise<ProductMappingRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<ProductMappingRecord[]>;
 }
 
 export interface ShoppableMediaRepository {
@@ -63,7 +63,7 @@ export interface ShoppableMediaRepository {
     status?: string;
   }): Promise<ShoppableMediaRecord>;
   updateExternalId(id: string, externalMediaId: string, status: string, permalink?: string): Promise<ShoppableMediaRecord>;
-  listByStore(storeId: string): Promise<ShoppableMediaRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<ShoppableMediaRecord[]>;
 }
 
 export interface MetaCommerceClient {

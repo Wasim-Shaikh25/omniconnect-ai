@@ -79,39 +79,39 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     pagination?: PaginationInput,
   ) {
     const where = { organizationId, ...notDeleted };
+    const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
         orderBy: { createdAt: "asc" },
-        ...(pagination
-          ? { skip: toSkip(pagination), take: pagination.limit }
-          : {}),
+        skip: toSkip(effectivePagination),
+        take: effectivePagination.limit,
       }),
       prisma.user.count({ where }),
     ]);
     return paginatedResult(
       users.map(toProfile),
       total,
-      pagination ?? { page: 1, limit: total || 1 },
+      effectivePagination,
     );
   }
 
   async listAll(pagination?: PaginationInput) {
     const where = notDeleted;
+    const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        ...(pagination
-          ? { skip: toSkip(pagination), take: pagination.limit }
-          : {}),
+        skip: toSkip(effectivePagination),
+        take: effectivePagination.limit,
       }),
       prisma.user.count({ where }),
     ]);
     return paginatedResult(
       users.map(toProfile),
       total,
-      pagination ?? { page: 1, limit: total || 1 },
+      effectivePagination,
     );
   }
 
@@ -151,10 +151,11 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     return toExportRecord(record);
   }
 
-  async listExportRequests(userId: string): Promise<ExportRequestRecord[]> {
+  async listExportRequests(userId: string, limit = 1000): Promise<ExportRequestRecord[]> {
     const records = await prisma.exportRequest.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return records.map(toExportRecord);
   }

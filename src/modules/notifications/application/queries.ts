@@ -42,8 +42,8 @@ export function makeNotificationQueries(deps: {
       return deps.notifications.markAllReadByUser(userId);
     },
 
-    findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]> {
-      return deps.notifications.findRecentByDedupKey(dedupKey, since);
+    findRecentByDedupKey(dedupKey: string, since: Date, limit?: number): Promise<NotificationRecord[]> {
+      return deps.notifications.findRecentByDedupKey(dedupKey, since, limit);
     },
   };
 }

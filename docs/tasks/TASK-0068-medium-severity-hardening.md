@@ -492,7 +492,29 @@ abusive output blocked by moderation.
 - [x] **M4.1** Convert `listLatestByConversationIds` to use `distinct`/`DISTINCT ON` in the database.
 - [x] **M4.2** Add the `Message(conversationId, createdAt DESC)` index migration.
 - [x] **M4.3** Test: 3 conversations × 50 messages → exactly 3 rows read.
-- [ ] **M4.4** Inventory unbounded `findMany(` calls in repositories; add `take` limits or document why not needed.
+- [x] **M4.4** Inventory unbounded `findMany(` calls in repositories; add `take` limits or document why not needed.
+  - Audited all `prisma.*.findMany` calls in `src/modules/*/infrastructure`.
+  - Added `take` defaults or effective pagination to list-view/query methods:
+    - `src/modules/organizations/infrastructure/store.repository.ts` — `listByOrganization` now `take: 1000`.
+    - `src/modules/analytics/infrastructure/tracked-account.repository.ts` — `listByStore` now `take: 1000`.
+    - `src/modules/support/infrastructure/repository.ts` — `listByUser` and `listAll` now default to `take: 1000` / `{ page: 1, limit: 100 }`; included `comments` relation capped at `take: 100`.
+    - `src/modules/notifications/infrastructure/preference.repository.ts` — `listForUser` now `take: 1000`.
+    - `src/modules/notifications/infrastructure/notification.repository.ts` — `findRecentByDedupKey` now `take: 10`.
+    - `src/modules/notifications/infrastructure/organization-members.resolver.ts` — user lookup for store notifications now `take: 1000`.
+    - `src/modules/users/infrastructure/user.repository.ts` — `listByOrganization`, `listAll` default to `{ page: 1, limit: 100 }`; `listExportRequests` now `take: 1000`.
+    - `src/modules/organizations/infrastructure/organization.repository.ts` — `listAll` defaults to `{ page: 1, limit: 100 }`.
+    - `src/modules/organizations/infrastructure/saas-coupon.repository.ts` — `list` defaults to `{ page: 1, limit: 100 }`.
+    - `src/modules/ecommerce/infrastructure/order.repository.ts` — `listByStore` now defaults to `take: 50`, `skip: 0`.
+    - `src/modules/growth/infrastructure/repositories.ts` — `listCampaignsByStore` and `listRedemptionsByCampaign` now `take: 1000`.
+    - `src/modules/commerce/infrastructure/repositories.ts` — `listByStore` for product mappings and shoppable media now `take: 1000`.
+    - `src/modules/intelligence/infrastructure/repositories.ts` — `listDefinitions`, `findByEntity`, `listByActionPlan`, `listOpen` (data quality) now `take: 1000`.
+    - `src/modules/intelligence/infrastructure/repositories_extended.ts` — `getKpis` now `take: 1000`, `getGates` now `take: 100`.
+  - Recorded exceptions where an unbounded read is intentional/correctness-critical:
+    - `src/modules/ecommerce/infrastructure/order.repository.ts` — `sync` and `upsertMany` load all existing `Order.id`/`externalId` for a store to compute the diff and must read the full set (to be replaced with batched/cursor pagination in `REQ-0068-M4.4-follow-up`).
+    - `src/modules/users/infrastructure/data-export.ts` — exports every `Product`, `Coupon`, `Customer`, `Follower`, `Conversation`, `Notification`, `SupportTicket`, and `Integration` for a user's workspace; bounded export pagination is out of scope for this hardening pass and is tracked in `REQ-0070` data-export hardening.
+  - Updated repository `application/ports.ts` interfaces to expose optional `limit` parameters where needed.
+  - `change-role.ts` now requests `listByOrganization(..., { page: 1, limit: 10000 })` for the last-admin guard so the safety check is not constrained by list-view defaults.
+  - Note: a static CI guard for new unbounded `findMany` calls is deferred to a follow-up lint/architecture rule; current inventory is recorded here.
 - [ ] **M5.1** Implement `customers/data_request`.
 - [ ] **M5.2** Implement `customers/redact` with audit trail.
 - [ ] **M5.3** Implement `shop/redact`.

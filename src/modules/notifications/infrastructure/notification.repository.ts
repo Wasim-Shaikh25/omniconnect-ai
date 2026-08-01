@@ -57,10 +57,11 @@ export class PrismaNotificationRepository implements NotificationRepository {
     return prisma.notification.count({ where });
   }
 
-  async findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]> {
+  async findRecentByDedupKey(dedupKey: string, since: Date, limit = 10): Promise<NotificationRecord[]> {
     const rows = await prisma.notification.findMany({
       where: { dedupKey, createdAt: { gte: since } },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows.map(toRecord);
   }

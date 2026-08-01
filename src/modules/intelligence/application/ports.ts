@@ -85,6 +85,7 @@ export interface EntityLinkRepository {
     entityType: string,
     entityId: string,
     activeOnly?: boolean,
+    limit?: number,
   ): Promise<EntityLinkRecord[]>;
   listForOrganization(organizationId: string, limit?: number): Promise<EntityLinkRecord[]>;
   findBetween(
@@ -101,7 +102,7 @@ export interface EntityLinkRepository {
 
 export interface DataQualityRepository {
   save(issue: Omit<DataQualityIssueRecord, "id" | "detectedAt" | "resolvedAt">): Promise<DataQualityIssueRecord>;
-  listOpen(organizationId: string, storeId?: string): Promise<DataQualityIssueRecord[]>;
+  listOpen(organizationId: string, storeId?: string, limit?: number): Promise<DataQualityIssueRecord[]>;
   listByStore(storeId: string, limit?: number): Promise<DataQualityIssueRecord[]>;
   findById(id: string, organizationId: string): Promise<DataQualityIssueRecord | null>;
   updateStatus(id: string, organizationId: string, status: DataQualityStatus): Promise<DataQualityIssueRecord>;
@@ -110,7 +111,7 @@ export interface DataQualityRepository {
 export interface MetricRepository {
   saveDefinition(def: Omit<MetricDefinitionRecord, "id" | "createdAt" | "updatedAt">): Promise<MetricDefinitionRecord>;
   findDefinition(organizationId: string | null, name: string): Promise<MetricDefinitionRecord | null>;
-  listDefinitions(organizationId: string | null): Promise<MetricDefinitionRecord[]>;
+  listDefinitions(organizationId: string | null, limit?: number): Promise<MetricDefinitionRecord[]>;
   saveSnapshot(snapshot: Omit<MetricSnapshotRecord, "id" | "computedAt">): Promise<MetricSnapshotRecord>;
   getLatestSnapshot(
     definitionId: string,
@@ -216,7 +217,7 @@ export interface ActionPlanRepository {
 
 export interface DecisionRepository {
   save(decision: Omit<DecisionRecord, "id" | "createdAt" | "updatedAt">): Promise<DecisionRecord>;
-  listByActionPlan(actionPlanId: string): Promise<DecisionRecord[]>;
+  listByActionPlan(actionPlanId: string, limit?: number): Promise<DecisionRecord[]>;
 }
 
 export interface OutcomeRepository {

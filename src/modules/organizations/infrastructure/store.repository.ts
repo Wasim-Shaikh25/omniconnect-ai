@@ -82,6 +82,7 @@ export class PrismaStoreRepository implements StoreRepository {
   async listByOrganization(
     organizationId: string,
     includeDeleted = false,
+    limit = 1000,
   ): Promise<StoreRecord[]> {
     const stores = await prisma.store.findMany({
       where: {
@@ -89,6 +90,7 @@ export class PrismaStoreRepository implements StoreRepository {
         ...(includeDeleted ? {} : notDeleted()),
       },
       orderBy: { createdAt: "asc" },
+      take: limit,
     });
     return stores.map(toRecord);
   }

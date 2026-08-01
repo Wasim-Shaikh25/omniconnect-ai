@@ -52,7 +52,7 @@ export interface UpdateTrackedAccountInput {
 
 export interface TrackedAccountRepository {
   create(input: CreateTrackedAccountInput): Promise<TrackedAccountRecord>;
-  listByStore(storeId: string): Promise<TrackedAccountRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<TrackedAccountRecord[]>;
   findById(id: string): Promise<TrackedAccountRecord | null>;
   update(id: string, input: UpdateTrackedAccountInput): Promise<TrackedAccountRecord>;
   delete(id: string, storeId: string): Promise<void>;

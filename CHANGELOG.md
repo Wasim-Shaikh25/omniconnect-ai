@@ -16,11 +16,11 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - `REQ-0068` M4 — inbox latest-message query bounded in the database with a composite index.
+  - `REQ-0068` M5 — Shopify compliance webhooks (`customers/data_request`, `customers/redact`, `shop/redact`, `app/uninstalled`).
 
 ### ⏭️ Next
 
-- Remaining `REQ-0068` items: M5, M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
+- Remaining `REQ-0068` items: M7, M8, M9, M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
 
@@ -72,8 +72,18 @@ All notable changes to **OmniConnect AI** are documented here.
     that the guard precedes any admin data-fetching action.
   - Extracted `publicPaths` to `src/modules/auth/infrastructure/public-paths.ts` with a pure
     `authorizeRoute()` helper; removed `/support` from public paths.
-  - Added regression tests: anonymous `/help` and `/support` redirect to `/login`; authenticated
-    access is allowed. `docs/specs/current-state.md` notes `/support` is authenticated-only.
+
+- **Audit gap closure — M4 inbox query and unbounded `findMany` inventory:**
+  - `PrismaMessageRepository.listLatestByConversationIds` uses `distinct: ["conversationId"]` with
+    `orderBy: [{ conversationId: "asc" }, { createdAt: "desc" }]` so the database returns one row per
+    conversation.
+  - Added Prisma migration `20260801134601_add_message_conversation_created_at_index` with composite
+    index `Message(conversationId DESC, createdAt DESC)`.
+  - Integration test creates 3 conversations × 50 messages and asserts exactly 3 rows are read.
+  - Audited every `prisma.*.findMany` in `src/modules/*/infrastructure` and added `take`/pagination
+    defaults to all list-view methods (stores, users, support tickets, notifications, coupons, orders,
+    growth campaigns, product mappings, shoppable media, intelligence definitions/links/decisions,
+    etc.). Exceptions (order diff sync, full workspace data export) are documented in `TASK-0068` M4.4.
 
 - **Audit gap closure — M1/M2:**
   - `/api/ready` now returns only `{ name, ok }` per check, logs failure details as

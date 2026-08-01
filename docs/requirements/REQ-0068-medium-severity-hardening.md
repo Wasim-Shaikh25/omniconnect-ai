@@ -112,8 +112,8 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
 - [x] `listLatestByConversationIds` returns at most one row per conversation from the database.
 - [x] A composite index on `Message(conversationId, createdAt DESC)` exists via migration.
 - [x] A test with 3 conversations × 50 messages asserts exactly 3 rows are read.
-- [ ] Every repository method reachable from a list view is confirmed to have a `take` or an
-      equivalent bound; the inventory is recorded in the task.
+- [x] Every repository method reachable from a list view is confirmed to have a `take` or an
+      equivalent bound; the inventory is recorded in `TASK-0068` M4.4.
 
 ### M5 — Shopify compliance webhooks
 - [ ] `customers/data_request`, `customers/redact`, `shop/redact`, and `app/uninstalled` are

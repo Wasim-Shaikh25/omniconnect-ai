@@ -62,7 +62,7 @@ export interface StoreRepository {
     id: string,
     input: { name?: string; provider?: EcommerceProvider; domain?: string | null },
   ): Promise<StoreRecord | null>;
-  listByOrganization(organizationId: string, includeDeleted?: boolean): Promise<StoreRecord[]>;
+  listByOrganization(organizationId: string, includeDeleted?: boolean, limit?: number): Promise<StoreRecord[]>;
   findById(id: string, includeDeleted?: boolean): Promise<StoreRecord | null>;
   archive(id: string): Promise<StoreRecord | null>;
   restore(id: string): Promise<StoreRecord | null>;

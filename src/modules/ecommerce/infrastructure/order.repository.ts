@@ -152,8 +152,8 @@ export class PrismaOrderRepository implements OrderRepository {
         ...(options.includeFirstTimeOnly ? { isFirstTimeCustomer: true } : {}),
       },
       orderBy: { orderDate: "desc" },
-      take: options.limit,
-      skip: options.offset,
+      take: options.limit ?? 50,
+      skip: options.offset ?? 0,
     });
     return rows.map((o) => this.toRecord(o as PrismaOrder));
   }

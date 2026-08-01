@@ -65,7 +65,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
   - `application/` — use cases, command/query handlers, ports.
   - `domain/` — entities, value objects, domain events, pure business rules (no Prisma/fetch/env).
   - `infrastructure/` — Prisma repositories, external API clients, queue adapters.
-- **Repository pattern** for persistence.
+- **Repository pattern** for persistence. All repository list/query methods reachable from list views enforce a `take`/pagination bound (defaults of 50–1000) to prevent unbounded `findMany` loads. Exceptions that must read the full set (e.g., order diff sync, full workspace data export) are documented in `TASK-0068` M4.4.
 - **Event-driven** across module boundaries via the shared event bus. Client builds use a no-op in-memory bus; the server installs a durable `QueueEventBus` backed by BullMQ (or an in-memory fallback when Redis is unavailable). Events carry a stable `eventId` and are deduplicated by BullMQ `jobId`.
 - **Provider/connector extensibility:** e-commerce (`EcommerceConnector`) and AI (`AIProvider`) providers sit behind interfaces. Adding a provider requires only implementing the interface and registering it.
 
