@@ -100,11 +100,14 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
-        run: npm test
+      - name: Test with coverage
+        run: npm run test:coverage
 
       - name: Migration dry-run (apply all migrations)
         run: npx prisma migrate deploy
+
+      - name: Run integration tests
+        run: npm run test:integration
 
       - name: Build Next.js app
         run: npm run build

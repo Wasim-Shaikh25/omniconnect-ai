@@ -225,8 +225,25 @@ export default defineConfig({
 });
 ```
 
-`vitest.integration.config.ts` includes only `src/**/*.integration.test.ts`, has a longer timeout,
-and expects `DATABASE_URL` and `REDIS_URL` to be live.
+```typescript
+// vitest.integration.config.ts
+export default defineConfig({
+  test: {
+    name: "integration",
+    environment: "node",
+    include: ["src/**/*.integration.test.ts"],
+    exclude: ["src/**/*.test.ts"],
+    globals: false,
+    passWithNoTests: true,
+    hookTimeout: 30000,
+    testTimeout: 30000,
+  },
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+});
+```
+
+Update `.github/workflows/ci.yml` to run `npm run test:coverage` (so the summary is printed) and
+`npm run test:integration` after migrations have been applied.
 
 ---
 

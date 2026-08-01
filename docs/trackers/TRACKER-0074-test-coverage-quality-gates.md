@@ -35,13 +35,13 @@ where `REDIS_URL` is set but no Redis service exists.
   response bodies on failure, and masks generated CI secrets from logs.
 
 ### Package B — Coverage tooling
-- [ ] `@vitest/coverage-v8` installed.
-- [ ] `test:coverage` and `test:integration` scripts added.
-- [ ] Coverage provider, reporters, includes/excludes configured.
-- [ ] `vitest.integration.config.ts` added.
+- [x] `@vitest/coverage-v8` installed.
+- [x] `test:coverage` and `test:integration` scripts added.
+- [x] Coverage provider, reporters, includes/excludes configured.
+- [x] `vitest.integration.config.ts` added.
 - [ ] Baseline measured after Tiers 1–2.
 - [ ] Thresholds set and failing on regression.
-- [ ] Coverage summary visible in CI output.
+- [x] Coverage summary visible in CI output.
 
 ### Package C — Test helpers
 - [ ] `createTenant`, `createSuperAdmin`, `resetDatabase` implemented.

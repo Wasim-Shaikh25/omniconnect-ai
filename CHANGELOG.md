@@ -16,13 +16,11 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **REQ-0067 release blockers:** C1/H9 fixed; remaining C2, H1–H10 in progress.
-- **REQ-0074 Package A follow-up:** stabilize the standalone smoke test in CI (use IPv4
-  loopback, add `curl` diagnostics, mask generated secrets) so `quality` stays green.
+- **REQ-0074 Package B** — install `@vitest/coverage-v8`, add `test:coverage`/`test:integration`
+  scripts, and configure coverage thresholds.
 
 ### ⏭️ Next
 
-- **REQ-0074 Package B** — install `@vitest/coverage-v8`, add `test:coverage`/`test:integration`
-  scripts, and configure coverage thresholds.
 - **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
   REQ-0067's H5 migration is written, or that migration is wasted.
 - **REQ-0067** — remaining release blockers (C2, H1–H10), each with a regression test that fails
@@ -36,6 +34,9 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `npm audit --audit-level=moderate` and a `gitleaks/gitleaks-action@v2` secret-scan job.
   - Extended the CI smoke test to assert `/api/health` 200, `/api/auth/session` 200 (C1),
     `/api/ready` 200, and `POST /api/shopify/webhooks` not `3xx` (H9).
+  - Stabilized the standalone smoke test on GitHub Actions by forcing `curl -4` against
+    `127.0.0.1`, adding per-endpoint diagnostics, and masking generated CI secrets with
+    `::add-mask::`.
   - Added `src/shared/redis/client.test.ts` as a Redis-dependent test that runs green when
     `REDIS_URL` is set.
 

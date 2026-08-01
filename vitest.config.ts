@@ -5,7 +5,27 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    exclude: ["src/**/*.integration.test.ts"],
     globals: false,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/**/*.ts"],
+      exclude: [
+        "src/**/*.test.ts",
+        "src/**/*.integration.test.ts",
+        "src/**/*.d.ts",
+        "src/app/**/layout.tsx",
+      ],
+      thresholds: {
+        // Baseline is zero until Tier 1/2 regression and security tests land;
+        // ratchet upward once the measured baseline is known.
+        lines: 0,
+        functions: 0,
+        branches: 0,
+        statements: 0,
+      },
+    },
   },
   resolve: {
     alias: {
