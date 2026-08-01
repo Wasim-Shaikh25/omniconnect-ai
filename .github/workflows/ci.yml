@@ -28,32 +28,48 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/omniconnect?schema=public
-      NEXTAUTH_SECRET: ci-test-secret-ci-test-secret-ci-test-secret-ci-test-secret
       NEXTAUTH_URL: http://localhost:3000
+      APP_URL: http://localhost:3000
       REDIS_URL: redis://localhost:6379
-      ENCRYPTION_KEY: ci-test-encryption-key-not-real-at-least-32-chars
       EMAIL_PROVIDER: smtp
       SMTP_HOST: localhost
       SMTP_PORT: 587
       SMTP_USER: ci@example.com
-      SMTP_PASSWORD: ci-test-password
       SMTP_FROM: ci@example.com
       META_APP_ID: ci-test
-      META_APP_SECRET: ci-test-secret
-      META_WEBHOOK_VERIFY_TOKEN: ci-test-token
-      OPENAI_API_KEY: ci-test-key
-      STRIPE_SECRET_KEY: sk_test_ci
       STRIPE_PUBLISHABLE_KEY: pk_test_ci
-      STRIPE_WEBHOOK_SECRET: whsec_ci
       STRIPE_PRICE_STARTER: price_ci_starter
       STRIPE_PRICE_PRO: price_ci_pro
       SUPER_ADMIN_EMAIL: admin@example.com
-      SUPER_ADMIN_PASSWORD: super-admin-password-at-least-8
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate CI test secrets
+        run: |
+          echo "NEXTAUTH_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=sk-ci-$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "META_APP_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "META_WEBHOOK_VERIFY_TOKEN=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "STRIPE_SECRET_KEY=sk_test_$(openssl rand -hex 24)" >> $GITHUB_ENV
+          echo "STRIPE_WEBHOOK_SECRET=whsec_$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "SHOPIFY_API_KEY=ci-placeholder-key-$(openssl rand -hex 16)" >> $GITHUB_ENV
+          echo "SHOPIFY_API_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "SUPER_ADMIN_PASSWORD=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "SMTP_PASSWORD=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - uses: actions/setup-node@v4
         with:
@@ -65,6 +81,9 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+
+      - name: Dependency audit
+        run: npm audit --audit-level=moderate
 
       - name: Lint
         run: npm run lint
@@ -88,14 +107,37 @@ jobs:
         run: |
           node .next/standalone/server.js &
           APP_PID=$!
+          trap 'kill $APP_PID || true' EXIT
+
+          ok=0
           for i in {1..30}; do
-            if curl -sf http://localhost:3000/api/health; then
-              echo "Smoke test passed"
-              kill $APP_PID || true
-              exit 0
-            fi
+            if curl -sf http://localhost:3000/api/health > /dev/null; then ok=1; break; fi
             sleep 2
           done
-          echo "Smoke test failed"
-          kill $APP_PID || true
-          exit 1
+          if [ "$ok" != "1" ]; then echo "health failed"; exit 1; fi
+
+          check() {
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${@:2}")
+            echo "$1 -> $code"
+            echo "$code"
+          }
+
+          [ "$(check health http://localhost:3000/api/health)" = "200" ] || exit 1
+          # C1 regression: auth must not 500 with UntrustedHost behind a proxy-less host.
+          [ "$(check auth http://localhost:3000/api/auth/session)" = "200" ] || exit 1
+          [ "$(check ready http://localhost:3000/api/ready)" = "200" ] || exit 1
+          # H9 regression: the Shopify webhook must reach HMAC verification, not redirect.
+          shopify=$(check shopify -X POST http://localhost:3000/api/shopify/webhooks)
+          case "$shopify" in 3*) echo "shopify webhook redirected ($shopify)"; exit 1;; esac
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

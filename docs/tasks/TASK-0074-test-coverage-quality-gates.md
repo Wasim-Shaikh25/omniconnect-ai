@@ -1,6 +1,6 @@
 # TASK-0074: Implement Test Coverage and CI Quality Gates
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** All engineering
 - **Requirement:** `docs/requirements/REQ-0074-test-coverage-quality-gates.md`
 - **Tracker:** `docs/trackers/TRACKER-0074-test-coverage-quality-gates.md`
@@ -55,7 +55,43 @@ every Redis-dependent test in `REQ-0067`.
           --health-retries 5
 ```
 
-`REDIS_URL` is already set in the job env; it has simply had nothing to point at.
+Move secret values out of the committed `env:` block and generate them in CI so gitleaks
+never flags placeholder credentials. The `env:` block keeps non-sensitive config:
+
+```yaml
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/omniconnect?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      APP_URL: http://localhost:3000
+      REDIS_URL: redis://localhost:6379
+      EMAIL_PROVIDER: smtp
+      SMTP_HOST: localhost
+      SMTP_PORT: 587
+      SMTP_USER: ci@example.com
+      SMTP_FROM: ci@example.com
+      META_APP_ID: ci-test
+      STRIPE_PUBLISHABLE_KEY: pk_test_ci
+      STRIPE_PRICE_STARTER: price_ci_starter
+      STRIPE_PRICE_PRO: price_ci_pro
+      SUPER_ADMIN_EMAIL: admin@example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate CI test secrets
+        run: |
+          echo "NEXTAUTH_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "ENCRYPTION_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=sk-ci-$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "META_APP_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "META_WEBHOOK_VERIFY_TOKEN=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "STRIPE_SECRET_KEY=sk_test_$(openssl rand -hex 24)" >> $GITHUB_ENV
+          echo "STRIPE_WEBHOOK_SECRET=whsec_$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "SHOPIFY_API_KEY=ci-placeholder-key-$(openssl rand -hex 16)" >> $GITHUB_ENV
+          echo "SHOPIFY_API_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "SUPER_ADMIN_PASSWORD=$(openssl rand -hex 32)" >> $GITHUB_ENV
+          echo "SMTP_PASSWORD=$(openssl rand -hex 32)" >> $GITHUB_ENV
+```
 
 Add the enforcement steps:
 
@@ -63,14 +99,34 @@ Add the enforcement steps:
       - name: Dependency audit
         run: npm audit --audit-level=moderate
 
-      - name: Secret scan
-        uses: gitleaks/gitleaks-action@v2
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+```
+
+Add a separate secret-scan job on pull requests:
+
+```yaml
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Test with coverage
-        run: npm run test:coverage
 ```
+
+A `.gitleaks.toml` extending the default config allowlists `.env.example`, which contains
+only placeholder values.
 
 Extend the smoke test to cover what the audit's blockers actually broke:
 
@@ -80,7 +136,13 @@ Extend the smoke test to cover what the audit's blockers actually broke:
           node .next/standalone/server.js &
           APP_PID=$!
           trap 'kill $APP_PID || true' EXIT
-          for i in {1..30}; do curl -sf http://localhost:3000/api/health > /dev/null && break; sleep 2; done
+
+          ok=0
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/api/health > /dev/null; then ok=1; break; fi
+            sleep 2
+          done
+          if [ "$ok" != "1" ]; then echo "health failed"; exit 1; fi
 
           check() {
             code=$(curl -s -o /dev/null -w '%{http_code}' "${@:2}")
@@ -92,7 +154,7 @@ Extend the smoke test to cover what the audit's blockers actually broke:
           [ "$(check auth http://localhost:3000/api/auth/session)" = "200" ] || exit 1   # C1
           [ "$(check ready http://localhost:3000/api/ready)" = "200" ] || exit 1
           shopify=$(check shopify -X POST http://localhost:3000/api/shopify/webhooks)     # H9
-          case "$shopify" in 3*) echo "shopify webhook redirected"; exit 1;; esac
+          case "$shopify" in 3*) echo "shopify webhook redirected ($shopify)"; exit 1;; esac
 ```
 
 ---
@@ -254,11 +316,11 @@ Update `.agents/skills/testing-omniconnect-ai/SKILL.md` and `AGENTS.md` with:
 
 ## 4. Subtasks
 
-- [ ] **A.1** Add the `redis:7-alpine` service with a health check to CI.
-- [ ] **A.2** Add `npm audit --audit-level=moderate` as a CI step.
-- [ ] **A.3** Add gitleaks secret scanning on pull requests.
-- [ ] **A.4** Extend the smoke test to assert auth, readiness, and Shopify webhook reachability.
-- [ ] **A.5** Verify a Redis-dependent test now runs green in CI.
+- [x] **A.1** Add the `redis:7-alpine` service with a health check to CI.
+- [x] **A.2** Add `npm audit --audit-level=moderate` as a CI step.
+- [x] **A.3** Add gitleaks secret scanning on pull requests.
+- [x] **A.4** Extend the smoke test to assert auth, readiness, and Shopify webhook reachability.
+- [x] **A.5** Verify a Redis-dependent test now runs green in CI.
 - [ ] **B.1** Install `@vitest/coverage-v8`.
 - [ ] **B.2** Add `test:coverage` and `test:integration` scripts.
 - [ ] **B.3** Configure coverage provider, reporters, includes/excludes.

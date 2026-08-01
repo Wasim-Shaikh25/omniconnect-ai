@@ -1,6 +1,6 @@
 # TRACKER-0067: Release Blockers — Critical and High Findings
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** Backend / Platform
 - **Requirement:** `docs/requirements/REQ-0067-release-blockers-critical-high.md`
 - **Task:** `docs/tasks/TASK-0067-release-blockers-critical-high.md`
@@ -15,19 +15,19 @@ fixed). No production deployment may proceed until every box below is `x`.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement reviewed and approved.
-- [ ] Task file reviewed with implementation details and code references.
+- [x] Requirement reviewed and approved.
+- [x] Task file reviewed with implementation details and code references.
 - [ ] Q3 (`past_due` policy), Q4 (event delivery semantics), Q5 (Shopify App Store) confirmed or
       the §5 defaults explicitly accepted.
-- [ ] CI Redis service landed (dependency from `REQ-0074`).
-- [ ] Branch created from `main`.
+- [x] CI Redis service landed (dependency from `REQ-0074`).
+- [x] Branch created from `main`.
 
 ### C1 — NextAuth `trustHost`
-- [ ] Failing check captured: standalone boot without `AUTH_TRUST_HOST` returns `500` on `/api/auth/session`.
-- [ ] `trustHost: true` set in `authConfig`.
-- [ ] `AUTH_TRUST_HOST` added to `env.ts`, `.env.example`, `fly.toml`, `docs/deployment.md`.
-- [ ] Same-origin `redirect` callback validation added against `APP_URL`.
-- [ ] CI smoke test asserts `/api/auth/session` → `200`.
+- [x] Failing check captured: standalone boot without `AUTH_TRUST_HOST` returns `500` on `/api/auth/session`.
+- [x] `trustHost: true` set in `authConfig`.
+- [x] `AUTH_TRUST_HOST` added to `env.ts`, `.env.example`, `fly.toml`, `docs/deployment.md`.
+- [x] Same-origin `redirect` callback validation added against `APP_URL`.
+- [x] CI smoke test asserts `/api/auth/session` → `200`.
 - [ ] Browser login verified end to end on a proxied deployment.
 
 ### C2 — Event bus exactly-once dispatch
@@ -100,10 +100,10 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Tests: ten updates → one row/zero events; idle → one event; order → no event; double sweep → no duplicate.
 
 ### H9 — Shopify webhook reachability
-- [ ] `307` reproduced against current code (confirms the finding is open).
-- [ ] `/api/shopify/webhooks` added to `publicPaths`.
-- [ ] `publicPaths` prefix matcher reviewed for unintended sub-route exposure.
-- [ ] CI smoke assertion added (no `3xx`).
+- [x] `307` reproduced against current code (confirms the finding is open).
+- [x] `/api/shopify/webhooks` added to `publicPaths`.
+- [x] `publicPaths` prefix matcher reviewed for unintended sub-route exposure.
+- [x] CI smoke assertion added (no `3xx`).
 - [ ] Integration test: valid HMAC `products/create` persists a product.
 
 ### H10 — Atomic seat limits

@@ -15,21 +15,34 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **Production readiness remediation planning (REQ-0067 → REQ-0075):** every finding in
-  `PRODUCTION_READINESS_AUDIT.md` is now owned by a requirement, task, and tracker. Implementation
-  has not started — these are planning documents only.
+- **REQ-0067 release blockers:** C1/H9 fixed; remaining C2, H1–H10 in progress.
 
 ### ⏭️ Next
 
-- **REQ-0074 Package A** — add the `redis:7-alpine` service, `npm audit`, secret scanning, and a
-  deeper smoke test to CI. This is ~1 hour of work and unblocks every Redis-dependent test in
-  REQ-0067.
+- **REQ-0074 Package B** — install `@vitest/coverage-v8`, add `test:coverage`/`test:integration`
+  scripts, and configure coverage thresholds.
 - **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
   REQ-0067's H5 migration is written, or that migration is wasted.
-- **REQ-0067** — the twelve release blockers (C1, C2, H1–H10), each with a regression test that
-  fails against current `main`.
+- **REQ-0067** — remaining release blockers (C2, H1–H10), each with a regression test that fails
+  against current `main`.
 
 ### ✅ Done
+
+- **REQ-0074 Package A — CI quality gates and unblockers:**
+  - Added `redis:7-alpine` service with a health check to `.github/workflows/ci.yml` so
+    `REDIS_URL` finally has a backing server.
+  - Added `npm audit --audit-level=moderate` and a `gitleaks/gitleaks-action@v2` secret-scan job.
+  - Extended the CI smoke test to assert `/api/health` 200, `/api/auth/session` 200 (C1),
+    `/api/ready` 200, and `POST /api/shopify/webhooks` not `3xx` (H9).
+  - Added `src/shared/redis/client.test.ts` as a Redis-dependent test that runs green when
+    `REDIS_URL` is set.
+
+- **REQ-0067 C1 + H9 (required by the new smoke test):**
+  - `authConfig` now sets `trustHost: env.AUTH_TRUST_HOST` (default `true`) and adds a
+    same-origin `redirect` callback validated against `APP_URL`.
+  - Added `AUTH_TRUST_HOST` to `env.ts`, `.env.example`, `fly.toml`, and `docs/deployment.md`.
+  - Whitelisted `/api/shopify/webhooks` in the NextAuth middleware `publicPaths` so Shopify
+    webhooks reach HMAC verification instead of being redirected to `/login`.
 
 - **Production readiness audit remediation plan — documented all 33 findings as actionable work:**
   - Re-verified every finding in `PRODUCTION_READINESS_AUDIT.md` against the working tree at

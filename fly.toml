@@ -8,6 +8,7 @@ primary_region = "lhr"
   PORT = "3000"
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
+  AUTH_TRUST_HOST = "true"
 
 [deploy]
   release_command = "npx prisma migrate deploy"
