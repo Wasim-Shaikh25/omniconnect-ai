@@ -15,13 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H9 fixed; remaining H1–H8, H10 in progress.
+- **REQ-0067 release blockers:** C1/C2/H1/H9 fixed; remaining H2–H8, H10 in progress.
 
 ### ⏭️ Next
 
 - **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
   REQ-0067's H5 migration is written, or that migration is wasted.
-- **REQ-0067** — remaining release blockers (H1–H8, H10), each with a regression test that fails
+- **REQ-0067** — remaining release blockers (H2–H8, H10), each with a regression test that fails
   against current `main`.
 
 ### ✅ Done
@@ -53,7 +53,19 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `src/shared/events/redis-event-bus.test.ts` with regression tests that fail on the
     old code (handler called twice) and pass on the fix.
 
-- **REQ-0067 C1 + H9 (required by the new smoke test):**
+- **REQ-0067 H1 — startup resilience:**
+  - Wrapped `ensureSuperAdmin` in `instrumentation.ts` in `try/catch` with
+    `bootstrap.ensureSuperAdmin.failed` logging so a transient DB outage does not prevent
+    `/api/health` from serving.
+  - Moved authoritative super-admin seeding into the release phase via `scripts/seed-super-admin.ts`
+    so a genuine seed failure blocks the deployment, not the running app.
+  - Updated `fly.toml` `release_command` to run `npx prisma migrate deploy && npx tsx scripts/seed-super-admin.ts`.
+  - Added a Fly.io `[[http_service.checks]]` block pointing at `/api/ready`.
+  - Manually verified the standalone build with Postgres stopped: `/api/health` 200,
+    `/api/ready` 503, logged `bootstrap.ensureSuperAdmin.failed`; after Postgres restarted,
+    `/api/ready` returned 200 without a process restart.
+
+- **REQ-0067 C1 + H9 (required by the new smoke test):
   - `authConfig` now sets `trustHost: env.AUTH_TRUST_HOST` (default `true`) and adds a
     same-origin `redirect` callback validated against `APP_URL`.
   - Added `AUTH_TRUST_HOST` to `env.ts`, `.env.example`, `fly.toml`, and `docs/deployment.md`.

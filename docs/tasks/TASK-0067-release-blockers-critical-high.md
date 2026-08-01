@@ -202,6 +202,9 @@ non-zero on failure.
 
 **Verify:** stop PostgreSQL, start the standalone server, `GET /api/health` → `200`, `GET
 /api/ready` → `503`; start PostgreSQL, `/api/ready` → `200` without restarting.
+**H1 verified 2026-08-01:** Standalone build with PostgreSQL stopped returned `/api/health` 200,
+`/api/ready` 503 with `bootstrap.ensureSuperAdmin.failed` logged; after `docker run` brought Postgres
+back, `/api/ready` returned 200 without restarting the Node process.
 
 ---
 

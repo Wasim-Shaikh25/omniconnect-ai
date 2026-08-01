@@ -45,11 +45,10 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Duplicate `generateReply` invocation produces one `Message` row and one DM.
 
 ### H1 — Startup resilience
-- [ ] DB-down boot failure reproduced against current code.
-- [ ] `ensureSuperAdmin` wrapped in `try/catch` with error logging.
-- [ ] `scripts/seed-super-admin.ts` added and wired into `fly.toml` `release_command`.
-- [ ] Fly.io `/api/ready` health check declared.
-- [ ] Verified: DB down → `/api/health` `200`, `/api/ready` `503`; DB up → `/api/ready` `200`, no restart.
+- [x] `ensureSuperAdmin` wrapped in `try/catch` with `bootstrap.ensureSuperAdmin.failed` logging.
+- [x] `scripts/seed-super-admin.ts` added and wired into `fly.toml` `release_command`.
+- [x] Fly.io `/api/ready` health check declared.
+- [x] DB-down boot verified: `/api/health` `200`, `/api/ready` `503`; DB up → `/api/ready` `200`, no restart.
 
 ### H2 — Webhook idempotency
 - [ ] `ProcessedWebhookEvent` model + migration applied.
