@@ -112,7 +112,7 @@ This requirement establishes the safety net that makes every other requirement's
 - [x] The coverage summary is visible in the CI job output.
 - [ ] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
   - T1–T3 event bus/Redis fallback, T4/T5 health/ready routes, T6–T8 billing lifecycle, T9/T10 session revocation, T12/T13/T14 event/handler behavior, T15 anonymous Shopify webhook, and T16 concurrent invite seat cap verified.
-  *(FALSE/PARTIAL — T4 is mis-labelled on `health/route.test.ts`; T9/T10 are helper tests only; T11 is N/A. See audit.)*
+  *(FALSE/PARTIAL — T4 is mis-labelled on `health/route.test.ts` (the real `/api/auth/session` coverage is the CI smoke test); S2 and S5 are helper tests only; T11 is N/A. See audit.)*
 - [ ] All 11 Tier 2 tests exist and pass.
   - S1–S11 verified as guard/service-level regression tests.
   *(FALSE/PARTIAL — S2 and S5 are helper tests, not entry-point coverage for every action/route. See audit.)*

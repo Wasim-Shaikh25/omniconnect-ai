@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import type { PaginationInput } from "@/shared/kernel";
 import { paginatedResult, toSkip } from "@/shared/kernel";
@@ -31,8 +32,9 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
     return this.map(coupon);
   }
 
-  async findByCode(code: string): Promise<SaaSCouponRecord | null> {
-    const coupon = await prisma.saaSCoupon.findUnique({
+  async findByCode(code: string, tx?: Prisma.TransactionClient): Promise<SaaSCouponRecord | null> {
+    const client = tx ?? prisma;
+    const coupon = await client.saaSCoupon.findUnique({
       where: { code: code.toUpperCase().trim() },
     });
     return coupon ? this.map(coupon) : null;
@@ -60,12 +62,13 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
     );
   }
 
-  async incrementUsage(id: string, maxUses: number | null): Promise<boolean> {
+  async incrementUsage(id: string, maxUses: number | null, tx?: Prisma.TransactionClient): Promise<boolean> {
+    const client = tx ?? prisma;
     const where =
       maxUses !== null
         ? { id, usedCount: { lt: maxUses } }
         : { id };
-    const { count } = await prisma.saaSCoupon.updateMany({
+    const { count } = await client.saaSCoupon.updateMany({
       where,
       data: { usedCount: { increment: 1 } },
     });

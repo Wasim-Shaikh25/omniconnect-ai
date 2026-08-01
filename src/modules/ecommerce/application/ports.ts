@@ -235,7 +235,12 @@ export interface CartRepository {
 
   markConverted(storeId: string, cartToken: string): Promise<void>;
 
-  markNotified(id: string): Promise<void>;
+  /**
+   * Marks a cart as notified, but only if it has not already been notified.
+   * Returns true when the row was updated by this call (caller should publish),
+   * and false when another process already marked it (caller should skip publishing).
+   */
+  markNotified(id: string): Promise<boolean>;
 
   findAbandoned(
     thresholdMinutes: number,

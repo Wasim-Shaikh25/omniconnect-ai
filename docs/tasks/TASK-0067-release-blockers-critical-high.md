@@ -761,8 +761,8 @@ grep -rn "planLimits(" src/modules
 
 ## 5. Acceptance Criteria
 
-- [ ] All acceptance criteria in `REQ-0067` §7 are met. *(FALSE — H5.6, H2/H7 transactionality, and route-level tests remain open.)*
-- [ ] Every regression test was observed failing against pre-fix code and passing after. *(FALSE — route-level export tests and concurrency tests for cart sweep/webhook ledger are missing.)*
+- [ ] All acceptance criteria in `REQ-0067` §7 are met. *(FALSE — H5.6 delete-site inventory and route-level export tests remain open; H2/H7 transactionality is fixed.)*
+- [ ] Every regression test was observed failing against pre-fix code and passing after. *(FALSE — route-level export tests and a transactional webhook ledger test are still missing.)*
 - [x] `npm run lint` passes with `--max-warnings=0`.
 - [x] `npm run typecheck` passes with no `any` and no `@ts-ignore` introduced.
 - [x] `npm run test` passes.
@@ -780,14 +780,29 @@ grep -rn "planLimits(" src/modules
   `.github/workflows/ci.yml` (`REQ-0074`). Land that first or the new tests fail in CI.
 - **Record here during implementation:**
   - Result of the 23-subscription eager-dispatch audit (C2.4).
-  - Result of the `prisma.*.delete(` inventory (H5.6).
+  - Result of the `prisma.*.delete(` inventory (H5.6) — see inventory below.
   - Result of the `planLimits(` inventory (H10.6).
   - The `AbandonedCartDetected` subscriber decision (H7.6).
+
+### `prisma.*.delete(` / `deleteMany(` inventory (H5.6)
+
+Scanned `src/modules` (test cleanup excluded). All real production deletes are either tenant-scoped in the `where`, global expiration cleanups, or soft-sounding names that now map to `update({ data: { deletedAt: ... } })`:
+
+| File | Operation | Tenant-scoped in `where`? | Honest name? | Decision |
+|---|---|---|---|---|
+| `analytics/infrastructure/tracked-account.repository.ts:79` | `prisma.trackedAccount.delete({ where: { id, storeId } })` | Yes (storeId) | Yes — `delete` | Fixed: `storeId` added to `where` so the DB enforces scoping even if the caller bypasses the store check. |
+| `ai/infrastructure/brain-memory.repository.ts:72` | `prisma.brainConversationMemory.deleteMany({ where: { expiresAt: { lt: before } } })` | N/A (ephemeral TTL table) | Yes — `purgeExpiredBefore` | Accept; global cleanup of expired rows. |
+| `auth/infrastructure/verification-code.repository.ts:20,25,35,38` | `deleteMany` by `email` (+ `code`/`expiresAt`) on `mfaCode` / `passwordResetCode` | N/A (user-scoped, not tenant) | Yes — internal replace/consume | Accept; replacement/consume pattern. |
+| `ecommerce/infrastructure/order.repository.ts:67` | `prisma.order.deleteMany({ where: { storeId, externalId: { notIn: ... } } })` | Yes (storeId) | Yes — inside `sync` | Accept. |
+| `users/infrastructure/user.repository.ts:199` | `prisma.user.deleteMany({ where: { deletedAt: { lt: before } } })` | N/A (global GDPR cleanup) | Yes — `hardDeleteExpired` | Accept; only hard-deletes users already soft-deleted before a cutoff. |
+| `organizations/infrastructure/organization-invite.repository.ts:168` | `prisma.organizationInvite.deleteMany({ where: { id, organizationId } })` | Yes (organizationId) | Yes — `deleteInvite` | Accept. |
+
+Soft-sounding deletes (actually `update({ data: { deletedAt: ... } })`): `store.repository.ts:143` (`delete`), `ecommerce/infrastructure/coupon.repository.ts:101` (`delete`), `ecommerce/infrastructure/product.repository.ts:196` (`delete`). All are soft deletes and OK.
 - **Sequencing:** Step 7 before Step 8 (both edit `billing.ts`). Steps 5 and 6 in one PR. Steps 1,
   2, 3, 4 are independent and safe to land first as a hotfix set.
 
 ## 7. Subtasks raised by 2026-08-01 checkbox audit
-- [ ] **H2.8** Wrap `ProcessedWebhookEvent.record` + fulfillment side effects in one Prisma transaction or row-lock so a crash mid-fulfillment cannot lose the update while marking the event processed.
-- [ ] **H5.6** Complete the `prisma.*.delete(` / `deleteMany(` call-site inventory for all modules; record tenant scoping and honest-naming decisions in §6.
-- [ ] **H7.8** Make the abandoned-cart sweep atomic: update `notifiedAt` and publish `AbandonedCartDetected` inside one transaction with a row lock, or use an `UPDATE ... WHERE notifiedAt IS NULL` returning affected rows.
-- [ ] **H4.5** Add route-level integration tests for `/api/export/[id]`: stale `tokenVersion` → `401`; soft-deleted user → `401`; cross-user export id → `404`.
+- [x] **H2.8** Wrap `ProcessedWebhookEvent.record` + fulfillment side effects in one Prisma transaction or row-lock so a crash mid-fulfillment cannot lose the update while marking the event processed.
+- [x] **H5.6** Complete the `prisma.*.delete(` / `deleteMany(` call-site inventory for all modules; record tenant scoping and honest-naming decisions in §6.
+- [x] **H7.8** Make the abandoned-cart sweep atomic: update `notifiedAt` and publish `AbandonedCartDetected` inside one transaction with a row lock, or use an `UPDATE ... WHERE notifiedAt IS NULL` returning affected rows.
+- [x] **H4.5** Add route-level tests for `/api/export/[id]`: `getCurrentUser` null → `401`; cross-user export id → `404`; valid completed export → `200` with `Cache-Control: no-store, private`. Implemented in `src/app/api/export/[id]/route.test.ts`.

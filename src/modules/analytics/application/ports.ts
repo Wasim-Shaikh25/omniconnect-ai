@@ -55,7 +55,7 @@ export interface TrackedAccountRepository {
   listByStore(storeId: string): Promise<TrackedAccountRecord[]>;
   findById(id: string): Promise<TrackedAccountRecord | null>;
   update(id: string, input: UpdateTrackedAccountInput): Promise<TrackedAccountRecord>;
-  delete(id: string): Promise<void>;
+  delete(id: string, storeId: string): Promise<void>;
 }
 
 export interface UpsertMediaPostInput {

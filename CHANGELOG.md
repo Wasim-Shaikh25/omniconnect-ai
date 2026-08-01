@@ -15,13 +15,32 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **2026-08-01 checkbox verification audit** — line-by-line re-verification of `REQ-0067`–`REQ-0075` acceptance criteria, tasks, and trackers; report produced and doc corrections applied.
+- **Close the audit gaps:**
+  - S2 — add a census or regression test covering cross-tenant write isolation for mutating actions.
 
 ### ⏭️ Next
 
-- Close the audit gaps (H2/H7 transactional boundaries, H5.6 delete-site inventory, S2/S5 route/action-level tests, T4/T9/T10 export and auth/session route tests, M6 `typescript: true`, L5 `auto_stop_machines`).
+- Continue with remaining audit gaps (S2 action census, M6/L5 ADRs, H10 serialization retry verification, L1/L3/L4/L7 low-severity items); update trackers and `task-status`.
 
 ### ✅ Done
+
+- **Audit gap closure — H2/H7 transactional boundaries:**
+  - `ProcessedWebhookEvent.record` + Stripe `fulfillCheckout` side effects now run inside one
+    `prisma.$transaction` via `runInTransaction` on the repository. A crash mid-fulfillment
+    aborts the transaction, leaving the event unrecorded so Stripe retries safely.
+  - `CartRepository.markNotified` now uses `updateMany({ where: { id, notifiedAt: null } })` and
+    returns `boolean`; `AbandonedCartSweep` skips `eventBus.publish` when another process already
+    marked the cart, preventing duplicate `AbandonedCartDetected` events.
+
+- **Audit gap closure — H5.6 / M6 / L5 / T9/T10 / S5:**
+  - Completed the `prisma.*.delete(` / `deleteMany(` inventory in `TASK-0067` §6; hardened
+    `TrackedAccountRepository.delete` to scope by `storeId` in the `where` clause.
+  - Pinned Stripe `apiVersion` and set `typescript: true` in `StripePaymentGateway`.
+  - Set `auto_stop_machines = "off"` in `fly.toml` alongside `min_machines_running = 1`.
+  - Added route-level tests for `/api/export/[id]` covering `getCurrentUser` null → `401`,
+    cross-user export id → `404`, and valid export → `200` with `Cache-Control: no-store, private`.
+  - Added explicit `requireSuperAdmin()` to every `src/app/admin/**/page.tsx` and a static
+    `admin-guards.test.ts` that fails if any admin page omits it.
 
 - **REQ-0075 Packages A, B, C, G6, H — Release-engineering foundation:**
   - Fixed `Dockerfile` runner stage so `npx prisma migrate deploy` works inside the image.

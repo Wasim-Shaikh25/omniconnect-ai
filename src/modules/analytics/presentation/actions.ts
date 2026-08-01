@@ -309,7 +309,7 @@ export async function deleteTrackedCompetitorAction(
   }
 
   try {
-    await trackedAccountRepository.delete(account.id);
+    await trackedAccountRepository.delete(account.id, parsed.data.storeId);
     revalidatePath(`/stores/${parsed.data.storeId}/commerce/competitors`);
     return { ok: true };
   } catch (error) {

@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { Role } from "@/modules/auth";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { EcommerceProvider } from "../domain/provider";
@@ -28,11 +29,15 @@ export interface StoreRecord {
 export interface OrganizationRepository {
   create(input: { name: string }): Promise<OrganizationRecord>;
   findById(id: string): Promise<OrganizationRecord | null>;
-  findBySubscriptionId(subscriptionId: string): Promise<OrganizationRecord | null>;
+  findBySubscriptionId(
+    subscriptionId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<OrganizationRecord | null>;
   listAll(pagination?: PaginationInput): Promise<PaginatedResult<OrganizationRecord>>;
   updatePlan(
     id: string,
     input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
+    tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null>;
   /**
    * Atomically increments the organization's monthly AI reply counter when it is

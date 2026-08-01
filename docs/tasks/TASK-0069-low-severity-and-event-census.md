@@ -237,11 +237,11 @@ Record the results in §6.
 - [ ] **L4.3** Warn at startup when debug logging is on in production.
 - [ ] **L4.4** Document `LOG_LEVEL` in `.env.example` and `docs/deployment.md`.
 - [ ] **L4.5** Test: `logger.debug` emits nothing at the default level.
-- [x] **L5.1** Set `min_machines_running = 1` and `auto_stop_machines = "off"`. *(PARTIAL — `auto_stop_machines` still `"stop"` in `fly.toml`.)*
+- [x] **L5.1** Set `min_machines_running = 1` and `auto_stop_machines = "off"` for the app process in `fly.toml`.
 - [ ] **L5.2** Measure SSR + AI generation memory; decide the VM size.
 - [ ] **L5.3** Record the sizing ADR.
-- [ ] **L5.1b** Set `auto_stop_machines = "off"` for the app process in `fly.toml` (or confirm `"stop"` keeps one machine running).
-- [ ] **L5.1c** Audit whether `auto_stop_machines = "stop"` combined with `min_machines_running = 1` still permits a cold start on webhook delivery; document the Fly.io semantics.
+- [x] **L5.1b** Set `auto_stop_machines = "off"` for the app process in `fly.toml`.
+- [x] **L5.1c** With `auto_stop_machines = "off"` and `min_machines_running = 1`, the app machine stays running; no cold-start on webhook delivery.
 - [ ] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
 - [ ] **L7.1** Switch escalation detection to a case-insensitive regex.
 - [ ] **L7.2** Add the three-case unit test.

@@ -1,3 +1,4 @@
+import { requireSuperAdmin } from "@/modules/auth";
 import { listAllUsersAction, toggleUserSuperAdminAction } from "@/modules/users";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleSuperAdminButton } from "@/components/toggle-super-admin-button";
@@ -17,6 +18,7 @@ function parseLimit(raw: string | undefined) {
 }
 
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const page = parsePage(params.page);
   const limit = parseLimit(params.limit);

@@ -1,3 +1,4 @@
+import { requireSuperAdmin } from "@/modules/auth";
 import { listAllOrganizationsAction } from "@/modules/organizations";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -16,6 +17,7 @@ function parseLimit(raw: string | undefined) {
 }
 
 export default async function AdminOrganizationsPage({ searchParams }: AdminOrganizationsPageProps) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const page = parsePage(params.page);
   const limit = parseLimit(params.limit);

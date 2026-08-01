@@ -1,3 +1,4 @@
+import { requireSuperAdmin } from "@/modules/auth";
 import { listAllTicketsAction, getTicketByIdAction, updateTicketAction, addTicketCommentAction } from "@/modules/support";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TicketStatusForm, TicketCommentForm } from "@/components/ticket-detail-forms";
@@ -17,6 +18,7 @@ function parseLimit(raw: string | undefined) {
 }
 
 export default async function AdminTicketsPage({ searchParams }: AdminTicketsPageProps) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const page = parsePage(params.page);
   const limit = parseLimit(params.limit);

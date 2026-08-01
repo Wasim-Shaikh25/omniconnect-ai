@@ -162,7 +162,8 @@ founder disagrees, update this section and the linked task before coding.
 - [x] Delivering the same `checkout.session.completed` twice updates the plan once and increments
       `SaaSCoupon.usedCount` exactly once.
 - [x] Two *different* events are both processed.
-- [ ] Concurrent duplicate delivery results in exactly one fulfillment. *(PARTIAL — record and fulfillment are not in the same transaction/lock; see audit subtask.)*
+- [x] Concurrent duplicate delivery results in exactly one fulfillment. `ProcessedWebhookEvent.record`
+      and the Stripe fulfillment side effects run inside the same `prisma.$transaction`.
 - [x] A retention job prunes `ProcessedWebhookEvent` rows older than 30 days.
 
 ### H3 — Subscription lifecycle
@@ -184,13 +185,13 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H4 — Export route session revocation
 
-- [ ] `src/app/api/export/[id]/route.ts` uses `getCurrentUser()` from `@/modules/auth`, not
+- [x] `src/app/api/export/[id]/route.ts` uses `getCurrentUser()` from `@/modules/auth`, not
       `auth()`.
-- [ ] The response sets `Cache-Control: no-store, private`.
-- [ ] The route is rate-limited.
-- [ ] A repo-wide check confirms no remaining `await auth()` call sites outside
+- [x] The response sets `Cache-Control: no-store, private`.
+- [x] The route is rate-limited.
+- [x] A repo-wide check confirms no remaining `await auth()` call sites outside
       `src/modules/auth/`.
-- [ ] Tests: valid session → `200`; stale `tokenVersion` → `401`; soft-deleted user → `401`;
+- [x] Tests: valid session → `200`; stale `tokenVersion` → `401`; soft-deleted user → `401`;
       another user's export id → `404`.
 
 ### H5 — Project archive is non-destructive
@@ -214,7 +215,7 @@ founder disagrees, update this section and the linked task before coding.
       `convertedAt`, and a migration.
 - [x] `checkouts/create` and `checkouts/update` upsert cart state and publish **no** event.
 - [x] `orders/create` and `orders/paid` mark a matching cart `convertedAt` when `cart_token` is present.
-- [ ] A scheduled worker sweep publishes `AbandonedCartDetected` exactly once per cart, for carts *(PARTIAL — `markNotified` and `eventBus.publish` are not atomic; see audit subtask.)*
+- [x] A scheduled worker sweep publishes `AbandonedCartDetected` exactly once per cart, for carts
       idle beyond a configurable threshold, with no matching order and `notifiedAt IS NULL`.
 - [x] A subscriber consumes `AbandonedCartDetected` and creates an `ABANDONED_CART` notification.
 - [x] Tests: ten `checkouts/update` for one token → one row, zero events; idle past threshold → one

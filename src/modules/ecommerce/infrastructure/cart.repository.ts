@@ -88,11 +88,12 @@ export class PrismaCartRepository implements CartRepository {
     });
   }
 
-  async markNotified(id: string): Promise<void> {
-    await prisma.cart.update({
-      where: { id },
+  async markNotified(id: string): Promise<boolean> {
+    const { count } = await prisma.cart.updateMany({
+      where: { id, notifiedAt: null },
       data: { notifiedAt: new Date() },
     });
+    return count > 0;
   }
 
   async findAbandoned(

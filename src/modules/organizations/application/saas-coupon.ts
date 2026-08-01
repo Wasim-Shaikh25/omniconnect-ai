@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import { logger } from "@/shared/observability/logger";
@@ -34,10 +35,10 @@ export interface SaaSCouponRepository {
     stripePromotionCodeId?: string | null;
     createdBy: string;
   }): Promise<SaaSCouponRecord>;
-  findByCode(code: string): Promise<SaaSCouponRecord | null>;
+  findByCode(code: string, tx?: Prisma.TransactionClient): Promise<SaaSCouponRecord | null>;
   findById(id: string): Promise<SaaSCouponRecord | null>;
   list(pagination?: PaginationInput): Promise<PaginatedResult<SaaSCouponRecord>>;
-  incrementUsage(id: string, maxUses: number | null): Promise<boolean>;
+  incrementUsage(id: string, maxUses: number | null, tx?: Prisma.TransactionClient): Promise<boolean>;
 }
 
 export const createSaaSCouponSchema = z.object({

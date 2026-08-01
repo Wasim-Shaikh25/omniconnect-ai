@@ -501,10 +501,10 @@ abusive output blocked by moderation.
 - [ ] **M5.6** Tests for each topic.
 - [ ] **M5.7** Pass Shopify's automated compliance checks in a development store.
 - [x] **M6.1** Pin `apiVersion` and set `typescript: true`.
-- [ ] **M6.1b** Add `typescript: true` to the Stripe constructor and verify typecheck passes.
-- [ ] **M6.2b** Confirm `resolveSubscriptionId` handles the pinned invoice payload shapes (already verified by `billing.ts` tests).
+- [x] **M6.1b** Add `typescript: true` to the Stripe constructor and verify typecheck passes.
+- [x] **M6.2b** Confirm `resolveSubscriptionId` handles the pinned invoice payload shapes (verified by `billing.ts` tests covering `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`).
 - [ ] **M6.2** Write the ADR in `docs/decisions/`.
-- [ ] **M6.3** Verify `resolveSubscriptionId` against the pinned invoice shape.
+- [x] **M6.3** Verify `resolveSubscriptionId` against the pinned invoice shape.
 - [ ] **M7.1** Convert `require-store-access` into a pure predicate; guard in page bodies.
 - [ ] **M7.2** Fix the admin layout redirect status.
 - [ ] **M7.3** Add `scripts/check-http-status.ts` and wire it into CI.

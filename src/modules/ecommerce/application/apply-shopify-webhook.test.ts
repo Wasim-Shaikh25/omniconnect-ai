@@ -39,7 +39,7 @@ function makeDeps() {
     upsert: vi.fn().mockResolvedValue({ id: "cart-1", storeId: "store-1", cartToken: "abc123" } as never),
     findByStoreAndToken: vi.fn(),
     markConverted: vi.fn().mockResolvedValue(undefined),
-    markNotified: vi.fn(),
+    markNotified: vi.fn().mockResolvedValue(true),
     findAbandoned: vi.fn(),
   };
   return { integrations, products, orders, carts };

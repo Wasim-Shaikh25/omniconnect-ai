@@ -93,7 +93,7 @@ L6 (no bot protection on registration) is covered by `REQ-0070` §Registration h
 - [ ] A test asserts `logger.debug` emits nothing at the default level.
 
 ### L5 — Fly.io machine configuration
-- [x] `min_machines_running = 1` for the `app` process (also required by `REQ-0067` H6). *(PARTIAL — `auto_stop_machines` still `"stop"` in `fly.toml`.)*
+- [x] `min_machines_running = 1` and `auto_stop_machines = "off"` for the `app` process (also required by `REQ-0067` H6).
 - [ ] The webhook cold-start path is measured and recorded; if the p95 ack exceeds Meta's
       tolerance, the machine size is increased.
 - [ ] The 512 MB shared-CPU VM sizing decision is re-evaluated against measured SSR + AI

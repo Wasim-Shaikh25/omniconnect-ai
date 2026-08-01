@@ -59,8 +59,8 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] T6 duplicate Stripe event → fulfilled once (`billing.test.ts`).
 - [x] T7 payment failed then succeeded → `active` (`billing.test.ts` subscription lifecycle).
 - [x] T8 portal downgrade reflected (`billing.test.ts` price-change downgrade).
-- [ ] T9 stale `tokenVersion` on export → 401 (`session.integration.test.ts` tests `getCurrentUser` only; needs a route-level test on `/api/export/[id]`).
-- [ ] T10 soft-deleted user on export → 401 (`session.integration.test.ts` tests `getCurrentUser` only; needs a route-level test on `/api/export/[id]`).
+- [x] T9 stale `tokenVersion` on export → 401 (`session.integration.test.ts` covers `getCurrentUser`; `src/app/api/export/[id]/route.test.ts` covers the route returning 401 when `getCurrentUser` is null).
+- [x] T10 soft-deleted user on export → 401 (`session.integration.test.ts` covers `getCurrentUser`; `src/app/api/export/[id]/route.test.ts` covers the route returning 401 when `getCurrentUser` is null).
 - [x] T11 project archive keeps row + members (feature removed in `REQ-0073`; N/A).
 - [x] T12 handler throws → retries → failed queue (`queue-event-bus.test.ts` publish options enforce `attempts: 5`, `removeOnFail: false`).
 - [x] T13 one of two handlers throws → other completes (`queue-event-bus.test.ts`).
@@ -73,7 +73,7 @@ where `REDIS_URL` is set but no Redis service exists.
 - [ ] S2 cross-tenant write isolation (owner denied store mutation across tenant boundary). *(PARTIAL — one `makeTenantGuard` helper test; 173 action functions not covered.)*
 - [x] S3 `STAFF` store pinning (staff can access only assigned store).
 - [x] S4 `STAFF` denied owner-only mutations (staff cannot access other stores in the same org).
-- [ ] S5 non-super-admin denied on all admin routes and actions (`requireSuperAdmin` helper test only; admin pages use `getCurrentUser`/`isSuperAdmin`, no action-census test).
+- [x] S5 non-super-admin denied on all admin routes and actions — every `src/app/admin/**/page.tsx` now calls `requireSuperAdmin()` and `admin-guards.test.ts` enforces this; admin actions (`listAllUsersAction`, `toggleUserSuperAdminAction`, `listAllOrganizationsAction`, `listAllTicketsAction`, `listSaaSCouponsAction`) call `requireSuperAdmin()`.
 - [x] S6 `tokenVersion` revocation at every entry point (`getCurrentUser` and all `require*` helpers load the canonical DB record and verify `tokenVersion`).
 - [x] S7 invalid signatures rejected for all three providers (Shopify, Meta, Stripe webhook signature verification tests).
 - [x] S8 login rate limiting engages (`rateLimit` blocks requests beyond the configured limit).
