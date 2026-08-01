@@ -237,8 +237,8 @@ Core tables (see `prisma/schema.prisma` for full model):
   the release via `scripts/seed-super-admin.ts`; `/api/health` stays up during a transient DB outage.
 - **H2/H3** — Stripe webhooks have no `event.id` idempotency ledger, and `past_due` is a terminal
   state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
-- **H4** — `/api/export/[id]` uses `auth()` instead of `getCurrentUser()`, bypassing `tokenVersion`
-  revocation on a full personal-data export.
+- **H4** — `/api/export/[id]` now uses `getCurrentUser()`, enforces a 10 req/min rate limit, and
+  returns `Cache-Control: no-store, private`, so revoked sessions cannot download exports.
 - **H5** — `archiveProject` hard-deletes and cascades to `ProjectMember`.
 - **H6/H7** — event delivery has no durability, retry, or dead-letter path; abandoned-cart events
   fire on every cart edit and have no subscriber.

@@ -261,6 +261,8 @@ grep -rn "await auth()" src --include=*.ts --include=*.tsx | grep -v "modules/au
 # must return nothing
 ```
 
+**H4 verified 2026-08-01:** `getCurrentUser()` now guards `/api/export/[id]`, a 10 req/min rate limit is applied, `Cache-Control: no-store, private` is returned, and the repo-wide `await auth()` grep returns nothing outside `src/modules/auth/`. Tests for stale `tokenVersion`/soft-deleted/cross-user cases are still pending.
+
 ---
 
 ### Step 5 — C2 Layer 1: Stop the event-bus self-echo
