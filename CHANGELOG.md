@@ -15,13 +15,20 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0068` M8 — Accessibility (skip link, `<main id="main-content">`, sidebar `aria-label`, focus-trapped mobile drawer).
+- `REQ-0068` M9 — Encryption (HKDF key derivation, key rotation, dual-key decryption).
 
 ### ⏭️ Next
 
-- `REQ-0068` M9, M10, M15, then `REQ-0070`–`0075`.
+- `REQ-0068` M10, M15, then `REQ-0070`–`0075`.
 
 ### ✅ Done
+
+- **Audit gap closure — M8 Accessibility:**
+  - Added a skip link in `src/app/layout.tsx` as the first focusable element in `<body>`, targeting `<main id="main-content" tabIndex={-1}>`.
+  - Updated `src/components/app-shell.tsx` so both authenticated and unauthenticated `<main>` elements expose `id="main-content"` and `tabIndex={-1}`.
+  - Collapsed sidebar links now use `aria-label={item.label}` while keeping the icon `aria-hidden="true"` so screen readers still announce the destination.
+  - Replaced the hand-rolled mobile drawer with a Radix `Dialog` (`@radix-ui/react-dialog`) that moves focus into the drawer on open, traps focus, closes on `Escape`, restores focus to the trigger, and exposes a screen-reader-only title and description.
+  - Manually verified the skip link, collapsed-sidebar labels, Tab order, and colour-contrast spot-check (primary and muted surfaces pass WCAG AA thresholds).
 
 - **Audit gap closure — M5 Shopify compliance webhooks:**
   - `makeApplyShopifyWebhook` now handles `customers/data_request`, `customers/redact`, `shop/redact`, and `app/uninstalled`.

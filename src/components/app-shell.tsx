@@ -9,6 +9,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { SignOutButton } from "./sign-out-button";
 import type { SessionUser } from "@/modules/auth";
 
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   BarChart3,
   Brain,
@@ -72,7 +73,7 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
             </div>
           </div>
         </header>
-        <main className="flex-1">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1">{children}</main>
       </div>
     );
   }
@@ -148,9 +149,10 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
             ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:bg-muted hover:text-foreground",
         )}
+        aria-label={collapsed ? item.label : undefined}
         aria-current={active ? "page" : undefined}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
         {!collapsed && <span className="truncate">{item.label}</span>}
         {!collapsed && item.badge ? (
           <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-[10px] text-destructive-foreground">
@@ -233,41 +235,47 @@ export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
       </aside>
 
       {/* Mobile header */}
-      <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
-        <Link href="/dashboard" className="font-semibold">
-          OmniConnect AI
-        </Link>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((o) => !o)}
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-      </header>
+      <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+        <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
+          <Link href="/dashboard" className="font-semibold">
+            OmniConnect AI
+          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Dialog.Trigger asChild>
+              <Button type="button" variant="ghost" size="icon" aria-label="Open menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </Dialog.Trigger>
+          </div>
+        </header>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
-            onClick={() => setMobileOpen(false)}
-            aria-hidden="true"
-          />
-          <aside className="fixed left-0 top-14 z-50 h-[calc(100vh-3.5rem)] w-64 border-r bg-background md:hidden">
-            <SidebarContent onItemClick={() => setMobileOpen(false)} />
-          </aside>
-        </>
-      )}
+        {/* Mobile drawer */}
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 md:hidden" />
+          <Dialog.Content asChild>
+            <aside className="fixed left-0 top-14 z-50 h-[calc(100vh-3.5rem)] w-64 border-r bg-background md:hidden">
+              <Dialog.Title className="sr-only">Main navigation</Dialog.Title>
+              <Dialog.Description className="sr-only">
+                Navigate the application. Press Escape to close the menu.
+              </Dialog.Description>
+              <div className="flex items-center justify-end border-b px-4 py-2 md:hidden">
+                <Dialog.Close asChild>
+                  <Button type="button" variant="ghost" size="icon" aria-label="Close menu">
+                    <X className="h-5 w-5" aria-hidden="true" />
+                  </Button>
+                </Dialog.Close>
+              </div>
+              <SidebarContent onItemClick={() => setMobileOpen(false)} />
+            </aside>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {/* Main content */}
       <main
+        id="main-content"
+        tabIndex={-1}
         className={cn(
           "flex-1 transition-all duration-200 md:ml-64",
           "pt-14 md:pt-0",

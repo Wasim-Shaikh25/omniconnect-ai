@@ -37,6 +37,12 @@ export default async function RootLayout({
   return (
     <html lang="en" nonce={nonce} suppressHydrationWarning>
       <body className="min-h-screen antialiased" nonce={nonce} suppressHydrationWarning>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:ring-2 focus:ring-ring"
+        >
+          Skip to main content
+        </a>
         <Providers nonce={nonce}>
           <AppShell user={user} unreadCount={unreadCount}>
             {children}

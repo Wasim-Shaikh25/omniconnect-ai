@@ -65,12 +65,12 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] No data leaked on any probe; script asserts 404 bodies do not contain tenant/store names.
 
 ### M8 — Accessibility
-- [ ] Skip link added as the first focusable element.
-- [ ] `<main id="main-content" tabIndex={-1}>` added.
-- [ ] Collapsed nav links have accessible names; icons `aria-hidden`.
-- [ ] Mobile drawer uses a focus-trapping primitive with `Escape` and focus restore.
-- [ ] Manual keyboard traversal verified and recorded.
-- [ ] Colour contrast spot-checked.
+- [x] Skip link added as the first focusable element (`src/app/layout.tsx:40-45`).
+- [x] `<main id="main-content" tabIndex={-1}>` added (`src/components/app-shell.tsx:76,277-278`).
+- [x] Collapsed nav links have accessible names; icons `aria-hidden` (`src/components/app-shell.tsx:152-155`).
+- [x] Mobile drawer uses a Radix `Dialog` primitive with `Escape` close and trigger focus restore (`src/components/app-shell.tsx:238-273`).
+- [x] Manual keyboard traversal verified and recorded.
+- [x] Colour contrast spot-checked.
 
 ### M9 — Encryption
 - [ ] HKDF derivation implemented.

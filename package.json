@@ -37,6 +37,7 @@
     "@opentelemetry/exporter-trace-otlp-http": "0.221.0",
     "@opentelemetry/sdk-trace-base": "^2.10.0",
     "@prisma/client": "^6.2.1",
+    "@radix-ui/react-dialog": "1.1.23",
     "@radix-ui/react-slot": "^1.1.1",
     "@sentry/nextjs": "^10.68.0",
     "@types/nodemailer": "8.0.1",

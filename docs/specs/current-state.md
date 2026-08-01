@@ -244,7 +244,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Analytics `couponsUsed` and strict coupon-to-order attribution are not yet implemented (TASK-0062).
 - Out-of-scope UI routes (affiliates, media-kit, brand-deals, UGC growth, revenue, daily-marketing, engagement, orders) have been removed. The remaining navigation is grouped in a collapsible sidebar (Home / Connect / Create / Engage / Analyze / Account).
 - Direct Meta content publishing/scheduling is out of scope for MVP.
-- Real load/accessibility/penetration testing has not been performed.
+- Real load and penetration testing has not been performed.
+- Accessibility hardening (`REQ-0068` M8) is in place: a skip link targets `<main id="main-content" tabIndex={-1}>`, the collapsed sidebar preserves link labels via `aria-label` with `aria-hidden` icons, and the mobile drawer is a Radix `Dialog` that traps focus, closes on `Escape`, and restores focus to the trigger. Manual keyboard traversal and a colour-contrast spot-check on primary surfaces were recorded.
 
 ### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
 
