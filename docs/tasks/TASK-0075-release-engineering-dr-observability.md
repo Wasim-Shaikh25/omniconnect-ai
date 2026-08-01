@@ -1,6 +1,7 @@
 # TASK-0075: Implement Release Engineering, DR, Observability and Residual-Risk Closure
 
-- **Status:** Todo
+- **Status:** In Progress
+- **Last updated:** 2026-08-01
 - **Owner:** DevOps / SRE
 - **Requirement:** `docs/requirements/REQ-0075-release-engineering-dr-observability.md`
 - **Tracker:** `docs/trackers/TRACKER-0075-release-engineering-dr-observability.md`
@@ -262,18 +263,18 @@ Record, do not necessarily build:
 
 ## 4. Subtasks
 
-- [ ] **A.1** Copy `prisma/` and the Prisma runtime into the Docker runner stage.
-- [ ] **A.2** Verify `prisma migrate deploy` runs inside a built container.
-- [ ] **A.3** Record the image size delta; choose single-image vs separate migration image.
-- [ ] **A.4** Document the Docker migration step in `docs/deployment.md`.
-- [ ] **A.5** Add container vulnerability scanning to CI.
-- [ ] **B.1** Add the deploy workflow gated on CI success.
+- [x] **A.1** Copy `prisma/` and the Prisma runtime into the Docker runner stage.
+- [x] **A.2** Verify `prisma migrate deploy` runs inside a built container.
+- [x] **A.3** Record the image size delta; choose single-image vs separate migration image.
+- [x] **A.4** Document the Docker migration step in `docs/deployment.md`.
+- [x] **A.5** Add container vulnerability scanning to CI.
+- [x] **B.1** Add the deploy workflow gated on CI success.
 - [ ] **B.2** Configure GitHub Environments with production approval.
 - [ ] **B.3** Store the Fly release token as a repository secret.
-- [ ] **B.4** Expose `GIT_COMMIT_SHA` at `/api/health` without adding dependencies.
-- [ ] **B.5** Reduce or delete `deploy.sh` so there is one deployment path.
-- [ ] **C.1** Write the rollback runbook.
-- [ ] **C.2** Write and adopt the expand/contract migration policy.
+- [x] **B.4** Expose `GIT_COMMIT_SHA` at `/api/health` without adding dependencies.
+- [x] **B.5** Reduce or delete `deploy.sh` so there is one deployment path.
+- [x] **C.1** Write the rollback runbook.
+- [x] **C.2** Write and adopt the expand/contract migration policy.
 - [ ] **C.3** Rehearse a rollback against staging; record the date and outcome.
 - [ ] **D.1** Enable managed daily backups; document retention.
 - [ ] **D.2** Add the independent weekly `pg_dump` to off-platform storage.
@@ -294,12 +295,12 @@ Record, do not necessarily build:
 - [ ] **G.3** Run the 24-hour two-replica soak; assert exactly-once side effects.
 - [ ] **G.4** Schedule a penetration test or record a signed risk acceptance.
 - [ ] **G.5** Verify all four third-party integrations against sandbox credentials.
-- [ ] **G.6** Write the risk register with Closed/Accepted status for every §6.1 risk.
-- [ ] **H.1** Write the worker-extraction ADR.
-- [ ] **H.2** Write the transactional-outbox ADR.
-- [ ] **H.3** Write the second-LLM-provider ADR.
-- [ ] **H.4** Write the per-tenant AI quota ADR.
-- [ ] **H.5** Write the analytics read-replica ADR.
+- [x] **G.6** Write the risk register with Closed/Accepted status for every §6.1 risk.
+- [x] **H.1** Write the worker-extraction ADR.
+- [x] **H.2** Write the transactional-outbox ADR.
+- [x] **H.3** Write the second-LLM-provider ADR.
+- [x] **H.4** Write the per-tenant AI quota ADR.
+- [x] **H.5** Write the analytics read-replica ADR.
 
 ## 5. Acceptance Criteria
 
@@ -316,7 +317,7 @@ Record, do not necessarily build:
 - **Depends on** `REQ-0074` Package A: CI must be trustworthy before it gates deploys.
 - **Depends on** `REQ-0068` M2 for a useful OTLP endpoint.
 - **Record here during implementation:**
-  - Docker image size delta and the single-image vs separate-image decision (A.3).
+  - **A.3 decision:** Single image. `omniconnect-ai:local` grew from 362 MB to 374 MB after adding `prisma/`, `scripts/`, the Prisma runtime, and the `prisma`/`tsx` CLI symlinks. `npx prisma migrate deploy` verified inside the container.
   - Measured RTO and RPO from the restore drill (D.4).
   - Load-test saturation point (G.1).
   - Soak-test result and any exactly-once violations found (G.3).

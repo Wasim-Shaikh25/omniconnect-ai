@@ -217,12 +217,21 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 ## 10. Deployment and Operations
 
-- **Dockerfile:** multi-stage, non-root, standalone output.
-- **Fly.io:** `app` web process + `worker` BullMQ process.
-- **Health checks:** `/api/health` (liveness) and `/api/ready` (DB + Redis).
-- **Backups:** PostgreSQL `pg_dump`, Redis `BGSAVE`; restore and rollback runbook in `docs/operations.md`.
-- **Observability:** Sentry + OpenTelemetry initialized in app and worker; spans around AI, Meta, and Shopify calls.
-- **Secrets:** all tokens encrypted at rest; no secrets in logs; `env.ts` validates required production variables.
+- **Dockerfile:** multi-stage, non-root, standalone output. The runner stage copies `prisma/`,
+  `scripts/`, the Prisma runtime, and `prisma`/`tsx` CLI symlinks so `npx prisma migrate deploy`
+  runs inside the image. Size delta is ~12 MB (362 MB → 374 MB); a single image is used.
+- **Fly.io:** `app` web process + `worker` BullMQ process. `fly.staging.toml` defines the staging
+  environment; `fly.toml` defines production.
+- **Continuous deployment:** `.github/workflows/deploy.yml` triggers after CI passes on `main`,
+  auto-deploys to staging, then deploys to production through a GitHub Environment approval.
+- **Health checks:** `/api/health` (liveness; returns `version` = `GIT_COMMIT_SHA`) and `/api/ready`
+  (DB + Redis).
+- **Backups:** PostgreSQL `pg_dump`, Redis `BGSAVE`; restore and rollback runbook + migration
+  compatibility policy in `docs/operations.md`.
+- **Observability:** Sentry + OpenTelemetry initialized in app and worker; spans around AI, Meta,
+  and Shopify calls. Alert table and risk register in `docs/operations.md`.
+- **Secrets:** all tokens encrypted at rest; no secrets in logs; `env.ts` validates required
+  production variables. `.dockerignore` excludes `.env*` from the image.
 
 ---
 

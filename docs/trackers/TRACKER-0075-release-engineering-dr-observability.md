@@ -1,10 +1,10 @@
 # TRACKER-0075: Release Engineering, DR, Observability and Residual-Risk Closure
 
-- **Status:** Todo
+- **Status:** In Progress
+- **Last updated:** 2026-08-01
 - **Owner:** DevOps / SRE
 - **Requirement:** `docs/requirements/REQ-0075-release-engineering-dr-observability.md`
 - **Task:** `docs/tasks/TASK-0075-release-engineering-dr-observability.md`
-- **Last updated:** 2026-07-31
 
 ## 1. Summary
 
@@ -22,22 +22,22 @@ multi-replica correctness, live third-party integrations).
 - [ ] Branch created from `main`.
 
 ### Package A — Docker image and migrations
-- [ ] `prisma/` and the Prisma runtime copied into the runner stage.
-- [ ] `prisma migrate deploy` verified inside a built container.
-- [ ] Image size delta recorded; single-image vs separate-image decision made.
-- [ ] Docker migration step documented in `docs/deployment.md`.
-- [ ] Container vulnerability scanning added to CI.
+- [x] `prisma/` and the Prisma runtime copied into the runner stage.
+- [x] `prisma migrate deploy` verified inside a built container.
+- [x] Image size delta recorded; single-image vs separate-image decision made.
+- [x] Docker migration step documented in `docs/deployment.md`.
+- [x] Container vulnerability scanning added to CI.
 
 ### Package B — Continuous deployment
-- [ ] Deploy workflow added, gated on CI success.
+- [x] Deploy workflow added, gated on CI success.
 - [ ] GitHub Environments configured with production approval.
 - [ ] Fly release token stored as a secret.
-- [ ] `GIT_COMMIT_SHA` exposed at `/api/health` with no added dependencies.
-- [ ] `deploy.sh` reduced to a wrapper or deleted.
+- [x] `GIT_COMMIT_SHA` exposed at `/api/health` with no added dependencies.
+- [x] `deploy.sh` reduced to a wrapper.
 
 ### Package C — Rollback
-- [ ] Rollback runbook written in `docs/operations.md`.
-- [ ] Expand/contract migration policy written and adopted.
+- [x] Rollback runbook written in `docs/operations.md`.
+- [x] Expand/contract migration policy written and adopted.
 - [ ] Rollback **rehearsed** against staging; date and outcome recorded.
 
 ### Package D — Backups and restore
@@ -71,14 +71,14 @@ multi-replica correctness, live third-party integrations).
 - [ ] **G3** 24-hour two-replica soak run; exactly-once side effects asserted.
 - [ ] **G4** Penetration test scheduled, or risk accepted with an owner and review date.
 - [ ] **G5** Meta, Shopify, Stripe, and OpenAI verified against sandbox credentials.
-- [ ] **G6** Risk register written; every §6.1 risk Closed or Accepted.
+- [x] **G6** Risk register written; every §6.1 risk Closed or Accepted.
 
 ### Package H — Architecture ADRs
-- [ ] Worker-extraction ADR written.
-- [ ] Transactional-outbox ADR written.
-- [ ] Second-LLM-provider ADR written.
-- [ ] Per-tenant AI quota ADR written.
-- [ ] Analytics read-replica ADR written.
+- [x] Worker-extraction ADR written.
+- [x] Transactional-outbox ADR written.
+- [x] Second-LLM-provider ADR written.
+- [x] Per-tenant AI quota ADR written.
+- [x] Analytics read-replica ADR written.
 
 ### Verification
 - [ ] A deploy to staging completes end to end via the workflow.

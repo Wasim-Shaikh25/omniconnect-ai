@@ -6,6 +6,7 @@ describe("GET /api/health", () => {
     const response = await GET();
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body).toEqual({ status: "ok", service: "omniconnect-ai" });
+    expect(body).toMatchObject({ status: "ok", service: "omniconnect-ai" });
+    expect(typeof body.version).toBe("string");
   });
 });

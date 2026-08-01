@@ -64,23 +64,39 @@ pg_restore -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" --clean --if-exists latest.
 
 ### Application rollback
 
-1. Identify the last known good container image / release tag.
-2. Redeploy the previous image:
+1. Identify the last known-good release:
+   `flyctl releases --app omniconnect-ai`
+2. Roll back the application:
+   `flyctl deploy --image registry.fly.io/omniconnect-ai:<previous-tag>`
+3. Verify: `curl https://<host>/api/health` returns the expected `version` commit SHA;
+   `curl https://<host>/api/ready` returns `200`.
+4. Migrations are **not** rolled back. Every migration must be backward-compatible with the
+   previous application version (see the policy below), so the old code runs against the new schema.
+5. If a migration is not backward-compatible, a rollback requires a restore — follow
+   "Restore from backup" and expect data loss back to the last backup.
 
-```bash
-fly deploy --image registry.example.com/omniconnect-ai:<previous-tag>
-```
+## Migration compatibility policy (expand / contract)
 
-3. If a bad migration was deployed, do **not** run `migrate deploy` again. Instead restore the database to a pre-migration backup.
-4. Verify `/api/health` and `/api/ready`.
+- **Expand first:** add columns as nullable, add tables, add indexes concurrently.
+  Deploy the code that writes to both old and new shapes.
+- **Contract later:** only after the new code is stable in production, drop the old
+  column or constraint in a subsequent release.
+- **Never** in a single release: rename a column, drop a column still read by the
+  previous version, or add a `NOT NULL` column without a default.
 
-### Database migration rollback
+## Restore drill
 
-Prisma migrations are forward-only. To rollback:
+Performed when: [date] by: [owner]
 
-1. Restore the database from a pre-migration backup.
-2. Re-deploy the matching previous application version.
-3. Only then create a corrective migration.
+1. Provision a scratch database and user.
+2. Restore the latest backup:
+   `pg_restore -d "$SCRATCH_URL" --clean --if-exists omniconnect-<date>.dump`
+3. Verify row counts against the source for: `User`, `Organization`, `Store`, `Product`,
+   `Order`, `Conversation`, `Message`.
+4. Point a local build at the scratch database; sign in; load `/dashboard`.
+5. Record: total restore time (RTO) and the age of the newest data (RPO).
+
+**Result:** RTO = __ minutes. RPO = __ hours. Issues found: __
 
 ## Dependency failure runbooks
 
@@ -143,6 +159,33 @@ npx tsx scripts/export-user-data.ts <user-id>
 # Hard-delete accounts past the 30-day grace period
 npx tsx scripts/cleanup-deleted-accounts.ts
 ```
+
+## Alerting
+
+| Alert | Condition | First response | Owner |
+|---|---|---|---|
+| Webhook failure rate per provider | > 5% over 15 min | Check provider status; inspect `SystemLog` | TBD |
+| Event-handler errors | > 10 errors in 15 min | Check the failed queue; inspect handler logs | TBD |
+| Failed-queue depth | > 50 | Inspect and drain; look for a poison message | TBD |
+| Readiness failing | `/api/ready` non-200 for 3 consecutive checks | Check the database and Redis | TBD |
+| Error-rate spike | 5× the 7-day baseline | Sentry issue triage | TBD |
+| Backup failure | Any failed backup job | Re-run; escalate if it repeats | TBD |
+
+Configure Sentry release tracking with `SENTRY_RELEASE` set to the deployed `GIT_COMMIT_SHA`.
+Dashboard covers request rate, error rate, p95 latency, queue depth, and webhook health per provider.
+Review thresholds one month after launch.
+
+## Risk register
+
+| Risk | Status | Evidence / mitigation | Owner | Review date |
+|---|---|---|---|---|
+| Third-party API behaviour untested (Meta/Shopify/Stripe/OpenAI) | Open | Full staging run against sandbox accounts | TBD | 2027-02-01 |
+| Load and concurrency profile unknown | Open | k6/Artillery run at 10× expected peak | TBD | 2027-02-01 |
+| Accessibility conformance unproven | Open | axe-core + Lighthouse + manual screen-reader pass | TBD | 2027-02-01 |
+| Prompt injection via customer DMs | Open | Adversarial prompt-injection test suite | TBD | 2027-02-01 |
+| Restore has never been exercised | Open | Rehearsed restore drill recorded above | TBD | 2027-02-01 |
+| Cross-tenant write isolation not exhaustively probed | Closed | `tenantGuard` integration tests for all mutating actions | TBD | - |
+| Multi-replica correctness | Open | Two-replica staging soak for 24 hours | TBD | 2027-02-01 |
 
 ## Contact
 
