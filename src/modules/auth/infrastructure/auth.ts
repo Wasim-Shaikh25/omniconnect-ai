@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import NextAuth, { type NextAuthConfig, CredentialsSignin } from "next-auth";
+import { env } from "@/shared/config";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
@@ -7,7 +8,6 @@ import Apple from "next-auth/providers/apple";
 import GitHub from "next-auth/providers/github";
 import { prisma } from "@/shared/database";
 import { EncryptedPrismaAdapter } from "./encrypted-prisma-adapter";
-import { env } from "@/shared/config";
 import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import { isRole, type Role } from "../domain/role";
@@ -22,6 +22,10 @@ export class RateLimitAuthError extends CredentialsSignin {
   constructor(public readonly retryAfterMs: number) {
     super();
   }
+}
+
+class UnverifiedEmailError extends CredentialsSignin {
+  code = "unverifiedEmail";
 }
 
 const accounts = new PrismaAccountRepository();
@@ -72,6 +76,10 @@ const providers: NextAuthConfig["providers"] = [
         account.tokenVersion = restored.tokenVersion;
       }
 
+      if (env.REQUIRE_EMAIL_VERIFICATION && !account.emailVerified) {
+        throw new UnverifiedEmailError();
+      }
+
       if (account.isSuperAdmin) {
         if (!mfaCode) return null;
         const codeValid = await verifyCode(email, mfaCode, "mfa");
@@ -84,6 +92,7 @@ const providers: NextAuthConfig["providers"] = [
         name: account.name,
         role: account.role,
         isSuperAdmin: account.isSuperAdmin,
+        emailVerified: account.emailVerified,
         organizationId: account.organizationId,
         storeId: account.storeId,
         tokenVersion: account.tokenVersion,
@@ -151,6 +160,7 @@ async function refreshTokenFromDb(
     ...token,
     role: fresh.role,
     isSuperAdmin: fresh.isSuperAdmin,
+    emailVerified: fresh.emailVerified,
     organizationId: fresh.organizationId,
     storeId: fresh.storeId,
     tokenVersion: fresh.tokenVersion,
@@ -215,6 +225,12 @@ export const authConfig: NextAuthConfig = {
             : null;
         session.user.isSuperAdmin =
           typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
+        session.user.emailVerified =
+          token.emailVerified instanceof Date
+            ? token.emailVerified
+            : typeof token.emailVerified === "string"
+              ? new Date(token.emailVerified)
+              : null;
         session.user.storeId =
           typeof token.storeId === "string" ? token.storeId : null;
         session.user.tokenVersion =

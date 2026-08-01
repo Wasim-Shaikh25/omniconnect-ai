@@ -30,6 +30,7 @@ const ALLOWLIST: Record<string, string> = {
   "src/modules/auth/presentation/actions.ts:loginAction": "public login",
   "src/modules/auth/presentation/actions.ts:requestPasswordResetAction": "public password reset request",
   "src/modules/auth/presentation/actions.ts:resetPasswordAction": "token-based password reset",
+  "src/modules/auth/presentation/actions.ts:resendVerificationEmailAction": "public resend verification email",
 };
 
 function actionFiles(dir: string): string[] {

@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string;
       role: Role;
       isSuperAdmin: boolean;
+      emailVerified: Date | null;
       organizationId: string | null;
       storeId: string | null;
       tokenVersion: number;
@@ -16,6 +17,7 @@ declare module "next-auth" {
   interface User {
     role?: Role;
     isSuperAdmin?: boolean;
+    emailVerified?: Date | null;
     organizationId?: string | null;
     storeId?: string | null;
     tokenVersion?: number;
@@ -27,6 +29,7 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: Role;
     isSuperAdmin?: boolean;
+    emailVerified?: Date | null;
     organizationId?: string | null;
     storeId?: string | null;
     tokenVersion?: number;

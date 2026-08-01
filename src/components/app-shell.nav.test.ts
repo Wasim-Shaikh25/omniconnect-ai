@@ -31,6 +31,7 @@ function isAllowed(route: string): boolean {
     "/onboarding",
     "/forgot-password",
     "/reset-password",
+    "/verify-email",
     "/pricing",
   ];
   const allowedPrefixes = [

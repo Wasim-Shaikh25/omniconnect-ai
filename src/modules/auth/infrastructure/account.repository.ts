@@ -7,6 +7,9 @@ function mapUser(user: {
   email: string;
   name: string | null;
   passwordHash: string | null;
+  phone: string | null;
+  emailVerified: Date | null;
+  phoneVerified: Date | null;
   role: string;
   isSuperAdmin: boolean;
   organizationId: string | null;
@@ -19,6 +22,9 @@ function mapUser(user: {
     email: user.email,
     name: user.name,
     passwordHash: user.passwordHash,
+    phone: user.phone,
+    emailVerified: user.emailVerified,
+    phoneVerified: user.phoneVerified,
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
     organizationId: user.organizationId,
@@ -71,12 +77,21 @@ export class PrismaAccountRepository implements AccountRepository {
     return mapUser(user);
   }
 
+  async setEmailVerified(id: string, emailVerified: Date): Promise<AccountRecord | null> {
+    const user = await prisma.user.update({
+      where: { id, deletedAt: null },
+      data: { emailVerified },
+    });
+    return mapUser(user);
+  }
+
   async create(input: {
     email: string;
     name: string | null;
     passwordHash: string;
     role: Role;
     phone?: string | null;
+    emailVerified?: Date | null;
     isSuperAdmin?: boolean;
     organizationId?: string | null;
     storeId?: string | null;
@@ -88,6 +103,7 @@ export class PrismaAccountRepository implements AccountRepository {
         passwordHash: input.passwordHash,
         role: input.role,
         phone: input.phone ?? null,
+        emailVerified: input.emailVerified ?? null,
         isSuperAdmin: input.isSuperAdmin ?? false,
         organizationId: input.organizationId ?? null,
         storeId: input.storeId ?? null,

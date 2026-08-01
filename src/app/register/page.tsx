@@ -6,6 +6,7 @@ import {
   oauthSignInAction,
   registerAction,
 } from "@/modules/auth";
+import { env } from "@/shared/config";
 import {
   registerWithInviteAction,
   validateOrganizationInvite,
@@ -58,6 +59,7 @@ export default async function RegisterPage({
             inviteStoreId={storeId}
             oauthProviders={oauthProviders}
             oauthAction={oauthSignInAction}
+            turnstileSiteKey={env.TURNSTILE_SITE_KEY}
           />
         </CardContent>
       </Card>

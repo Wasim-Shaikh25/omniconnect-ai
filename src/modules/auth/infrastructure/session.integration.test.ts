@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll, afterAll, vi, type Mock } from "vitest";
 import { prisma } from "@/shared/database";
 import { resetDatabase } from "@/test/reset";
-import { getCurrentUser, requireSuperAdmin } from "./session";
+import { getCurrentUser, requireSuperAdmin, requireVerifiedEmail } from "./session";
 import { ForbiddenError } from "../domain/errors";
 
 vi.mock("./auth", () => ({
@@ -155,5 +155,69 @@ describe("requireSuperAdmin", () => {
     });
 
     await expect(requireSuperAdmin()).rejects.toBeInstanceOf(ForbiddenError);
+  });
+});
+
+describe("requireVerifiedEmail", () => {
+  it("throws ForbiddenError when the user is not verified", async () => {
+    const unverified = await prisma.user.create({
+      data: {
+        email: "unverified@example.com",
+        passwordHash: "hash",
+        name: "Unverified",
+        role: "STORE_OWNER",
+        isSuperAdmin: false,
+        emailVerified: null,
+        tokenVersion: 1,
+      },
+    });
+
+    mockAuth.mockResolvedValue({
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      user: {
+        id: unverified.id,
+        email: unverified.email,
+        name: unverified.name,
+        role: unverified.role,
+        isSuperAdmin: unverified.isSuperAdmin,
+        organizationId: unverified.organizationId,
+        storeId: unverified.storeId,
+        tokenVersion: unverified.tokenVersion,
+      },
+    });
+
+    await expect(requireVerifiedEmail()).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("returns the user when they are verified", async () => {
+    const verified = await prisma.user.create({
+      data: {
+        email: "verified@example.com",
+        passwordHash: "hash",
+        name: "Verified",
+        role: "STORE_OWNER",
+        isSuperAdmin: false,
+        emailVerified: new Date(),
+        tokenVersion: 1,
+      },
+    });
+
+    mockAuth.mockResolvedValue({
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      user: {
+        id: verified.id,
+        email: verified.email,
+        name: verified.name,
+        role: verified.role,
+        isSuperAdmin: verified.isSuperAdmin,
+        organizationId: verified.organizationId,
+        storeId: verified.storeId,
+        tokenVersion: verified.tokenVersion,
+      },
+    });
+
+    const result = await requireVerifiedEmail();
+    expect(result.id).toBe(verified.id);
+    expect(result.emailVerified).toBeInstanceOf(Date);
   });
 });

@@ -83,30 +83,29 @@ standard SaaS.
 ## 6. Acceptance Criteria
 
 ### 6.1 Registration
-- [ ] `registerUserSchema` requires `confirmPassword` and rejects a mismatch with a field-level
+- [x] `registerUserSchema` requires `confirmPassword` and rejects a mismatch with a field-level
       error.
-- [ ] `AuthForm` (register mode) renders a confirm-password field with the mismatch error inline.
-- [ ] Password strength rules are stated in the UI before submission (current rule: 8–200 chars;
+- [x] `AuthForm` (register mode) renders a confirm-password field with the mismatch error inline.
+- [x] Password strength rules are stated in the UI before submission (current rule: 8–200 chars;
       any change is recorded in the task file).
 - [x] ~~Optional `dateOfBirth` is collected with a stated purpose; a minimum-age rule is applied per
       the decision in §8.~~ **Omitted for MVP (Q1): no DOB field or age policy.**
-- [ ] Optional `phone` is collected in E.164 format with client and server validation.
-- [ ] Registration creates the user in an **unverified** state and sends a verification email.
-- [ ] Organization/workspace provisioning happens **after** verification (or the pre-verification
+- [x] Optional `phone` is collected in E.164 format with client and server validation.
+- [x] Registration creates the user in an **unverified** state and sends a verification email.
+- [x] Organization/workspace provisioning happens **after** verification (or the pre-verification
       state is explicitly limited — decision recorded in §8).
-- [ ] A verification link is single-use, expires in 24 hours, and is rate-limited per address.
-- [ ] Resending a verification email is possible and rate-limited.
-- [ ] An unverified user attempting to log in receives a clear message and a resend option — never
+- [x] A verification link is single-use, expires in 24 hours, and is rate-limited per address.
+- [x] Resending a verification email is possible and rate-limited.
+- [x] An unverified user attempting to log in receives a clear message and a resend option — never
       a generic "invalid credentials".
-- [ ] Enumeration safety: registering with an existing address produces the same visible outcome as
+- [x] Enumeration safety: registering with an existing address produces the same visible outcome as
       a new address.
-- [ ] **L6/Q6:** bot protection is applied to registration (CAPTCHA or equivalent), configurable
+- [x] **L6/Q6:** bot protection is applied to registration (CAPTCHA or equivalent), configurable
       and disabled in test environments.
 
 ### 6.2 Email verification and change
-- [ ] `User.emailVerified` is set on successful verification and is the authoritative flag.
-- [ ] A `VerificationToken`-style record (or the existing table) stores hashed tokens, never
-      plaintext.
+- [x] `User.emailVerified` is set on successful verification and is the authoritative flag.
+- [x] A `VerificationRequest` record stores hashed tokens, never plaintext.
 - [ ] Changing an email sends a confirmation to the **new** address and a notification to the
       **old** address.
 - [ ] The change takes effect only after the new address is confirmed.
@@ -154,13 +153,13 @@ standard SaaS.
 - [ ] A test asserts every `href` rendered by `settings/page.tsx` resolves to an existing route.
 
 ### 6.8 Cross-cutting
-- [ ] All new server actions call `getCurrentUser()` (never `auth()`), enforce RBAC, and validate
+- [x] All new server actions call `getCurrentUser()` (never `auth()`), enforce RBAC, and validate
       with zod.
 - [ ] All new mutations write `AuditLog` entries.
-- [ ] Domain logic (password policy, age check, phone normalisation) lives in the domain layer with
+- [x] Domain logic (password policy, phone normalisation) lives in the domain layer with
       no IO, per `AGENTS.md` §1.
-- [ ] Every new flow has unit tests; verification, change-email, and change-password have
-      integration tests.
+- [x] Every new flow has unit tests; email verification has integration tests (change-email and
+      change-password integration tests tracked under Package D).
 
 ## 7. Scope & Dependencies
 

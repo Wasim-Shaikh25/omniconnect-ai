@@ -5,6 +5,7 @@ import {
   oauthProviders,
   oauthSignInAction,
   loginAction,
+  resendVerificationEmailAction,
 } from "@/modules/auth";
 import { AuthForm } from "@/components/auth-form";
 import {
@@ -35,6 +36,7 @@ export default async function LoginPage() {
             action={loginAction}
             oauthProviders={oauthProviders}
             oauthAction={oauthSignInAction}
+            resendAction={resendVerificationEmailAction}
           />
         </CardContent>
       </Card>

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getCurrentUser, requireRole, ForbiddenError } from "@/modules/auth";
+import { getCurrentUser, requireRole, requireVerifiedEmail, ForbiddenError } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { aiUsageGuard } from "../application/usage-guard";
@@ -50,6 +50,7 @@ export async function updateAIConfigurationAction(
   formData: FormData,
 ): Promise<AIActionState> {
   const user = await requireRole("STORE_OWNER");
+  await requireVerifiedEmail(user);
 
   const parsed = updateAIConfigSchema.safeParse({
     storeId: formData.get("storeId"),
@@ -93,6 +94,7 @@ export async function generateCaptionsAction(
   formData: FormData,
 ): Promise<GenerateCaptionsState> {
   const user = await requireRole("STORE_OWNER");
+  await requireVerifiedEmail(user);
 
   const rawTagIds = formData.getAll("productTagIds");
   const parsed = generateCaptionsSchema.safeParse({
@@ -143,6 +145,7 @@ export async function generateTrendsAction(
   formData: FormData,
 ): Promise<GenerateTrendsState> {
   const user = await requireRole("STORE_OWNER");
+  await requireVerifiedEmail(user);
 
   const parsed = generateTrendsSchema.safeParse({
     storeId: formData.get("storeId"),
@@ -193,6 +196,7 @@ export async function generatePostIdeasAction(
   formData: FormData,
 ): Promise<GeneratePostIdeasState> {
   const user = await requireRole("STORE_OWNER");
+  await requireVerifiedEmail(user);
 
   const parsed = generatePostIdeasSchema.safeParse({
     storeId: formData.get("storeId"),
@@ -262,6 +266,7 @@ export async function askBusinessBrainAction(
   if (!user || !user.organizationId) {
     return { error: "You must be signed in to a workspace." };
   }
+  await requireVerifiedEmail(user);
 
   const parsed = askBusinessBrainSchema.safeParse({
     question: formData.get("question"),

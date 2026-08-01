@@ -11,6 +11,12 @@ export const MODULE_NAME = "auth" as const;
 export { ROLES, isRole, roleSatisfies } from "./domain/role";
 export type { Role } from "./domain/role";
 export {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MAX_LENGTH,
+  passwordRuleDescription,
+} from "./domain/password-policy";
+export { isE164Phone } from "./domain/phone";
+export {
   AuthError,
   EmailAlreadyInUseError,
   InvalidCredentialsError,
@@ -40,8 +46,14 @@ export {
   requireUser,
   requireRole,
   requireSuperAdmin,
+  requireVerifiedEmail,
 } from "./infrastructure/session";
 export type { SessionUser } from "./infrastructure/session";
+
+// Verification and bot protection use-cases
+export { emailVerificationService } from "./infrastructure/container";
+export type { EmailVerificationService } from "./application/email-verification";
+export { verifyTurnstileToken } from "./infrastructure/turnstile";
 
 // Presentation wiring for the app composition root (route handlers + server actions + middleware)
 export { handlers, signIn, signOut, unstable_update, auth } from "./infrastructure/auth";
@@ -53,5 +65,6 @@ export {
   oauthSignInAction,
   requestPasswordResetAction,
   resetPasswordAction,
+  resendVerificationEmailAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";

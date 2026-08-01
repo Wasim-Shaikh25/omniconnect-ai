@@ -9,6 +9,7 @@ export interface SessionUser {
   name: string | null;
   role: Role;
   isSuperAdmin: boolean;
+  emailVerified: Date | null;
   organizationId: string | null;
   storeId: string | null;
 }
@@ -19,6 +20,7 @@ function toSessionUser(row: {
   name: string | null;
   role: string;
   isSuperAdmin: boolean;
+  emailVerified: Date | null;
   organizationId: string | null;
   storeId: string | null;
 }): SessionUser {
@@ -29,6 +31,7 @@ function toSessionUser(row: {
     name: row.name,
     role,
     isSuperAdmin: row.isSuperAdmin,
+    emailVerified: row.emailVerified,
     organizationId: row.organizationId,
     storeId: row.storeId,
   };
@@ -53,6 +56,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     name: fresh.name,
     role: fresh.role,
     isSuperAdmin: fresh.isSuperAdmin,
+    emailVerified: fresh.emailVerified,
     organizationId: fresh.organizationId,
     storeId: fresh.storeId,
   };
@@ -69,6 +73,7 @@ async function loadFreshUser(
       name: true,
       role: true,
       isSuperAdmin: true,
+      emailVerified: true,
       organizationId: true,
       storeId: true,
       tokenVersion: true,
@@ -97,4 +102,14 @@ export async function requireSuperAdmin(): Promise<SessionUser> {
   const user = await requireUser();
   if (!user.isSuperAdmin) throw new ForbiddenError();
   return user;
+}
+
+/** Returns the current user only if their email has been verified. */
+export async function requireVerifiedEmail(user?: SessionUser): Promise<SessionUser> {
+  const sessionUser = user ?? (await getCurrentUser());
+  if (!sessionUser) throw new UnauthorizedError();
+  if (!sessionUser.emailVerified) {
+    throw new ForbiddenError("Please verify your email address.");
+  }
+  return sessionUser;
 }
