@@ -233,8 +233,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 - **C2** — `RedisEventBus` no longer echoes its own published messages back to handlers on the
   publishing instance (handlers fire once via Pub/Sub, or once locally when Redis is unreachable).
   Durable, exactly-once delivery across the cluster (BullMQ `jobId` dedup) is still pending H6.
-- **H1** — unguarded `ensureSuperAdmin` in `instrumentation.ts` makes a transient database outage a
-  total startup failure, including `/api/health`.
+- **H1** — `ensureSuperAdmin` in `instrumentation.ts` is now wrapped in `try/catch` and only fails
+  the release via `scripts/seed-super-admin.ts`; `/api/health` stays up during a transient DB outage.
 - **H2/H3** — Stripe webhooks have no `event.id` idempotency ledger, and `past_due` is a terminal
   state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
 - **H4** — `/api/export/[id]` uses `auth()` instead of `getCurrentUser()`, bypassing `tokenVersion`
