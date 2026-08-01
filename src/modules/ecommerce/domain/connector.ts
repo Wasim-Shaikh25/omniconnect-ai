@@ -44,6 +44,7 @@ export interface ConnectorOrder {
   customerRef: string | null;
   customerEmail: string | null;
   couponCode: string | null;
+  cartToken?: string | null;
   lineItems?: { externalId: string; title: string; quantity: number; price: number }[];
 }
 

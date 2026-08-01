@@ -64,6 +64,8 @@ const envSchema = z.object({
 
   RATE_LIMIT_IP_HEADER: z.string().optional(),
 
+  ABANDONED_CART_THRESHOLD_MINUTES: z.coerce.number().int().min(1).default(60),
+
   EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),

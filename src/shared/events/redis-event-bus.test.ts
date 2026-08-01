@@ -3,6 +3,7 @@ import { RedisEventBus } from "./redis-event-bus";
 
 function makeEvent(name: string) {
   return {
+    eventId: `evt-${name}-${Date.now()}`,
     name,
     occurredAt: new Date(),
     aggregateId: "aggregate-1",

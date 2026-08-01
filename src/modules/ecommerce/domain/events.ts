@@ -92,6 +92,8 @@ export class CommerceRecommendationGenerated extends BaseDomainEvent<CommerceRec
 }
 
 export interface AbandonedCartDetectedPayload {
+  cartId: string;
+  storeId: string;
   cartToken: string;
   email: string | null;
   lineItemTitles: string[];

@@ -16,6 +16,7 @@ export interface ConversationRecord {
 export interface MessageRecord {
   id: string;
   conversationId: string;
+  inReplyToMessageId: string | null;
   sender: MessageSender;
   content: string;
   createdAt: Date;
@@ -61,7 +62,12 @@ export interface MessageRepository {
     storeId: string;
     sender: MessageSender;
     content: string;
+    inReplyToMessageId?: string | null;
   }): Promise<MessageRecord>;
+
+  findByInReplyToMessageId(
+    inReplyToMessageId: string,
+  ): Promise<MessageRecord | null>;
 
   listByConversation(
     conversationId: string,

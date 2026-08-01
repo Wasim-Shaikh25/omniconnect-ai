@@ -33,14 +33,19 @@ const onMetaMessageReceived: EventHandler = async (event) => {
   });
 
   await eventBus.publish(
-    new NewMessage(conversation.id, {
-      conversationId: conversation.id,
-      storeId: p.storeId,
-      channel: p.channel,
-      externalUserId: p.externalUserId,
-      customerId: conversation.customerId,
-      content: message.content,
-    }),
+    new NewMessage(
+      conversation.id,
+      {
+        conversationId: conversation.id,
+        storeId: p.storeId,
+        channel: p.channel,
+        externalUserId: p.externalUserId,
+        customerId: conversation.customerId,
+        content: message.content,
+        messageId: message.id,
+      },
+      `message-${message.id}`,
+    ),
   );
 };
 

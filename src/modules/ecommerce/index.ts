@@ -45,6 +45,7 @@ export type {
   CommerceRecommendation,
   CommerceInsightGeneratedPayload,
   CommerceRecommendationGeneratedPayload,
+  AbandonedCartDetectedPayload,
 } from "./domain/events";
 
 // Application — schemas + record types
@@ -66,6 +67,7 @@ export type {
   ProductRecord,
   CouponRecord,
   OrderRecord,
+  CartRecord,
 } from "./application/ports";
 export type { EcommerceQueries, StoreConnectionView } from "./application/queries";
 export type { DetectCommerceInsights } from "./application/detect-insights";
@@ -88,6 +90,7 @@ export {
   deleteCoupon,
   ecommerceQueries,
   detectCommerceInsights,
+  abandonedCartSweep,
 } from "./infrastructure/container";
 
 // Presentation

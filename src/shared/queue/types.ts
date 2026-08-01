@@ -1,3 +1,11 @@
+export interface JobOptions {
+  jobId?: string;
+  attempts?: number;
+  backoff?: { type: "exponential" | "fixed"; delay: number };
+  removeOnComplete?: number;
+  removeOnFail?: boolean;
+}
+
 export interface Job<T = unknown> {
   id?: string;
   name: string;
@@ -7,7 +15,8 @@ export interface Job<T = unknown> {
 export type JobHandler<T = unknown> = (job: Job<T>) => Promise<void> | void;
 
 export interface QueueService {
-  add<T>(name: string, data: T): Promise<string>;
+  add<T>(name: string, data: T, opts?: JobOptions): Promise<string>;
+  getFailedCount(): Promise<number>;
   close(): Promise<void>;
 }
 

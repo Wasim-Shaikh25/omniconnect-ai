@@ -48,6 +48,7 @@ export interface GenerateReplyDeps {
 export interface GenerateReplyInput {
   conversationId: string;
   externalUserId: string;
+  messageId: string;
 }
 
 function toMessageRole(sender: MessageSender): "user" | "assistant" {
@@ -167,6 +168,7 @@ async function sendReply(
     externalUserId: string;
     text: string;
     escalate: boolean;
+    messageId: string;
   },
 ): Promise<void> {
   if (input.escalate) {
@@ -177,6 +179,7 @@ async function sendReply(
       input.storeId,
       "AI",
       input.text,
+      input.messageId,
     );
   }
 
@@ -218,7 +221,13 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
   return async function generateReply(
     input: GenerateReplyInput,
   ): Promise<{ text: string; escalate: boolean }> {
-    const { conversationId, externalUserId } = input;
+    const { conversationId, externalUserId, messageId } = input;
+
+    const existing = await deps.conversationQueries.findReplyByInReplyToMessageId(messageId);
+    if (existing) {
+      logger.info("ai.generateReply.duplicate", { conversationId, messageId });
+      return { text: existing.content, escalate: false };
+    }
 
     const conversation = await deps.conversationQueries.getConversation(
       conversationId,
@@ -259,6 +268,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         externalUserId,
         text: handoff,
         escalate: true,
+        messageId,
       });
       return { text: handoff, escalate: true };
     }
@@ -281,6 +291,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         externalUserId,
         text: handoff,
         escalate: true,
+        messageId,
       });
       return { text: handoff, escalate: true };
     }
@@ -347,7 +358,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         ? "I'm connecting you with a human agent who will help you shortly."
         : "Thanks for your message!");
 
-    await sendReply(deps, { conversationId, storeId, externalUserId, text, escalate });
+    await sendReply(deps, { conversationId, storeId, externalUserId, text, escalate, messageId });
 
     return { text, escalate };
   };

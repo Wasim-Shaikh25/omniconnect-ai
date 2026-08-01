@@ -12,12 +12,14 @@ const onNewMessage: EventHandler = async (event) => {
     await generateReply({
       conversationId: p.conversationId,
       externalUserId: p.externalUserId,
+      messageId: p.messageId,
     });
   } catch (error) {
     logger.error("ai.generateReply.failed", {
       conversationId: p.conversationId,
       error: error instanceof Error ? error.message : "unknown",
     });
+    throw error;
   }
 };
 

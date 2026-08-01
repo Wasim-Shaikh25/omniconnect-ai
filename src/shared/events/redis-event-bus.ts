@@ -6,6 +6,7 @@ import type { EventBus, EventHandler } from "./event-bus";
 const CHANNEL = "omniconnect:events";
 
 interface SerializedEvent {
+  eventId: string;
   name: string;
   occurredAt: string;
   aggregateId: string;
@@ -14,6 +15,7 @@ interface SerializedEvent {
 
 function serialize(event: DomainEvent): string {
   return JSON.stringify({
+    eventId: event.eventId,
     name: event.name,
     occurredAt: event.occurredAt.toISOString(),
     aggregateId: event.aggregateId,
@@ -24,6 +26,7 @@ function serialize(event: DomainEvent): string {
 function deserialize(raw: string): DomainEvent {
   const parsed = JSON.parse(raw) as SerializedEvent;
   return {
+    eventId: parsed.eventId,
     name: parsed.name,
     occurredAt: new Date(parsed.occurredAt),
     aggregateId: parsed.aggregateId,

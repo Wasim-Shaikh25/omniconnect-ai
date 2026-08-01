@@ -200,6 +200,49 @@ export interface OrderRepository {
   findByExternalId(storeId: string, externalId: string): Promise<OrderRecord | null>;
 }
 
+export interface CartRecord {
+  id: string;
+  storeId: string;
+  cartToken: string;
+  email: string | null;
+  lineItemTitles: string[];
+  totalPrice: number | null;
+  currency: string | null;
+  recoveredUrl: string | null;
+  lastActivityAt: Date;
+  notifiedAt: Date | null;
+  convertedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CartRepository {
+  upsert(input: {
+    storeId: string;
+    cartToken: string;
+    email?: string | null;
+    lineItemTitles?: string[];
+    totalPrice?: number | null;
+    currency?: string | null;
+    recoveredUrl?: string | null;
+    lastActivityAt: Date;
+  }): Promise<CartRecord>;
+
+  findByStoreAndToken(
+    storeId: string,
+    cartToken: string,
+  ): Promise<CartRecord | null>;
+
+  markConverted(storeId: string, cartToken: string): Promise<void>;
+
+  markNotified(id: string): Promise<void>;
+
+  findAbandoned(
+    thresholdMinutes: number,
+    limit?: number,
+  ): Promise<CartRecord[]>;
+}
+
 /** Resolves the correct provider connector for a store. */
 export interface ConnectorFactory {
   forStore(storeId: string): Promise<EcommerceConnector>;
