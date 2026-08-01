@@ -47,19 +47,19 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
   }
 
   async listAll(pagination?: PaginationInput) {
+    const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [orgs, total] = await Promise.all([
       prisma.organization.findMany({
         orderBy: { createdAt: "desc" },
-        ...(pagination
-          ? { skip: toSkip(pagination), take: pagination.limit }
-          : {}),
+        skip: toSkip(effectivePagination),
+        take: effectivePagination.limit,
       }),
       prisma.organization.count(),
     ]);
     return paginatedResult(
       orgs.map(mapOrg),
       total,
-      pagination ?? { page: 1, limit: total || 1 },
+      effectivePagination,
     );
   }
 

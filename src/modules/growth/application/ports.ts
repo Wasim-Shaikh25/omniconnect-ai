@@ -163,7 +163,7 @@ export interface CommentUnlockRepository {
     message: string;
     referralAsk?: string | null;
   }): Promise<CommentUnlockCampaignRecord>;
-  listCampaignsByStore(storeId: string): Promise<CommentUnlockCampaignRecord[]>;
+  listCampaignsByStore(storeId: string, limit?: number): Promise<CommentUnlockCampaignRecord[]>;
   findActiveCampaignByKeyword(storeId: string, keyword: string): Promise<CommentUnlockCampaignRecord | null>;
   createRedemption(input: {
     campaignId: string;
@@ -172,7 +172,7 @@ export interface CommentUnlockRepository {
     username?: string | null;
     commentId?: string | null;
   }): Promise<CommentUnlockRedemptionRecord>;
-  listRedemptionsByCampaign(campaignId: string): Promise<CommentUnlockRedemptionRecord[]>;
+  listRedemptionsByCampaign(campaignId: string, limit?: number): Promise<CommentUnlockRedemptionRecord[]>;
   markSent(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord>;
   markReferred(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord>;
   findExistingRedemption(campaignId: string, externalUserId: string): Promise<CommentUnlockRedemptionRecord | null>;

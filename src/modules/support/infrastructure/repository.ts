@@ -45,11 +45,13 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
   async listByUser(
     userId: string,
     organizationId?: string,
+    limit = 1000,
   ): Promise<SupportTicketRecord[]> {
     const tickets = await prisma.supportTicket.findMany({
       where: { userId, ...(organizationId ? { organizationId } : {}) },
       orderBy: { createdAt: "desc" },
-      include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
+      take: limit,
+      include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" }, take: 100 } },
     });
     return tickets.map((t) => this.mapTicket(t));
   }
@@ -67,21 +69,21 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
       ...(organizationId ? { organizationId } : {}),
       ...filters,
     };
+    const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [tickets, total] = await Promise.all([
       prisma.supportTicket.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        ...(pagination
-          ? { skip: toSkip(pagination), take: pagination.limit }
-          : {}),
-        include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
+        skip: toSkip(effectivePagination),
+        take: effectivePagination.limit,
+        include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" }, take: 100 } },
       }),
       prisma.supportTicket.count({ where }),
     ]);
     return paginatedResult(
       tickets.map((t) => this.mapTicket(t)),
       total,
-      pagination ?? { page: 1, limit: total || 1 },
+      effectivePagination,
     );
   }
 

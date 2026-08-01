@@ -38,7 +38,7 @@ export interface NotificationRepository {
     options?: { limit?: number; offset?: number; search?: string },
   ): Promise<NotificationRecord[]>;
   countByUser(userId: string, search?: string): Promise<number>;
-  findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
+  findRecentByDedupKey(dedupKey: string, since: Date, limit?: number): Promise<NotificationRecord[]>;
   countUnreadByUser(userId: string): Promise<number>;
   markAsRead(id: string, userId: string): Promise<void>;
   markAllReadByUser(userId: string): Promise<number>;
@@ -71,7 +71,7 @@ export interface NotificationQueries {
   getUnreadCount(userId: string): Promise<number>;
   markAsRead(userId: string, notificationId: string): Promise<void>;
   markAllRead(userId: string): Promise<number>;
-  findRecentByDedupKey(dedupKey: string, since: Date): Promise<NotificationRecord[]>;
+  findRecentByDedupKey(dedupKey: string, since: Date, limit?: number): Promise<NotificationRecord[]>;
 }
 
 export interface NotificationPreferenceRecord {
@@ -85,7 +85,7 @@ export interface NotificationPreferenceRecord {
 }
 
 export interface NotificationPreferenceRepository {
-  listForUser(userId: string): Promise<NotificationPreferenceRecord[]>;
+  listForUser(userId: string, limit?: number): Promise<NotificationPreferenceRecord[]>;
   upsert(input: {
     userId: string;
     channel: string;

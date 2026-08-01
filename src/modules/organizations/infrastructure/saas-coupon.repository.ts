@@ -46,19 +46,19 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
   }
 
   async list(pagination?: PaginationInput) {
+    const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [coupons, total] = await Promise.all([
       prisma.saaSCoupon.findMany({
         orderBy: { createdAt: "desc" },
-        ...(pagination
-          ? { skip: toSkip(pagination), take: pagination.limit }
-          : {}),
+        skip: toSkip(effectivePagination),
+        take: effectivePagination.limit,
       }),
       prisma.saaSCoupon.count(),
     ]);
     return paginatedResult(
       coupons.map((c) => this.map(c)),
       total,
-      pagination ?? { page: 1, limit: total || 1 },
+      effectivePagination,
     );
   }
 

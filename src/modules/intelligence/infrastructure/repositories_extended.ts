@@ -46,7 +46,7 @@ export class PrismaIntelligenceFeedbackRepository implements IntelligenceFeedbac
   async getKpis(
     organizationId: string,
   ): Promise<{ total: number; understoodRate: number; hoursSaved: number; falsePositiveRate: number; falseNegativeRate: number }> {
-    const rows = await prisma.intelligenceFeedback.findMany({ where: { organizationId } });
+    const rows = await prisma.intelligenceFeedback.findMany({ where: { organizationId }, take: 1000 });
     const total = rows.length;
     if (total === 0) {
       return { total: 0, understoodRate: 0, hoursSaved: 0, falsePositiveRate: 0, falseNegativeRate: 0 };
@@ -260,7 +260,7 @@ function toRolloutGateRecord(
 
 export class PrismaRolloutGateRepository implements RolloutGateRepository {
   async getGates(organizationId: string): Promise<RolloutGateRecord[]> {
-    const rows = await prisma.rolloutGate.findMany({ where: { organizationId } });
+    const rows = await prisma.rolloutGate.findMany({ where: { organizationId }, take: 100 });
     const byName = new Map(rows.map((r) => [r.name as RolloutMode, r]));
     return (Object.keys(DEFAULT_GATES) as RolloutMode[]).map((name) =>
       toRolloutGateRecord(byName.get(name) ?? null, name, organizationId),

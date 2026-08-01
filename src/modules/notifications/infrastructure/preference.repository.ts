@@ -19,10 +19,11 @@ function toRecord(row: {
 export class PrismaNotificationPreferenceRepository
   implements NotificationPreferenceRepository
 {
-  async listForUser(userId: string): Promise<NotificationPreferenceRecord[]> {
+  async listForUser(userId: string, limit = 1000): Promise<NotificationPreferenceRecord[]> {
     const rows = await prisma.notificationPreference.findMany({
       where: { userId },
       orderBy: [{ eventType: "asc" }, { channel: "asc" }],
+      take: limit,
     });
     return rows.map(toRecord);
   }

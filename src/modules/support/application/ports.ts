@@ -39,7 +39,7 @@ export interface SupportTicketRepository {
     category: TicketCategory;
   }): Promise<SupportTicketRecord>;
   findById(id: string, organizationId?: string): Promise<SupportTicketRecord | null>;
-  listByUser(userId: string, organizationId?: string): Promise<SupportTicketRecord[]>;
+  listByUser(userId: string, organizationId?: string, limit?: number): Promise<SupportTicketRecord[]>;
   listAll(
     organizationId?: string | null,
     filters?: {

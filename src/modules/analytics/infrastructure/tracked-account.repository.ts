@@ -49,10 +49,11 @@ export class PrismaTrackedAccountRepository implements TrackedAccountRepository 
     return mapRow(row);
   }
 
-  async listByStore(storeId: string): Promise<TrackedAccountRecord[]> {
+  async listByStore(storeId: string, limit = 1000): Promise<TrackedAccountRecord[]> {
     const rows = await prisma.trackedAccount.findMany({
       where: { storeId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows.map(mapRow);
   }

@@ -362,10 +362,12 @@ export class PrismaCommentUnlockRepository
 
   async listCampaignsByStore(
     storeId: string,
+    limit = 1000,
   ): Promise<CommentUnlockCampaignRecord[]> {
     const rows = await prisma.commentUnlockCampaign.findMany({
       where: { storeId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows.map(toCommentUnlockCampaignRecord);
   }
@@ -406,10 +408,12 @@ export class PrismaCommentUnlockRepository
 
   async listRedemptionsByCampaign(
     campaignId: string,
+    limit = 1000,
   ): Promise<CommentUnlockRedemptionRecord[]> {
     const rows = await prisma.commentUnlockRedemption.findMany({
       where: { campaignId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows.map(toCommentUnlockRedemptionRecord);
   }

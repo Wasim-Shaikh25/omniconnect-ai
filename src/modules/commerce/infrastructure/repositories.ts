@@ -94,10 +94,11 @@ export class PrismaProductMappingRepository implements ProductMappingRepository 
     );
   }
 
-  async listByStore(storeId: string): Promise<ProductMappingRecord[]> {
+  async listByStore(storeId: string, limit = 1000): Promise<ProductMappingRecord[]> {
     const rows = await prisma.metaProductMapping.findMany({
       where: { storeId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows.map(toMappingRecord);
   }
@@ -142,10 +143,11 @@ export class PrismaShoppableMediaRepository
     return toMediaRecord(updated);
   }
 
-  async listByStore(storeId: string): Promise<ShoppableMediaRecord[]> {
+  async listByStore(storeId: string, limit = 1000): Promise<ShoppableMediaRecord[]> {
     const rows = await prisma.shoppableMedia.findMany({
       where: { storeId },
       orderBy: { createdAt: "desc" },
+      take: limit,
     });
     return rows.map(toMediaRecord);
   }
