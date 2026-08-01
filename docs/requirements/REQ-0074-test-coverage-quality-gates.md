@@ -112,7 +112,8 @@ This requirement establishes the safety net that makes every other requirement's
 - [ ] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
   - T9/T10 session revocation verified.
 - [ ] All 11 Tier 2 tests exist and pass.
-  - S1–S4 tenant-guard isolation verified as guard-level regression tests.
+  - S1–S10 verified as guard/service-level regression tests.
+  - S11 prompt-injection resistance pending.
 - [x] `npm audit --audit-level=moderate` runs in CI and fails the build on a finding.
 - [x] Secret scanning runs on every pull request.
 - [x] The CI smoke test asserts: `/api/health` 200, `/api/auth/session` 200,
