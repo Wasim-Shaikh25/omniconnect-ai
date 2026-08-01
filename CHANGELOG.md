@@ -15,11 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H1/H2/H3/H4/H6/H7/H9/H10 fixed; H5 resolved by removal via REQ-0073; H8 (test coverage / CI quality gates under `REQ-0074`) in progress.
+- (none — `REQ-0067` critical/high blockers and `REQ-0074` test-coverage work are complete).
 
 ### ⏭️ Next
 
-- **REQ-0067 H8** — test coverage / CI quality gates under `REQ-0074`.
+- **REQ-0075** — release engineering, DR, observability, and residual-risk closure.
 
 ### ✅ Done
 
