@@ -1,6 +1,6 @@
 # TRACKER-0074: Test Coverage and CI Quality Gates
 
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** All engineering
 - **Requirement:** `docs/requirements/REQ-0074-test-coverage-quality-gates.md`
 - **Task:** `docs/tasks/TASK-0074-test-coverage-quality-gates.md`
