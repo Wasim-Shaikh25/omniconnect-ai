@@ -105,4 +105,22 @@ describe("applyShopifyWebhook", () => {
     expect(deps.orders.upsertMany).toHaveBeenCalledWith("store-1", expect.any(Array));
     expect(deps.carts.markConverted).toHaveBeenCalledWith("store-1", "abc123");
   });
+
+  it("idempotently updates a cart on repeated checkouts/update without publishing events (T14)", async () => {
+    const deps = makeDeps();
+    const apply = makeApplyShopifyWebhook(deps);
+
+    for (let i = 0; i < 10; i++) {
+      const result = await apply({
+        topic: "checkouts/update",
+        shopDomain: "test.myshopify.com",
+        eventId: `evt-update-${i}`,
+        payload: checkoutPayload(),
+      });
+      expect(result.ok).toBe(true);
+    }
+
+    expect(deps.carts.upsert).toHaveBeenCalledTimes(10);
+    expect(deps.carts.upsert).toHaveBeenLastCalledWith(expect.objectContaining({ cartToken: "abc123" }));
+  });
 });

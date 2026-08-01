@@ -18,12 +18,12 @@ export default defineConfig({
         "src/app/**/layout.tsx",
       ],
       thresholds: {
-        // Baseline is zero until Tier 1/2 regression and security tests land;
-        // ratchet upward once the measured baseline is known.
-        lines: 0,
-        functions: 0,
-        branches: 0,
-        statements: 0,
+        // Measured baseline after Tier 1/2 regression and security tests.
+        // CI fails on regression below these values.
+        lines: 7,
+        functions: 52,
+        branches: 61,
+        statements: 7,
       },
     },
   },

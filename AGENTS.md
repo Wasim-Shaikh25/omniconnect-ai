@@ -134,7 +134,9 @@ Changing any of these requires an ADR in `docs/decisions/`.
 - **Formatting/quality gates:** Prettier + ESLint + `tsc --noEmit` + tests must pass before commit.
   Pre-commit hooks enforce this; do not use `--no-verify`.
 - **Tests:** unit-test the Domain layer (pure, fast); integration-test repositories and
-  connectors against contracts. Do not edit tests just to make them pass.
+  connectors against contracts. Every new mutating action must include a cross-tenant
+  regression test row (owner/staff denied across organizations/stores, super-admin/staff
+  boundaries as applicable). Do not edit tests just to make them pass.
 - **Dependencies:** prefer versions published ≥7 days ago; no floating ranges (`latest`, `*`).
 
 ---

@@ -51,4 +51,28 @@ describe("QueueEventBus", () => {
 
     await vi.waitFor(() => expect(handler).toHaveBeenCalledTimes(1));
   });
+
+  it("publishes jobs with a retry policy and does not remove failed jobs (T12)", async () => {
+    const add = vi.fn().mockResolvedValue("job-1");
+    const fakeQueue = {
+      add,
+      getFailedCount: vi.fn().mockResolvedValue(0),
+      close: vi.fn(),
+    };
+    const bus = new QueueEventBus(fakeQueue as unknown as import("@/shared/queue/types").QueueService);
+    const event = new TestEvent("agg-retry", { value: 1 }, "evt-retry");
+
+    await bus.publish(event);
+
+    expect(add).toHaveBeenCalledWith(
+      "TestEvent",
+      expect.any(String),
+      expect.objectContaining({
+        jobId: "evt-retry",
+        attempts: 5,
+        backoff: { type: "exponential", delay: 1000 },
+        removeOnFail: false,
+      }),
+    );
+  });
 });
