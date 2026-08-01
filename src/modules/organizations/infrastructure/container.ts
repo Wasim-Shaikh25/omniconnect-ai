@@ -32,7 +32,7 @@ import { PrismaSaaSCouponRepository } from "./saas-coupon.repository";
 import { PrismaProjectRepository } from "./project.repository";
 import { PrismaOrganizationInviteRepository } from "./organization-invite.repository";
 import { StripePaymentGateway } from "./stripe-payment-gateway";
-import { countOrganizationUsers, setUserOrganization } from "@/modules/users";
+import { setUserOrganization } from "@/modules/users";
 import { createEmailSender } from "@/shared/email";
 import { env } from "@/shared/config";
 
@@ -100,7 +100,6 @@ export { saasCouponRepository };
 export const inviteMember = makeInviteMember({
   organizations,
   invites: inviteRepository,
-  countOrganizationUsers,
   sendInviteEmail,
   generateToken: generateInviteToken,
   now: () => new Date(),

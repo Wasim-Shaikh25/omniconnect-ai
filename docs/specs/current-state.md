@@ -237,15 +237,16 @@ Core tables (see `prisma/schema.prisma` for full model):
   the release via `scripts/seed-super-admin.ts`; `/api/health` stays up during a transient DB outage.
 - **H2/H3** — Stripe webhooks have no `event.id` idempotency ledger, and `past_due` is a terminal
   state (`invoice.payment_succeeded` and `customer.subscription.updated` are unhandled).
-- **H4** — `/api/export/[id]` uses `auth()` instead of `getCurrentUser()`, bypassing `tokenVersion`
-  revocation on a full personal-data export.
+- **H4** — `/api/export/[id]` now uses `getCurrentUser()`, enforces a 10 req/min rate limit, and
+  returns `Cache-Control: no-store, private`, so revoked sessions cannot download exports.
 - **H5** — `archiveProject` hard-deletes and cascades to `ProjectMember`.
 - **H6/H7** — event delivery has no durability, retry, or dead-letter path; abandoned-cart events
   fire on every cart edit and have no subscriber.
 - **H9** — `/api/shopify/webhooks` is now in `publicPaths`, so anonymous Shopify webhooks reach
   HMAC verification; the CI smoke test asserts the route does not return `3xx`.
-- **H10** — the plan seat limit is read and enforced outside a transaction, so concurrent invites
-  can exceed the cap.
+- **H10** — `invite-member.ts` now uses `createWithinSeatLimit`, a serializable transaction with
+  bounded retries, so concurrent invites cannot exceed `teamSeats`. Other `planLimits()` callers
+  (`create-store`, AI reply counter) are already atomic.
 - **H8** — Package A addressed: `redis:7-alpine` is now a CI service, `npm audit` and gitleaks
   secret scanning run in CI, and the smoke test covers `/api/health`, `/api/auth/session`,
   `/api/ready`, and `POST /api/shopify/webhooks`. A Redis ping test is added; Tier 1–2 regression

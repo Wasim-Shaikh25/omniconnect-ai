@@ -20,7 +20,6 @@ export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
 export interface InviteMemberDependencies {
   organizations: OrganizationRepository;
   invites: OrganizationInviteRepository;
-  countOrganizationUsers(organizationId: string): Promise<number>;
   sendInviteEmail(input: {
     email: string;
     token: string;
@@ -63,29 +62,27 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
       return err(new Error("An invite is already pending for this email."));
     }
 
-    const [userCount, pendingInviteCount] = await Promise.all([
-      deps.countOrganizationUsers(input.organizationId),
-      deps.invites.countPendingByOrganization(input.organizationId),
-    ]);
-
     const { teamSeats } = planLimits(organization.plan as Plan);
-    if (teamSeats !== null && userCount + pendingInviteCount >= teamSeats) {
-      return err(new SeatLimitError(teamSeats));
-    }
-
     const token = deps.generateToken();
     const expiresAt = new Date(deps.now());
     expiresAt.setDate(expiresAt.getDate() + INVITE_TTL_DAYS);
 
-    const invite = await deps.invites.create({
-      email,
-      organizationId: input.organizationId,
-      role,
-      storeId: storeId ?? null,
-      token,
-      createdByUserId: input.createdByUserId,
-      expiresAt,
-    });
+    const result = await deps.invites.createWithinSeatLimit(
+      {
+        email,
+        organizationId: input.organizationId,
+        role,
+        storeId: storeId ?? null,
+        token,
+        createdByUserId: input.createdByUserId,
+        expiresAt,
+      },
+      teamSeats,
+    );
+
+    if (!result.ok) {
+      return err(new SeatLimitError(result.limit));
+    }
 
     await deps.sendInviteEmail({
       email,
@@ -94,6 +91,6 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
       storeId,
     });
 
-    return ok({ invite });
+    return ok({ invite: result.invite });
   };
 }

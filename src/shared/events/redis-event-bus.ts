@@ -71,8 +71,10 @@ export class RedisEventBus implements EventBus {
   }
 
   async disconnect(): Promise<void> {
-    await this.publisher?.quit();
-    await this.subscriber?.quit();
+    // A client that never connected (or is reconnecting) can reject quit; swallow
+    // the rejection — cleanup should not mask the original publish/subscribe error.
+    await this.publisher?.quit().catch(() => undefined);
+    await this.subscriber?.quit().catch(() => undefined);
     this.publisher = null;
     this.subscriber = null;
     this.subscribed = false;

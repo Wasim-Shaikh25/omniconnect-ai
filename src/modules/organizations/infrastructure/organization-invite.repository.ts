@@ -1,6 +1,9 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import type { Role } from "@/modules/auth";
 import type {
+  CreateInviteInput,
+  CreateInviteResult,
   OrganizationInviteRecord,
   OrganizationInviteRepository,
 } from "../application/ports";
@@ -62,9 +65,7 @@ export class PrismaOrganizationInviteRepository
   }
 
   async create(
-    input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & {
-      status?: InviteStatus;
-    },
+    input: CreateInviteInput,
   ): Promise<OrganizationInviteRecord> {
     const row = await prisma.organizationInvite.create({
       data: {
@@ -79,6 +80,70 @@ export class PrismaOrganizationInviteRepository
       },
     });
     return toRecord(row as OrganizationInviteRecord);
+  }
+
+  async createWithinSeatLimit(
+    input: CreateInviteInput,
+    teamSeats: number | null,
+  ): Promise<CreateInviteResult> {
+    const maxAttempts = 3;
+    let attempt = 0;
+
+    while (true) {
+      attempt += 1;
+      try {
+        const result = await prisma.$transaction(
+          async (tx) => {
+            if (teamSeats !== null) {
+              const [userCount, pendingCount] = await Promise.all([
+                tx.user.count({
+                  where: { organizationId: input.organizationId, deletedAt: null },
+                }),
+                tx.organizationInvite.count({
+                  where: {
+                    organizationId: input.organizationId,
+                    status: "PENDING",
+                    expiresAt: { gt: new Date() },
+                  },
+                }),
+              ]);
+
+              if (userCount + pendingCount >= teamSeats) {
+                return {
+                  ok: false as const,
+                  reason: "seat_limit" as const,
+                  limit: teamSeats,
+                };
+              }
+            }
+
+            const invite = await tx.organizationInvite.create({
+              data: {
+                email: input.email,
+                organizationId: input.organizationId,
+                role: input.role,
+                storeId: input.storeId,
+                status: input.status ?? "PENDING",
+                token: input.token,
+                createdByUserId: input.createdByUserId,
+                expiresAt: input.expiresAt,
+              },
+            });
+            return { ok: true as const, invite: toRecord(invite as OrganizationInviteRecord) };
+          },
+          { isolationLevel: "Serializable" },
+        );
+
+        return result;
+      } catch (error) {
+        const isSerializationFailure =
+          error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+        if (isSerializationFailure && attempt < maxAttempts) {
+          continue;
+        }
+        throw error;
+      }
+    }
   }
 
   async updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord> {

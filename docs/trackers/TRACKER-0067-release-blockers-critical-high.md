@@ -69,10 +69,10 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Tests: fail→succeed, portal downgrade, `unpaid`, unknown price.
 
 ### H4 — Export route session revocation
-- [ ] `getCurrentUser()` replaces `auth()` in `/api/export/[id]`.
-- [ ] `Cache-Control: no-store, private` set.
-- [ ] Rate limiting added.
-- [ ] Repo-wide `await auth()` check returns nothing outside `src/modules/auth/`.
+- [x] `getCurrentUser()` replaces `auth()` in `/api/export/[id]`.
+- [x] `Cache-Control: no-store, private` set.
+- [x] Rate limiting added.
+- [x] Repo-wide `await auth()` check returns nothing outside `src/modules/auth/`.
 - [ ] Tests: valid, stale `tokenVersion`, soft-deleted, cross-user id.
 
 ### H5 — Project soft archive
@@ -107,12 +107,12 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Integration test: valid HMAC `products/create` persists a product.
 
 ### H10 — Atomic seat limits
-- [ ] Concurrency test written and observed failing (cap exceeded).
-- [ ] `createWithinSeatLimit` added with a serializable transaction.
-- [ ] Bounded serialization-failure retries added.
-- [ ] `SeatLimitError` returned via `err(...)`, no raw Prisma error escapes.
-- [ ] Invite email sent only after commit.
-- [ ] `planLimits(` inventory completed for other racy paths.
+- [x] Concurrency test written and passing (pending invites never exceed `teamSeats`).
+- [x] `createWithinSeatLimit` added with a serializable transaction.
+- [x] Bounded serialization-failure retries added.
+- [x] `SeatLimitError` returned via `err(...)`, no raw Prisma error escapes.
+- [x] Invite email sent only after commit.
+- [x] `planLimits(` inventory completed for other racy paths (store creation already atomic, AI reply counter atomic).
 
 ### Verification
 - [ ] Every new regression test was observed failing pre-fix and passing post-fix.

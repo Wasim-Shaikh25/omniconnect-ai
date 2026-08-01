@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type {
+  CreateInviteInput,
+  CreateInviteResult,
   OrganizationInviteRecord,
   OrganizationInviteRepository,
   OrganizationRecord,
@@ -48,6 +50,7 @@ class InMemoryOrganizations implements OrganizationRepository {
 
 class InMemoryInvites implements OrganizationInviteRepository {
   private invites: OrganizationInviteRecord[] = [];
+  userCount = 0;
 
   findByToken(token: string): Promise<OrganizationInviteRecord | null> {
     return Promise.resolve(this.invites.find((i) => i.token === token) ?? null);
@@ -70,9 +73,7 @@ class InMemoryInvites implements OrganizationInviteRepository {
     );
   }
 
-  create(
-    input: Omit<OrganizationInviteRecord, "id" | "createdAt" | "status"> & { status?: InviteStatus },
-  ): Promise<OrganizationInviteRecord> {
+  create(input: CreateInviteInput): Promise<OrganizationInviteRecord> {
     const invite: OrganizationInviteRecord = {
       ...input,
       storeId: input.storeId ?? null,
@@ -104,6 +105,32 @@ class InMemoryInvites implements OrganizationInviteRepository {
     return Promise.resolve(invite);
   }
 
+  createWithinSeatLimit(
+    input: CreateInviteInput,
+    teamSeats: number | null,
+  ): Promise<CreateInviteResult> {
+    const pendingCount = this.invites.filter(
+      (i) =>
+        i.organizationId === input.organizationId &&
+        i.status === "PENDING" &&
+        i.expiresAt > new Date(),
+    ).length;
+
+    if (teamSeats !== null && this.userCount + pendingCount >= teamSeats) {
+      return Promise.resolve({ ok: false as const, reason: "seat_limit" as const, limit: teamSeats });
+    }
+
+    const invite: OrganizationInviteRecord = {
+      ...input,
+      storeId: input.storeId ?? null,
+      status: input.status ?? "PENDING",
+      id: `invite-${this.invites.length + 1}`,
+      createdAt: new Date(),
+    };
+    this.invites.push(invite);
+    return Promise.resolve({ ok: true as const, invite });
+  }
+
   deleteInvite(id: string, organizationId: string): Promise<void> {
     this.invites = this.invites.filter(
       (i) => !(i.id === id && i.organizationId === organizationId),
@@ -126,6 +153,7 @@ class InMemoryInvites implements OrganizationInviteRepository {
 function makeSut(userCount = 0) {
   const organizations = new InMemoryOrganizations();
   const invites = new InMemoryInvites();
+  invites.userCount = userCount;
   const emails: { email: string; token: string }[] = [];
   const emailInputs: Parameters<Parameters<typeof makeInviteMember>[0]["sendInviteEmail"]>[0][] = [];
   let now = new Date("2026-07-28T00:00:00.000Z");
@@ -134,7 +162,6 @@ function makeSut(userCount = 0) {
   const inviteMember = makeInviteMember({
     organizations,
     invites,
-    countOrganizationUsers: () => Promise.resolve(userCount),
     sendInviteEmail: (input) => {
       emails.push({ email: input.email, token: input.token });
       emailInputs.push(input);
