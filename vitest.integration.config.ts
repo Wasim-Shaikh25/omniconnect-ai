@@ -11,6 +11,12 @@ export default defineConfig({
     passWithNoTests: true,
     hookTimeout: 30000,
     testTimeout: 30000,
+    pool: "forks",
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
   },
   resolve: {
     alias: {

@@ -15,7 +15,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H1/H2/H3/H4/H6/H7/H9/H10 fixed; H5 resolved by removal via REQ-0073; remaining H8 in progress.
+- **REQ-0067 release blockers:** C1/C2/H1/H2/H3/H4/H6/H7/H9/H10 fixed; H5 resolved by removal via REQ-0073; H8 (test coverage / CI quality gates under `REQ-0074`) in progress.
 
 ### ⏭️ Next
 
@@ -112,6 +112,15 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `AUTH_TRUST_HOST` to `env.ts`, `.env.example`, `fly.toml`, and `docs/deployment.md`.
   - Whitelisted `/api/shopify/webhooks` in the NextAuth middleware `publicPaths` so Shopify
     webhooks reach HMAC verification instead of being redirected to `/login`.
+
+- **REQ-0074 Package C/D — integration test harness and session revocation regression tests:**
+  - Added `src/test/fixtures.ts` with `createTenant`, `createSuperAdmin`, and `bcrypt`-hashed passwords.
+  - Added `src/test/reset.ts` with a `resetDatabase` helper that truncates all non-migration tables using `TRUNCATE ... CASCADE`.
+  - Added `src/test/session.ts` with `actingAs` and `requestWithSession` helpers that encode a valid `authjs.session-token` JWT for integration tests.
+  - Added `src/test/webhooks.ts` with HMAC signers for Meta (`sha256=...`), Shopify (base64), and Stripe (`generateTestHeaderString`).
+  - Configured `vitest.integration.config.ts` to use `pool: "forks"` with `singleFork: true` so DB-dependent integration tests run serially and avoid `resetDatabase` deadlocks.
+  - Added `src/modules/auth/infrastructure/session.integration.test.ts` covering T9 (stale `tokenVersion` revokes the session) and T10 (soft-deleted user cannot act).
+  - Recorded the unit-test coverage baseline: **6.37% statements, 59.49% branches, 50% functions, 6.37% lines**.
 
 - **REQ-0067 H6 + H7 — durable event delivery and abandoned-cart correctness:**
   - Added `eventId` to `DomainEvent` and all publishers; `BaseDomainEvent` defaults to `${aggregateId}-${randomId()}`.

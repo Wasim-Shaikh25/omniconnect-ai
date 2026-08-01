@@ -23,19 +23,19 @@ reporting, no coverage threshold, no `npm audit`, and no secret scanning.
 
 This requirement establishes the safety net that makes every other requirement's fixes durable.
 
-## 2. Verified current state (re-checked at commit `33e2e0b`, 2026-07-31)
+## 2. Verified current state (re-checked after `REQ-0067` H6/H7, 2026-08-01)
 
 | Item | State | Evidence |
 |---|---|---|
-| Test files | 9 | `find src -name "*.test.ts"` |
+| Test files | 14+ | `find src -name "*.test.ts"` |
 | Source files | 524 | `find src -name '*.ts' -o -name '*.tsx' \| wc -l` |
-| Coverage tooling | ❌ | No `@vitest/coverage-v8` in `package.json`; no `coverage` block in `vitest.config.ts` |
-| CI Redis service | ❌ | `.github/workflows/ci.yml` provisions `postgres:16-alpine` only, while setting `REDIS_URL` |
-| `npm audit` in CI | ❌ | Not a step |
-| Secret scanning in CI | ❌ | Not a step |
-| Smoke test depth | 🟡 | `/api/health` only — a static route requiring no auth and no database |
-| Tested modules | `organizations` (3 files), `intelligence` (4), `ecommerce` connectors (2) | — |
-| Untested | auth, tenant guard, RBAC, billing, all webhooks, event bus, `generateReply`, encryption, rate limiting, all server actions | — |
+| Coverage tooling | ✅ | `@vitest/coverage-v8` in `package.json`; `coverage` block in `vitest.config.ts` |
+| CI Redis service | ✅ | `.github/workflows/ci.yml` provisions `redis:7-alpine` with health check |
+| `npm audit` in CI | ✅ | Runs `npm audit --audit-level=moderate` |
+| Secret scanning in CI | ✅ | `gitleaks/gitleaks-action@v2` on pull requests |
+| Smoke test depth | ✅ | Asserts `/api/health`, `/api/auth/session`, `/api/ready`, and `POST /api/shopify/webhooks` not `3xx` |
+| Tested modules | `organizations` (billing, invite, queries), `intelligence` (journey, daily-action, objective), `ecommerce` (connectors, apply-shopify-webhook, abandoned-cart-sweep), `shared/events` | — |
+| Untested | auth, tenant guard, RBAC, most webhook routes, encryption, rate limiting, most server actions | — |
 
 ## 3. Goals
 
@@ -102,28 +102,28 @@ This requirement establishes the safety net that makes every other requirement's
 
 ## 6. Acceptance Criteria
 
-- [ ] `.github/workflows/ci.yml` provisions `redis:7-alpine` with a health check, alongside
+- [x] `.github/workflows/ci.yml` provisions `redis:7-alpine` with a health check, alongside
       PostgreSQL.
-- [ ] `@vitest/coverage-v8` is installed and `vitest.config.ts` declares a coverage provider,
+- [x] `@vitest/coverage-v8` is installed and `vitest.config.ts` declares a coverage provider,
       reporters (`text`, `lcov`), and thresholds.
 - [ ] Coverage thresholds are set to the measured baseline after Tiers 1 and 2 land, and CI fails
       on regression.
-- [ ] The coverage summary is visible in the CI job output.
+- [x] The coverage summary is visible in the CI job output.
 - [ ] All 16 Tier 1 tests exist and pass; each was observed **failing** against pre-fix code.
 - [ ] All 11 Tier 2 tests exist and pass.
-- [ ] `npm audit --audit-level=moderate` runs in CI and fails the build on a finding.
-- [ ] Secret scanning runs on every pull request.
-- [ ] The CI smoke test asserts: `/api/health` 200, `/api/auth/session` 200,
+- [x] `npm audit --audit-level=moderate` runs in CI and fails the build on a finding.
+- [x] Secret scanning runs on every pull request.
+- [x] The CI smoke test asserts: `/api/health` 200, `/api/auth/session` 200,
       `POST /api/shopify/webhooks` not 3xx, `/api/ready` 200.
-- [ ] Integration tests that need a database run against the CI PostgreSQL service with migrations
+- [x] Integration tests that need a database run against the CI PostgreSQL service with migrations
       applied.
-- [ ] A documented way to run the full suite locally exists in `AGENTS.md` or
+- [x] A documented way to run the full suite locally exists in `AGENTS.md` or
       `.agents/skills/testing-omniconnect-ai/SKILL.md`, including the Docker commands for Postgres
       and Redis.
 - [ ] Test helpers exist for the repeated setup: two isolated tenants, a super admin, an
       authenticated request, and a signed webhook payload per provider.
-- [ ] No test is weakened or skipped to make CI pass (`AGENTS.md` §3).
-- [ ] Flaky tests are fixed or quarantined with a linked issue, never left failing intermittently.
+- [x] No test is weakened or skipped to make CI pass (`AGENTS.md` §3).
+- [x] Flaky tests are fixed or quarantined with a linked issue, never left failing intermittently.
 
 ## 7. Scope & Dependencies
 
