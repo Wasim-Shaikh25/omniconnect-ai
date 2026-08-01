@@ -16,6 +16,8 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **REQ-0067 release blockers:** C1/H9 fixed; remaining C2, H1–H10 in progress.
+- **REQ-0074 Package A follow-up:** stabilize the standalone smoke test in CI (use IPv4
+  loopback, add `curl` diagnostics, mask generated secrets) so `quality` stays green.
 
 ### ⏭️ Next
 

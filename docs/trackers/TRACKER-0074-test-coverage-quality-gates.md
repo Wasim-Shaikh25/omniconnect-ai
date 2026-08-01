@@ -4,7 +4,7 @@
 - **Owner:** All engineering
 - **Requirement:** `docs/requirements/REQ-0074-test-coverage-quality-gates.md`
 - **Task:** `docs/tasks/TASK-0074-test-coverage-quality-gates.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -31,6 +31,8 @@ where `REDIS_URL` is set but no Redis service exists.
 - [x] Smoke test asserts `/api/ready` 200.
 - [x] Smoke test asserts `POST /api/shopify/webhooks` is not 3xx (H9).
 - [x] A Redis-dependent test verified green in CI.
+- [x] Smoke test stabilized: uses `127.0.0.1` and `curl -4`, prints per-endpoint status and
+  response bodies on failure, and masks generated CI secrets from logs.
 
 ### Package B — Coverage tooling
 - [ ] `@vitest/coverage-v8` installed.
