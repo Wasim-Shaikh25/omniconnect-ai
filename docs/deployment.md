@@ -209,6 +209,7 @@ production needs:
 | `NEXTAUTH_SECRET` | Random secret for JWT signing |
 | `NEXTAUTH_URL` | Public app URL |
 | `AUTH_TRUST_HOST` | `true` off Vercel so Auth.js trusts the proxy `Host` header |
+| `RATE_LIMIT_IP_HEADER` | Trusted client-IP header for login rate limiting. Required in production. Fly.io: `Fly-Client-IP`. Cloudflare: `CF-Connecting-IP`. |
 | `OPENAI_API_KEY` | AI replies and content generation |
 | `META_APP_SECRET` | Webhook HMAC verification |
 | `META_WEBHOOK_VERIFY_TOKEN` | Meta webhook subscription token |

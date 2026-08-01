@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import NextAuth, { type NextAuthConfig } from "next-auth";
+import NextAuth, { type NextAuthConfig, CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
@@ -14,8 +14,15 @@ import { isRole, type Role } from "../domain/role";
 import { UserLoggedIn, UserRegistered } from "../domain/events";
 import { PrismaAccountRepository } from "./account.repository";
 import { verifyCode } from "./verification-code";
-import { clientIp, rateLimit } from "@/shared/security/rate-limit";
 import { authorizeRoute } from "./public-paths";
+import { assertLoginRateLimitFromRequest, RateLimitError } from "./login-rate-limit";
+
+export class RateLimitAuthError extends CredentialsSignin {
+  code = "rateLimit";
+  constructor(public readonly retryAfterMs: number) {
+    super();
+  }
+}
 
 const accounts = new PrismaAccountRepository();
 
@@ -33,13 +40,14 @@ const providers: NextAuthConfig["providers"] = [
       const mfaCode = typeof raw?.mfaCode === "string" ? raw.mfaCode : "";
       if (!email || !password) return null;
 
-      const ip = request ? clientIp(request.headers) : "unknown";
-      const limit = await rateLimit({
-        key: `credentials:${email}:${ip}`,
-        limit: 5,
-        windowMs: 15 * 60 * 1000,
-      });
-      if (!limit.allowed) return null;
+      try {
+        await assertLoginRateLimitFromRequest(request, email);
+      } catch (error) {
+        if (error instanceof RateLimitError) {
+          throw new RateLimitAuthError(error.retryAfterMs);
+        }
+        throw error;
+      }
 
       const account = await accounts.findByEmailIncludingDeleted(email);
       if (!account?.passwordHash) return null;

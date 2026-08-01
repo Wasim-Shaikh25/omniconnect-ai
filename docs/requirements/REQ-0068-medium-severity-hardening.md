@@ -173,13 +173,13 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
       rejection of a tampered ciphertext.
 
 ### M10 — Login throttling
-- [ ] A global per-account counter (default 20 attempts/hour across all IPs) layers on top of the
+- [x] A global per-account counter (default 20 attempts/hour across all IPs) layers on top of the
       existing per-`email+IP` limit.
-- [ ] `authorize` distinguishes rate-limiting from bad credentials so the UI can display
+- [x] `authorize` distinguishes rate-limiting from bad credentials so the UI can display
       "too many attempts — try again in N minutes".
-- [ ] The lockout message does not reveal whether the account exists.
-- [ ] `RATE_LIMIT_IP_HEADER` is required in production configuration and documented.
-- [ ] Tests: per-IP limit engages; global limit engages across rotating IPs; a correct password
+- [x] The lockout message does not reveal whether the account exists.
+- [x] `RATE_LIMIT_IP_HEADER` is required in production configuration and documented.
+- [x] Tests: per-IP limit engages; global limit engages across rotating IPs; a correct password
       after lockout is still refused until the window elapses.
 
 ### M11 — Admin authorization defence in depth
