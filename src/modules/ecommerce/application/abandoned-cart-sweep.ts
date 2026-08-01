@@ -16,7 +16,12 @@ export function makeAbandonedCartSweep(deps: AbandonedCartSweepDeps) {
     let published = 0;
 
     for (const cart of abandoned) {
-      await deps.carts.markNotified(cart.id);
+      const marked = await deps.carts.markNotified(cart.id);
+      if (!marked) {
+        // Another sweep already marked this cart; do not emit a duplicate event.
+        logger.info("abandonedCart.sweep.alreadyNotified", { cartId: cart.id });
+        continue;
+      }
       await deps.eventBus.publish(
         new AbandonedCartDetected(
           cart.id,

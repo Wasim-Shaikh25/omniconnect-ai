@@ -30,7 +30,9 @@ function makeFakeCarts(records: CartRecord[] = []): CartRepository {
     findByStoreAndToken: vi.fn(),
     markConverted: vi.fn(),
     markNotified: vi.fn(async (id) => {
+      if (notified.has(id)) return false;
       notified.add(id);
+      return true;
     }),
     findAbandoned: vi.fn(async (_thresholdMinutes, limit = 500) =>
       records.filter((r) => !notified.has(r.id) && !r.convertedAt && !r.notifiedAt).slice(0, limit),

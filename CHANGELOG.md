@@ -15,11 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **2026-08-01 checkbox verification audit** — line-by-line re-verification of `REQ-0067`–`REQ-0075` acceptance criteria, tasks, and trackers; report produced and doc corrections applied.
+- **Close the audit gaps:**
+  - H7 — make abandoned-cart sweep atomic (`cart.repository.ts` `markNotified` now returns `boolean` from `UPDATE ... WHERE notifiedAt IS NULL`); sweep skips publishing when another process already marked the cart.
+  - H2 — wrap `ProcessedWebhookEvent.record` + Stripe fulfillment side effects in one Prisma transaction so a crash mid-fulfillment cannot lose the update while marking the event processed.
 
 ### ⏭️ Next
 
-- Close the audit gaps (H2/H7 transactional boundaries, H5.6 delete-site inventory, S2/S5 route/action-level tests, T4/T9/T10 export and auth/session route tests, M6 `typescript: true`, L5 `auto_stop_machines`).
+- Continue closing audit gaps: H2 transactional webhook fulfillment, H5.6 delete-site inventory, S2/S5 action/admin census tests, T4/T9/T10 route-level tests, M6 `typescript: true`, L5 `auto_stop_machines`.
 
 ### ✅ Done
 

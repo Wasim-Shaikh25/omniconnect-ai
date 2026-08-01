@@ -214,7 +214,7 @@ founder disagrees, update this section and the linked task before coding.
       `convertedAt`, and a migration.
 - [x] `checkouts/create` and `checkouts/update` upsert cart state and publish **no** event.
 - [x] `orders/create` and `orders/paid` mark a matching cart `convertedAt` when `cart_token` is present.
-- [ ] A scheduled worker sweep publishes `AbandonedCartDetected` exactly once per cart, for carts *(PARTIAL — `markNotified` and `eventBus.publish` are not atomic; see audit subtask.)*
+- [x] A scheduled worker sweep publishes `AbandonedCartDetected` exactly once per cart, for carts
       idle beyond a configurable threshold, with no matching order and `notifiedAt IS NULL`.
 - [x] A subscriber consumes `AbandonedCartDetected` and creates an `ABANDONED_CART` notification.
 - [x] Tests: ten `checkouts/update` for one token → one row, zero events; idle past threshold → one
