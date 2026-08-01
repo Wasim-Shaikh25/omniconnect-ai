@@ -7,6 +7,7 @@ export default tseslint.config(
       "node_modules/**",
       ".next/**",
       "dist/**",
+      "coverage/**",
       "**/*.d.ts",
       "scripts/**",
       "test-plan*.md",

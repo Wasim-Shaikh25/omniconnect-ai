@@ -36,6 +36,7 @@ export class RedisEventBus implements EventBus {
   private publisher: Redis | null = null;
   private subscriber: Redis | null = null;
   private subscribed = false;
+  private subscribePromise: Promise<void> | null = null;
   private readonly handlers = new Map<string, EventHandler[]>();
 
   constructor(redisUrl: string) {
@@ -50,7 +51,6 @@ export class RedisEventBus implements EventBus {
   }
 
   async publish(event: DomainEvent): Promise<void> {
-    await this.dispatchLocal(event);
     const publisher = this.getPublisher();
     try {
       await publisher.publish(CHANNEL, serialize(event));
@@ -59,18 +59,38 @@ export class RedisEventBus implements EventBus {
         error: String(err),
         eventName: event.name,
       });
+      // Redis is unreachable: dispatch locally so the event is not silently lost.
+      await this.dispatchLocal(event);
     }
+  }
+
+  async waitForSubscription(): Promise<void> {
+    if (this.subscribePromise) {
+      await this.subscribePromise;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    await this.publisher?.quit();
+    await this.subscriber?.quit();
+    this.publisher = null;
+    this.subscriber = null;
+    this.subscribed = false;
+    this.subscribePromise = null;
   }
 
   private async dispatchLocal(event: DomainEvent): Promise<void> {
     const handlers = this.handlers.get(event.name) ?? [];
-    try {
-      await Promise.all(handlers.map((handler) => handler(event)));
-    } catch (err) {
-      logger.error("redisEventBus.handlerError", {
-        error: String(err),
-        eventName: event.name,
-      });
+    const results = await Promise.allSettled(
+      handlers.map((handler) => handler(event)),
+    );
+    for (const result of results) {
+      if (result.status === "rejected") {
+        logger.error("redisEventBus.handlerError", {
+          error: String(result.reason),
+          eventName: event.name,
+        });
+      }
     }
   }
 
@@ -81,6 +101,9 @@ export class RedisEventBus implements EventBus {
         enableReadyCheck: false,
         retryStrategy: (times) => Math.min(times * 50, 2000),
       });
+      this.publisher.on("error", (err) => {
+        logger.error("redisEventBus.publisherError", { error: String(err) });
+      });
     }
     return this.publisher;
   }
@@ -89,31 +112,39 @@ export class RedisEventBus implements EventBus {
     if (this.subscribed) return;
     this.subscribed = true;
 
-    this.subscriber = new Redis(this.redisUrl, {
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: false,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    });
+    this.subscribePromise = (async () => {
+      this.subscriber = new Redis(this.redisUrl, {
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: false,
+        retryStrategy: (times) => Math.min(times * 50, 2000),
+      });
 
-    this.subscriber.on("message", (channel, message) => {
-      if (channel !== CHANNEL) return;
+      this.subscriber.on("error", (err) => {
+        logger.error("redisEventBus.subscriberError", { error: String(err) });
+      });
+
+      this.subscriber.on("message", (channel, message) => {
+        if (channel !== CHANNEL) return;
+        try {
+          const event = deserialize(message);
+          void this.dispatchLocal(event);
+        } catch (err) {
+          logger.error("redisEventBus.invalidMessage", {
+            error: String(err),
+          });
+        }
+      });
+
       try {
-        const event = deserialize(message);
-        void this.dispatchLocal(event);
+        await this.subscriber.subscribe(CHANNEL);
       } catch (err) {
-        logger.error("redisEventBus.invalidMessage", {
+        logger.error("redisEventBus.subscribeFailed", {
           error: String(err),
         });
+        this.subscribed = false;
       }
-    });
+    })();
 
-    try {
-      await this.subscriber.subscribe(CHANNEL);
-    } catch (err) {
-      logger.error("redisEventBus.subscribeFailed", {
-        error: String(err),
-      });
-      this.subscribed = false;
-    }
+    await this.subscribePromise;
   }
 }

@@ -15,15 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/H9 fixed; remaining C2, H1–H10 in progress.
-- **REQ-0074 Package B** — install `@vitest/coverage-v8`, add `test:coverage`/`test:integration`
-  scripts, and configure coverage thresholds.
+- **REQ-0067 release blockers:** C1/C2/H9 fixed; remaining H1–H8, H10 in progress.
 
 ### ⏭️ Next
 
 - **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
   REQ-0067's H5 migration is written, or that migration is wasted.
-- **REQ-0067** — remaining release blockers (C2, H1–H10), each with a regression test that fails
+- **REQ-0067** — remaining release blockers (H1–H8, H10), each with a regression test that fails
   against current `main`.
 
 ### ✅ Done
@@ -39,6 +37,21 @@ All notable changes to **OmniConnect AI** are documented here.
     `::add-mask::`.
   - Added `src/shared/redis/client.test.ts` as a Redis-dependent test that runs green when
     `REDIS_URL` is set.
+
+- **REQ-0074 Package B — coverage tooling:**
+  - Installed `@vitest/coverage-v8`, added `test:coverage` and `test:integration` scripts.
+  - Configured `vitest.config.ts` with V8 coverage, `text`/`lcov` reporters, and zero thresholds
+    until Tier 1/2 tests establish a baseline.
+  - Added `vitest.integration.config.ts` for `*.integration.test.ts` with `passWithNoTests`.
+  - Updated CI to run `npm run test:coverage` and `npm run test:integration` after migrations.
+
+- **REQ-0067 C2 — Redis event bus self-echo:**
+  - Stopped `RedisEventBus` from dispatching an event locally and then re-dispatching the same
+    message from its own subscriber.
+  - Added a Redis-unreachable fallback to a single local dispatch.
+  - Switched `dispatchLocal` to `Promise.allSettled` with per-handler error logging.
+  - Added `src/shared/events/redis-event-bus.test.ts` with regression tests that fail on the
+    old code (handler called twice) and pass on the fix.
 
 - **REQ-0067 C1 + H9 (required by the new smoke test):**
   - `authConfig` now sets `trustHost: env.AUTH_TRUST_HOST` (default `true`) and adds a

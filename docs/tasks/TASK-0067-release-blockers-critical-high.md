@@ -6,7 +6,7 @@
 - **Tracker:** `docs/trackers/TRACKER-0067-release-blockers-critical-high.md`
 - **Module(s):** `auth`, `organizations`, `ecommerce`, `ai`, `conversations`, `shared/events`, `shared/queue`, `shared/config`
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Fixed all Critical and High production-readiness blockers (C1, C2, H1–H10).
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-01
 
 ## 1. Summary
 
@@ -335,6 +335,30 @@ describe("RedisEventBus", () => {
   });
 });
 ```
+
+**C2.4 — Subscription audit findings (2026-08-01):**
+
+Command used:
+```bash
+grep -rn "\.subscribe(" src --include=*.ts | grep -v node_modules | grep -v ".test.ts"
+```
+
+All 23 `bus.subscribe(...)` registrations are in `*/infrastructure/subscribers.ts` or `*/bootstrap.ts`
+files. None of the handlers read state written by a *different* handler after calling
+`eventBus.publish(...)`. The two call sites that publish and then continue are:
+
+1. `src/modules/coupons/application/welcome-first-follower.ts` publishes `WelcomeCouponGenerated`
+   and then proceeds to generate and send the welcome message using the `coupon` already in scope.
+   No handler state is read.
+2. `src/modules/auth/infrastructure/auth.ts` (OAuth `signIn` callback) publishes
+   `UserRegistered(autoProvisionOrganization: true)` and then calls `refreshTokenFromDb` to build the
+   JWT. This path already expects the user row to carry `organizationId`, but `onUserRegistered`
+   currently creates the organization without updating `user.organizationId`, so the JWT will not
+   contain the new organization until the next session refresh. This is a latent provisioning bug,
+   not a new C2 regression; it should be fixed when organization auto-provisioning is hardened
+   (tracked under REQ-0067/REQ-0070, not in this Layer 1 change).
+
+No other `await eventBus.publish(...)` is followed by a read of state that a handler mutates.
 
 ---
 
