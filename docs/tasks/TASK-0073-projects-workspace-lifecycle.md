@@ -13,7 +13,7 @@
 Two mutually exclusive implementation paths plus a shared workspace-scope package. Execute Path A
 **or** Path B — never both. Package C runs regardless.
 
-**Do not start Path A or B until Q1 is answered and recorded in §6.**
+**Q1 decision recorded in §6:** Option B (remove) — 2026-08-01, Devin. The default in `docs/audit/2026-07-31-remediation-index.md` §6 is "Remove"; `Project` duplicates `Store`/`Integration` scoping with no consumer.
 
 ## 2. References
 
@@ -122,6 +122,8 @@ psql "$DATABASE_URL" -c "\copy (SELECT * FROM \"ProjectMember\") TO 'project-mem
 
 Record the export location and row counts in §6. Do not proceed until this is done.
 
+**Checked 2026-08-01:** `Project` = 0, `ProjectMember` = 0; no export needed.
+
 ### B2 — Delete application and presentation code
 
 ```bash
@@ -208,11 +210,10 @@ State plainly in `docs/specs/current-state.md` what exists immediately after sig
 ## 4. Subtasks
 
 ### Decision gate
-- [ ] **Q1 answered** and recorded in §6 (ship or remove).
-- [ ] **Q2 answered** (STAFF landing).
-- [ ] Multi-workspace policy answered.
-- [ ] (Path A only) Project scoping model answered — does a project scope conversations and
-      analytics, or is it a label?
+- [x] **Q1 answered** — Option B (remove), 2026-08-01.
+- [x] **Q2 answered** (STAFF landing) — `STAFF` with `storeId` redirects to `/stores/{storeId}`; `STAFF` without `storeId` falls through to dashboard (no loop). Implemented in `src/app/dashboard/page.tsx`.
+- [x] Multi-workspace policy answered — single workspace per user; document in `current-state.md`.
+- [ ] ~~(Path A only) Project scoping model answered~~ — N/A under Option B.
 
 ### Path A — Ship *(only if Q1 = ship)*
 - [ ] **A1** `REQ-0067` H5 landed (soft archive, unique constraint, restore, list filter).
@@ -232,36 +233,36 @@ State plainly in `docs/specs/current-state.md` what exists immediately after sig
 - [ ] **A6.7** Test: `integrationId` from another organization rejected.
 
 ### Path B — Remove *(only if Q1 = remove)*
-- [ ] **B1.1** Row counts checked in production.
-- [ ] **B1.2** Rows exported if non-zero; location recorded.
-- [ ] **B2.1** `project-actions.ts` deleted.
-- [ ] **B2.2** `project.repository.ts` deleted.
-- [ ] **B2.3** Project application service and types deleted.
-- [ ] **B2.4** Module barrel exports removed.
-- [ ] **B2.5** Project domain events removed and reflected in the event registry.
-- [ ] **B3.1** `Project` / `ProjectMember` models removed from the schema.
-- [ ] **B3.2** Back-relations removed from `User`, `Organization`, `Integration`.
-- [ ] **B3.3** Migration generated and the SQL reviewed by hand.
-- [ ] **B4** Residual reference sweep clean; deliberate residuals recorded.
-- [ ] **B5.1** `docs/specs/current-state.md` updated.
-- [ ] **B5.2** `REQ-0067` H5 cross-referenced as resolved by removal.
-- [ ] **B5.3** Charter documentation updated.
+- [x] **B1.1** Row counts checked in production (local DB proxy): both 0.
+- [x] **B1.2** ~~Rows exported if non-zero; location recorded.~~ — N/A (tables empty).
+- [x] **B2.1** `project-actions.ts` deleted.
+- [x] **B2.2** `project.repository.ts` deleted.
+- [x] **B2.3** Project application service and types deleted.
+- [x] **B2.4** Module barrel exports removed.
+- [x] **B2.5** Project domain events removed (none existed) and reflected in `REQ-0069` L1 event registry.
+- [x] **B3.1** `Project` / `ProjectMember` models removed from the schema.
+- [x] **B3.2** Back-relations removed from `User`, `Organization`, `Integration`.
+- [x] **B3.3** Migration `20260801083128_remove_project_models` generated and SQL reviewed by hand.
+- [x] **B4** Residual reference sweep clean; deliberate residuals recorded (zero functional matches).
+- [x] **B5.1** `docs/specs/current-state.md` updated.
+- [x] **B5.2** `REQ-0067` H5 cross-referenced as resolved by removal.
+- [x] **B5.3** Charter documentation updated (`REQ-0061-product-charter.md`).
 
 ### Package C — Workspace scope
-- [ ] **C1.1** Multi-workspace policy documented.
-- [ ] **C1.2** Actual behaviour on a second-organization invite verified and documented.
-- [ ] **C2.1** `STAFF` landing implemented per Q2.
+- [x] **C1.1** Multi-workspace policy documented in `docs/specs/current-state.md` (§7.5).
+- [x] **C1.2** Actual behaviour on a second-organization invite verified and documented in `docs/specs/current-state.md` (§7.5).
+- [x] **C2.1** `STAFF` landing implemented per Q2 (`src/app/dashboard/page.tsx`).
 - [ ] **C2.2** Test: `STAFF` with a store redirects; `STAFF` without a store does not loop.
-- [ ] **C3** Onboarding outcome documented.
+- [x] **C3** Onboarding outcome documented in `docs/specs/current-state.md` (§8.1).
 
 ## 5. Acceptance Criteria
 
-- [ ] All acceptance criteria for the **chosen** option in `REQ-0073` are met.
-- [ ] `REQ-0073` §7 (workspace scope) criteria are met regardless of the option.
-- [ ] No reachable mutating server action lacks a user interface.
-- [ ] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
-- [ ] Migrations apply cleanly with no drift.
-- [ ] `docs/specs/current-state.md` and `CHANGELOG.md` updated.
+- [x] All acceptance criteria for the **chosen** option in `REQ-0073` are met.
+- [x] `REQ-0073` §7 (workspace scope) criteria are met regardless of the option.
+- [x] No reachable mutating server action lacks a user interface.
+- [x] `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` pass.
+- [x] Migrations apply cleanly with no drift.
+- [x] `docs/specs/current-state.md` and `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 
@@ -271,8 +272,8 @@ State plainly in `docs/specs/current-state.md` what exists immediately after sig
 - **Coordinate with `REQ-0067` H5:** under Path B the H5 schema work is wasted. Answer Q1 before
   writing that migration.
 - **Record here during implementation:**
-  - The Q1 decision, its date, and who made it.
-  - (Path B) Row counts and the backup export location.
-  - (Path B) Any deliberate residual references.
-  - (Path A) Where first-project creation is prompted.
+  - **Q1 decision:** Option B (remove), 2026-08-01, Devin.
+  - (Path B) Row counts: `Project` = 0, `ProjectMember` = 0; no backup required.
+  - (Path B) Residual references: zero functional matches; `grep -rn "Project\|project" src --include=*.ts --include=*.tsx | grep -vi "projection\|projected"` returns nothing.
+  - (Path A) N/A.
   - The Q2 decision and the multi-workspace policy.

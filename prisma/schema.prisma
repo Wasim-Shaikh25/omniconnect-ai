@@ -47,7 +47,6 @@ model User {
   auditLogs                     AuditLog[]
   tickets                       SupportTicket[]
   ticketComments                TicketComment[]
-  projectMembers                ProjectMember[]
   exportRequests                ExportRequest[]
   notificationPreferencesDetail NotificationPreference[]
 
@@ -144,7 +143,6 @@ model Organization {
   users     User[]
   stores    Store[]
   auditLogs AuditLog[]
-  projects  Project[]
   invites   OrganizationInvite[]
 
   @@unique([subscriptionId])
@@ -173,44 +171,6 @@ model OrganizationInvite {
   @@unique([organizationId, email])
   @@index([token])
   @@index([organizationId, status])
-}
-
-// ── projects ────────────────────────────────────────────────────────────────
-enum ProjectMemberRole {
-  OWNER
-  ADMIN
-  EDITOR
-  VIEWER
-}
-
-model Project {
-  id              String       @id @default(cuid())
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id])
-  name            String
-  description     String?
-  instagramHandle String?
-  integrationId   String?
-  integration     Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  members ProjectMember[]
-
-  @@index([organizationId])
-}
-
-model ProjectMember {
-  id        String            @id @default(cuid())
-  projectId String
-  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      ProjectMemberRole
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  @@unique([projectId, userId])
 }
 
 // ── ecommerce ───────────────────────────────────────────────────────────────
@@ -286,8 +246,6 @@ model Integration {
   store        Store           @relation(fields: [storeId], references: [id])
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-
-  projects Project[]
 
   @@index([storeId, type])
   @@index([storeId, type, provider])

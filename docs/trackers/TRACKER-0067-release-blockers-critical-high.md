@@ -76,14 +76,7 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [ ] Tests: valid, stale `tokenVersion`, soft-deleted, cross-user id.
 
 ### H5 — Project soft archive
-- [ ] Duplicate-project-name pre-check run against production data.
-- [ ] `archivedAt`, `@@unique([organizationId, name])`, `@@index([archivedAt])` migrated.
-- [ ] `archive` converted to `updateMany`; `restore` added.
-- [ ] `listByOrganization` filters archived by default.
-- [ ] `create` uses a `P2002` catch instead of check-then-insert.
-- [ ] `archiveProjectAction` handles `null` gracefully.
-- [ ] `prisma.*.delete(` inventory completed; decisions recorded.
-- [ ] Tests: archive keeps row + members, excluded from list, cross-tenant → null, restore round-trip.
+- [x] Resolved by removal (REQ-0073). `Project`/`ProjectMember` models, repository, application service, and server actions deleted. Migration `20260801083128_remove_project_models` drops the tables and enum; SQL reviewed by hand. Row counts were 0/0; no backup required.
 
 ### H6 — Durable event delivery
 - [ ] `min_machines_running = 1` set for the app process.

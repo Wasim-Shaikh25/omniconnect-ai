@@ -61,6 +61,7 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.organizationId) redirect("/onboarding");
+  if (user.role === "STAFF" && user.storeId) redirect(`/stores/${user.storeId}`);
 
   const kpis = await analyticsQueries.getWorkspaceKpis(
     user.organizationId,

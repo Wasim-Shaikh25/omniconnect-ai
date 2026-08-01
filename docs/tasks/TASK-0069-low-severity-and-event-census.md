@@ -50,6 +50,9 @@ Registry format — one row per event, no exceptions:
 Classification rule: **Live** (has a subscriber) · **Planned** (no subscriber but a linked REQ id)
 · **Removed** (neither — delete the class and its publication sites in this task).
 
+**Note from REQ-0073 (2026-08-01):** no `Project`/`ProjectMember` domain events existed in `src`;
+all Project-related code was removed, so no event rows need to be classified as Removed.
+
 Enforcement test:
 
 ```typescript

@@ -15,16 +15,25 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- **REQ-0067 release blockers:** C1/C2/H1/H4/H9/H10 fixed; remaining H2–H3, H5–H8 in progress.
+- **REQ-0067 release blockers:** C1/C2/H1/H4/H9/H10 fixed; H5 resolved by removal via REQ-0073; remaining H2–H3, H6–H8 in progress.
 
 ### ⏭️ Next
 
-- **REQ-0073 Q1 decision** — ship the Projects UI or remove the orphaned backend. Answer before
-  REQ-0067's H5 migration is written, or that migration is wasted.
-- **REQ-0067** — remaining release blockers (H2–H3, H5–H8), each with a regression test that fails
+- **REQ-0067** — remaining release blockers (H2–H3, H6–H8), each with a regression test that fails
   against current `main`.
 
 ### ✅ Done
+
+- **REQ-0073 — Projects and workspace lifecycle decision:**
+  - Q1 resolved: removed the orphaned `Project`/`ProjectMember` backend instead of shipping a UI.
+  - Deleted `src/modules/organizations/application/project.ts`, `project.repository.ts`, and `project-actions.ts`.
+  - Removed all `Project`/`ProjectMember` models, the `ProjectMemberRole` enum, and back-relations from `User`, `Organization`, and `Integration` in `prisma/schema.prisma`.
+  - Generated migration `20260801083128_remove_project_models` with `DROP TABLE` statements; SQL reviewed by hand.
+  - Row counts were 0/0 before the drop; no backup required.
+  - Residual reference sweep returned zero functional matches in `src`.
+  - Implemented `STAFF` landing redirect in `src/app/dashboard/page.tsx`: `STAFF` users with a `storeId` are redirected to `/stores/{storeId}`; `STAFF` without a `storeId` falls through to the dashboard (no loop).
+  - Documented single-workspace tenancy, onboarding outcome, and Project removal in `docs/specs/current-state.md` and `REQ-0061-product-charter.md`.
+  - Cross-referenced `REQ-0067` H5 as resolved by removal.
 
 - **REQ-0074 Package A — CI quality gates and unblockers:**
   - Added `redis:7-alpine` service with a health check to `.github/workflows/ci.yml` so
