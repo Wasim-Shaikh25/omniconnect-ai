@@ -15,19 +15,36 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0070` Package D — Change password and email from settings.
+- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
+  and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 
 ### ⏭️ Next
 
-- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
-  and settings dead links.
 - `REQ-0071`–`0075`.
 
 ### ✅ Done
 
-- **`REQ-0070` Packages B–C — Registration hardening and email verification at signup:**
+- **`REQ-0070` Package D — Change password and email from settings:**
+  - Added `changePasswordService` in `src/modules/auth/application/change-password.ts` requiring the
+    current password and enforcing the 8–200 character policy.
+  - Added `changeEmailService` in `src/modules/auth/application/change-email.ts` for two-step email
+    change: confirmation to the new address and a notice to the old; the new address is marked
+    verified and `tokenVersion` is bumped only after the link is consumed.
+  - `changePasswordAction` and `requestEmailChangeAction` in `src/modules/auth/presentation/actions.ts`
+    are rate-limited (5/hour and 3/hour per user respectively), require `getCurrentUser()`, and
+    write `AuditLog` entries.
+  - Added `AccountRepository.updateEmail` and reused `updatePassword` (which already increments
+    `tokenVersion`) in `src/modules/auth/infrastructure/account.repository.ts`.
+  - Updated `src/app/verify-email/page.tsx` to handle `email_change` tokens, confirm the change, and
+    refresh the current session via `unstable_update`.
+  - Added `src/components/account-security-forms.tsx` with change-password and request-email-change
+    forms on `/settings/account`.
+  - Unit tests cover wrong current password, non-revealing "address already in use", token reuse, and
+    successful email change.
+
+- **`REQ-0070` Packages B–C — Registration hardening and email verification at signup:
   - Added `confirmPassword` refinement to the registration schema and `AuthForm` with inline mismatch validation.
   - Added optional E.164 `phone` validation in `src/modules/auth/domain/phone.ts` and wired it through `registerUser`/`registerAction` and `AuthForm`.
   - Added `passwordRuleDescription()` and password min/max (8–200) feedback in the registration UI.

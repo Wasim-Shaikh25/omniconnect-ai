@@ -55,6 +55,12 @@ export { emailVerificationService } from "./infrastructure/container";
 export type { EmailVerificationService } from "./application/email-verification";
 export { verifyTurnstileToken } from "./infrastructure/turnstile";
 
+// Password and email change use-cases
+export { changePasswordService } from "./infrastructure/container";
+export { changeEmailService } from "./infrastructure/container";
+export type { ChangePasswordService } from "./application/change-password";
+export type { ChangeEmailService } from "./application/change-email";
+
 // Presentation wiring for the app composition root (route handlers + server actions + middleware)
 export { handlers, signIn, signOut, unstable_update, auth } from "./infrastructure/auth";
 export { oauthProviders, type OAuthProvider } from "./infrastructure/auth";
@@ -66,5 +72,7 @@ export {
   requestPasswordResetAction,
   resetPasswordAction,
   resendVerificationEmailAction,
+  changePasswordAction,
+  requestEmailChangeAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";

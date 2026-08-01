@@ -266,6 +266,11 @@ Core tables (see `prisma/schema.prisma` for full model):
   24-hour hashed token by email, and consume it at `/verify-email`. `authorize` returns a
   distinguishable `unverifiedEmail` code with a resend affordance; resends are rate-limited to
   3/hour/address. `requireVerifiedEmail()` gates AI generation, store creation, and Stripe checkout.
+- Password and email self-service (`REQ-0070` Package D): `/settings/account` exposes forms to
+  change password and request an email change. Password change requires the current password and is
+  rate-limited; it bumps `tokenVersion` and re-issues the current session's JWT. Email change sends
+  a confirmation link to the new address and a notice to the old; it only takes effect after the
+  new address is confirmed, bumps `tokenVersion`, and writes an `AuditLog` entry.
 - `User.phoneVerified` and the `VerificationRequest` table are in place; `dateOfBirth` remains
   omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
   `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.

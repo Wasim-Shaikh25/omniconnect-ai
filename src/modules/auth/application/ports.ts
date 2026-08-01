@@ -23,6 +23,7 @@ export interface AccountRepository {
   findByEmailIncludingDeleted(email: string): Promise<AccountRecord | null>;
   restoreAccount(id: string): Promise<AccountRecord | null>;
   updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
+  updateEmail(id: string, email: string): Promise<AccountRecord | null>;
   bumpTokenVersion(id: string): Promise<AccountRecord | null>;
   setEmailVerified(id: string, emailVerified: Date): Promise<AccountRecord | null>;
   create(input: {

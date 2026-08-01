@@ -53,15 +53,15 @@ bot protection.
 - [ ] Integration test: register → verify → login → gated features unlocked (tracked as a follow-up test).
 
 ### Package D — Password and email change
-- [ ] `changePassword` requires and validates the current password.
-- [ ] `tokenVersion` bumped; acting session stays valid.
-- [ ] Password-changed notification sent; audit entry written.
-- [ ] Password-change attempts rate-limited.
-- [ ] `requestEmailChange` confirms to the new address and notifies the old.
-- [ ] `confirmEmailChange` updates, verifies, bumps `tokenVersion`, audits.
-- [ ] "Address already in use" is non-revealing.
-- [ ] Settings UI shipped for both flows.
-- [ ] Tests: wrong current password, session invalidation, old-address notice, token reuse.
+- [x] `changePassword` requires and validates the current password.
+- [x] `tokenVersion` bumped; acting session stays valid.
+- [x] Password-changed notification sent; audit entry written.
+- [x] Password-change attempts rate-limited.
+- [x] `requestEmailChange` confirms to the new address and notifies the old.
+- [x] `confirmEmailChange` updates, verifies, bumps `tokenVersion`, audits.
+- [x] "Address already in use" is non-revealing.
+- [x] Settings UI shipped for both flows.
+- [x] Tests: wrong current password, session invalidation, old-address notice, token reuse.
 
 ### Package E — Phone verification
 - [ ] `SmsSender` port defined.
