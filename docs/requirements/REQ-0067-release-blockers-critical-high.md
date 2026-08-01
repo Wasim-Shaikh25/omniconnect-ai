@@ -185,13 +185,13 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H4 — Export route session revocation
 
-- [ ] `src/app/api/export/[id]/route.ts` uses `getCurrentUser()` from `@/modules/auth`, not
+- [x] `src/app/api/export/[id]/route.ts` uses `getCurrentUser()` from `@/modules/auth`, not
       `auth()`.
-- [ ] The response sets `Cache-Control: no-store, private`.
-- [ ] The route is rate-limited.
-- [ ] A repo-wide check confirms no remaining `await auth()` call sites outside
+- [x] The response sets `Cache-Control: no-store, private`.
+- [x] The route is rate-limited.
+- [x] A repo-wide check confirms no remaining `await auth()` call sites outside
       `src/modules/auth/`.
-- [ ] Tests: valid session → `200`; stale `tokenVersion` → `401`; soft-deleted user → `401`;
+- [x] Tests: valid session → `200`; stale `tokenVersion` → `401`; soft-deleted user → `401`;
       another user's export id → `404`.
 
 ### H5 — Project archive is non-destructive

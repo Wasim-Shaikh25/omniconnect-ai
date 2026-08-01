@@ -16,15 +16,11 @@ All notable changes to **OmniConnect AI** are documented here.
 ### 🚧 In Progress
 
 - **Close the audit gaps:**
-  - H5.6 — complete the `prisma.*.delete(` / `deleteMany(` inventory across modules and record tenant-scoping decisions.
-  - S2/S5 — add action-level and admin-route guard census tests.
-  - T4/T9/T10 — add route-level tests for `/api/auth/session` and `/api/export/[id]`.
-  - M6 — set `typescript: true` in Stripe client config.
-  - L5 — set `auto_stop_machines = "off"` in `fly.toml`.
+  - S2 — add a census or regression test covering cross-tenant write isolation for mutating actions.
 
 ### ⏭️ Next
 
-- Continue with remaining audit gaps; update `REQ-0067/0074` trackers and add regression tests where missing.
+- Continue with remaining audit gaps (S2 action census, M6/L5 ADRs, H10 serialization retry verification, L1/L3/L4/L7 low-severity items); update trackers and `task-status`.
 
 ### ✅ Done
 
@@ -35,6 +31,16 @@ All notable changes to **OmniConnect AI** are documented here.
   - `CartRepository.markNotified` now uses `updateMany({ where: { id, notifiedAt: null } })` and
     returns `boolean`; `AbandonedCartSweep` skips `eventBus.publish` when another process already
     marked the cart, preventing duplicate `AbandonedCartDetected` events.
+
+- **Audit gap closure — H5.6 / M6 / L5 / T9/T10 / S5:**
+  - Completed the `prisma.*.delete(` / `deleteMany(` inventory in `TASK-0067` §6; hardened
+    `TrackedAccountRepository.delete` to scope by `storeId` in the `where` clause.
+  - Pinned Stripe `apiVersion` and set `typescript: true` in `StripePaymentGateway`.
+  - Set `auto_stop_machines = "off"` in `fly.toml` alongside `min_machines_running = 1`.
+  - Added route-level tests for `/api/export/[id]` covering `getCurrentUser` null → `401`,
+    cross-user export id → `404`, and valid export → `200` with `Cache-Control: no-store, private`.
+  - Added explicit `requireSuperAdmin()` to every `src/app/admin/**/page.tsx` and a static
+    `admin-guards.test.ts` that fails if any admin page omits it.
 
 - **REQ-0075 Packages A, B, C, G6, H — Release-engineering foundation:**
   - Fixed `Dockerfile` runner stage so `npx prisma migrate deploy` works inside the image.

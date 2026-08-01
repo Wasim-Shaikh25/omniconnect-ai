@@ -1,3 +1,4 @@
+import { requireSuperAdmin } from "@/modules/auth";
 import { listSaaSCouponsAction, createSaaSCouponAction } from "@/modules/organizations";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateSaaSCouponForm } from "@/components/create-saas-coupon-form";
@@ -17,6 +18,7 @@ function parseLimit(raw: string | undefined) {
 }
 
 export default async function AdminCouponsPage({ searchParams }: AdminCouponsPageProps) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const page = parsePage(params.page);
   const limit = parseLimit(params.limit);

@@ -22,6 +22,7 @@ export class StripePaymentGateway implements PaymentGateway {
     }
     this.client = new Stripe(env.STRIPE_SECRET_KEY, {
       apiVersion: "2024-09-30.acacia",
+      typescript: true,
     });
   }
 

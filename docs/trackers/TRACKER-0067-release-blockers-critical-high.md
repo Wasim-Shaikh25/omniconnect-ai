@@ -73,7 +73,7 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] `Cache-Control: no-store, private` set.
 - [x] Rate limiting added.
 - [x] Repo-wide `await auth()` check returns nothing outside `src/modules/auth/`.
-- [ ] Tests: valid, stale `tokenVersion`, soft-deleted, cross-user id.
+- [x] Tests: valid, stale `tokenVersion`, soft-deleted, cross-user id (`src/app/api/export/[id]/route.test.ts`).
 
 ### H5 — Project soft archive
 - [x] Resolved by removal (REQ-0073). `Project`/`ProjectMember` models, repository, application service, and server actions deleted. Migration `20260801083128_remove_project_models` drops the tables and enum; SQL reviewed by hand. Row counts were 0/0; no backup required.

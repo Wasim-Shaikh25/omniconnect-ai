@@ -1,3 +1,4 @@
+import { requireSuperAdmin } from "@/modules/auth";
 import { listAllOrganizationsAction } from "@/modules/organizations";
 import { listAllUsersAction } from "@/modules/users";
 import { listSaaSCouponsAction } from "@/modules/organizations";
@@ -6,6 +7,7 @@ import { listSystemLogs } from "@/shared/observability";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AdminDashboardPage() {
+  await requireSuperAdmin();
   const [organizations, users, coupons, tickets, logs] = await Promise.all([
     listAllOrganizationsAction(),
     listAllUsersAction(),

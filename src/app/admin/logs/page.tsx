@@ -1,3 +1,4 @@
+import { requireSuperAdmin } from "@/modules/auth";
 import { listSystemLogs } from "@/shared/observability";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -6,6 +7,7 @@ export default async function AdminLogsPage({
 }: {
   searchParams: Promise<{ level?: string; service?: string }>;
 }) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const logs = await listSystemLogs({
     level: params.level as "DEBUG" | "INFO" | "WARN" | "ERROR" | "FATAL" | undefined,

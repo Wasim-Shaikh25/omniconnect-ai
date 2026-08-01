@@ -76,7 +76,7 @@ export class PrismaTrackedAccountRepository implements TrackedAccountRepository 
     return mapRow(row);
   }
 
-  async delete(id: string): Promise<void> {
-    await prisma.trackedAccount.delete({ where: { id } });
+  async delete(id: string, storeId: string): Promise<void> {
+    await prisma.trackedAccount.delete({ where: { id, storeId } });
   }
 }
