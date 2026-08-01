@@ -82,13 +82,12 @@ export class PrismaMessageRepository implements MessageRepository {
     if (conversationIds.length === 0) return {};
     const rows = await prisma.message.findMany({
       where: { conversationId: { in: conversationIds } },
-      orderBy: { createdAt: "desc" },
+      distinct: ["conversationId"],
+      orderBy: [{ conversationId: "asc" }, { createdAt: "desc" }],
     });
     const latest: Record<string, MessageRecord> = {};
     for (const row of rows) {
-      if (!latest[row.conversationId]) {
-        latest[row.conversationId] = toRecord(row);
-      }
+      latest[row.conversationId] = toRecord(row);
     }
     return latest;
   }

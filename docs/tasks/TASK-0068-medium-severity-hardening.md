@@ -489,10 +489,10 @@ abusive output blocked by moderation.
 - [x] **M2.2** Log `telemetry.disabled` once.
 - [x] **M2.3** Document `OTEL_EXPORTER_OTLP_ENDPOINT` in `docs/deployment.md`.
 - [x] **M2.4** Test: no global tracer provider set with `NODE_ENV=production` and the var unset.
-- [ ] **M4.1** Convert `listLatestByConversationIds` to `DISTINCT ON`.
-- [ ] **M4.2** Add the `Message(conversationId, createdAt DESC)` index migration.
-- [ ] **M4.3** Test: 3 conversations × 50 messages → exactly 3 rows read.
-- [ ] **M4.4** Inventory unbounded `findMany(` calls in repositories; record results.
+- [x] **M4.1** Convert `listLatestByConversationIds` to use `distinct`/`DISTINCT ON` in the database.
+- [x] **M4.2** Add the `Message(conversationId, createdAt DESC)` index migration.
+- [x] **M4.3** Test: 3 conversations × 50 messages → exactly 3 rows read.
+- [ ] **M4.4** Inventory unbounded `findMany(` calls in repositories; add `take` limits or document why not needed.
 - [ ] **M5.1** Implement `customers/data_request`.
 - [ ] **M5.2** Implement `customers/redact` with audit trail.
 - [ ] **M5.3** Implement `shop/redact`.

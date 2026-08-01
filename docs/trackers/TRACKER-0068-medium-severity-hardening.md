@@ -36,10 +36,10 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] Test passes.
 
 ### M4 — Inbox query
-- [ ] `DISTINCT ON` implementation landed.
-- [ ] `Message(conversationId, createdAt DESC)` index migrated.
-- [ ] Row-count test passes.
-- [ ] Unbounded `findMany(` inventory completed.
+- [x] `listLatestByConversationIds` returns at most one row per conversation from the database.
+- [x] `Message(conversationId, createdAt DESC)` index migrated.
+- [x] Integration test asserts 3 conversations × 50 messages → 3 rows.
+- [ ] Unbounded `findMany(` inventory still in progress; results recorded in `TASK-0068` M4.4.
 
 ### M5 — Shopify compliance
 - [ ] `customers/data_request` implemented.
