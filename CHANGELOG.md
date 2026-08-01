@@ -15,11 +15,32 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- (none — `REQ-0067` critical/high blockers and `REQ-0074` test-coverage work are complete).
+- **REQ-0075** — release engineering, DR, observability, and residual-risk closure.
 
 ### ⏭️ Next
 
-- **REQ-0075** — release engineering, DR, observability, and residual-risk closure.
+- Complete `REQ-0075` Packages D–G: managed backups + restore drill, staging provisioning and journey validation, alerting/dashboard wiring, and residual-risk verification (load, a11y, soak, pen-test, third-party sandbox).
+
+### ✅ Done
+
+- **REQ-0075 Packages A, B, C, G6, H — Release-engineering foundation:**
+  - Fixed `Dockerfile` runner stage so `npx prisma migrate deploy` works inside the image.
+    Copied `prisma/`, `scripts/`, the generated Prisma runtime, and `prisma`/`tsx` CLI
+    symlinks; chose a single image (size delta 362 MB → 374 MB).
+  - Exposed `GIT_COMMIT_SHA` at `/api/health` with no new dependencies and pass it as a
+    Docker build arg in the new `.github/workflows/deploy.yml`.
+  - Added `.github/workflows/deploy.yml` (workflow_run on CI success) with `staging` auto
+    deploy and `production` gated by a GitHub Environment approval.
+  - Created `fly.staging.toml`; reduced `deploy.sh` to a thin `flyctl deploy --remote-only` wrapper.
+  - Added container vulnerability scanning to `.github/workflows/ci.yml` via Trivy.
+  - Updated `docs/deployment.md` with the Docker migration step.
+  - Wrote rollback runbook, expand/contract migration policy, alert table, and risk register
+    in `docs/operations.md`.
+  - Added ADRs 0002–0006 covering worker extraction, transactional outbox, second LLM provider,
+    per-tenant AI quotas, and analytics read replicas.
+  - Local verification: `npx prisma migrate deploy` inside the container, `/api/health`
+    returned the commit SHA, `/api/ready` returned 200, and all quality gates pass.
+
 
 ### ✅ Done
 

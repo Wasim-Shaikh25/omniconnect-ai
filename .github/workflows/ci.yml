@@ -161,6 +161,23 @@ jobs:
           echo "shopify -> $shopify" >&2
           case "$shopify" in 3*) echo "shopify webhook redirected ($shopify)" >&2; exit 1;; esac
 
+  container-scan:
+    name: Container vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t omniconnect-ai:ci .
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "omniconnect-ai:ci"
+          format: "table"
+          exit-code: "0"
+          severity: "CRITICAL,HIGH"
+
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest

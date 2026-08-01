@@ -1,4 +1,4 @@
-app = "omniconnect-ai"
+app = "omniconnect-ai-staging"
 primary_region = "lhr"
 
 [build]

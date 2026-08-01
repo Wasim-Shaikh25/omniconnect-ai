@@ -35,6 +35,23 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Migrations must be runnable from inside the image; the standalone bundle omits them.
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tsx ./node_modules/tsx
+
+# Make the Prisma and tsx CLIs callable via `npx` inside the production image,
+# so migrations and the super-admin seed can run as release commands.
+RUN mkdir -p node_modules/.bin \
+  && ln -sf ../prisma/build/index.js node_modules/.bin/prisma \
+  && ln -sf ../tsx/dist/cli.mjs node_modules/.bin/tsx
+
+ARG GIT_COMMIT_SHA
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA:-unknown}
+
 USER nextjs
 
 EXPOSE 3000

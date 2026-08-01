@@ -143,12 +143,22 @@ Use `.env.test` for CI or a throwaway test environment.
 Build and run with Docker:
 
 ```bash
-docker build -t omniconnect-ai .
+# Pass the commit SHA so /api/health exposes the running version.
+docker build --build-arg GIT_COMMIT_SHA=$(git rev-parse HEAD) -t omniconnect-ai .
 docker run -p 3000:3000 --env-file .env.production omniconnect-ai
 ```
 
-`.env.production` should contain the same keys as `.env.example` but with production values. Make
-sure Redis and Postgres are reachable from the container and migrations have been applied.
+`.env.production` should contain the same keys as `.env.example` but with production values. The
+production image includes `prisma/`, the generated Prisma client, and the `prisma`/`tsx` CLIs, so
+migrations can run from inside the container:
+
+```bash
+# Run migrations before (or on) first boot.
+docker run --rm --env-file .env.production omniconnect-ai npx prisma migrate deploy
+```
+
+Make sure Redis and Postgres are reachable from the container. On Linux, use `--network=host` or a
+Docker network; on macOS/Windows, use `host.docker.internal`.
 
 ## Multi-tenant SaaS checklist
 
