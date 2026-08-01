@@ -258,6 +258,10 @@ Core tables (see `prisma/schema.prisma` for full model):
   escapes `&`/`<`/`>` in user-editable fragments and external data, adds a system instruction that
   only delimited user input is untrusted, and runs generated replies through OpenAI moderation
   before sending to Meta; flagged content is withheld and escalated.
+- Identity self-service (`REQ-0070`) is in progress. Schema decisions: `User.phoneVerified` added,
+  a new `VerificationRequest` table stores hashed tokens for email/phone verification and email
+  changes, `dateOfBirth` omitted for the MVP, and new env vars (`REQUIRE_EMAIL_VERIFICATION`,
+  `TURNSTILE_*`, `SMS_PROVIDER`, `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.
 
 ### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
 

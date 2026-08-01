@@ -69,8 +69,25 @@ const envSchema = z.object({
   SUPER_ADMIN_EMAIL: z.string().email().optional(),
   SUPER_ADMIN_PHONE: z.string().optional(),
   SUPER_ADMIN_PASSWORD: z.string().optional(),
+  SUPER_ADMIN_RECONCILE: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 
   RATE_LIMIT_IP_HEADER: z.string().optional(),
+
+  REQUIRE_EMAIL_VERIFICATION: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
+
+  TURNSTILE_SITE_KEY: z.string().optional(),
+  TURNSTILE_SECRET_KEY: z.string().optional(),
+
+  SMS_PROVIDER: z.enum(["console", "twilio", "disabled"]).default("disabled"),
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_NUMBER: z.string().optional(),
 
   ABANDONED_CART_THRESHOLD_MINUTES: z.coerce.number().int().min(1).default(60),
 

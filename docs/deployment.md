@@ -210,6 +210,10 @@ production needs:
 | `NEXTAUTH_URL` | Public app URL |
 | `AUTH_TRUST_HOST` | `true` off Vercel so Auth.js trusts the proxy `Host` header |
 | `RATE_LIMIT_IP_HEADER` | Trusted client-IP header for login rate limiting. Required in production. Fly.io: `Fly-Client-IP`. Cloudflare: `CF-Connecting-IP`. |
+| `REQUIRE_EMAIL_VERIFICATION` | `true` to block AI/store/checkout for unverified credential users (default `true`). Set `false` for local/dev convenience. |
+| `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile keys for registration bot protection. Leave unset to disable. |
+| `SMS_PROVIDER` | `console`, `twilio`, or `disabled` (default). Phone verification UI is hidden when `disabled`. |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | Required when `SMS_PROVIDER=twilio`. |
 | `OPENAI_API_KEY` | AI replies and content generation |
 | `META_APP_SECRET` | Webhook HMAC verification |
 | `META_WEBHOOK_VERIFY_TOKEN` | Meta webhook subscription token |

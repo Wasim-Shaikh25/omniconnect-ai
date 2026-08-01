@@ -15,12 +15,20 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
+- `REQ-0070` Package A — Identity and account self-service schema/configuration:
+  - Added `User.phoneVerified` and a new `VerificationRequest` table for hashed verification tokens.
+  - Omitted `dateOfBirth` for the MVP (Q1 decision).
+  - Added env vars: `REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`,
+    `SMS_PROVIDER`, `TWILIO_*`, `SUPER_ADMIN_RECONCILE`.
+  - Migration `20260801162632_add_identity_self_service` applies cleanly.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 
 ### ⏭️ Next
 
-- `REQ-0070`–`0075`.
+- `REQ-0070` Packages B–G — confirm password, email verification, password/email change, phone
+  verification, session management, super-admin reconciliation, and settings dead links.
+- `REQ-0071`–`0075`.
 
 ### ✅ Done
 

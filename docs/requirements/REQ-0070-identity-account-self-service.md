@@ -88,8 +88,8 @@ standard SaaS.
 - [ ] `AuthForm` (register mode) renders a confirm-password field with the mismatch error inline.
 - [ ] Password strength rules are stated in the UI before submission (current rule: 8–200 chars;
       any change is recorded in the task file).
-- [ ] Optional `dateOfBirth` is collected with a stated purpose; a minimum-age rule is applied per
-      the decision in §8.
+- [x] ~~Optional `dateOfBirth` is collected with a stated purpose; a minimum-age rule is applied per
+      the decision in §8.~~ **Omitted for MVP (Q1): no DOB field or age policy.**
 - [ ] Optional `phone` is collected in E.164 format with client and server validation.
 - [ ] Registration creates the user in an **unverified** state and sends a verification email.
 - [ ] Organization/workspace provisioning happens **after** verification (or the pre-verification
@@ -179,14 +179,14 @@ pattern, not the broken one.
 ## 8. Open Questions
 
 1. **Is DOB actually required?** Collecting it creates a data-protection obligation with no current
-   product use. **Default: collect it as optional, or omit it entirely unless a minimum-age rule is
-   a legal requirement.** Confirm before implementing.
-2. **Provision the workspace before or after email verification?** **Default: create the user
+   product use. **Decision: omit `dateOfBirth` entirely for the MVP. No minimum-age rule is currently
+   required, and the field adds compliance burden without product value.**
+2. **Provision the workspace before or after email verification?** **Decision: create the user
    unverified, allow login, but block AI generation, store connection, and checkout until verified.**
    This avoids a dead-end signup while stopping free-tier abuse.
-3. **Which SMS provider?** **Default: define the `SmsSender` port now with a console implementation;
-   pick the provider when mobile verification is actually enabled.**
-4. **Which CAPTCHA?** **Default: Cloudflare Turnstile — no cost, low friction, easy to disable in
-   tests.**
-5. **Is mobile verification required at all, or optional recovery only?** **Default: optional
-   recovery.**
+3. **Which SMS provider?** **Decision: define the `SmsSender` port now with a `console` sender and
+   `disabled` state; pick Twilio or another provider when mobile verification is actually enabled.**
+4. **Which CAPTCHA?** **Decision: Cloudflare Turnstile — no cost, low friction, and can be disabled
+   by leaving `TURNSTILE_SECRET_KEY` unset.**
+5. **Is mobile verification required at all, or optional recovery only?** **Decision: optional
+   recovery only.**
