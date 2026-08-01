@@ -19,7 +19,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ⏭️ Next
 
-- Complete `REQ-0075` Packages D–G: managed backups + restore drill, staging provisioning and journey validation, alerting/dashboard wiring, and residual-risk verification (load, a11y, soak, pen-test, third-party sandbox).
+- Complete `REQ-0075` remaining verification work: perform a real restore drill, provision staging DB/Redis/sandbox credentials and run the §1.6 journey, wire alert destinations and build the operations dashboard, and close residual risks with load/a11y/soak/pen-test results.
 
 ### ✅ Done
 
@@ -40,6 +40,20 @@ All notable changes to **OmniConnect AI** are documented here.
     per-tenant AI quotas, and analytics read replicas.
   - Local verification: `npx prisma migrate deploy` inside the container, `/api/health`
     returned the commit SHA, `/api/ready` returned 200, and all quality gates pass.
+
+- **REQ-0075 Packages D, E, F (partial) — Backups, staging docs, and Sentry release tracking:**
+  - Added `.github/workflows/backup.yml` for weekly `pg_dump -Fc` to S3 with failure alerting
+    via `ALERT_WEBHOOK_URL`.
+  - Added `scripts/backup.sh` and `scripts/restore.sh` for one-off backups and restores.
+  - Updated `docs/operations.md` with managed-backup retention, independent weekly dumps,
+    and the restore procedure.
+  - Added staging environment provisioning steps to `docs/deployment.md` and emphasized
+    that production customer data is never copied to staging.
+  - Wired Sentry release tracking in `src/shared/observability/sentry.ts` using
+    `SENTRY_RELEASE` or `GIT_COMMIT_SHA`.
+  - Extended `docs/deployment.md` environment variable table with `SENTRY_RELEASE`,
+    `GIT_COMMIT_SHA`, and backup-related variables.
+  - All local quality gates pass.
 
 
 ### ✅ Done

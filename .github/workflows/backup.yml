@@ -1,0 +1,56 @@
+name: Backup
+
+on:
+  schedule:
+    # 03:00 UTC every Sunday
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  postgres:
+    name: Weekly PostgreSQL dump to S3
+    runs-on: ubuntu-latest
+    env:
+      BACKUP_BUCKET: ${{ secrets.BACKUP_BUCKET }}
+      BACKUP_PREFIX: ${{ secrets.BACKUP_PREFIX || 'omniconnect-backups' }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+      ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Dump database and upload to S3
+        run: |
+          set -e
+          stamp=$(date +%Y%m%d-%H%M%S)
+          file="omniconnect-${stamp}.dump"
+          # Strip any ?schema=... query params that pg_dump does not understand.
+          db_url="${DATABASE_URL%%\?*}"
+          pg_dump "${db_url}" -Fc -f "${file}"
+          aws s3 cp "${file}" "s3://${BACKUP_BUCKET}/${BACKUP_PREFIX}/${file}"
+          echo "uploaded=s3://${BACKUP_BUCKET}/${BACKUP_PREFIX}/${file}" >> "$GITHUB_OUTPUT"
+
+      - name: Alert on failure
+        if: failure()
+        run: |
+          echo "Backup failed" >&2
+          if [ -n "$ALERT_WEBHOOK_URL" ]; then
+            curl -fsS -X POST "$ALERT_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d '{"text":"OmniConnect AI weekly PostgreSQL backup failed","source":"github-actions","workflow":"Backup"}' || true
+          fi
+          exit 1

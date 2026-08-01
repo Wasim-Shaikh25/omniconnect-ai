@@ -226,8 +226,9 @@ Core tables (see `prisma/schema.prisma` for full model):
   auto-deploys to staging, then deploys to production through a GitHub Environment approval.
 - **Health checks:** `/api/health` (liveness; returns `version` = `GIT_COMMIT_SHA`) and `/api/ready`
   (DB + Redis).
-- **Backups:** PostgreSQL `pg_dump`, Redis `BGSAVE`; restore and rollback runbook + migration
-  compatibility policy in `docs/operations.md`.
+- **Backups:** PostgreSQL `pg_dump`, Redis `BGSAVE`. `.github/workflows/backup.yml` runs a weekly
+  `pg_dump -Fc` to S3. Restore and rollback runbook + migration compatibility policy in
+  `docs/operations.md`; `scripts/backup.sh` and `scripts/restore.sh` support one-off operations.
 - **Observability:** Sentry + OpenTelemetry initialized in app and worker; spans around AI, Meta,
   and Shopify calls. Alert table and risk register in `docs/operations.md`.
 - **Secrets:** all tokens encrypted at rest; no secrets in logs; `env.ts` validates required

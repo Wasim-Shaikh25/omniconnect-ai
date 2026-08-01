@@ -276,20 +276,20 @@ Record, do not necessarily build:
 - [x] **C.1** Write the rollback runbook.
 - [x] **C.2** Write and adopt the expand/contract migration policy.
 - [ ] **C.3** Rehearse a rollback against staging; record the date and outcome.
-- [ ] **D.1** Enable managed daily backups; document retention.
-- [ ] **D.2** Add the independent weekly `pg_dump` to off-platform storage.
-- [ ] **D.3** Alert on backup failure.
+- [x] **D.1** Enable managed daily backups; document retention.
+- [x] **D.2** Add the independent weekly `pg_dump` to off-platform storage.
+- [x] **D.3** Alert on backup failure.
 - [ ] **D.4** Perform the restore drill; record RTO and RPO.
-- [ ] **D.5** Write the restore procedure for someone who has never done it.
-- [ ] **E.1** Create `fly.staging.toml` and the staging app.
+- [x] **D.5** Write the restore procedure for someone who has never done it.
+- [x] **E.1** Create `fly.staging.toml` and the staging app.
 - [ ] **E.2** Provision staging database, Redis, and sandbox credentials.
-- [ ] **E.3** Deploy staging automatically from `main`.
+- [x] **E.3** Deploy staging automatically from `main`.
 - [ ] **E.4** Run the §1.6 condition 2 journey in staging; assert exactly-once side effects.
-- [ ] **E.5** Document that production data is never copied to staging.
-- [ ] **F.1** Configure all six alerts with owners and first-response steps.
-- [ ] **F.2** Configure Sentry release tracking.
+- [x] **E.5** Document that production data is never copied to staging.
+- [x] **F.1** Configure all six alerts with owners and first-response steps.
+- [x] **F.2** Configure Sentry release tracking.
 - [ ] **F.3** Build the operations dashboard.
-- [ ] **F.4** Schedule a threshold review one month after launch.
+- [x] **F.4** Schedule a threshold review one month after launch.
 - [ ] **G.1** Run the load test; record results; file or accept findings.
 - [ ] **G.2** Run axe-core and Lighthouse; triage findings; verify contrast.
 - [ ] **G.3** Run the 24-hour two-replica soak; assert exactly-once side effects.

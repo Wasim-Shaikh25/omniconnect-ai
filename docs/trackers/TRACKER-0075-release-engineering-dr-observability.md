@@ -41,29 +41,29 @@ multi-replica correctness, live third-party integrations).
 - [ ] Rollback **rehearsed** against staging; date and outcome recorded.
 
 ### Package D — Backups and restore
-- [ ] Managed daily backups enabled; retention documented.
-- [ ] Independent weekly `pg_dump` to off-platform storage configured.
-- [ ] Backup failure alerting configured.
+- [x] Managed daily backups enabled; retention documented.
+- [x] Independent weekly `pg_dump` to off-platform storage configured.
+- [x] Backup failure alerting configured.
 - [ ] **Restore drill performed**; RTO and RPO recorded.
-- [ ] Restore procedure written for a first-time operator.
+- [x] Restore procedure written for a first-time operator.
 
 ### Package E — Staging
-- [ ] `fly.staging.toml` created; staging app provisioned.
+- [x] `fly.staging.toml` created; staging app provisioned.
 - [ ] Staging database, Redis, and sandbox credentials provisioned.
-- [ ] Staging deploys automatically from `main`.
+- [x] Staging deploys automatically from `main`.
 - [ ] §1.6 condition 2 journey executed in staging with exactly-once side effects verified.
-- [ ] Documented that production data is never copied to staging.
+- [x] Documented that production data is never copied to staging.
 
 ### Package F — Alerting and dashboards
-- [ ] Webhook failure-rate alert configured with an owner.
-- [ ] Event-handler error-rate alert configured.
-- [ ] Failed-queue depth alert configured.
-- [ ] `/api/ready` failure alert configured.
-- [ ] Error-rate spike alert configured.
-- [ ] Backup failure alert configured.
-- [ ] Sentry release tracking configured.
+- [x] Webhook failure-rate alert configured with an owner.
+- [x] Event-handler error-rate alert configured.
+- [x] Failed-queue depth alert configured.
+- [x] `/api/ready` failure alert configured.
+- [x] Error-rate spike alert configured.
+- [x] Backup failure alert configured.
+- [x] Sentry release tracking configured.
 - [ ] Operations dashboard built.
-- [ ] Threshold review scheduled for one month post-launch.
+- [x] Threshold review scheduled for one month post-launch.
 
 ### Package G — Residual-risk closure
 - [ ] **G1** Load test run at 10× peak; results recorded; findings filed or accepted.

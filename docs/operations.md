@@ -45,20 +45,48 @@ For point-in-time persistence, enable Redis AOF or run `BGSAVE` before maintenan
 redis-cli BGSAVE
 ```
 
+## Backups
+
+### Managed daily backups
+
+The production Postgres cluster is configured with the platform's managed daily backups. Retention is
+30 days by default. Verify in the Fly.io/Neon dashboard.
+
+### Independent weekly dump
+
+`.github/workflows/backup.yml` runs every Sunday at 03:00 UTC and produces a `pg_dump -Fc` archive
+uploaded to `s3://${BACKUP_BUCKET}/${BACKUP_PREFIX}/omniconnect-YYYYMMDD-HHMMSS.dump`.
+Required secrets: `DATABASE_URL`, `BACKUP_BUCKET`, `BACKUP_AWS_ACCESS_KEY_ID`,
+`BACKUP_AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, and optionally `ALERT_WEBHOOK_URL` for failure
+notifications.
+
+A one-off local backup can also be run with:
+
+```bash
+DATABASE_URL="..." BACKUP_BUCKET="..." scripts/backup.sh
+```
+
 ## Restore
 
 ### PostgreSQL point-in-time restore
 
-1. Provision a new Postgres instance or database.
-2. Apply schema migrations: `npx prisma migrate deploy`.
+1. Identify the backup to restore (S3 URI or local file).
+2. Provision a new Postgres instance or database.
 3. Restore the dump:
 
 ```bash
-pg_restore -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" --clean --if-exists latest.dump
+DATABASE_URL="postgresql://..." scripts/restore.sh s3://my-bucket/prefix/omniconnect-YYYYMMDD-HHMMSS.dump
 ```
 
-4. Verify `/api/ready` returns `200`.
-5. Rotate any tokens or secrets that may have been compromised if restoring after an incident.
+   Or from a local file:
+
+```bash
+DATABASE_URL="postgresql://..." scripts/restore.sh ./omniconnect-YYYYMMDD-HHMMSS.dump
+```
+
+4. Apply schema migrations: `npx prisma migrate deploy`.
+5. Verify `/api/ready` returns `200`.
+6. Rotate any tokens or secrets that may have been compromised if restoring after an incident.
 
 ## Rollback
 
@@ -90,7 +118,8 @@ Performed when: [date] by: [owner]
 
 1. Provision a scratch database and user.
 2. Restore the latest backup:
-   `pg_restore -d "$SCRATCH_URL" --clean --if-exists omniconnect-<date>.dump`
+   `DATABASE_URL="$SCRATCH_URL" scripts/restore.sh s3://<bucket>/omniconnect-<date>.dump`
+   (or pass a local `.dump` file).
 3. Verify row counts against the source for: `User`, `Organization`, `Store`, `Product`,
    `Order`, `Conversation`, `Message`.
 4. Point a local build at the scratch database; sign in; load `/dashboard`.
