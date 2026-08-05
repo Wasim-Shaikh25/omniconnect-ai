@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { makeAnalyzeMedia } from "./analyze-media";
 import type { AIProvider } from "./ports";
+import { defaultAIConfigurationRecord } from "./ai-config";
 
 const fakeProvider: AIProvider = {
   async complete(_messages, config) {
@@ -20,16 +21,7 @@ const fakeConfigRepo = {
     return null;
   },
   async getOrCreateDefault(projectId: string) {
-    return {
-      projectId,
-      systemPrompt: "",
-      tone: null,
-      welcomeStrategy: null,
-      couponStrategy: null,
-      salesStrategy: null,
-      escalationRules: null,
-      model: "openai/gpt-4o-mini",
-    };
+    return defaultAIConfigurationRecord(projectId);
   },
   async update(projectId: string) {
     return this.getOrCreateDefault(projectId);

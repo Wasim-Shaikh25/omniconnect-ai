@@ -160,7 +160,9 @@ function buildSystemPrompt(
     config.welcomeStrategy ? wrapExternalData("WELCOME_STRATEGY", config.welcomeStrategy) : "",
     config.couponStrategy ? wrapExternalData("COUPON_STRATEGY", config.couponStrategy) : "",
     config.salesStrategy ? wrapExternalData("SALES_STRATEGY", config.salesStrategy) : "",
-    config.escalationRules ? wrapExternalData("ESCALATION_RULES", config.escalationRules) : "",
+    wrapExternalData("ENABLED_SKILLS", JSON.stringify(config.enabledSkills)),
+    wrapExternalData("SALES_RULES", JSON.stringify(config.salesRules)),
+    wrapExternalData("ESCALATION_RULES", JSON.stringify(config.escalationRules)),
     "",
     wrapExternalData("CUSTOMER_MEMORY", formatMemory(profile)),
     "",
@@ -319,7 +321,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
           content: m.content,
         })),
       )
-      .withModel(selectModel("reply", config.model).model)
+      .withModel(selectModel("reply", config.modelOverrides.reply ?? config.model).model)
       .withOperation("reply")
       .withMetadata({ conversationId, userId, projectId, externalUserId, hasProfile: Boolean(profile) })
       .build();

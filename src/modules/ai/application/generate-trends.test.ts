@@ -3,6 +3,7 @@ import { makeGenerateTrends } from "./generate-trends";
 import type { AIProvider } from "./ports";
 import type { BestTimeWindow, MediaPost } from "@/modules/analytics/pure";
 import type { OrderRecord } from "@/modules/ecommerce";
+import { defaultAIConfigurationRecord } from "./ai-config";
 
 const fakeProvider: AIProvider = {
   async complete(_messages, config) {
@@ -31,16 +32,7 @@ const fakeConfigRepo = {
     return null;
   },
   async getOrCreateDefault(projectId: string) {
-    return {
-      projectId,
-      systemPrompt: "",
-      tone: null,
-      welcomeStrategy: null,
-      couponStrategy: null,
-      salesStrategy: null,
-      escalationRules: null,
-      model: "openai/gpt-4o-mini",
-    };
+    return defaultAIConfigurationRecord(projectId);
   },
   async update(projectId: string) {
     return this.getOrCreateDefault(projectId);

@@ -249,6 +249,13 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Token usage is persisted per completion (user, project, feature, model, prompt/completion/total
   tokens, cost) via `PrismaTokenUsageRepository` wired into `OpenRouterProvider`; super admins can
   view the last 30 days of usage and recent calls on `/admin/ai-usage`.
+- AI configuration is stored per project in `AIConfiguration` with: `aiName`, `brandVoice`, `language`, `systemPrompt`,
+  `tone`, `welcomeStrategy`, `couponStrategy`, `salesStrategy`, enabled skills (`createCoupon`, `sendMessage`, `generateDashboard`, `accessOrderData`, `triggerCampaigns`),
+  sales guardrails (`maxDiscountPct`, `maxUses`, `dailyBudget`, `autoSend`), per-channel settings (Instagram/Facebook/WhatsApp with enable/tone/business hours),
+  escalation rules (complaint/refund/low-confidence with notify email/push), per-skill OpenRouter `modelOverrides`, and a free-text `knowledgeBase`.
+- `buildSystemPrompt()` (pure, in `ai/application/build-system-prompt.ts`) interpolates `{{ai_name}}`, `{{brand_name}}`, `{{product_count}}`, `{{top_products}}`, `{{store_url}}` and appends skill rules, guardrails, channel/escalation settings, and knowledge base.
+- The AI settings form (`src/components/ai-settings-form.tsx`) on `/stores/[projectId]` edits the full `AIConfigurationRecord` client-side and submits it as JSON to `updateAIConfigurationAction`.
+- `generate-reply` uses the per-skill model override (`modelOverrides.reply`) when selecting the model and serializes enabled skills, sales rules, and escalation rules into the system prompt.
 - Prompt-injection defences: `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` /
   `wrapExternalData` live in `src/modules/ai/domain/prompt-safety.ts` (pure, no IO). The reply
   system prompt instructs the model that `<<<USER_MESSAGE>>>` and every `<<<DATA>>>` region are

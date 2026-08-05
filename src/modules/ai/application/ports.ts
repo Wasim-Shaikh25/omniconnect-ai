@@ -1,11 +1,27 @@
+import type {
+  EnabledSkills,
+  SalesRules,
+  ChannelSettings,
+  EscalationRules,
+  ModelOverrides,
+} from "../domain/ai-config";
+
 export interface AIConfigurationRecord {
   projectId: string;
+  aiName: string | null;
+  brandVoice: string | null;
+  language: string;
   systemPrompt: string;
   tone: string | null;
   welcomeStrategy: string | null;
   couponStrategy: string | null;
   salesStrategy: string | null;
-  escalationRules: string | null;
+  enabledSkills: EnabledSkills;
+  salesRules: SalesRules;
+  channelSettings: ChannelSettings;
+  escalationRules: EscalationRules;
+  modelOverrides: ModelOverrides;
+  knowledgeBase: string | null;
   model: string;
 }
 

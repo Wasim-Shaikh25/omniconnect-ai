@@ -306,12 +306,19 @@ model AIConfiguration {
   projectId         String   @unique
   project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   aiName            String?
+  brandVoice        String?
+  language          String   @default("en")
   systemPrompt      String   @default("You are a helpful AI assistant for this brand.")
   tone              String?
   welcomeStrategy   String?
   couponStrategy    String?
   salesStrategy     String?
-  escalationRules   String?
+  enabledSkills     Json     @default("{}")
+  salesRules        Json     @default("{}")
+  channelSettings   Json     @default("{}")
+  escalationRules   Json     @default("{}")
+  modelOverrides    Json     @default("{}")
+  knowledgeBase     String?
   model             String   @default("gpt-4o-mini")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

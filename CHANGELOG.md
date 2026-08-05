@@ -194,6 +194,12 @@ All notable changes to **OmniConnect AI** are documented here.
   `trackCompetitorAction` (via `TrackedAccountRepository.countByStore`) and `createAttributionLinkAction`
   (via `AttributionLinkRepository.countByProjectThisMonth`); upgraded `/settings/billing` to show the
   current plan, a `PLAN_LIMITS` matrix with store-usage progress bars, and upgrade `PricingCards`.
+- `REQ-0082` **AI Setup & Configuration** on `devin/billing-plans-enforcement-1786001020`:
+  extended `AIConfiguration` with `aiName`, `brandVoice`, `language`, enabled skills, sales guardrails,
+  channel settings, escalation rules, per-skill OpenRouter `modelOverrides`, and a `knowledgeBase`.
+  Added pure `buildSystemPrompt()` with variable interpolation and a full AI settings form on
+  `/stores/[projectId]`. `generate-reply` now selects `modelOverrides.reply` and serializes guardrails
+  into the prompt. PDF/MD knowledge-base file upload is still open.
 
 ### 🚧 In Progress
 
@@ -201,8 +207,8 @@ None.
 
 ### ⏭️ Next
 
+- `REQ-0082` **AI Setup & Configuration** — PDF/MD knowledge-base file upload and product auto-sync.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
-- `REQ-0082` **AI Setup & Configuration** — onboarding AI config, model overrides, brand voice settings.
 - `REQ-0087` **Super Admin Panel** — user list/impersonate, plan management, system health dashboard.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).

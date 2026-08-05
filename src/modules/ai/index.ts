@@ -14,6 +14,16 @@ export type {
   ReplyGeneratedPayload,
 } from "./domain/events";
 
+// Domain config types
+export type {
+  EnabledSkills,
+  SalesRules,
+  ChannelSettings,
+  ChannelSetting,
+  EscalationRules,
+  ModelOverrides,
+} from "./domain/ai-config";
+
 // Application ports + record types
 export type {
   AICompletionConfig,
@@ -27,6 +37,9 @@ export type {
   TokenUsageRecord,
   TokenUsageRepository,
 } from "./application/ports";
+export { buildSystemPrompt } from "./application/build-system-prompt";
+export type { SystemPromptContext } from "./application/build-system-prompt";
+export { defaultAIConfigurationRecord } from "./application/ai-config";
 export type { BrainMemoryService } from "./application/brain-memory";
 export type { GenerateWelcome } from "./application/generate-welcome";
 export type {

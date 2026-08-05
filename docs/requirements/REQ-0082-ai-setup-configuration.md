@@ -4,7 +4,7 @@ description: AI Setup & Configuration
 
 # REQ-0082: AI Setup & Configuration
 
-- **Status:** Draft
+- **Status:** In Progress
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0082-ai-setup-configuration.md`
@@ -38,15 +38,15 @@ Per-project AI agent configuration UI. Users configure personality prompt (with 
 
 ## 5. Acceptance Criteria
 
-- [ ] AIConfiguration model stores all settings per project.
-- [ ] Personality prompt editor supports {{ai_name}}, {{brand_name}}, {{top_products}}, etc.
-- [ ] Skills toggles: createCoupon, sendMessage, generateDashboard, accessOrderData, triggerCampaigns.
-- [ ] Sales rules: maxDiscountPct (0-100), maxUses (1-100), dailyBudget (dollars), autoSend (boolean).
-- [ ] Channel settings: per-channel enable, tone, business hours.
-- [ ] Escalation rules: on complaint, on refund request, on low confidence.
+- [x] AIConfiguration model stores all settings per project.
+- [x] Personality prompt editor supports {{ai_name}}, {{brand_name}}, {{top_products}}, etc.
+- [x] Skills toggles: createCoupon, sendMessage, generateDashboard, accessOrderData, triggerCampaigns.
+- [x] Sales rules: maxDiscountPct (0-100), maxUses (1-100), dailyBudget (dollars), autoSend (boolean).
+- [x] Channel settings: per-channel enable, tone, business hours.
+- [x] Escalation rules: on complaint, on refund request, on low confidence.
 - [ ] Knowledge base upload: PDF, MD files + auto-sync with product data.
-- [ ] Model selection: per-skill model override via OpenRouter model list.
-- [ ] System prompt builder produces complete prompt from config.
+- [x] Model selection: per-skill model override via OpenRouter model list.
+- [x] System prompt builder produces complete prompt from config.
 
 ## 6. Scope & Dependencies
 
