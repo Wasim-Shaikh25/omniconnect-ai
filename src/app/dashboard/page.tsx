@@ -60,13 +60,10 @@ function KpiCard({
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!user.organizationId) redirect("/onboarding");
-  if (user.role === "STAFF" && user.storeId) redirect(`/stores/${user.storeId}`);
+  if (!user.userId) redirect("/onboarding");
+  if (user.role === "USER" && user.projectId) redirect(`/stores/${user.projectId}`);
 
-  const kpis = await analyticsQueries.getWorkspaceKpis(
-    user.organizationId,
-    user.id,
-  );
+  const kpis = await analyticsQueries.getWorkspaceKpis(user.userId);
   if (!kpis) redirect("/stores");
 
   return (

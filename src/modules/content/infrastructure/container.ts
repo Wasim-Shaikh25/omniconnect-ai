@@ -1,6 +1,6 @@
 import { eventBus } from "@/shared/events";
 import { generatePostIdeas } from "@/modules/ai/server";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { makeGenerateContentIdeas } from "../application/generate-content-ideas";
 
 export const generateContentIdeas = makeGenerateContentIdeas({

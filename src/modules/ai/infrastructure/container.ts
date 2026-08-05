@@ -5,7 +5,7 @@ import {
   conversationQueries,
 } from "@/modules/conversations";
 import { ecommerceQueries } from "@/modules/ecommerce";
-import { organizationQueries, organizationUsage } from "@/modules/organizations";
+import { organizationQueries, organizationUsage } from "@/modules/workspaces";
 import { notificationQueries } from "@/modules/notifications";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
@@ -38,8 +38,8 @@ const aiProvider = new OpenAIProvider();
 
 /** Composition root for the ai module. */
 export const aiQueries = {
-  getConfiguration: (storeId: string) =>
-    aiConfigurationRepository.getByStore(storeId),
+  getConfiguration: (projectId: string) =>
+    aiConfigurationRepository.getByStore(projectId),
 };
 
 export const generateWelcome = makeGenerateWelcome({
@@ -96,10 +96,10 @@ export const generatePostIdeas = makeGeneratePostIdeas({
   aiConfigurationRepository,
   marketingMemory,
   dailyActions: {
-    listPending: (organizationId, storeId) => dailyActionService.listPending(organizationId, storeId),
+    listPending: (userId, projectId) => dailyActionService.listPending(userId, projectId),
   },
   journeys: {
-    listRecent: (organizationId, storeId, limit) => journeyService.listJourneys(organizationId, storeId, limit),
+    listRecent: (userId, projectId, limit) => journeyService.listJourneys(userId, projectId, limit),
   },
 });
 

@@ -14,9 +14,9 @@ import {
 export default async function AuditLogPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!["ADMIN", "STORE_OWNER"].includes(user.role) || !user.organizationId) notFound();
+  if (!["SUPER_ADMIN", "USER"].includes(user.role) || !user.userId) notFound();
 
-  const logs = await auditQueries.listByOrganization(user.organizationId, 100);
+  const logs = await auditQueries.listByOrganization(user.userId, 100);
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-8">

@@ -6,7 +6,7 @@ import type {
 
 type PrismaFollower = {
   id: string;
-  storeId: string;
+  projectId: string;
   customerId: string | null;
   igUserId: string | null;
   username: string | null;
@@ -19,7 +19,7 @@ type PrismaFollower = {
 function toRecord(f: PrismaFollower): FollowerRecord {
   return {
     id: f.id,
-    storeId: f.storeId,
+    projectId: f.projectId,
     customerId: f.customerId,
     igUserId: f.igUserId,
     username: f.username,
@@ -32,15 +32,15 @@ function toRecord(f: PrismaFollower): FollowerRecord {
 
 export class PrismaFollowerRepository implements FollowerRepository {
   async record(input: {
-    storeId: string;
+    projectId: string;
     customerId: string | null;
     externalUserId: string;
     username: string | null;
   }): Promise<{ record: FollowerRecord; isNew: boolean }> {
     const existing = await prisma.follower.findUnique({
       where: {
-        storeId_igUserId: {
-          storeId: input.storeId,
+        projectId_igUserId: {
+          projectId: input.projectId,
           igUserId: input.externalUserId,
         },
       },
@@ -49,7 +49,7 @@ export class PrismaFollowerRepository implements FollowerRepository {
 
     const created = await prisma.follower.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         customerId: input.customerId,
         igUserId: input.externalUserId,
         username: input.username,
@@ -59,12 +59,12 @@ export class PrismaFollowerRepository implements FollowerRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     options: { limit?: number; offset?: number; search?: string } = {},
   ): Promise<FollowerRecord[]> {
     const rows = await prisma.follower.findMany({
       where: {
-        storeId,
+        projectId,
         ...(options.search
           ? { username: { contains: options.search, mode: "insensitive" } }
           : {}),
@@ -76,10 +76,10 @@ export class PrismaFollowerRepository implements FollowerRepository {
     return rows.map(toRecord);
   }
 
-  async countByStore(storeId: string, search?: string): Promise<number> {
+  async countByStore(projectId: string, search?: string): Promise<number> {
     return prisma.follower.count({
       where: {
-        storeId,
+        projectId,
         ...(search ? { username: { contains: search, mode: "insensitive" } } : {}),
       },
     });
@@ -87,12 +87,12 @@ export class PrismaFollowerRepository implements FollowerRepository {
 
   async recordCampaignEnrollment(input: {
     followerId: string;
-    storeId: string;
+    projectId: string;
     couponId: string;
     welcomeMessageText: string;
   }): Promise<FollowerRecord> {
     const updated = await prisma.follower.update({
-      where: { id: input.followerId, storeId: input.storeId },
+      where: { id: input.followerId, projectId: input.projectId },
       data: {
         couponId: input.couponId,
         campaignEnrolledAt: new Date(),

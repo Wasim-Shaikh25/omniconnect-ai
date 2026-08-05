@@ -7,7 +7,7 @@ import { ActionOutcomeMeasured } from "../domain/events";
 export interface ActionOutcomeServiceInput {
   actionOutcomes: ActionOutcomeRepository;
   dailyActions: DailyActionRepository;
-  metrics: { getMetric: (name: string, organizationId: string, storeId: string | null) => Promise<{ value: number | null } | null> };
+  metrics: { getMetric: (name: string, userId: string, projectId: string | null) => Promise<{ value: number | null } | null> };
   now?: () => Date;
 }
 
@@ -22,14 +22,14 @@ function readMetricValue(json: unknown): number | null {
 export function makeActionOutcomeService(input: ActionOutcomeServiceInput) {
   const now = () => input.now?.() ?? new Date();
 
-  async function measureById(outcomeId: string, organizationId: string): Promise<ActionOutcomeRecord | null> {
-    const outcome = await input.actionOutcomes.findById(outcomeId, organizationId);
+  async function measureById(outcomeId: string, userId: string): Promise<ActionOutcomeRecord | null> {
+    const outcome = await input.actionOutcomes.findById(outcomeId, userId);
     if (!outcome) return null;
     return measureOutcome(outcome);
   }
 
-  async function measure(actionId: string, organizationId: string): Promise<ActionOutcomeRecord | null> {
-    const outcome = await input.actionOutcomes.findByAction(actionId, organizationId);
+  async function measure(actionId: string, userId: string): Promise<ActionOutcomeRecord | null> {
+    const outcome = await input.actionOutcomes.findByAction(actionId, userId);
     if (!outcome) return null;
     return measureOutcome(outcome);
   }
@@ -39,7 +39,7 @@ export function makeActionOutcomeService(input: ActionOutcomeServiceInput) {
 
     const before = readMetricValue(outcome.metricBefore);
     const after = outcome.metricName
-      ? (await input.metrics.getMetric(outcome.metricName, outcome.organizationId, outcome.storeId))?.value ?? null
+      ? (await input.metrics.getMetric(outcome.metricName, outcome.userId, outcome.projectId))?.value ?? null
       : null;
 
     // Respect the observation window: if it has not elapsed and no movement is
@@ -58,7 +58,7 @@ export function makeActionOutcomeService(input: ActionOutcomeServiceInput) {
 
     const measured = await input.actionOutcomes.updateMeasured(
       outcome.id,
-      outcome.organizationId,
+      outcome.userId,
       after !== null ? { value: after } : null,
       status,
       now(),
@@ -68,8 +68,8 @@ export function makeActionOutcomeService(input: ActionOutcomeServiceInput) {
       new ActionOutcomeMeasured(outcome.actionId, {
         actionId: outcome.actionId,
         outcomeId: outcome.id,
-        organizationId: outcome.organizationId,
-        storeId: outcome.storeId,
+        userId: outcome.userId,
+        projectId: outcome.projectId,
         status,
       }),
     );

@@ -13,7 +13,7 @@ import type {
 
 function mapMediaPost(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   trackedAccountId: string | null;
   externalId: string;
   platform: string;
@@ -32,7 +32,7 @@ function mapMediaPost(row: {
   const latest = row.insights[0];
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     trackedAccountId: row.trackedAccountId,
     externalId: row.externalId,
     platform: row.platform,
@@ -97,7 +97,7 @@ function mapMediaInsight(row: {
 
 function mapAccountInsight(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   date: Date;
   followers: number | null;
   profileViews: number | null;
@@ -109,7 +109,7 @@ function mapAccountInsight(row: {
 }): AccountInsight {
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     date: row.date,
     followers: row.followers,
     profileViews: row.profileViews,
@@ -123,7 +123,7 @@ function mapAccountInsight(row: {
 
 function mapTrendSnapshot(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   type: string;
   query: string;
   data: Prisma.JsonValue;
@@ -131,7 +131,7 @@ function mapTrendSnapshot(row: {
 }): TrendSnapshot {
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     type: row.type as TrendSnapshot["type"],
     query: row.query,
     data: (row.data as Record<string, unknown>) ?? {},
@@ -141,7 +141,7 @@ function mapTrendSnapshot(row: {
 
 function mapContentRecommendation(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   type: string;
   title: string;
   outline: string;
@@ -152,7 +152,7 @@ function mapContentRecommendation(row: {
 }): ContentRecommendation {
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     type: row.type,
     title: row.title,
     outline: row.outline,
@@ -163,10 +163,10 @@ function mapContentRecommendation(row: {
   };
 }
 
-function mapReport(row: { id: string; storeId: string; period: string; content: Prisma.JsonValue; generatedAt: Date }): Report {
+function mapReport(row: { id: string; projectId: string; period: string; content: Prisma.JsonValue; generatedAt: Date }): Report {
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     period: row.period as Report["period"],
     content: (row.content as Record<string, unknown>) ?? {},
     generatedAt: row.generatedAt,
@@ -174,14 +174,14 @@ function mapReport(row: { id: string; storeId: string; period: string; content: 
 }
 
 export class PrismaMarketingInsightsRepository implements MarketingInsightsRepository {
-  async upsertMediaPost(storeId: string, input: UpsertMediaPostInput): Promise<MediaPost> {
+  async upsertMediaPost(projectId: string, input: UpsertMediaPostInput): Promise<MediaPost> {
     const existing = await prisma.mediaPost.findFirst({
-      where: { storeId, externalId: input.externalId },
+      where: { projectId, externalId: input.externalId },
       include: { insights: { orderBy: { fetchedAt: "desc" }, take: 1 } },
     });
 
     const data = {
-      storeId,
+      projectId,
       trackedAccountId: input.trackedAccountId ?? null,
       externalId: input.externalId,
       platform: input.platform,
@@ -229,12 +229,12 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
   }
 
   async listMediaPosts(
-    storeId: string,
+    projectId: string,
     options?: { limit?: number; offset?: number; mediaType?: string; since?: Date },
   ): Promise<MediaPost[]> {
     const rows = await prisma.mediaPost.findMany({
       where: {
-        storeId,
+        projectId,
         ...(options?.mediaType ? { mediaType: options.mediaType as unknown as PrismaMediaType } : {}),
         ...(options?.since ? { publishedAt: { gte: options.since } } : {}),
       },
@@ -254,21 +254,21 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
     return row ? mapMediaPost(row) : null;
   }
 
-  async getMediaPostByExternalId(storeId: string, externalId: string): Promise<MediaPost | null> {
+  async getMediaPostByExternalId(projectId: string, externalId: string): Promise<MediaPost | null> {
     const row = await prisma.mediaPost.findFirst({
-      where: { storeId, externalId },
+      where: { projectId, externalId },
       include: { insights: { orderBy: { fetchedAt: "desc" }, take: 1 } },
     });
     return row ? mapMediaPost(row) : null;
   }
 
-  async upsertAccountInsight(storeId: string, input: UpsertAccountInsightInput): Promise<AccountInsight> {
+  async upsertAccountInsight(projectId: string, input: UpsertAccountInsightInput): Promise<AccountInsight> {
     const existing = await prisma.accountInsight.findFirst({
-      where: { storeId, date: input.date },
+      where: { projectId, date: input.date },
     });
 
     const data = {
-      storeId,
+      projectId,
       date: input.date,
       followers: input.followers ?? null,
       profileViews: input.profileViews ?? null,
@@ -286,18 +286,18 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
     return mapAccountInsight(row);
   }
 
-  async getLatestAccountInsight(storeId: string): Promise<AccountInsight | null> {
+  async getLatestAccountInsight(projectId: string): Promise<AccountInsight | null> {
     const row = await prisma.accountInsight.findFirst({
-      where: { storeId },
+      where: { projectId },
       orderBy: { date: "desc" },
     });
     return row ? mapAccountInsight(row) : null;
   }
 
-  async createTrendSnapshot(storeId: string, input: CreateTrendSnapshotInput): Promise<TrendSnapshot> {
+  async createTrendSnapshot(projectId: string, input: CreateTrendSnapshotInput): Promise<TrendSnapshot> {
     const row = await prisma.trendSnapshot.create({
       data: {
-        storeId,
+        projectId,
         type: input.type as unknown as PrismaTrendSnapshotType,
         query: input.query,
         data: input.data as unknown as Prisma.InputJsonValue,
@@ -308,12 +308,12 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
   }
 
   async listTrendSnapshots(
-    storeId: string,
+    projectId: string,
     options?: { type?: "HASHTAG" | "AUDIO" | "NICHE"; query?: string; limit?: number },
   ): Promise<TrendSnapshot[]> {
     const rows = await prisma.trendSnapshot.findMany({
       where: {
-        storeId,
+        projectId,
         ...(options?.type ? { type: options.type as unknown as PrismaTrendSnapshotType } : {}),
         ...(options?.query ? { query: { contains: options.query, mode: "insensitive" as const } } : {}),
       },
@@ -324,12 +324,12 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
   }
 
   async createContentRecommendation(
-    storeId: string,
+    projectId: string,
     input: CreateContentRecommendationInput,
   ): Promise<ContentRecommendation> {
     const row = await prisma.contentRecommendation.create({
       data: {
-        storeId,
+        projectId,
         type: input.type,
         title: input.title,
         outline: input.outline,
@@ -341,19 +341,19 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
     return mapContentRecommendation(row);
   }
 
-  async listContentRecommendations(storeId: string, limit = 50): Promise<ContentRecommendation[]> {
+  async listContentRecommendations(projectId: string, limit = 50): Promise<ContentRecommendation[]> {
     const rows = await prisma.contentRecommendation.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { generatedAt: "desc" },
       take: limit,
     });
     return rows.map(mapContentRecommendation);
   }
 
-  async createReport(storeId: string, input: CreateReportInput): Promise<Report> {
+  async createReport(projectId: string, input: CreateReportInput): Promise<Report> {
     const row = await prisma.report.create({
       data: {
-        storeId,
+        projectId,
         period: input.period as unknown as PrismaReportPeriod,
         content: input.content as unknown as Prisma.InputJsonValue,
         generatedAt: input.generatedAt ?? new Date(),
@@ -362,9 +362,9 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
     return mapReport(row);
   }
 
-  async listReports(storeId: string, limit = 50): Promise<Report[]> {
+  async listReports(projectId: string, limit = 50): Promise<Report[]> {
     const rows = await prisma.report.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { generatedAt: "desc" },
       take: limit,
     });

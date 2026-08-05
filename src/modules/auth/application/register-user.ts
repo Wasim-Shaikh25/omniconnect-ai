@@ -44,10 +44,10 @@ export interface RegisteredUser {
 }
 
 export interface RegisterUserOptions {
-  organizationId?: string | null;
   role?: Role;
-  storeId?: string | null;
   emailVerified?: Date | null;
+  userId?: string | null;
+  projectId?: string | null;
 }
 
 export function makeRegisterUser(deps: {
@@ -72,7 +72,7 @@ export function makeRegisterUser(deps: {
     }
 
     const passwordHash = await deps.hasher.hash(input.password);
-    const role = options?.role ?? "STORE_OWNER";
+    const role = options?.role ?? "USER";
     const emailVerified = options?.emailVerified ?? null;
     const account = await deps.accounts.create({
       email: input.email,
@@ -81,8 +81,8 @@ export function makeRegisterUser(deps: {
       role,
       phone: input.phone ?? null,
       emailVerified,
-      organizationId: options?.organizationId ?? null,
-      storeId: options?.storeId ?? null,
+      userId: options?.userId ?? null,
+      projectId: options?.projectId ?? null,
     });
 
     await deps.eventBus.publish(

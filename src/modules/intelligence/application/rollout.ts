@@ -26,25 +26,25 @@ export interface RolloutServiceInput {
 
 export function makeRolloutService(input: RolloutServiceInput) {
   return {
-    async getGates(organizationId: string): Promise<RolloutGateRecord[]> {
-      return input.gates.getGates(organizationId);
+    async getGates(userId: string): Promise<RolloutGateRecord[]> {
+      return input.gates.getGates(userId);
     },
 
-    async getGate(name: RolloutMode, organizationId: string): Promise<RolloutGateRecord | null> {
-      return input.gates.getGate(name, organizationId);
+    async getGate(name: RolloutMode, userId: string): Promise<RolloutGateRecord | null> {
+      return input.gates.getGate(name, userId);
     },
 
-    async setGate(name: RolloutMode, organizationId: string, updates: Partial<RolloutGateRecord>): Promise<RolloutGateRecord> {
-      return input.gates.setGate(name, organizationId, updates.enabled ?? false);
+    async setGate(name: RolloutMode, userId: string, updates: Partial<RolloutGateRecord>): Promise<RolloutGateRecord> {
+      return input.gates.setGate(name, userId, updates.enabled ?? false);
     },
 
     async canExecute(
       gateName: RolloutMode,
-      organizationId: string,
+      userId: string,
       environment: string,
       riskTier?: RiskTier,
     ): Promise<{ allowed: boolean; reason: string }> {
-      const gate = await input.gates.getGate(gateName, organizationId);
+      const gate = await input.gates.getGate(gateName, userId);
       if (!gate) return { allowed: false, reason: `${gateName} gate is not configured.` };
       if (!gate.enabled) return { allowed: false, reason: `${gateName} gate is disabled.` };
       if (!gate.allowedEnvironments.includes(environment)) {

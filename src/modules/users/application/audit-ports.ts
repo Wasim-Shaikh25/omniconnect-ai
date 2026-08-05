@@ -1,6 +1,6 @@
 export interface AuditLogRecord {
   id: string;
-  organizationId: string | null;
+  userId: string | null;
   actorId: string | null;
   actorEmail: string | null;
   action: string;
@@ -11,7 +11,7 @@ export interface AuditLogRecord {
 }
 
 export interface CreateAuditLogInput {
-  organizationId: string | null;
+  userId: string | null;
   actorId?: string;
   actorEmail?: string;
   action: string;
@@ -21,12 +21,12 @@ export interface CreateAuditLogInput {
 }
 
 export interface AuditLogRepository {
-  listByOrganization(organizationId: string, limit?: number): Promise<AuditLogRecord[]>;
+  listByOrganization(userId: string, limit?: number): Promise<AuditLogRecord[]>;
   create(input: CreateAuditLogInput): Promise<AuditLogRecord>;
 }
 
 export interface AuditLogQueries {
-  listByOrganization(organizationId: string, limit?: number): Promise<AuditLogRecord[]>;
+  listByOrganization(userId: string, limit?: number): Promise<AuditLogRecord[]>;
 }
 
 export interface AuditLogCommands {

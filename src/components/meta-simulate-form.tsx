@@ -13,13 +13,13 @@ type Action = (
 
 interface MetaSimulateFormProps {
   action: Action;
-  storeId: string;
+  projectId: string;
 }
 
 const selectClass =
   "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm";
 
-export function MetaSimulateForm({ action, storeId }: MetaSimulateFormProps) {
+export function MetaSimulateForm({ action, projectId }: MetaSimulateFormProps) {
   const [state, formAction, pending] = useActionState<
     MetaActionState,
     FormData
@@ -27,7 +27,7 @@ export function MetaSimulateForm({ action, storeId }: MetaSimulateFormProps) {
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="sim-kind">Event</Label>

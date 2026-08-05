@@ -41,10 +41,10 @@ export function BriefSectionCard({ section, icon: Icon }: { section: DailyBriefS
 
 export function ProductPromotionCard({
   productScores,
-  storeId,
+  projectId,
 }: {
   productScores: ProductScoreRecord[];
-  storeId: string;
+  projectId: string;
 }) {
   return (
     <Card>
@@ -68,14 +68,14 @@ export function ProductPromotionCard({
                 </div>
                 <p className="text-xs text-muted-foreground">{p.evidence}</p>
                 <Button asChild variant="outline" size="sm" className="mt-2">
-                  <Link href={`/stores/${storeId}/content`}>Create content</Link>
+                  <Link href={`/stores/${projectId}/content`}>Create content</Link>
                 </Button>
               </li>
             ))}
           </ul>
         )}
         <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
-          <Link href={`/stores/${storeId}/commerce/catalog`}>View all products</Link>
+          <Link href={`/stores/${projectId}/commerce/catalog`}>View all products</Link>
         </Button>
       </CardContent>
     </Card>
@@ -84,11 +84,11 @@ export function ProductPromotionCard({
 
 export function DmOpportunityCard({
   patterns,
-  storeId,
+  projectId,
   title = "DM Insights",
 }: {
   patterns: ConversationPattern[];
-  storeId: string;
+  projectId: string;
   title?: string;
 }) {
   const opportunityCount = patterns.reduce((sum, p) => sum + p.frequency, 0);
@@ -123,7 +123,7 @@ export function DmOpportunityCard({
           <p className="mt-3 text-xs text-primary">{opportunityCount} high-intent message(s)</p>
         )}
         <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
-          <Link href={`/stores/${storeId}/conversations`}>Open inbox</Link>
+          <Link href={`/stores/${projectId}/conversations`}>Open inbox</Link>
         </Button>
       </CardContent>
     </Card>
@@ -132,11 +132,11 @@ export function DmOpportunityCard({
 
 export function CommentInsightCard({
   patterns,
-  storeId,
+  projectId,
   title = "Comment Insights",
 }: {
   patterns: ConversationPattern[];
-  storeId: string;
+  projectId: string;
   title?: string;
 }) {
   return (
@@ -167,7 +167,7 @@ export function CommentInsightCard({
           </ul>
         )}
         <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
-          <Link href={`/stores/${storeId}/commerce/comments`}>View comments</Link>
+          <Link href={`/stores/${projectId}/commerce/comments`}>View comments</Link>
         </Button>
       </CardContent>
     </Card>
@@ -176,10 +176,10 @@ export function CommentInsightCard({
 
 export function CompetitorAlertCard({
   changes,
-  storeId,
+  projectId,
 }: {
   changes: CompetitorChange[];
-  storeId: string;
+  projectId: string;
 }) {
   return (
     <Card>
@@ -202,7 +202,7 @@ export function CompetitorAlertCard({
           </ul>
         )}
         <Button asChild variant="outline" size="sm" className="mt-3">
-          <Link href={`/stores/${storeId}/commerce/competitors`}>Track competitors</Link>
+          <Link href={`/stores/${projectId}/commerce/competitors`}>Track competitors</Link>
         </Button>
       </CardContent>
     </Card>
@@ -253,7 +253,7 @@ export function BestTimeCard({ time }: { time: string | null }) {
   );
 }
 
-export function FollowerLinkCard({ storeId }: { storeId: string }) {
+export function FollowerLinkCard({ projectId }: { projectId: string }) {
   return (
     <Card>
       <CardHeader>
@@ -265,7 +265,7 @@ export function FollowerLinkCard({ storeId }: { storeId: string }) {
       <CardContent>
         <p className="text-xs text-muted-foreground">Track followers in Engagement.</p>
         <Button asChild variant="outline" size="sm" className="mt-3">
-          <Link href={`/stores/${storeId}/engagement`}>View</Link>
+          <Link href={`/stores/${projectId}/engagement`}>View</Link>
         </Button>
       </CardContent>
     </Card>

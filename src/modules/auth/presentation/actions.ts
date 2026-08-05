@@ -36,9 +36,9 @@ export interface ActionState {
 }
 
 function redirectPathForUser(
-  organizationId: string | null | undefined,
+  userId: string | null | undefined,
 ): "/dashboard" | "/onboarding" {
-  return organizationId ? "/dashboard" : "/onboarding";
+  return userId ? "/dashboard" : "/onboarding";
 }
 
 export async function registerAction(
@@ -155,7 +155,7 @@ export async function loginAction(
       email,
       password: parsed.data.password,
       mfaCode: parsed.data.mfaCode,
-      redirectTo: redirectPathForUser(account.organizationId),
+      redirectTo: redirectPathForUser(account.id),
     });
   } catch (error) {
     if (error instanceof RateLimitAuthError) {
@@ -176,7 +176,7 @@ export async function loginAction(
     }
     throw error;
   }
-  redirect(redirectPathForUser(account.organizationId));
+  redirect(redirectPathForUser(account.id));
 }
 
 const requestResetSchema = z.object({
@@ -320,7 +320,7 @@ export async function changePasswordAction(
   );
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email,
     action: "USER_PASSWORD_CHANGED",
@@ -369,7 +369,7 @@ export async function requestEmailChangeAction(
   if (!result.ok) return { error: result.error.message };
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email,
     action: "USER_EMAIL_CHANGE_REQUESTED",

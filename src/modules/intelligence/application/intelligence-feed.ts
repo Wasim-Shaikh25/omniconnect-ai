@@ -21,11 +21,11 @@ function severityRank(severity: BusinessInsightRecord["severity"]): number {
 export function makeIntelligenceFeed(input: IntelligenceFeedInput) {
   return {
     async getFeed(
-      organizationId: string,
-      storeId?: string,
+      userId: string,
+      projectId?: string,
       limit = 20,
     ): Promise<BusinessInsightRecord[]> {
-      const insights = await input.insights.listOpen(organizationId, storeId, limit);
+      const insights = await input.insights.listOpen(userId, projectId, limit);
       return insights.sort((a, b) => {
         const sevDiff = severityRank(b.severity) - severityRank(a.severity);
         if (sevDiff !== 0) return sevDiff;
@@ -33,8 +33,8 @@ export function makeIntelligenceFeed(input: IntelligenceFeedInput) {
       });
     },
 
-    async dismiss(id: string, organizationId: string): Promise<BusinessInsightRecord | null> {
-      return input.insights.updateStatus(id, organizationId, "DISMISSED");
+    async dismiss(id: string, userId: string): Promise<BusinessInsightRecord | null> {
+      return input.insights.updateStatus(id, userId, "DISMISSED");
     },
   };
 }

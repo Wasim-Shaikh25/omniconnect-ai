@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Check, Loader2 } from "lucide-react";
-import { Plan, PLAN_FEATURES } from "@/modules/organizations";
+import { Plan, PLAN_FEATURES } from "@/modules/workspaces";
 
 export interface PricingCardsProps {
   currentPlan?: Plan;

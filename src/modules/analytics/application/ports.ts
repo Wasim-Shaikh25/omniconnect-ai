@@ -22,7 +22,7 @@ export interface SuggestedCompetitor {
 
 export interface TrackedAccountRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   platform: string;
   handle: string;
   niche: string | null;
@@ -35,7 +35,7 @@ export interface TrackedAccountRecord {
 }
 
 export interface CreateTrackedAccountInput {
-  storeId: string;
+  projectId: string;
   platform?: string;
   handle: string;
   niche?: string | null;
@@ -52,10 +52,10 @@ export interface UpdateTrackedAccountInput {
 
 export interface TrackedAccountRepository {
   create(input: CreateTrackedAccountInput): Promise<TrackedAccountRecord>;
-  listByStore(storeId: string, limit?: number): Promise<TrackedAccountRecord[]>;
+  listByStore(projectId: string, limit?: number): Promise<TrackedAccountRecord[]>;
   findById(id: string): Promise<TrackedAccountRecord | null>;
   update(id: string, input: UpdateTrackedAccountInput): Promise<TrackedAccountRecord>;
-  delete(id: string, storeId: string): Promise<void>;
+  delete(id: string, projectId: string): Promise<void>;
 }
 
 export interface UpsertMediaPostInput {
@@ -119,23 +119,23 @@ export interface CreateReportInput {
 }
 
 export interface MarketingInsightsRepository {
-  upsertMediaPost(storeId: string, input: UpsertMediaPostInput): Promise<MediaPost>;
+  upsertMediaPost(projectId: string, input: UpsertMediaPostInput): Promise<MediaPost>;
   upsertMediaInsight(mediaPostId: string, input: UpsertMediaInsightInput): Promise<MediaInsight>;
   listMediaPosts(
-    storeId: string,
+    projectId: string,
     options?: { limit?: number; offset?: number; mediaType?: string; since?: Date },
   ): Promise<MediaPost[]>;
   getMediaPostById(id: string): Promise<MediaPost | null>;
-  getMediaPostByExternalId(storeId: string, externalId: string): Promise<MediaPost | null>;
-  upsertAccountInsight(storeId: string, input: UpsertAccountInsightInput): Promise<AccountInsight>;
-  getLatestAccountInsight(storeId: string): Promise<AccountInsight | null>;
-  createTrendSnapshot(storeId: string, input: CreateTrendSnapshotInput): Promise<TrendSnapshot>;
+  getMediaPostByExternalId(projectId: string, externalId: string): Promise<MediaPost | null>;
+  upsertAccountInsight(projectId: string, input: UpsertAccountInsightInput): Promise<AccountInsight>;
+  getLatestAccountInsight(projectId: string): Promise<AccountInsight | null>;
+  createTrendSnapshot(projectId: string, input: CreateTrendSnapshotInput): Promise<TrendSnapshot>;
   listTrendSnapshots(
-    storeId: string,
+    projectId: string,
     options?: { type?: "HASHTAG" | "AUDIO" | "NICHE"; query?: string; limit?: number },
   ): Promise<TrendSnapshot[]>;
-  createContentRecommendation(storeId: string, input: CreateContentRecommendationInput): Promise<ContentRecommendation>;
-  listContentRecommendations(storeId: string, limit?: number): Promise<ContentRecommendation[]>;
-  createReport(storeId: string, input: CreateReportInput): Promise<Report>;
-  listReports(storeId: string, limit?: number): Promise<Report[]>;
+  createContentRecommendation(projectId: string, input: CreateContentRecommendationInput): Promise<ContentRecommendation>;
+  listContentRecommendations(projectId: string, limit?: number): Promise<ContentRecommendation[]>;
+  createReport(projectId: string, input: CreateReportInput): Promise<Report>;
+  listReports(projectId: string, limit?: number): Promise<Report[]>;
 }

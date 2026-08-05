@@ -7,7 +7,7 @@ import type { CartRecord, CartRepository } from "./ports";
 function cartFixture(overrides: Partial<CartRecord> = {}): CartRecord {
   return {
     id: "cart-1",
-    storeId: "store-1",
+    projectId: "store-1",
     cartToken: "token-1",
     email: "customer@example.com",
     lineItemTitles: ["T-Shirt"],

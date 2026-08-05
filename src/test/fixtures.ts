@@ -3,10 +3,10 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/shared/database";
 
 export interface TenantFixture {
-  organization: { id: string; name: string; plan: string };
-  store: { id: string; name: string; organizationId: string };
-  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; organizationId: string | null; storeId: string | null; tokenVersion: number };
-  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; organizationId: string | null; storeId: string | null; tokenVersion: number };
+  organization: { id: string; name: string | null; plan: string };
+  store: { id: string; name: string; userId: string };
+  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
+  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
 }
 
 export interface SuperAdminFixture {
@@ -22,12 +22,16 @@ const SALT_ROUNDS = 12;
 
 export async function createTenant(label: string, password = "password"): Promise<TenantFixture> {
   const suffix = `${label}-${randomUUID()}`;
-  const organization = await prisma.organization.create({
-    data: { name: `Tenant ${label}`, plan: "FREE" },
+  const organization = await prisma.user.create({
+    data: { name: `Tenant ${label}`, email: `tenant-${suffix}@example.com`, plan: "FREE" },
   });
 
-  const store = await prisma.store.create({
-    data: { name: `Store ${label}`, organizationId: organization.id, provider: "SHOPIFY" },
+  const workspace = await prisma.workspace.create({
+    data: { userId: organization.id, name: `Tenant ${label}` },
+  });
+
+  const store = await prisma.project.create({
+    data: { workspaceId: workspace.id, name: `Store ${label}`, userId: organization.id, provider: "SHOPIFY" },
   });
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -37,11 +41,11 @@ export async function createTenant(label: string, password = "password"): Promis
       data: {
         email: `owner-${suffix}@example.com`,
         name: `Owner ${label}`,
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         emailVerified: new Date(),
-        organizationId: organization.id,
-        storeId: null,
+        userId: organization.id,
+        projectId: null,
         passwordHash,
       },
     }),
@@ -49,11 +53,11 @@ export async function createTenant(label: string, password = "password"): Promis
       data: {
         email: `staff-${suffix}@example.com`,
         name: `Staff ${label}`,
-        role: "STAFF",
+        role: "USER",
         isSuperAdmin: false,
         emailVerified: new Date(),
-        organizationId: organization.id,
-        storeId: store.id,
+        userId: organization.id,
+        projectId: store.id,
         passwordHash,
       },
     }),
@@ -74,11 +78,11 @@ export async function createSuperAdmin(password = "password"): Promise<SuperAdmi
     data: {
       email: `superadmin-${suffix}@example.com`,
       name: "Super Admin",
-      role: "ADMIN",
+      role: "SUPER_ADMIN",
       isSuperAdmin: true,
       emailVerified: new Date(),
-      organizationId: null,
-      storeId: null,
+      userId: null,
+      projectId: null,
       passwordHash,
     },
   });

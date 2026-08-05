@@ -27,9 +27,9 @@ function asProvider(value: string): Provider {
 export class IntegrationConnectorFactory implements ConnectorFactory {
   constructor(private readonly integrations: IntegrationRepository) {}
 
-  async forStore(storeId: string): Promise<EcommerceConnector> {
-    const creds = await this.integrations.findCredentialsByStore(storeId);
-    if (!creds) throw new StoreNotConnectedError(storeId);
+  async forStore(projectId: string): Promise<EcommerceConnector> {
+    const creds = await this.integrations.findCredentialsByStore(projectId);
+    if (!creds) throw new StoreNotConnectedError(projectId);
 
     return getConnector(asProvider(creds.provider), {
       shopDomain: creds.shopDomain ?? undefined,

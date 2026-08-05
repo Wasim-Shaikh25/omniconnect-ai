@@ -181,8 +181,8 @@ export class SystemMetricRecorded extends BaseDomainEvent<SystemMetricRecordedPa
 }
 
 export interface MarketingMemoryUpdatedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   generatedAt: Date;
 }
 
@@ -191,8 +191,8 @@ export class MarketingMemoryUpdated extends BaseDomainEvent<MarketingMemoryUpdat
 }
 
 export interface DailyMarketingBriefGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   generatedAt: Date;
 }
 
@@ -201,8 +201,8 @@ export class DailyMarketingBriefGenerated extends BaseDomainEvent<DailyMarketing
 }
 
 export interface DmPatternDetectedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   category: string;
   frequency: number;
   sample: string | null;
@@ -214,8 +214,8 @@ export class DmPatternDetected extends BaseDomainEvent<DmPatternDetectedPayload>
 }
 
 export interface CommentPatternDetectedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   category: string;
   frequency: number;
   sample: string | null;
@@ -229,8 +229,8 @@ export class CommentPatternDetected extends BaseDomainEvent<CommentPatternDetect
 // ── Daily operating rhythm (spec 0050) ──────────────────────────────────────
 
 export interface DailyActionsGeneratedPayload {
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   actionIds: string[];
   generatedAt: Date;
 }
@@ -241,8 +241,8 @@ export class DailyActionsGenerated extends BaseDomainEvent<DailyActionsGenerated
 
 export interface DailyActionCompletedPayload {
   actionId: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   outcomeId: string | null;
   observationWindowHours: number;
   feedback: string | null;
@@ -254,8 +254,8 @@ export class DailyActionCompleted extends BaseDomainEvent<DailyActionCompletedPa
 
 export interface DailyActionSkippedPayload {
   actionId: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   reason: string | null;
 }
 
@@ -266,8 +266,8 @@ export class DailyActionSkipped extends BaseDomainEvent<DailyActionSkippedPayloa
 export interface ActionOutcomeMeasuredPayload {
   actionId: string;
   outcomeId: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   status: string;
 }
 
@@ -277,8 +277,8 @@ export class ActionOutcomeMeasured extends BaseDomainEvent<ActionOutcomeMeasured
 
 export interface JourneyUpdatedPayload {
   journeyId: string;
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   stepType: string;
   outcome: string;
 }

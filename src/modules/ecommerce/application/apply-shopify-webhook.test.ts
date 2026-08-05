@@ -13,7 +13,7 @@ function makeDeps() {
   const integrations: IntegrationRepository = {
     findByShopDomain: vi.fn().mockResolvedValue({
       id: "int-1",
-      storeId: "store-1",
+      projectId: "store-1",
       provider: "shopify",
       shopDomain: "test.myshopify.com",
       scopes: null,
@@ -43,7 +43,7 @@ function makeDeps() {
     findByExternalId: vi.fn(),
   };
   const carts: CartRepository = {
-    upsert: vi.fn().mockResolvedValue({ id: "cart-1", storeId: "store-1", cartToken: "abc123" } as never),
+    upsert: vi.fn().mockResolvedValue({ id: "cart-1", projectId: "store-1", cartToken: "abc123" } as never),
     findByStoreAndToken: vi.fn(),
     markConverted: vi.fn().mockResolvedValue(undefined),
     markNotified: vi.fn().mockResolvedValue(true),
@@ -79,7 +79,7 @@ function makeDeps() {
   const auditLog: AuditLogCommands = {
     create: vi.fn().mockResolvedValue({
       id: "log-1",
-      organizationId: null,
+      userId: null,
       actorId: null,
       actorEmail: null,
       action: "test",
@@ -129,7 +129,7 @@ describe("applyShopifyWebhook", () => {
 
     expect(result.ok).toBe(true);
     expect(deps.carts.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      storeId: "store-1",
+      projectId: "store-1",
       cartToken: "abc123",
       email: "shopper@example.com",
       totalPrice: 29.99,
@@ -184,7 +184,7 @@ describe("applyShopifyWebhook", () => {
 
     expect(result.ok).toBe(true);
     expect(result.data).toEqual(expect.objectContaining({ customer: { id: "123", email: "shopper@example.com" } }));
-    expect(deps.compliance.fetchCustomerData).toHaveBeenCalledWith({ storeId: "store-1", customerRef: "123", customerEmail: "shopper@example.com" });
+    expect(deps.compliance.fetchCustomerData).toHaveBeenCalledWith({ projectId: "store-1", customerRef: "123", customerEmail: "shopper@example.com" });
     expect(deps.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({ action: "shopify.customers.data_request" }));
   });
 
@@ -200,7 +200,7 @@ describe("applyShopifyWebhook", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(deps.compliance.redactCustomer).toHaveBeenCalledWith({ storeId: "store-1", customerRef: "123", customerEmail: "shopper@example.com" });
+    expect(deps.compliance.redactCustomer).toHaveBeenCalledWith({ projectId: "store-1", customerRef: "123", customerEmail: "shopper@example.com" });
     expect(deps.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({ action: "shopify.customers.redact" }));
   });
 

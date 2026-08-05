@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries, PLAN_FEATURES, Plan, parsePlan } from "@/modules/organizations";
+import { organizationQueries, PLAN_FEATURES, Plan, parsePlan } from "@/modules/workspaces";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,11 +21,11 @@ export default async function BillingPage({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!["ADMIN", "STORE_OWNER"].includes(user.role)) notFound();
+  if (!["SUPER_ADMIN", "USER"].includes(user.role)) notFound();
 
   const params = await searchParams;
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
+  const overview = user.userId
+    ? await organizationQueries.getOrganizationOverview(user.userId)
     : null;
   const currentPlan = parsePlan(overview?.plan ?? Plan.FREE);
   const meta = PLAN_FEATURES[currentPlan];

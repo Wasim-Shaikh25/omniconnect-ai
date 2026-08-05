@@ -1,6 +1,6 @@
 export interface CatalogSyncRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   externalCatalogId: string | null;
   status: string;
   lastSyncedAt: Date | null;
@@ -11,7 +11,7 @@ export interface CatalogSyncRecord {
 
 export interface ProductMappingRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   productId: string;
   externalProductId: string | null;
   externalCatalogId: string | null;
@@ -24,7 +24,7 @@ export interface ProductMappingRecord {
 
 export interface ShoppableMediaRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   externalMediaId: string | null;
   mediaType: string;
   caption: string | null;
@@ -36,38 +36,38 @@ export interface ShoppableMediaRecord {
 }
 
 export interface CatalogSyncRepository {
-  upsert(storeId: string, input: {
+  upsert(projectId: string, input: {
     externalCatalogId?: string | null;
     status: string;
     errorLog?: string | null;
   }): Promise<CatalogSyncRecord>;
-  findLatest(storeId: string): Promise<CatalogSyncRecord | null>;
+  findLatest(projectId: string): Promise<CatalogSyncRecord | null>;
 }
 
 export interface ProductMappingRepository {
-  saveMany(storeId: string, products: Array<{
+  saveMany(projectId: string, products: Array<{
     productId: string;
     externalProductId: string | null;
     status: string;
     errorMessage?: string | null;
   }>): Promise<void>;
-  listByStore(storeId: string, limit?: number): Promise<ProductMappingRecord[]>;
+  listByStore(projectId: string, limit?: number): Promise<ProductMappingRecord[]>;
 }
 
 export interface ShoppableMediaRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     mediaType: string;
     caption?: string;
     productTags: unknown;
     status?: string;
   }): Promise<ShoppableMediaRecord>;
   updateExternalId(id: string, externalMediaId: string, status: string, permalink?: string): Promise<ShoppableMediaRecord>;
-  listByStore(storeId: string, limit?: number): Promise<ShoppableMediaRecord[]>;
+  listByStore(projectId: string, limit?: number): Promise<ShoppableMediaRecord[]>;
 }
 
 export interface MetaCommerceClient {
-  pushCatalog(storeId: string, products: Array<{
+  pushCatalog(projectId: string, products: Array<{
     productId: string;
     title: string;
     description?: string | null;
@@ -78,7 +78,7 @@ export interface MetaCommerceClient {
     externalCatalogId: string;
     mappings: Array<{ productId: string; externalProductId: string }>;
   }>;
-  publishShoppableMedia(storeId: string, input: {
+  publishShoppableMedia(projectId: string, input: {
     mediaType: string;
     caption?: string;
     productTags: Array<{ productId: string; name: string }>;
@@ -86,8 +86,8 @@ export interface MetaCommerceClient {
 }
 
 export interface CommerceAutomationService {
-  syncProductCatalog(storeId: string): Promise<CatalogSyncRecord>;
-  createShoppableMedia(storeId: string, input: {
+  syncProductCatalog(projectId: string): Promise<CatalogSyncRecord>;
+  createShoppableMedia(projectId: string, input: {
     mediaType: string;
     caption?: string;
     productTagIds: string[];
@@ -95,7 +95,7 @@ export interface CommerceAutomationService {
 }
 
 export interface CommerceQueries {
-  getLatestCatalogSync(storeId: string): Promise<CatalogSyncRecord | null>;
-  listProductMappings(storeId: string): Promise<ProductMappingRecord[]>;
-  listShoppableMedia(storeId: string): Promise<ShoppableMediaRecord[]>;
+  getLatestCatalogSync(projectId: string): Promise<CatalogSyncRecord | null>;
+  listProductMappings(projectId: string): Promise<ProductMappingRecord[]>;
+  listShoppableMedia(projectId: string): Promise<ShoppableMediaRecord[]>;
 }

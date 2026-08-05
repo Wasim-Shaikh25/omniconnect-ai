@@ -6,8 +6,8 @@ function deltaClass(delta: number | null): string {
   return delta >= 0 ? "text-green-600" : "text-red-600";
 }
 
-export async function CompetitorIntelligencePanel({ storeId }: { storeId?: string }) {
-  const { insights } = await getCompetitorIntelligenceAction(storeId);
+export async function CompetitorIntelligencePanel({ projectId }: { projectId?: string }) {
+  const { insights } = await getCompetitorIntelligenceAction(projectId);
 
   return (
     <Card>

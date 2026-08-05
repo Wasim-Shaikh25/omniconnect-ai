@@ -13,20 +13,20 @@ export interface GenerateContentIdeas {
 export function makeGenerateContentIdeas(deps: {
   generatePostIdeas: GeneratePostIdeas;
   eventBus: EventBus;
-  getOrganizationIdByStoreId: (storeId: string) => Promise<string | null>;
+  getOrganizationIdByStoreId: (projectId: string) => Promise<string | null>;
 }): GenerateContentIdeas {
   return async function generateContentIdeas(input): Promise<GenerateContentIdeasResult> {
-    const organizationId = await deps.getOrganizationIdByStoreId(input.storeId);
-    if (organizationId) {
-      await aiUsageGuard.assertAvailable(organizationId);
+    const userId = await deps.getOrganizationIdByStoreId(input.projectId);
+    if (userId) {
+      await aiUsageGuard.assertAvailable(userId);
     }
 
     const result = await deps.generatePostIdeas(input);
 
     await deps.eventBus.publish(
-      new ContentIdeasGenerated(input.storeId, {
-        storeId: input.storeId,
-        organizationId: organizationId ?? undefined,
+      new ContentIdeasGenerated(input.projectId, {
+        projectId: input.projectId,
+        userId: userId ?? undefined,
         ideas: result.ideas.map((idea) => idea.title),
         evidence: result.evidence,
         generatedAt: new Date().toISOString(),

@@ -43,7 +43,7 @@ function percentChange(current: number, previous: number): number {
 }
 
 export interface DetectCommerceInsights {
-  (organizationId: string, storeId: string): Promise<{
+  (userId: string, projectId: string): Promise<{
     insights: CommerceInsight[];
     recommendations: CommerceRecommendation[];
   }>;
@@ -52,10 +52,10 @@ export interface DetectCommerceInsights {
 export function makeDetectCommerceInsights(input: DetectCommerceInsightsInput): DetectCommerceInsights {
   const now = input.now ?? new Date();
 
-  async function computeWindowStats(storeId: string, start: Date, end: Date): Promise<WindowStats> {
+  async function computeWindowStats(projectId: string, start: Date, end: Date): Promise<WindowStats> {
     const [orders, products] = await Promise.all([
-      input.ecommerce.listOrders(storeId, 500),
-      input.ecommerce.listProducts(storeId, 100),
+      input.ecommerce.listOrders(projectId, 500),
+      input.ecommerce.listProducts(projectId, 100),
     ]);
 
     const windowOrders = orders.filter((o) => {
@@ -109,11 +109,11 @@ export function makeDetectCommerceInsights(input: DetectCommerceInsightsInput): 
     return dominant ? dominant.name : "orders";
   }
 
-  async function detectNoOrders(organizationId: string, storeId: string): Promise<CommerceInsight | null> {
+  async function detectNoOrders(userId: string, projectId: string): Promise<CommerceInsight | null> {
     const oneDayAgo = windowStart(1, now);
     let orders: Awaited<ReturnType<typeof input.ecommerce.listOrders>> = [];
     try {
-      orders = await input.ecommerce.listOrders(storeId, 50);
+      orders = await input.ecommerce.listOrders(projectId, 50);
     } catch {
       return null;
     }
@@ -121,25 +121,25 @@ export function makeDetectCommerceInsights(input: DetectCommerceInsightsInput): 
     if (recentOrders.length > 0) return null;
 
     return {
-      organizationId,
-      storeId,
+      userId,
+      projectId,
       type: "RISK",
       severity: "HIGH",
       status: "OPEN",
       title: "No orders in the last 24 hours",
       description: "There are no recorded completed orders in the last 24 hours. Consider reviewing your store integration or marketing activity.",
-      deepLink: `/stores/${storeId}/orders`,
+      deepLink: `/stores/${projectId}/orders`,
       generatedAt: now,
     };
   }
 
-  async function detectRevenueDecline(organizationId: string, storeId: string): Promise<CommerceInsight | null> {
+  async function detectRevenueDecline(userId: string, projectId: string): Promise<CommerceInsight | null> {
     const currentStart = windowStart(7, now);
     const previousStart = windowStart(14, now);
 
     const [current, previous] = await Promise.all([
-      computeWindowStats(storeId, currentStart, now),
-      computeWindowStats(storeId, previousStart, currentStart),
+      computeWindowStats(projectId, currentStart, now),
+      computeWindowStats(projectId, previousStart, currentStart),
     ]);
 
     if (current.orders === 0 && previous.orders === 0) return null;
@@ -167,59 +167,59 @@ export function makeDetectCommerceInsights(input: DetectCommerceInsightsInput): 
       : `Revenue recovered ${changePercent}% in the last 7 days (${driverText})`;
 
     return {
-      organizationId,
-      storeId,
+      userId,
+      projectId,
       type: hasDecline ? "RISK" : "OPPORTUNITY",
       severity: Math.abs(changePercent) >= 50 ? "CRITICAL" : Math.abs(changePercent) >= 30 ? "HIGH" : "MEDIUM",
       status: "OPEN",
       title,
       description: summary,
-      deepLink: `/stores/${storeId}/orders`,
+      deepLink: `/stores/${projectId}/orders`,
       generatedAt: now,
     };
   }
 
-  return async function detectCommerceInsights(organizationId: string, storeId: string) {
+  return async function detectCommerceInsights(userId: string, projectId: string) {
     const insights: CommerceInsight[] = [];
     const recommendations: CommerceRecommendation[] = [];
 
-    const noOrders = await detectNoOrders(organizationId, storeId);
+    const noOrders = await detectNoOrders(userId, projectId);
     if (noOrders) {
       insights.push(noOrders);
       recommendations.push({
-        organizationId,
-        storeId,
+        userId,
+        projectId,
         type: "INVESTIGATE",
         priority: "HIGH",
         title: "Check store integration and recent marketing activity",
         description: "No orders in the last 24 hours. Verify your Shopify/Meta integration and consider a follow-up campaign.",
-        deepLink: `/stores/${storeId}/integrations`,
+        deepLink: `/stores/${projectId}/integrations`,
         generatedAt: now,
       });
     }
 
-    const revenue = await detectRevenueDecline(organizationId, storeId);
+    const revenue = await detectRevenueDecline(userId, projectId);
     if (revenue) {
       insights.push(revenue);
       if (revenue.type === "RISK") {
         recommendations.push({
-          organizationId,
-          storeId,
+          userId,
+          projectId,
           type: "ACTION",
           priority: revenue.severity === "CRITICAL" ? "CRITICAL" : "HIGH",
           title: "Review revenue drivers and run a recovery campaign",
           description: revenue.description,
-          deepLink: `/stores/${storeId}/campaigns`,
+          deepLink: `/stores/${projectId}/campaigns`,
           generatedAt: now,
         });
       }
     }
 
     for (const insight of insights) {
-      await eventBus.publish(new CommerceInsightGenerated(storeId, { organizationId, storeId, insight }));
+      await eventBus.publish(new CommerceInsightGenerated(projectId, { userId, projectId, insight }));
     }
     for (const recommendation of recommendations) {
-      await eventBus.publish(new CommerceRecommendationGenerated(storeId, { organizationId, storeId, recommendation }));
+      await eventBus.publish(new CommerceRecommendationGenerated(projectId, { userId, projectId, recommendation }));
     }
 
     return { insights, recommendations };

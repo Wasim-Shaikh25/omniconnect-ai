@@ -2,7 +2,7 @@ import { BaseDomainEvent } from "@/shared/kernel";
 import type { MetaChannel } from "./types";
 
 export interface MetaMessageReceivedPayload {
-  storeId: string;
+  projectId: string;
   channel: MetaChannel;
   externalUserId: string;
   username: string | null;
@@ -15,7 +15,7 @@ export class MetaMessageReceived extends BaseDomainEvent<MetaMessageReceivedPayl
 }
 
 export interface MetaFollowReceivedPayload {
-  storeId: string;
+  projectId: string;
   channel: MetaChannel;
   externalUserId: string;
   username: string | null;
@@ -26,7 +26,7 @@ export class MetaFollowReceived extends BaseDomainEvent<MetaFollowReceivedPayloa
 }
 
 export interface MetaCommentReceivedPayload {
-  storeId: string;
+  projectId: string;
   channel: MetaChannel;
   externalUserId: string;
   username: string | null;

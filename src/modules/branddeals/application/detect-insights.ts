@@ -15,7 +15,7 @@ export interface DetectBrandDealInsightsInput {
 }
 
 export interface DetectBrandDealInsights {
-  (organizationId: string, storeId: string): Promise<{
+  (userId: string, projectId: string): Promise<{
     insights: BrandDealInsight[];
     recommendations: BrandDealRecommendation[];
   }>;
@@ -24,37 +24,37 @@ export interface DetectBrandDealInsights {
 export function makeDetectBrandDealInsights(input: DetectBrandDealInsightsInput): DetectBrandDealInsights {
   const now = input.now ?? new Date();
 
-  return async function detectBrandDealInsights(organizationId: string, storeId: string) {
+  return async function detectBrandDealInsights(userId: string, projectId: string) {
     const insights: BrandDealInsight[] = [];
     const recommendations: BrandDealRecommendation[] = [];
 
     const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-    const deals = await input.brandDeals.listByStore(storeId, 50);
+    const deals = await input.brandDeals.listByStore(projectId, 50);
 
     for (const deal of deals) {
       if (deal.status === "NEGOTIATING" && deal.updatedAt <= fourteenDaysAgo) {
         const insight: BrandDealInsight = {
-          organizationId,
-          storeId,
+          userId,
+          projectId,
           dealId: deal.id,
           type: "RISK",
           severity: "MEDIUM",
           status: "OPEN",
           title: `Brand deal ${deal.brandName} stuck in negotiation`,
           description: `Deal with ${deal.brandName} has been in NEGOTIATING status for more than 14 days without an update.`,
-          deepLink: `/stores/${storeId}/brand-deals`,
+          deepLink: `/stores/${projectId}/brand-deals`,
           generatedAt: now,
         };
         insights.push(insight);
         recommendations.push({
-          organizationId,
-          storeId,
+          userId,
+          projectId,
           dealId: deal.id,
           type: "ACTION",
           priority: "MEDIUM",
           title: `Follow up on ${deal.brandName} deal`,
           description: `Deal with ${deal.brandName} has been negotiating for over 14 days. Consider following up or revising terms.`,
-          deepLink: `/stores/${storeId}/brand-deals`,
+          deepLink: `/stores/${projectId}/brand-deals`,
           generatedAt: now,
         });
       }
@@ -62,14 +62,14 @@ export function makeDetectBrandDealInsights(input: DetectBrandDealInsightsInput)
 
     for (const insight of insights) {
       await eventBus.publish(
-        new BrandDealInsightGenerated(insight.dealId, { organizationId, storeId, dealId: insight.dealId, insight }),
+        new BrandDealInsightGenerated(insight.dealId, { userId, projectId, dealId: insight.dealId, insight }),
       );
     }
     for (const recommendation of recommendations) {
       await eventBus.publish(
         new BrandDealRecommendationGenerated(recommendation.dealId, {
-          organizationId,
-          storeId,
+          userId,
+          projectId,
           dealId: recommendation.dealId,
           recommendation,
         }),

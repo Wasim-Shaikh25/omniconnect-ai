@@ -18,8 +18,8 @@ interface MockSession {
     name: string | null;
     role: string;
     isSuperAdmin: boolean;
-    organizationId: string | null;
-    storeId: string | null;
+    userId: string | null;
+    projectId: string | null;
     tokenVersion: number;
   };
 }
@@ -41,7 +41,7 @@ describe("getCurrentUser", () => {
         email: "stale-version@example.com",
         passwordHash: "hash",
         name: "Stale",
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         tokenVersion: 2,
       },
@@ -55,8 +55,8 @@ describe("getCurrentUser", () => {
         name: user.name,
         role: user.role,
         isSuperAdmin: user.isSuperAdmin,
-        organizationId: user.organizationId,
-        storeId: user.storeId,
+        userId: user.userId,
+        projectId: user.projectId,
         tokenVersion: 1,
       },
     });
@@ -71,7 +71,7 @@ describe("getCurrentUser", () => {
         email: "deleted-user@example.com",
         passwordHash: "hash",
         name: "Deleted",
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         tokenVersion: 1,
         deletedAt: new Date(),
@@ -86,8 +86,8 @@ describe("getCurrentUser", () => {
         name: user.name,
         role: user.role,
         isSuperAdmin: user.isSuperAdmin,
-        organizationId: user.organizationId,
-        storeId: user.storeId,
+        userId: user.userId,
+        projectId: user.projectId,
         tokenVersion: user.tokenVersion,
       },
     });
@@ -104,7 +104,7 @@ describe("requireSuperAdmin", () => {
         email: "super@example.com",
         passwordHash: "hash",
         name: "Super Admin",
-        role: "ADMIN",
+        role: "SUPER_ADMIN",
         isSuperAdmin: true,
         tokenVersion: 1,
       },
@@ -118,8 +118,8 @@ describe("requireSuperAdmin", () => {
         name: admin.name,
         role: admin.role,
         isSuperAdmin: admin.isSuperAdmin,
-        organizationId: admin.organizationId,
-        storeId: admin.storeId,
+        userId: admin.userId,
+        projectId: admin.projectId,
         tokenVersion: admin.tokenVersion,
       },
     });
@@ -134,7 +134,7 @@ describe("requireSuperAdmin", () => {
         email: "owner@example.com",
         passwordHash: "hash",
         name: "Owner",
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         tokenVersion: 1,
       },
@@ -148,8 +148,8 @@ describe("requireSuperAdmin", () => {
         name: owner.name,
         role: owner.role,
         isSuperAdmin: owner.isSuperAdmin,
-        organizationId: owner.organizationId,
-        storeId: owner.storeId,
+        userId: owner.userId,
+        projectId: owner.projectId,
         tokenVersion: owner.tokenVersion,
       },
     });
@@ -165,7 +165,7 @@ describe("requireVerifiedEmail", () => {
         email: "unverified@example.com",
         passwordHash: "hash",
         name: "Unverified",
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         emailVerified: null,
         tokenVersion: 1,
@@ -180,8 +180,8 @@ describe("requireVerifiedEmail", () => {
         name: unverified.name,
         role: unverified.role,
         isSuperAdmin: unverified.isSuperAdmin,
-        organizationId: unverified.organizationId,
-        storeId: unverified.storeId,
+        userId: unverified.userId,
+        projectId: unverified.projectId,
         tokenVersion: unverified.tokenVersion,
       },
     });
@@ -195,7 +195,7 @@ describe("requireVerifiedEmail", () => {
         email: "verified@example.com",
         passwordHash: "hash",
         name: "Verified",
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         emailVerified: new Date(),
         tokenVersion: 1,
@@ -210,8 +210,8 @@ describe("requireVerifiedEmail", () => {
         name: verified.name,
         role: verified.role,
         isSuperAdmin: verified.isSuperAdmin,
-        organizationId: verified.organizationId,
-        storeId: verified.storeId,
+        userId: verified.userId,
+        projectId: verified.projectId,
         tokenVersion: verified.tokenVersion,
       },
     });

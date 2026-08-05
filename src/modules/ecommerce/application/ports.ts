@@ -1,4 +1,4 @@
-import type { EcommerceProvider } from "@/modules/organizations";
+import type { EcommerceProvider } from "@/modules/workspaces";
 import type {
   ConnectorOrder,
   ConnectorProduct,
@@ -8,7 +8,7 @@ import type {
 /** One active eCommerce connection per store. */
 export interface IntegrationRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   provider: string;
   shopDomain: string | null;
   scopes: string | null;
@@ -18,7 +18,7 @@ export interface IntegrationRecord {
 
 export interface IntegrationRepository {
   upsertEcommerce(input: {
-    storeId: string;
+    projectId: string;
     provider: EcommerceProvider;
     shopDomain: string | null;
     accessToken: string | null;
@@ -27,13 +27,13 @@ export interface IntegrationRepository {
     metadata?: Record<string, unknown> | null;
   }): Promise<IntegrationRecord>;
 
-  findEcommerceByStore(storeId: string): Promise<IntegrationRecord | null>;
+  findEcommerceByStore(projectId: string): Promise<IntegrationRecord | null>;
 
   /** Resolve the store that owns a given e-commerce shop domain. */
   findByShopDomain(shopDomain: string): Promise<IntegrationRecord | null>;
 
   /** Tokens are only read by the infrastructure layer to build a connector. */
-  findCredentialsByStore(storeId: string): Promise<{
+  findCredentialsByStore(projectId: string): Promise<{
     provider: string;
     shopDomain: string | null;
     accessToken: string | null;
@@ -45,7 +45,7 @@ export interface IntegrationRepository {
 export interface ProductRecord {
   id: string;
   externalId: string;
-  storeId: string;
+  projectId: string;
   title: string;
   description: string | null;
   price: number | null;
@@ -57,7 +57,7 @@ export interface ProductRecord {
 
 export interface ProductRepository {
   upsertMany(
-    storeId: string,
+    projectId: string,
     products: ConnectorProduct[],
   ): Promise<number>;
 
@@ -67,7 +67,7 @@ export interface ProductRepository {
    * products upserted and removed.
    */
   sync(
-    storeId: string,
+    projectId: string,
     products: ConnectorProduct[],
   ): Promise<{ upserted: number; removed: number }>;
 
@@ -85,10 +85,10 @@ export interface ProductRepository {
 
   findById(id: string): Promise<ProductRecord | null>;
 
-  findByExternalId(storeId: string, externalId: string): Promise<ProductRecord | null>;
+  findByExternalId(projectId: string, externalId: string): Promise<ProductRecord | null>;
 
   listByStore(
-    storeId: string,
+    projectId: string,
     options?: {
       limit?: number;
       offset?: number;
@@ -96,7 +96,7 @@ export interface ProductRepository {
       includeDeleted?: boolean;
     },
   ): Promise<ProductRecord[]>;
-  countByStore(storeId: string, search?: string): Promise<number>;
+  countByStore(projectId: string, search?: string): Promise<number>;
 
   delete(id: string): Promise<ProductRecord | null>;
 
@@ -105,7 +105,7 @@ export interface ProductRepository {
    * Typically called after a sync to remove products no longer returned by the provider.
    */
   markDeletedNotInBatch(
-    storeId: string,
+    projectId: string,
     externalIds: string[],
     deletedAt: Date,
   ): Promise<number>;
@@ -114,7 +114,7 @@ export interface ProductRepository {
 export interface CouponRecord {
   id: string;
   code: string;
-  storeId: string;
+  projectId: string;
   discountPct: number;
   status: string;
   expiresAt: Date | null;
@@ -126,7 +126,7 @@ export interface CouponRecord {
 
 export interface CouponRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     code: string;
     discountPct: number;
     expiresAt: Date | null;
@@ -147,13 +147,13 @@ export interface CouponRepository {
     },
   ): Promise<CouponRecord | null>;
 
-  disable(storeId: string, code: string): Promise<void>;
+  disable(projectId: string, code: string): Promise<void>;
 
   /** Soft-delete a coupon. */
   delete(id: string): Promise<CouponRecord | null>;
 
   listByStore(
-    storeId: string,
+    projectId: string,
     options?: {
       limit?: number;
       offset?: number;
@@ -161,13 +161,13 @@ export interface CouponRepository {
       includeDeleted?: boolean;
     },
   ): Promise<CouponRecord[]>;
-  countByStore(storeId: string, search?: string): Promise<number>;
+  countByStore(projectId: string, search?: string): Promise<number>;
 }
 
 export interface OrderRecord {
   id: string;
   externalId: string;
-  storeId: string;
+  projectId: string;
   total: number | null;
   currency: string | null;
   orderDate: Date;
@@ -183,10 +183,10 @@ export interface OrderRecord {
 }
 
 export interface OrderRepository {
-  sync(storeId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }>;
-  upsertMany(storeId: string, orders: ConnectorOrder[]): Promise<number>;
+  sync(projectId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }>;
+  upsertMany(projectId: string, orders: ConnectorOrder[]): Promise<number>;
   listByStore(
-    storeId: string,
+    projectId: string,
     options?: {
       limit?: number;
       offset?: number;
@@ -196,13 +196,13 @@ export interface OrderRepository {
       includeFirstTimeOnly?: boolean;
     },
   ): Promise<OrderRecord[]>;
-  countByStore(storeId: string): Promise<number>;
-  findByExternalId(storeId: string, externalId: string): Promise<OrderRecord | null>;
+  countByStore(projectId: string): Promise<number>;
+  findByExternalId(projectId: string, externalId: string): Promise<OrderRecord | null>;
 }
 
 export interface CartRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   cartToken: string;
   email: string | null;
   lineItemTitles: string[];
@@ -218,7 +218,7 @@ export interface CartRecord {
 
 export interface CartRepository {
   upsert(input: {
-    storeId: string;
+    projectId: string;
     cartToken: string;
     email?: string | null;
     lineItemTitles?: string[];
@@ -229,11 +229,11 @@ export interface CartRepository {
   }): Promise<CartRecord>;
 
   findByStoreAndToken(
-    storeId: string,
+    projectId: string,
     cartToken: string,
   ): Promise<CartRecord | null>;
 
-  markConverted(storeId: string, cartToken: string): Promise<void>;
+  markConverted(projectId: string, cartToken: string): Promise<void>;
 
   /**
    * Marks a cart as notified, but only if it has not already been notified.
@@ -250,5 +250,5 @@ export interface CartRepository {
 
 /** Resolves the correct provider connector for a store. */
 export interface ConnectorFactory {
-  forStore(storeId: string): Promise<EcommerceConnector>;
+  forStore(projectId: string): Promise<EcommerceConnector>;
 }

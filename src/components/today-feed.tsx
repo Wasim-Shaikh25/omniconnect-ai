@@ -2,8 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TodayActionCard } from "@/components/today-action-card";
 import { getTodayActionsAction } from "@/modules/intelligence";
 
-export async function TodayFeed({ storeId }: { storeId?: string }) {
-  const { actions } = await getTodayActionsAction(storeId);
+export async function TodayFeed({ projectId }: { projectId?: string }) {
+  const { actions } = await getTodayActionsAction(projectId);
 
   return (
     <Card className="border-primary/40">

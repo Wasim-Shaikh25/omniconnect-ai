@@ -3,7 +3,7 @@ export type MessageSender = "CUSTOMER" | "AI" | "HUMAN";
 
 export interface ConversationRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   channel: ConversationChannel;
   status: string;
   externalId: string | null;
@@ -25,41 +25,41 @@ export interface MessageRecord {
 export interface ConversationRepository {
   /** Find or create the conversation keyed by store + channel + external id. */
   upsert(input: {
-    storeId: string;
+    projectId: string;
     channel: ConversationChannel;
     externalId: string | null;
   }): Promise<ConversationRecord>;
 
   listByStore(
-    storeId: string,
+    projectId: string,
     options?: { limit?: number; offset?: number; search?: string },
   ): Promise<ConversationRecord[]>;
 
-  countByStore(storeId: string, options?: { search?: string }): Promise<number>;
+  countByStore(projectId: string, options?: { search?: string }): Promise<number>;
 
   listByStoreIds(storeIds: string[], limit?: number): Promise<ConversationRecord[]>;
 
-  findById(id: string, storeId?: string): Promise<ConversationRecord | null>;
+  findById(id: string, projectId?: string): Promise<ConversationRecord | null>;
 
   updateStatus(
     id: string,
-    storeId: string,
+    projectId: string,
     status: "AI_ACTIVE" | "HUMAN_ACTIVE",
   ): Promise<ConversationRecord>;
 
   takeOver(input: {
     id: string;
-    storeId: string;
+    projectId: string;
     humanUserId: string;
   }): Promise<ConversationRecord>;
 
-  resumeAI(id: string, storeId: string): Promise<ConversationRecord>;
+  resumeAI(id: string, projectId: string): Promise<ConversationRecord>;
 }
 
 export interface MessageRepository {
   append(input: {
     conversationId: string;
-    storeId: string;
+    projectId: string;
     sender: MessageSender;
     content: string;
     inReplyToMessageId?: string | null;

@@ -32,7 +32,7 @@ export interface MediaAnalysis {
 }
 
 export interface AnalyzeMediaInput {
-  storeId: string;
+  projectId: string;
   mediaPostId: string;
   media: MediaMetricsInput;
 }
@@ -48,7 +48,7 @@ export function makeAnalyzeMedia(deps: {
   aiConfigurationRepository: AIConfigurationRepository;
 }): AnalyzeMedia {
   return async function analyzeMedia(input): Promise<MediaAnalysis> {
-    const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
+    const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
     const tone = config?.tone ?? DEFAULT_TONE;
 
     const system = `You are a Meta content strategist. Tone: ${tone}.
@@ -71,7 +71,7 @@ Explain why it worked and provide a slide-by-slide storyboard.`;
       .withModel(selectModel("competitor-analysis", config?.model).model)
       .withFallback(DEFAULT_DEV_OUTPUT)
       .withOperation("media-analysis")
-      .withMetadata({ storeId: input.storeId, mediaPostId: input.mediaPostId })
+      .withMetadata({ projectId: input.projectId, mediaPostId: input.mediaPostId })
       .build();
 
     const raw = await deps.aiProvider.complete(context.messages, {

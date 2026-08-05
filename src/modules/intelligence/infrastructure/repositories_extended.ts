@@ -18,9 +18,8 @@ import type {
 
 type StoredFeedback = {
   id: string;
-  organizationId: string;
-  insightId: string;
   userId: string;
+  insightId: string;
   understood: boolean;
   hoursSaved: number;
   falsePositive: boolean;
@@ -34,19 +33,19 @@ function toFeedbackRecord(row: StoredFeedback): IntelligenceFeedbackRecord {
 
 export class PrismaIntelligenceFeedbackRepository implements IntelligenceFeedbackRepository {
   async save(
-    record: Omit<IntelligenceFeedbackRecord, "id" | "organizationId" | "createdAt">,
-    organizationId: string,
+    record: Omit<IntelligenceFeedbackRecord, "id" | "userId" | "createdAt">,
+    userId: string,
   ): Promise<IntelligenceFeedbackRecord> {
     const created = await prisma.intelligenceFeedback.create({
-      data: { ...record, organizationId } as Prisma.IntelligenceFeedbackCreateInput,
+      data: { ...record, userId } as Prisma.IntelligenceFeedbackCreateInput,
     });
     return toFeedbackRecord(created as StoredFeedback);
   }
 
   async getKpis(
-    organizationId: string,
+    userId: string,
   ): Promise<{ total: number; understoodRate: number; hoursSaved: number; falsePositiveRate: number; falseNegativeRate: number }> {
-    const rows = await prisma.intelligenceFeedback.findMany({ where: { organizationId }, take: 1000 });
+    const rows = await prisma.intelligenceFeedback.findMany({ where: { userId }, take: 1000 });
     const total = rows.length;
     if (total === 0) {
       return { total: 0, understoodRate: 0, hoursSaved: 0, falsePositiveRate: 0, falseNegativeRate: 0 };
@@ -67,10 +66,9 @@ export class PrismaIntelligenceFeedbackRepository implements IntelligenceFeedbac
 
 type StoredDismissal = {
   id: string;
-  organizationId: string;
+  userId: string;
   insightId: string;
   reason: string;
-  userId: string;
   dismissedAt: Date;
 };
 
@@ -81,17 +79,15 @@ function toDismissalRecord(row: StoredDismissal): IntelligenceDismissalRecord {
 export class PrismaIntelligenceDismissalRepository implements IntelligenceDismissalRepository {
   async dismiss(input: {
     insightId: string;
-    organizationId: string;
     userId: string;
     reason: string;
   }): Promise<IntelligenceDismissalRecord> {
     const upserted = await prisma.intelligenceDismissal.upsert({
       where: { insightId: input.insightId },
       create: {
-        organizationId: input.organizationId,
+        userId: input.userId,
         insightId: input.insightId,
         reason: input.reason,
-        userId: input.userId,
         dismissedAt: new Date(),
       },
       update: {
@@ -103,9 +99,9 @@ export class PrismaIntelligenceDismissalRepository implements IntelligenceDismis
     return toDismissalRecord(upserted as StoredDismissal);
   }
 
-  async getReason(insightId: string, organizationId: string): Promise<string | null> {
+  async getReason(insightId: string, userId: string): Promise<string | null> {
     const row = await prisma.intelligenceDismissal.findFirst({
-      where: { insightId, organizationId },
+      where: { insightId, userId },
     });
     return row?.reason ?? null;
   }
@@ -114,7 +110,7 @@ export class PrismaIntelligenceDismissalRepository implements IntelligenceDismis
 type StoredGoalPlanVersion = {
   id: string;
   goalId: string;
-  organizationId: string;
+  userId: string;
   version: number;
   workflowId: string;
   status: string;
@@ -134,9 +130,9 @@ function toGoalPlanRecord(row: StoredGoalPlanVersion): GoalPlanRecord {
 }
 
 export class PrismaGoalPlanRepository implements GoalPlanRepository {
-  async create(goalId: string, organizationId: string): Promise<GoalPlanRecord> {
+  async create(goalId: string, userId: string): Promise<GoalPlanRecord> {
     const existing = await prisma.goalPlanVersion.findMany({
-      where: { goalId, organizationId },
+      where: { goalId, userId },
       orderBy: { version: "desc" },
       take: 1,
     });
@@ -145,7 +141,7 @@ export class PrismaGoalPlanRepository implements GoalPlanRepository {
     const created = await prisma.goalPlanVersion.create({
       data: {
         goalId,
-        organizationId,
+        userId,
         version,
         workflowId,
         status: "draft",
@@ -156,8 +152,8 @@ export class PrismaGoalPlanRepository implements GoalPlanRepository {
     return toGoalPlanRecord(created as StoredGoalPlanVersion);
   }
 
-  async testRun(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null> {
-    const existing = await prisma.goalPlanVersion.findFirst({ where: { workflowId, organizationId } });
+  async testRun(workflowId: string, userId: string): Promise<GoalPlanRecord | null> {
+    const existing = await prisma.goalPlanVersion.findFirst({ where: { workflowId, userId } });
     if (!existing) return null;
     const updated = await prisma.goalPlanVersion.update({
       where: { id: existing.id },
@@ -168,10 +164,10 @@ export class PrismaGoalPlanRepository implements GoalPlanRepository {
 
   async launchWithHoldout(
     workflowId: string,
-    organizationId: string,
+    userId: string,
     holdoutPct: number,
   ): Promise<GoalPlanRecord | null> {
-    const existing = await prisma.goalPlanVersion.findFirst({ where: { workflowId, organizationId } });
+    const existing = await prisma.goalPlanVersion.findFirst({ where: { workflowId, userId } });
     if (!existing) return null;
     const updated = await prisma.goalPlanVersion.update({
       where: { id: existing.id },
@@ -180,17 +176,17 @@ export class PrismaGoalPlanRepository implements GoalPlanRepository {
     return toGoalPlanRecord(updated as StoredGoalPlanVersion);
   }
 
-  async getPlan(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null> {
-    const row = await prisma.goalPlanVersion.findFirst({ where: { workflowId, organizationId } });
+  async getPlan(workflowId: string, userId: string): Promise<GoalPlanRecord | null> {
+    const row = await prisma.goalPlanVersion.findFirst({ where: { workflowId, userId } });
     return row ? toGoalPlanRecord(row as StoredGoalPlanVersion) : null;
   }
 
   async postLaunch(
     workflowId: string,
-    organizationId: string,
+    userId: string,
     recommendation: GoalPlanPostLaunchRecommendation,
   ): Promise<GoalPlanRecord | null> {
-    const existing = await prisma.goalPlanVersion.findFirst({ where: { workflowId, organizationId } });
+    const existing = await prisma.goalPlanVersion.findFirst({ where: { workflowId, userId } });
     if (!existing) return null;
     const status = recommendation === "pause" ? "paused" : recommendation === "conclude" ? "concluded" : undefined;
     const data: Prisma.GoalPlanVersionUpdateInput = { postLaunchRecommendation: recommendation };
@@ -203,7 +199,7 @@ export class PrismaGoalPlanRepository implements GoalPlanRepository {
   }
 }
 
-const DEFAULT_GATES: Record<RolloutMode, Omit<RolloutGateRecord, "id" | "organizationId" | "updatedAt">> = {
+const DEFAULT_GATES: Record<RolloutMode, Omit<RolloutGateRecord, "id" | "userId" | "updatedAt">> = {
   SHADOW: {
     name: "SHADOW",
     enabled: true,
@@ -247,37 +243,37 @@ const DEFAULT_GATES: Record<RolloutMode, Omit<RolloutGateRecord, "id" | "organiz
 };
 
 function toRolloutGateRecord(
-  row: { id: string; organizationId: string; name: string; enabled: boolean; updatedAt: Date } | null,
+  row: { id: string; userId: string; name: string; enabled: boolean; updatedAt: Date } | null,
   name: RolloutMode,
-  organizationId: string,
+  userId: string,
 ): RolloutGateRecord {
   const defaults = DEFAULT_GATES[name];
   if (!row) {
-    return { id: "", organizationId, ...defaults, updatedAt: new Date() };
+    return { id: "", userId, ...defaults, updatedAt: new Date() };
   }
-  return { ...defaults, ...row, name, organizationId };
+  return { ...defaults, ...row, name, userId };
 }
 
 export class PrismaRolloutGateRepository implements RolloutGateRepository {
-  async getGates(organizationId: string): Promise<RolloutGateRecord[]> {
-    const rows = await prisma.rolloutGate.findMany({ where: { organizationId }, take: 100 });
+  async getGates(userId: string): Promise<RolloutGateRecord[]> {
+    const rows = await prisma.rolloutGate.findMany({ where: { userId }, take: 100 });
     const byName = new Map(rows.map((r) => [r.name as RolloutMode, r]));
     return (Object.keys(DEFAULT_GATES) as RolloutMode[]).map((name) =>
-      toRolloutGateRecord(byName.get(name) ?? null, name, organizationId),
+      toRolloutGateRecord(byName.get(name) ?? null, name, userId),
     );
   }
 
-  async getGate(name: RolloutMode, organizationId: string): Promise<RolloutGateRecord | null> {
-    const row = await prisma.rolloutGate.findUnique({ where: { organizationId_name: { organizationId, name } } });
-    return toRolloutGateRecord(row ?? null, name, organizationId);
+  async getGate(name: RolloutMode, userId: string): Promise<RolloutGateRecord | null> {
+    const row = await prisma.rolloutGate.findUnique({ where: { userId_name: { userId, name } } });
+    return toRolloutGateRecord(row ?? null, name, userId);
   }
 
-  async setGate(name: RolloutMode, organizationId: string, enabled: boolean): Promise<RolloutGateRecord> {
+  async setGate(name: RolloutMode, userId: string, enabled: boolean): Promise<RolloutGateRecord> {
     const row = await prisma.rolloutGate.upsert({
-      where: { organizationId_name: { organizationId, name } },
-      create: { organizationId, name, enabled },
+      where: { userId_name: { userId, name } },
+      create: { userId, name, enabled },
       update: { enabled },
     });
-    return toRolloutGateRecord(row, name, organizationId);
+    return toRolloutGateRecord(row, name, userId);
   }
 }

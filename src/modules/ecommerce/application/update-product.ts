@@ -3,7 +3,7 @@ import type { ProductRepository } from "./ports";
 
 export const updateProductSchema = z.object({
   productId: z.string().min(1),
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   title: z.string().min(1).max(255).optional(),
   description: z.string().max(5000).optional().nullable(),
   price: z.coerce.number().min(0).optional().nullable(),
@@ -20,7 +20,7 @@ export function makeUpdateProduct(deps: { products: ProductRepository }) {
     if (!product) {
       throw new Error("Product not found.");
     }
-    if (product.storeId !== input.storeId) {
+    if (product.projectId !== input.projectId) {
       throw new Error("Product does not belong to this store.");
     }
 

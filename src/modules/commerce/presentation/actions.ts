@@ -3,17 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole, ForbiddenError } from "@/modules/auth";
-import { tenantGuard } from "@/modules/organizations";
+import { tenantGuard } from "@/modules/workspaces";
 import { updateMarketingMemory } from "@/modules/intelligence/server";
 import type { ProductScoreRecord } from "@/modules/intelligence";
 import { commerceQueries, commerceService } from "../infrastructure/container";
 
 const syncSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
 });
 
 const createMediaSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   mediaType: z.enum(["REEL", "POST", "STORY"]),
   caption: z.string().optional(),
   productTagIds: z.array(z.string().min(1)).min(1),
@@ -28,12 +28,12 @@ export interface CommerceCatalogView {
 }
 
 export async function listCommerceCatalogAction(
-  storeId: string,
+  projectId: string,
 ): Promise<CommerceCatalogView> {
   let user: Awaited<ReturnType<typeof requireRole>> | null = null;
   try {
-    user = await requireRole("STAFF");
-    await tenantGuard.assertStoreAccess(user, storeId);
+    user = await requireRole("USER");
+    await tenantGuard.assertStoreAccess(user, projectId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return { sync: null, mappings: [], media: [], products: [], productScores: [] };
@@ -42,11 +42,11 @@ export async function listCommerceCatalogAction(
   }
 
   const [sync, mappings, media, products, memory] = await Promise.all([
-    commerceQueries.getLatestCatalogSync(storeId),
-    commerceQueries.listProductMappings(storeId),
-    commerceQueries.listShoppableMedia(storeId),
-    (await import("@/modules/ecommerce")).ecommerceQueries.listProducts(storeId, 100),
-    updateMarketingMemory(user.organizationId ?? "", storeId),
+    commerceQueries.getLatestCatalogSync(projectId),
+    commerceQueries.listProductMappings(projectId),
+    commerceQueries.listShoppableMedia(projectId),
+    (await import("@/modules/ecommerce")).ecommerceQueries.listProducts(projectId, 100),
+    updateMarketingMemory(user.userId ?? "", projectId),
   ]);
 
   return { sync, mappings, media, products, productScores: memory?.productScores ?? [] };
@@ -60,10 +60,10 @@ export async function syncMetaCatalogAction(
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
   try {
-    const user = await requireRole("STORE_OWNER");
-    await tenantGuard.assertStoreAccess(user, parsed.data.storeId);
-    await commerceService.syncProductCatalog(parsed.data.storeId);
-    revalidatePath(`/stores/${parsed.data.storeId}/commerce/catalog`);
+    const user = await requireRole("USER");
+    await tenantGuard.assertStoreAccess(user, parsed.data.projectId);
+    await commerceService.syncProductCatalog(parsed.data.projectId);
+    revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
     return { ok: true };
   } catch (error) {
     if (error instanceof ForbiddenError) {
@@ -88,10 +88,10 @@ export async function createShoppableMediaAction(
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
   try {
-    const user = await requireRole("STORE_OWNER");
-    await tenantGuard.assertStoreAccess(user, parsed.data.storeId);
-    await commerceService.createShoppableMedia(parsed.data.storeId, parsed.data);
-    revalidatePath(`/stores/${parsed.data.storeId}/commerce/catalog`);
+    const user = await requireRole("USER");
+    await tenantGuard.assertStoreAccess(user, parsed.data.projectId);
+    await commerceService.createShoppableMedia(parsed.data.projectId, parsed.data);
+    revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
     return { ok: true };
   } catch (error) {
     if (error instanceof ForbiddenError) {

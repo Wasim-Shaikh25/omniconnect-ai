@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
-import { completeOnboardingAction } from "@/modules/organizations";
+import { completeOnboardingAction } from "@/modules/workspaces";
 import { OnboardingForm } from "@/components/onboarding-form";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.organizationId) redirect("/dashboard");
+  if (user.userId) redirect("/dashboard");
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">

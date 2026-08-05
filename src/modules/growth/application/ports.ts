@@ -1,6 +1,6 @@
 export interface UgcAssetRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   socialMentionId: string | null;
   customerId: string | null;
   creatorHandle: string | null;
@@ -17,7 +17,7 @@ export interface UgcAssetRecord {
 
 export interface AmbassadorRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   customerId: string | null;
   code: string;
   discountPct: number;
@@ -31,7 +31,7 @@ export interface AmbassadorRecord {
 
 export interface ReferralOrderRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   ambassadorId: string;
   orderId: string;
   orderAmount: number;
@@ -44,7 +44,7 @@ export interface ReferralOrderRecord {
 
 export interface DmCampaignRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   campaignType: string;
   audienceCriteria: unknown;
   status: string;
@@ -57,7 +57,7 @@ export interface DmCampaignRecord {
 
 export interface BackInStockSubscriptionRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   productId: string;
   externalUserId: string | null;
   customerId: string | null;
@@ -67,7 +67,7 @@ export interface BackInStockSubscriptionRecord {
 
 export interface UgcRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     socialMentionId?: string | null;
     customerId?: string | null;
     creatorHandle?: string | null;
@@ -76,62 +76,62 @@ export interface UgcRepository {
     source: string;
     caption?: string | null;
   }): Promise<UgcAssetRecord>;
-  listByStore(storeId: string, limit?: number): Promise<UgcAssetRecord[]>;
-  updateRights(id: string, storeId: string, status: string, approvedBy?: string | null): Promise<UgcAssetRecord>;
+  listByStore(projectId: string, limit?: number): Promise<UgcAssetRecord[]>;
+  updateRights(id: string, projectId: string, status: string, approvedBy?: string | null): Promise<UgcAssetRecord>;
 }
 
 export interface AmbassadorRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     customerId?: string | null;
     code: string;
     discountPct?: number;
     commissionPct?: number;
     status?: string;
   }): Promise<AmbassadorRecord>;
-  listByStore(storeId: string, limit?: number): Promise<AmbassadorRecord[]>;
-  findById(id: string, storeId: string): Promise<AmbassadorRecord | null>;
-  incrementEarnings(id: string, storeId: string, amount: number, referrals: number): Promise<AmbassadorRecord>;
+  listByStore(projectId: string, limit?: number): Promise<AmbassadorRecord[]>;
+  findById(id: string, projectId: string): Promise<AmbassadorRecord | null>;
+  incrementEarnings(id: string, projectId: string, amount: number, referrals: number): Promise<AmbassadorRecord>;
 }
 
 export interface ReferralOrderRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     ambassadorId: string;
     orderId: string;
     orderAmount: number;
     commissionAmount: number;
     status?: string;
   }): Promise<ReferralOrderRecord>;
-  listByStore(storeId: string, limit?: number): Promise<ReferralOrderRecord[]>;
+  listByStore(projectId: string, limit?: number): Promise<ReferralOrderRecord[]>;
 }
 
 export interface DmCampaignRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     campaignType: string;
     audienceCriteria?: unknown;
     status?: string;
     scheduledAt?: Date | null;
   }): Promise<DmCampaignRecord>;
-  listByStore(storeId: string, limit?: number): Promise<DmCampaignRecord[]>;
-  markSent(id: string, storeId: string, metrics?: unknown): Promise<DmCampaignRecord>;
+  listByStore(projectId: string, limit?: number): Promise<DmCampaignRecord[]>;
+  markSent(id: string, projectId: string, metrics?: unknown): Promise<DmCampaignRecord>;
 }
 
 export interface BackInStockRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     productId: string;
     externalUserId?: string | null;
     customerId?: string | null;
   }): Promise<BackInStockSubscriptionRecord>;
-  listByStore(storeId: string, limit?: number): Promise<BackInStockSubscriptionRecord[]>;
-  markNotified(id: string, storeId: string): Promise<BackInStockSubscriptionRecord>;
+  listByStore(projectId: string, limit?: number): Promise<BackInStockSubscriptionRecord[]>;
+  markNotified(id: string, projectId: string): Promise<BackInStockSubscriptionRecord>;
 }
 
 export interface CommentUnlockCampaignRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   keyword: string;
   rewardType: "LINK" | "COUPON" | "MESSAGE";
   rewardValue: string | null;
@@ -145,7 +145,7 @@ export interface CommentUnlockCampaignRecord {
 export interface CommentUnlockRedemptionRecord {
   id: string;
   campaignId: string;
-  storeId: string;
+  projectId: string;
   externalUserId: string;
   username: string | null;
   commentId: string | null;
@@ -156,77 +156,77 @@ export interface CommentUnlockRedemptionRecord {
 
 export interface CommentUnlockRepository {
   createCampaign(input: {
-    storeId: string;
+    projectId: string;
     keyword: string;
     rewardType: "LINK" | "COUPON" | "MESSAGE";
     rewardValue?: string | null;
     message: string;
     referralAsk?: string | null;
   }): Promise<CommentUnlockCampaignRecord>;
-  listCampaignsByStore(storeId: string, limit?: number): Promise<CommentUnlockCampaignRecord[]>;
-  findActiveCampaignByKeyword(storeId: string, keyword: string): Promise<CommentUnlockCampaignRecord | null>;
+  listCampaignsByStore(projectId: string, limit?: number): Promise<CommentUnlockCampaignRecord[]>;
+  findActiveCampaignByKeyword(projectId: string, keyword: string): Promise<CommentUnlockCampaignRecord | null>;
   createRedemption(input: {
     campaignId: string;
-    storeId: string;
+    projectId: string;
     externalUserId: string;
     username?: string | null;
     commentId?: string | null;
   }): Promise<CommentUnlockRedemptionRecord>;
   listRedemptionsByCampaign(campaignId: string, limit?: number): Promise<CommentUnlockRedemptionRecord[]>;
-  markSent(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord>;
-  markReferred(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord>;
+  markSent(id: string, projectId: string): Promise<CommentUnlockRedemptionRecord>;
+  markReferred(id: string, projectId: string): Promise<CommentUnlockRedemptionRecord>;
   findExistingRedemption(campaignId: string, externalUserId: string): Promise<CommentUnlockRedemptionRecord | null>;
 }
 
 export interface GrowthQueries {
-  listUgc(storeId: string, limit?: number): Promise<UgcAssetRecord[]>;
-  listAmbassadors(storeId: string, limit?: number): Promise<AmbassadorRecord[]>;
-  listReferrals(storeId: string, limit?: number): Promise<ReferralOrderRecord[]>;
-  listCampaigns(storeId: string, limit?: number): Promise<DmCampaignRecord[]>;
-  listBackInStock(storeId: string, limit?: number): Promise<BackInStockSubscriptionRecord[]>;
-  listCommentUnlockCampaigns(storeId: string): Promise<CommentUnlockCampaignRecord[]>;
+  listUgc(projectId: string, limit?: number): Promise<UgcAssetRecord[]>;
+  listAmbassadors(projectId: string, limit?: number): Promise<AmbassadorRecord[]>;
+  listReferrals(projectId: string, limit?: number): Promise<ReferralOrderRecord[]>;
+  listCampaigns(projectId: string, limit?: number): Promise<DmCampaignRecord[]>;
+  listBackInStock(projectId: string, limit?: number): Promise<BackInStockSubscriptionRecord[]>;
+  listCommentUnlockCampaigns(projectId: string): Promise<CommentUnlockCampaignRecord[]>;
 }
 
 export interface GrowthService {
   collectUgc(input: {
-    storeId: string;
+    projectId: string;
     creatorHandle?: string | null;
     mediaUrl?: string | null;
     mediaType?: string | null;
     source: string;
     caption?: string | null;
   }): Promise<UgcAssetRecord>;
-  requestRights(id: string, storeId: string): Promise<UgcAssetRecord>;
-  approveRights(id: string, storeId: string, approvedBy: string): Promise<UgcAssetRecord>;
+  requestRights(id: string, projectId: string): Promise<UgcAssetRecord>;
+  approveRights(id: string, projectId: string, approvedBy: string): Promise<UgcAssetRecord>;
   enrollAmbassador(input: {
-    storeId: string;
+    projectId: string;
     customerId?: string | null;
     handle?: string | null;
     discountPct?: number;
     commissionPct?: number;
   }): Promise<AmbassadorRecord>;
   recordReferral(input: {
-    storeId: string;
+    projectId: string;
     ambassadorId: string;
     orderId: string;
     orderAmount: number;
   }): Promise<ReferralOrderRecord>;
   createDmCampaign(input: {
-    storeId: string;
+    projectId: string;
     campaignType: string;
     audienceCriteria?: unknown;
     scheduledAt?: Date | null;
   }): Promise<DmCampaignRecord>;
-  sendDmCampaign(id: string, storeId: string): Promise<DmCampaignRecord>;
+  sendDmCampaign(id: string, projectId: string): Promise<DmCampaignRecord>;
   subscribeBackInStock(input: {
-    storeId: string;
+    projectId: string;
     productId: string;
     externalUserId?: string | null;
     customerId?: string | null;
   }): Promise<BackInStockSubscriptionRecord>;
-  notifyBackInStock(id: string, storeId: string): Promise<BackInStockSubscriptionRecord>;
+  notifyBackInStock(id: string, projectId: string): Promise<BackInStockSubscriptionRecord>;
   createCommentUnlockCampaign(input: {
-    storeId: string;
+    projectId: string;
     keyword: string;
     rewardType: "LINK" | "COUPON" | "MESSAGE";
     rewardValue?: string | null;
@@ -234,7 +234,7 @@ export interface GrowthService {
     referralAsk?: string | null;
   }): Promise<CommentUnlockCampaignRecord>;
   processCommentUnlock(input: {
-    storeId: string;
+    projectId: string;
     externalUserId: string;
     username: string | null;
     commentId: string | null;

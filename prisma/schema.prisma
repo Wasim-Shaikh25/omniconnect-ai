@@ -12,48 +12,72 @@ datasource db {
 }
 
 // ── auth / users ────────────────────────────────────────────────────────────
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
 enum Role {
-  ADMIN
-  STORE_OWNER
-  STAFF
+  USER
+  SUPER_ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
 }
 
 model User {
-  id                      String        @id @default(cuid())
-  email                   String        @unique
+  id                      String     @id @default(cuid())
+  email                   String     @unique
   emailVerified           DateTime?
   name                    String?
   passwordHash            String?
-  phone                   String?
+  phone                   String?    // E.164
   phoneVerified           DateTime?
+  mobile                  String?    // E.164 (legacy alias, will be migrated to phone)
+  mobileVerified          DateTime?
+  age                     Int?
+  gender                  Gender?
+  companyName             String?
   image                   String?
-  role                    Role          @default(STORE_OWNER)
-  isSuperAdmin            Boolean       @default(false)
-  organizationId          String?
-  organization            Organization? @relation(fields: [organizationId], references: [id])
-  storeId                 String?
-  store                   Store?        @relation(fields: [storeId], references: [id])
-  notificationPreferences Json?
-  tokenVersion            Int           @default(0)
+  userId                  String?    // tenant / owning-user id (self for owners, owner id for invited staff)
+  projectId               String?    // selected active project (session state persisted on user)
+  role                    Role       @default(USER)
+  isSuperAdmin            Boolean    @default(false)
+  plan                    Plan       @default(FREE)
+  subscriptionId          String?
+  subscriptionStatus      String?
+  aiRepliesThisMonth      Int        @default(0)
+  aiRepliesResetAt        DateTime?
+  maxWorkspaces           Int        @default(1)  // cached plan limit
+  maxProjects             Int        @default(1)  // cached plan limit
+  maxAiCallsPerDay        Int        @default(20) // cached plan limit
+  tokenVersion            Int        @default(0)
   deletedAt               DateTime?
   deletedReason           String?
   dataExportRequestedAt   DateTime?
   dataExportExpiresAt     DateTime?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
 
-  notifications                 Notification[]
+  workspaces                    Workspace[]
   accounts                      Account[]
   sessions                      Session[]
   verificationRequests          VerificationRequest[]
-  auditLogs                     AuditLog[]
+  notifications                 Notification[]
+  auditLogsTarget               AuditLog[] @relation("AuditLogTargetUser")
+  auditLogsActor                AuditLog[] @relation("AuditLogActorUser")
   tickets                       SupportTicket[]
   ticketComments                TicketComment[]
   exportRequests                ExportRequest[]
+  notificationPreferences       Json?
   notificationPreferencesDetail NotificationPreference[]
+  tokenUsage                    TokenUsage[]
 
-  @@index([organizationId])
-  @@index([storeId])
   @@index([deletedAt])
   @@index([dataExportExpiresAt])
 }
@@ -144,55 +168,146 @@ model VerificationRequest {
   @@index([expiresAt])
 }
 
-// ── organizations ───────────────────────────────────────────────────────────
-enum Plan {
-  FREE
-  STARTER
-  PRO
+
+// ── workspaces / projects ───────────────────────────────────────────────────
+model Workspace {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects Project[]
+
+  @@index([userId])
+
 }
 
-model Organization {
-  id                 String    @id @default(cuid())
-  name               String
-  plan               Plan      @default(FREE)
-  subscriptionId     String?
-  subscriptionStatus String?
-  aiRepliesThisMonth Int       @default(0)
-  aiRepliesResetAt   DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+model Project {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId            String    // denormalized tenant for store-style queries
+  name              String
+  provider          String?   // e.g. SHOPIFY, MOCK
+  domain            String?
+  metaAccountId     String?
+  metaAccessToken   String?   // encrypted at application layer
+  metaTokenExpiresAt DateTime?
+  archivedAt        DateTime?
+  deletedAt         DateTime?
+  lastProductSyncAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  users     User[]
-  stores    Store[]
-  auditLogs AuditLog[]
-  invites   OrganizationInvite[]
+  @@index([userId])
 
-  @@unique([subscriptionId])
-  @@index([aiRepliesResetAt])
-}
+  ecommerceConnections EcommerceConnection[]
+  aiConfigurations     AIConfiguration[]
+  tokenUsage           TokenUsage[]
 
-enum InviteStatus {
-  PENDING
-  ACCEPTED
-  EXPIRED
+  @@index([workspaceId])
+
+  products Product[]
+  coupons Coupon[]
+  orders Order[]
+  customers Customer[]
+  conversations Conversation[]
+  carts Cart[]
+  followers Follower[]
+  campaigns Campaign[]
+  mediaPosts MediaPost[]
+  accountInsights AccountInsight[]
+  trendSnapshots TrendSnapshot[]
+  contentRecommendations ContentRecommendation[]
+  metaCatalogSyncs MetaCatalogSync[]
+  metaProductMappings MetaProductMapping[]
+  shoppableMedias ShoppableMedia[]
+  socialComments SocialComment[]
+  socialMentions SocialMention[]
+  socialLeads SocialLead[]
+  ugcAssets UgcAsset[]
+  ambassadors Ambassador[]
+  referralOrders ReferralOrder[]
+  dmCampaigns DmCampaign[]
+  backInStockSubscriptions BackInStockSubscription[]
+  commentUnlockCampaigns CommentUnlockCampaign[]
+  brandDeals BrandDeal[]
 }
 
 model OrganizationInvite {
-  id              String       @id @default(cuid())
+  id              String   @id @default(cuid())
   email           String
-  organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role            Role         @default(STAFF)
-  storeId         String?
-  status          InviteStatus @default(PENDING)
-  token           String       @unique
+  userId          String   // owning user / organization
+  projectId       String?
+  role            Role     @default(USER)
+  status          String   @default("PENDING")
+  token           String   @unique
   createdByUserId String
-  createdAt       DateTime     @default(now())
+  createdAt       DateTime @default(now())
   expiresAt       DateTime
 
-  @@unique([organizationId, email])
+  @@unique([userId, email], name: "organizationId_email")
   @@index([token])
-  @@index([organizationId, status])
+  @@index([userId, status])
+}
+
+model EcommerceConnection {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  provider     String   // platform name or "CUSTOM"
+  baseUrl      String?
+  accessToken  String?  // encrypted at application layer
+  refreshToken String?  // encrypted at application layer
+  config       Json?    // AdapterConfigMapping or provider config
+  isActive     Boolean  @default(true)
+  lastSyncAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([provider])
+}
+
+// ── ai configuration ─────────────────────────────────────────────────────────
+model AIConfiguration {
+  id                String   @id @default(cuid())
+  projectId         String   @unique
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  aiName            String?
+  systemPrompt      String   @default("You are a helpful AI assistant for this brand.")
+  tone              String?
+  welcomeStrategy   String?
+  couponStrategy    String?
+  salesStrategy     String?
+  escalationRules   String?
+  model             String   @default("gpt-4o-mini")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+model TokenUsage {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId       String?
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  feature         String   // e.g. "reply", "content", "dashboard"
+  model           String
+  promptTokens    Int
+  completionTokens Int
+  totalTokens     Int
+  cost            Decimal? @db.Decimal(12, 6)
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([feature, createdAt])
 }
 
 // ── ecommerce ───────────────────────────────────────────────────────────────
@@ -205,75 +320,8 @@ enum EcommerceProvider {
   CUSTOM
 }
 
-model Store {
-  id                String            @id @default(cuid())
-  name              String
-  provider          EcommerceProvider @default(SHOPIFY)
-  domain            String?
-  organizationId    String
-  organization      Organization      @relation(fields: [organizationId], references: [id])
-  archivedAt        DateTime?
-  deletedAt         DateTime?
-  lastProductSyncAt DateTime?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
 
-  integrations             Integration[]
-  products                 Product[]
-  orders                   Order[]
-  coupons                  Coupon[]
-  customers                Customer[]
-  conversations            Conversation[]
-  followers                Follower[]
-  campaigns                Campaign[]
-  aiConfig                 AIConfiguration?
-  staff                    User[]
-  catalogSyncs             MetaCatalogSync[]
-  productMappings          MetaProductMapping[]
-  shoppableMedia           ShoppableMedia[]
-  socialComments           SocialComment[]
-  socialMentions           SocialMention[]
-  socialLeads              SocialLead[]
-  ugcAssets                UgcAsset[]
-  ambassadors              Ambassador[]
-  referralOrders           ReferralOrder[]
-  dmCampaigns              DmCampaign[]
-  backInStockSubscriptions BackInStockSubscription[]
-  commentUnlockCampaigns   CommentUnlockCampaign[]
-  brandDeals               BrandDeal[]
-  mediaPosts               MediaPost[]
-  accountInsights          AccountInsight[]
-  trendSnapshots           TrendSnapshot[]
-  contentRecommendations   ContentRecommendation[]
-  carts                    Cart[]
 
-  @@index([organizationId])
-  @@index([deletedAt])
-}
-
-enum IntegrationType {
-  ECOMMERCE
-  META
-}
-
-model Integration {
-  id           String          @id @default(cuid())
-  type         IntegrationType
-  provider     String
-  externalId   String?
-  accessToken  String?
-  refreshToken String?
-  scopes       String?
-  metadata     Json?
-  storeId      String
-  store        Store           @relation(fields: [storeId], references: [id])
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-
-  @@index([storeId, type])
-  @@index([storeId, type, provider])
-  @@index([externalId])
-}
 
 model Product {
   id          String    @id @default(cuid())
@@ -285,16 +333,17 @@ model Product {
   inventory   Int?
   imageUrl    String?
   deletedAt   DateTime?
-  storeId     String
-  store       Store     @relation(fields: [storeId], references: [id])
+  projectId     String
+  project       Project     @relation(fields: [projectId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   metaProductMappings      MetaProductMapping[]
   backInStockSubscriptions BackInStockSubscription[]
 
-  @@unique([storeId, externalId])
+  @@unique([projectId, externalId])
   @@index([deletedAt])
+
 }
 
 // ── coupons ─────────────────────────────────────────────────────────────────
@@ -314,8 +363,8 @@ model Coupon {
   usageCount        Int          @default(0)
   revenueAttributed Decimal?     @db.Decimal(12, 2)
   lastUsedAt        DateTime?
-  storeId           String
-  store             Store        @relation(fields: [storeId], references: [id])
+  projectId           String
+  project             Project        @relation(fields: [projectId], references: [id])
   customerId        String?
   customer          Customer?    @relation(fields: [customerId], references: [id])
   createdAt         DateTime     @default(now())
@@ -323,8 +372,9 @@ model Coupon {
 
   usages CouponUsage[]
 
-  @@unique([storeId, code])
+  @@unique([projectId, code])
   @@index([deletedAt])
+
 }
 
 model CouponUsage {
@@ -352,8 +402,8 @@ enum AttributionSource {
 model Order {
   id                  String             @id @default(cuid())
   externalId          String
-  storeId             String
-  store               Store              @relation(fields: [storeId], references: [id])
+  projectId             String
+  project               Project              @relation(fields: [projectId], references: [id])
   total               Decimal?           @db.Decimal(12, 2)
   currency            String?
   orderDate           DateTime
@@ -367,11 +417,11 @@ model Order {
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
-  @@unique([storeId, externalId])
-  @@index([storeId, attributedMediaId])
-  @@index([storeId, couponCode])
-  @@index([storeId, orderDate])
-  @@index([storeId, isFirstTimeCustomer])
+  @@unique([projectId, externalId])
+  @@index([projectId, attributedMediaId])
+  @@index([projectId, couponCode])
+  @@index([projectId, orderDate])
+  @@index([projectId, isFirstTimeCustomer])
 }
 
 // ── crm (customers) ─────────────────────────────────────────────────────────
@@ -390,8 +440,8 @@ enum CustomerConsent {
 
 model Customer {
   id               String                 @id @default(cuid())
-  storeId          String
-  store            Store                  @relation(fields: [storeId], references: [id])
+  projectId          String
+  project            Project                  @relation(fields: [projectId], references: [id])
   igUserId         String?
   fbUserId         String?
   username         String?
@@ -413,7 +463,7 @@ model Customer {
   ambassadors              Ambassador[]
   backInStockSubscriptions BackInStockSubscription[]
 
-  @@index([storeId])
+  @@index([projectId])
   @@index([igUserId])
   @@index([fbUserId])
 }
@@ -434,8 +484,8 @@ model Conversation {
   channel         ConversationChannel
   status          ConversationStatus  @default(AI_ACTIVE)
   externalId      String?
-  storeId         String
-  store           Store               @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project               @relation(fields: [projectId], references: [id])
   customerId      String?
   customer        Customer?           @relation(fields: [customerId], references: [id])
   assignedHumanId String?
@@ -444,10 +494,11 @@ model Conversation {
 
   messages Message[]
 
-  @@index([storeId])
-  @@index([storeId, customerId])
+  @@index([projectId])
+  @@index([projectId, customerId])
   @@index([customerId])
   @@index([assignedHumanId])
+
 }
 
 enum MessageSender {
@@ -473,8 +524,8 @@ model Message {
 
 model Cart {
   id             String    @id @default(cuid())
-  storeId        String
-  store          Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  projectId        String
+  project          Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   cartToken      String
   email          String?
   lineItemTitles String[]
@@ -487,15 +538,15 @@ model Cart {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  @@unique([storeId, cartToken])
-  @@index([storeId, lastActivityAt])
+  @@unique([projectId, cartToken])
+  @@index([projectId, lastActivityAt])
   @@index([notifiedAt])
 }
 
 model Follower {
   id                 String    @id @default(cuid())
-  storeId            String
-  store              Store     @relation(fields: [storeId], references: [id])
+  projectId            String
+  project              Project     @relation(fields: [projectId], references: [id])
   customerId         String?
   customer           Customer? @relation(fields: [customerId], references: [id])
   igUserId           String?
@@ -505,30 +556,13 @@ model Follower {
   campaignEnrolledAt DateTime?
   welcomeMessageText String?
 
-  @@unique([storeId, igUserId])
-}
-
-// ── ai ──────────────────────────────────────────────────────────────────────
-model AIConfiguration {
-  id              String   @id @default(cuid())
-  storeId         String   @unique
-  store           Store    @relation(fields: [storeId], references: [id])
-  systemPrompt    String
-  tone            String?
-  welcomeStrategy String?
-  couponStrategy  String?
-  salesStrategy   String?
-  escalationRules String?
-  model           String   @default("gpt-4o-mini")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  @@unique([projectId, igUserId])
 }
 
 model BrainConversationMemory {
   id                String   @id @default(cuid())
   userId            String
-  organizationId    String
-  storeId           String?
+  projectId         String?
   question          String
   answer            String
   acceptedAdviceIds String[]
@@ -540,15 +574,15 @@ model BrainConversationMemory {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  @@index([userId, storeId])
-  @@index([organizationId, createdAt])
+  @@index([userId, projectId])
+  @@index([userId, createdAt])
   @@index([expiresAt])
 }
 
 model RecommendationConflict {
   id             String   @id @default(cuid())
-  organizationId String
-  storeId        String?
+  userId String
+  projectId        String?
   winnerId       String
   runnerUpId     String?
   winnerTitle    String
@@ -557,7 +591,7 @@ model RecommendationConflict {
   appliedPolicy  String
   resolvedAt     DateTime @default(now())
 
-  @@index([organizationId, storeId])
+  @@index([userId, projectId])
   @@index([resolvedAt])
 }
 
@@ -568,8 +602,8 @@ enum CampaignType {
 
 model Campaign {
   id              String       @id @default(cuid())
-  storeId         String
-  store           Store        @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project        @relation(fields: [projectId], references: [id])
   type            CampaignType @default(FIRST_TIME_FOLLOWER)
   name            String
   discountPct     Int          @default(10)
@@ -579,7 +613,7 @@ model Campaign {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  @@unique([storeId, type])
+  @@unique([projectId, type])
 }
 
 // ── reports ─────────────────────────────────────────────────────────────────
@@ -590,18 +624,18 @@ enum ReportPeriod {
 
 model Report {
   id          String       @id @default(cuid())
-  storeId     String
+  projectId     String
   period      ReportPeriod
   content     Json
   generatedAt DateTime     @default(now())
 
-  @@index([storeId, generatedAt])
+  @@index([projectId, generatedAt])
 }
 
 // ── analytics / competitor intelligence ─────────────────────────────────────
 model TrackedAccount {
   id           String    @id @default(cuid())
-  storeId      String
+  projectId      String
   platform     String    @default("INSTAGRAM")
   handle       String
   niche        String?
@@ -612,7 +646,7 @@ model TrackedAccount {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  @@index([storeId, handle])
+  @@index([projectId, handle])
 }
 
 enum MediaType {
@@ -631,8 +665,8 @@ enum TrendSnapshotType {
 
 model MediaPost {
   id              String     @id @default(cuid())
-  storeId         String
-  store           Store      @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project      @relation(fields: [projectId], references: [id])
   trackedAccountId String?
   externalId      String
   platform        String     @default("INSTAGRAM")
@@ -649,8 +683,9 @@ model MediaPost {
 
   insights MediaInsight[]
 
-  @@unique([storeId, externalId])
-  @@index([storeId, publishedAt])
+  @@unique([projectId, externalId])
+  @@index([projectId, publishedAt])
+
 }
 
 model MediaInsight {
@@ -673,8 +708,8 @@ model MediaInsight {
 
 model AccountInsight {
   id            String   @id @default(cuid())
-  storeId       String
-  store         Store    @relation(fields: [storeId], references: [id])
+  projectId       String
+  project         Project    @relation(fields: [projectId], references: [id])
   date          DateTime
   followers     Int?
   profileViews  Int?
@@ -684,25 +719,25 @@ model AccountInsight {
   audienceJson  Json?
   fetchedAt     DateTime @default(now())
 
-  @@index([storeId, date])
+  @@index([projectId, date])
 }
 
 model TrendSnapshot {
   id        String            @id @default(cuid())
-  storeId   String
-  store     Store             @relation(fields: [storeId], references: [id])
+  projectId   String
+  project     Project             @relation(fields: [projectId], references: [id])
   type      TrendSnapshotType
   query     String
   data      Json
   fetchedAt DateTime          @default(now())
 
-  @@index([storeId, type, query, fetchedAt])
+  @@index([projectId, type, query, fetchedAt])
 }
 
 model ContentRecommendation {
   id              String   @id @default(cuid())
-  storeId         String
-  store           Store    @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project    @relation(fields: [projectId], references: [id])
   type            String   @default("REEL")
   title           String
   outline         String
@@ -711,7 +746,7 @@ model ContentRecommendation {
   generatedAt     DateTime @default(now())
   basedOnMediaIds Json
 
-  @@index([storeId, generatedAt])
+  @@index([projectId, generatedAt])
 }
 
 // ── notifications ───────────────────────────────────────────────────────────
@@ -745,7 +780,7 @@ model Notification {
   id        String                   @id @default(cuid())
   userId    String
   user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  storeId   String?
+  projectId   String?
   type      NotificationType
   channel   NotificationChannel      @default(IN_APP)
   tier      NotificationDeliveryTier @default(TODAY_FEED)
@@ -770,8 +805,8 @@ enum CatalogSyncStatus {
 
 model MetaCatalogSync {
   id                String            @id @default(cuid())
-  storeId           String
-  store             Store             @relation(fields: [storeId], references: [id])
+  projectId           String
+  project             Project             @relation(fields: [projectId], references: [id])
   externalCatalogId String?
   status            CatalogSyncStatus @default(PENDING)
   lastSyncedAt      DateTime?
@@ -779,13 +814,13 @@ model MetaCatalogSync {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
-  @@index([storeId, status])
+  @@index([projectId, status])
 }
 
 model MetaProductMapping {
   id                String    @id @default(cuid())
-  storeId           String
-  store             Store     @relation(fields: [storeId], references: [id])
+  projectId           String
+  project             Project     @relation(fields: [projectId], references: [id])
   productId         String
   product           Product   @relation(fields: [productId], references: [id])
   externalProductId String?
@@ -796,8 +831,8 @@ model MetaProductMapping {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  @@unique([storeId, productId])
-  @@index([storeId, status])
+  @@unique([projectId, productId])
+  @@index([projectId, status])
 }
 
 enum ShoppableMediaStatus {
@@ -808,8 +843,8 @@ enum ShoppableMediaStatus {
 
 model ShoppableMedia {
   id              String               @id @default(cuid())
-  storeId         String
-  store           Store                @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project                @relation(fields: [projectId], references: [id])
   externalMediaId String?
   mediaType       String
   caption         String?
@@ -819,7 +854,7 @@ model ShoppableMedia {
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
 
-  @@index([storeId, status])
+  @@index([projectId, status])
 }
 
 enum CommentIntent {
@@ -839,8 +874,8 @@ enum CommentSentiment {
 
 model SocialComment {
   id                String           @id @default(cuid())
-  storeId           String
-  store             Store            @relation(fields: [storeId], references: [id])
+  projectId           String
+  project             Project            @relation(fields: [projectId], references: [id])
   externalMediaId   String?
   externalCommentId String?
   parentId          String?
@@ -856,8 +891,8 @@ model SocialComment {
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
-  @@unique([storeId, externalCommentId])
-  @@index([storeId, hidden, createdAt])
+  @@unique([projectId, externalCommentId])
+  @@index([projectId, hidden, createdAt])
 }
 
 enum MentionSource {
@@ -868,8 +903,8 @@ enum MentionSource {
 
 model SocialMention {
   id              String        @id @default(cuid())
-  storeId         String
-  store           Store         @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project         @relation(fields: [projectId], references: [id])
   externalMediaId String?
   externalUserId  String?
   handle          String?
@@ -879,7 +914,7 @@ model SocialMention {
   hashtags        String[]
   createdAt       DateTime      @default(now())
 
-  @@index([storeId, source])
+  @@index([projectId, source])
 }
 
 enum LeadSource {
@@ -899,8 +934,8 @@ enum LeadStatus {
 
 model SocialLead {
   id             String     @id @default(cuid())
-  storeId        String
-  store          Store      @relation(fields: [storeId], references: [id])
+  projectId        String
+  project          Project      @relation(fields: [projectId], references: [id])
   source         LeadSource
   externalFormId String?
   externalLeadId String?
@@ -915,7 +950,7 @@ model SocialLead {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  @@index([storeId, status, score])
+  @@index([projectId, status, score])
 }
 
 enum UgcRightsStatus {
@@ -927,8 +962,8 @@ enum UgcRightsStatus {
 
 model UgcAsset {
   id              String          @id @default(cuid())
-  storeId         String
-  store           Store           @relation(fields: [storeId], references: [id])
+  projectId         String
+  project           Project           @relation(fields: [projectId], references: [id])
   socialMentionId String?
   customerId      String?
   customer        Customer?       @relation(fields: [customerId], references: [id])
@@ -943,7 +978,7 @@ model UgcAsset {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  @@index([storeId, rightsStatus])
+  @@index([projectId, rightsStatus])
 }
 
 enum AmbassadorStatus {
@@ -954,8 +989,8 @@ enum AmbassadorStatus {
 
 model Ambassador {
   id             String           @id @default(cuid())
-  storeId        String
-  store          Store            @relation(fields: [storeId], references: [id])
+  projectId        String
+  project          Project            @relation(fields: [projectId], references: [id])
   customerId     String?
   customer       Customer?        @relation(fields: [customerId], references: [id])
   code           String
@@ -969,8 +1004,9 @@ model Ambassador {
 
   referralOrders ReferralOrder[]
 
-  @@unique([storeId, code])
-  @@index([storeId, status])
+  @@unique([projectId, code])
+  @@index([projectId, status])
+
 }
 
 enum ReferralOrderStatus {
@@ -981,8 +1017,8 @@ enum ReferralOrderStatus {
 
 model ReferralOrder {
   id               String              @id @default(cuid())
-  storeId          String
-  store            Store               @relation(fields: [storeId], references: [id])
+  projectId          String
+  project            Project               @relation(fields: [projectId], references: [id])
   ambassadorId     String
   ambassador       Ambassador          @relation(fields: [ambassadorId], references: [id])
   orderId          String
@@ -993,8 +1029,8 @@ model ReferralOrder {
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  @@unique([storeId, orderId])
-  @@index([storeId, status])
+  @@unique([projectId, orderId])
+  @@index([projectId, status])
 }
 
 enum DmCampaignType {
@@ -1014,8 +1050,8 @@ enum DmCampaignStatus {
 
 model DmCampaign {
   id               String           @id @default(cuid())
-  storeId          String
-  store            Store            @relation(fields: [storeId], references: [id])
+  projectId          String
+  project            Project            @relation(fields: [projectId], references: [id])
   campaignType     DmCampaignType
   audienceCriteria Json?
   status           DmCampaignStatus @default(DRAFT)
@@ -1025,13 +1061,13 @@ model DmCampaign {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  @@index([storeId, campaignType, status])
+  @@index([projectId, campaignType, status])
 }
 
 model BackInStockSubscription {
   id             String    @id @default(cuid())
-  storeId        String
-  store          Store     @relation(fields: [storeId], references: [id])
+  projectId        String
+  project          Project     @relation(fields: [projectId], references: [id])
   productId      String
   product        Product   @relation(fields: [productId], references: [id])
   externalUserId String?
@@ -1040,8 +1076,8 @@ model BackInStockSubscription {
   createdAt      DateTime  @default(now())
   notifiedAt     DateTime?
 
-  @@unique([storeId, productId, externalUserId])
-  @@index([storeId, productId])
+  @@unique([projectId, productId, externalUserId])
+  @@index([projectId, productId])
 }
 
 // ── viral growth (Phase 3) ─────────────────────────────────────────────────
@@ -1053,8 +1089,8 @@ enum CommentUnlockRewardType {
 
 model CommentUnlockCampaign {
   id          String                    @id @default(cuid())
-  storeId     String
-  store       Store                     @relation(fields: [storeId], references: [id])
+  projectId     String
+  project       Project                     @relation(fields: [projectId], references: [id])
   keyword     String
   rewardType  CommentUnlockRewardType   @default(MESSAGE)
   rewardValue String?
@@ -1065,8 +1101,9 @@ model CommentUnlockCampaign {
   updatedAt   DateTime                  @updatedAt
   redemptions CommentUnlockRedemption[]
 
-  @@unique([storeId, keyword])
-  @@index([storeId, active])
+  @@unique([projectId, keyword])
+  @@index([projectId, active])
+
 }
 
 enum CommentUnlockStatus {
@@ -1079,7 +1116,7 @@ model CommentUnlockRedemption {
   id             String                @id @default(cuid())
   campaignId     String
   campaign       CommentUnlockCampaign @relation(fields: [campaignId], references: [id])
-  storeId        String
+  projectId        String
   externalUserId String
   username       String?
   commentId      String?
@@ -1088,7 +1125,7 @@ model CommentUnlockRedemption {
   sentAt         DateTime?
 
   @@index([campaignId, status])
-  @@index([storeId, externalUserId])
+  @@index([projectId, externalUserId])
 }
 
 enum BrandDealStatus {
@@ -1102,8 +1139,8 @@ enum BrandDealStatus {
 
 model BrandDeal {
   id           String          @id @default(cuid())
-  storeId      String
-  store        Store           @relation(fields: [storeId], references: [id])
+  projectId      String
+  project        Project           @relation(fields: [projectId], references: [id])
   brandName    String
   contactEmail String?
   value        Float?
@@ -1112,13 +1149,13 @@ model BrandDeal {
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
-  @@index([storeId, status])
-  @@index([storeId, createdAt])
+  @@index([projectId, status])
+  @@index([projectId, createdAt])
 }
 
 model AuditLog {
   id             String   @id @default(cuid())
-  organizationId String?
+  userId         String?
   actorId        String?
   actorEmail     String?
   action         String
@@ -1127,11 +1164,11 @@ model AuditLog {
   details        String?
   createdAt      DateTime @default(now())
 
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actor        User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  user  User?  @relation("AuditLogTargetUser", fields: [userId], references: [id], onDelete: SetNull)
+  actor User?  @relation("AuditLogActorUser", fields: [actorId], references: [id], onDelete: SetNull)
 
-  @@index([organizationId, createdAt])
-  @@index([organizationId, action])
+  @@index([userId, createdAt])
+  @@index([userId, action])
 }
 
 model ProcessedWebhookEvent {
@@ -1179,8 +1216,8 @@ enum MetricSnapshotStatus {
 
 model Signal {
   id               String   @id @default(cuid())
-  organizationId   String
-  storeId          String
+  userId   String
+  projectId          String
   eventType        String
   schemaVersion    Int      @default(1)
   subjectType      String
@@ -1198,15 +1235,15 @@ model Signal {
   traceId          String?
   createdAt        DateTime @default(now())
 
-  @@index([organizationId, storeId, subjectType, subjectId])
-  @@index([storeId, eventType, ingestedAt])
-  @@index([organizationId, ingestedAt])
+  @@index([userId, projectId, subjectType, subjectId])
+  @@index([projectId, eventType, ingestedAt])
+  @@index([userId, ingestedAt])
 }
 
 model EntityLink {
   id               String          @id @default(cuid())
-  organizationId   String
-  storeId          String?
+  userId   String
+  projectId          String?
   sourceType       String
   sourceId         String
   targetType       String
@@ -1218,15 +1255,15 @@ model EntityLink {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
-  @@index([organizationId, sourceType, sourceId])
-  @@index([organizationId, targetType, targetId])
-  @@index([storeId, confidence])
+  @@index([userId, sourceType, sourceId])
+  @@index([userId, targetType, targetId])
+  @@index([projectId, confidence])
 }
 
 model DataQualityIssue {
   id             String              @id @default(cuid())
-  organizationId String
-  storeId        String?
+  userId String
+  projectId        String?
   source         String
   entityType     String?
   entityId       String?
@@ -1237,13 +1274,13 @@ model DataQualityIssue {
   detectedAt     DateTime            @default(now())
   resolvedAt     DateTime?
 
-  @@index([organizationId, status])
-  @@index([storeId, severity])
+  @@index([userId, status])
+  @@index([projectId, severity])
 }
 
 model MetricDefinition {
   id             String   @id @default(cuid())
-  organizationId String?
+  userId String?
   name           String
   displayName    String
   description    String?
@@ -1259,15 +1296,16 @@ model MetricDefinition {
 
   snapshots MetricSnapshot[]
 
-  @@unique([organizationId, name])
+  @@unique([userId, name])
+
 }
 
 model MetricSnapshot {
   id             String               @id @default(cuid())
   definitionId   String
   definition     MetricDefinition     @relation(fields: [definitionId], references: [id])
-  organizationId String
-  storeId        String?
+  userId String
+  projectId        String?
   value          Decimal?             @db.Decimal(12, 4)
   dimensions     Json?
   periodStart    DateTime
@@ -1276,7 +1314,7 @@ model MetricSnapshot {
   sourceIds      String[]
   computedAt     DateTime             @default(now())
 
-  @@index([organizationId, storeId, definitionId, computedAt])
+  @@index([userId, projectId, definitionId, computedAt])
   @@index([definitionId, periodStart])
 }
 
@@ -1303,8 +1341,8 @@ enum InsightStatus {
 
 model BusinessInsight {
   id             String          @id @default(cuid())
-  organizationId String
-  storeId        String?
+  userId String
+  projectId        String?
   type           InsightType
   severity       InsightSeverity
   status         InsightStatus   @default(OPEN)
@@ -1318,8 +1356,8 @@ model BusinessInsight {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  @@index([organizationId, status, generatedAt])
-  @@index([organizationId, storeId, type, status])
+  @@index([userId, status, generatedAt])
+  @@index([userId, projectId, type, status])
 }
 
 // ── intelligence: recommendations, action plans, decisions, outcomes, goals ──
@@ -1375,8 +1413,8 @@ enum GoalStatus {
 
 model Recommendation {
   id                 String               @id @default(cuid())
-  organizationId     String
-  storeId            String?
+  userId     String
+  projectId            String?
   insightId          String?
   producedByModule   String
   producedByService  String?
@@ -1410,15 +1448,15 @@ model Recommendation {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
-  @@index([organizationId, status, generatedAt])
-  @@index([organizationId, storeId, status, riskTier])
-  @@index([organizationId, businessObjective, status])
+  @@index([userId, status, generatedAt])
+  @@index([userId, projectId, status, riskTier])
+  @@index([userId, businessObjective, status])
 }
 
 model ActionPlan {
   id               String           @id @default(cuid())
-  organizationId   String
-  storeId          String?
+  userId   String
+  projectId          String?
   recommendationId String?
   title            String
   steps            Json?
@@ -1431,12 +1469,12 @@ model ActionPlan {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  @@index([organizationId, storeId, status, createdAt])
+  @@index([userId, projectId, status, createdAt])
 }
 
 model Decision {
   id               String       @id @default(cuid())
-  organizationId   String
+  userId   String
   actionPlanId     String
   recommendationId String?
   decisionType     DecisionType
@@ -1446,13 +1484,13 @@ model Decision {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
-  @@index([organizationId, actionPlanId])
+  @@index([userId, actionPlanId])
 }
 
 model Outcome {
   id                    String        @id @default(cuid())
-  organizationId        String
-  storeId               String?
+  userId        String
+  projectId               String?
   actionPlanId          String
   metricName            String?
   beforeValue           Float?
@@ -1465,13 +1503,13 @@ model Outcome {
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
-  @@index([organizationId, storeId, actionPlanId])
+  @@index([userId, projectId, actionPlanId])
 }
 
 model Goal {
   id             String     @id @default(cuid())
-  organizationId String
-  storeId        String?
+  userId String
+  projectId        String?
   name           String
   targetMetric   String
   baseline       Float?
@@ -1484,8 +1522,8 @@ model Goal {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  @@index([organizationId, status, endDate])
-  @@index([organizationId, storeId, targetMetric, status])
+  @@index([userId, status, endDate])
+  @@index([userId, projectId, targetMetric, status])
 }
 
 // ── intelligence: predictions, hypotheses, business learning ────────────────
@@ -1511,8 +1549,8 @@ enum HypothesisStatus {
 
 model Prediction {
   id               String           @id @default(cuid())
-  organizationId   String
-  storeId          String?
+  userId   String
+  projectId          String?
   predictionType   PredictionType
   targetEntityType String?
   targetEntityId   String?
@@ -1529,14 +1567,14 @@ model Prediction {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  @@index([organizationId, status, expiresAt])
-  @@index([organizationId, storeId, predictionType, status])
+  @@index([userId, status, expiresAt])
+  @@index([userId, projectId, predictionType, status])
 }
 
 model Hypothesis {
   id              String           @id @default(cuid())
-  organizationId  String
-  storeId         String?
+  userId  String
+  projectId         String?
   insightId       String?
   statement       String
   features        Json?
@@ -1547,14 +1585,14 @@ model Hypothesis {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
-  @@index([organizationId, status, createdAt])
-  @@index([organizationId, storeId, insightId])
+  @@index([userId, status, createdAt])
+  @@index([userId, projectId, insightId])
 }
 
 model BusinessLearning {
   id             String    @id @default(cuid())
-  organizationId String
-  storeId        String?
+  userId String
+  projectId        String?
   ruleName       String
   condition      Json?
   effect         Json?
@@ -1565,14 +1603,14 @@ model BusinessLearning {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  @@index([organizationId, ruleName])
-  @@index([organizationId, storeId, ruleName])
+  @@index([userId, ruleName])
+  @@index([userId, projectId, ruleName])
 }
 
 model CompetitorInsight {
   id               String   @id @default(cuid())
-  organizationId   String
-  storeId          String?
+  userId   String
+  projectId          String?
   competitorHandle String
   metricName       String
   value            Float
@@ -1583,13 +1621,13 @@ model CompetitorInsight {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  @@index([organizationId, storeId, metricName])
-  @@index([organizationId, capturedAt])
+  @@index([userId, projectId, metricName])
+  @@index([userId, capturedAt])
 }
 
 model PortfolioSnapshot {
   id                    String   @id @default(cuid())
-  organizationId        String
+  userId        String
   storeCount            Int
   totalRevenueEstimate  Float?
   totalChurnRisk        Float?
@@ -1600,12 +1638,12 @@ model PortfolioSnapshot {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  @@index([organizationId, generatedAt])
+  @@index([userId, generatedAt])
 }
 
 model SystemMetric {
   id             String   @id @default(cuid())
-  organizationId String
+  userId String
   operation      String
   module         String
   latencyMs      Float?
@@ -1617,8 +1655,8 @@ model SystemMetric {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  @@index([organizationId, operation, recordedAt])
-  @@index([organizationId, module, recordedAt])
+  @@index([userId, operation, recordedAt])
+  @@index([userId, module, recordedAt])
 }
 
 // ── intelligence: daily operating rhythm (spec 0050) ────────────────────────
@@ -1649,8 +1687,8 @@ enum ActionOutcomeStatus {
 
 model DailyAction {
   id               String            @id @default(cuid())
-  organizationId   String
-  storeId          String?
+  userId   String
+  projectId          String?
   title            String
   description      String
   objective        BusinessObjective
@@ -1669,15 +1707,15 @@ model DailyAction {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
-  @@index([organizationId, status, createdAt])
-  @@index([organizationId, storeId, status, generatedForDate])
+  @@index([userId, status, createdAt])
+  @@index([userId, projectId, status, generatedForDate])
 }
 
 model ActionOutcome {
   id                     String              @id @default(cuid())
   actionId               String              @unique
-  organizationId         String
-  storeId                String?
+  userId         String
+  projectId                String?
   metricName             String?
   metricBefore           Json?
   metricAfter            Json?
@@ -1687,13 +1725,13 @@ model ActionOutcome {
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @updatedAt
 
-  @@index([organizationId, storeId, status])
+  @@index([userId, projectId, status])
 }
 
 model Journey {
   id                String   @id @default(cuid())
-  organizationId    String
-  storeId           String
+  userId    String
+  projectId           String
   customerId        String?
   externalUserId    String?
   channel           String?
@@ -1705,8 +1743,9 @@ model Journey {
 
   steps JourneyStep[]
 
-  @@index([organizationId, storeId, customerId])
-  @@index([storeId, externalUserId])
+  @@index([userId, projectId, customerId])
+  @@index([projectId, externalUserId])
+
 }
 
 model JourneyStep {
@@ -1728,37 +1767,33 @@ model JourneyStep {
 
 model IntelligenceFeedback {
   id             String   @id @default(cuid())
-  organizationId String
+  userId String
   insightId      String
-  userId         String
   understood     Boolean
   hoursSaved     Int      @default(0)
   falsePositive  Boolean  @default(false)
   falseNegative  Boolean  @default(false)
   createdAt      DateTime @default(now())
 
-  @@index([organizationId])
-  @@index([insightId])
   @@index([userId])
+  @@index([insightId])
 }
 
 model IntelligenceDismissal {
   id             String   @id @default(cuid())
-  organizationId String
+  userId String
   insightId      String   @unique
   reason         String
-  userId         String
   dismissedAt    DateTime @default(now())
 
-  @@index([organizationId])
-  @@index([insightId])
   @@index([userId])
+  @@index([insightId])
 }
 
 model GoalPlanVersion {
   id                       String   @id @default(cuid())
   goalId                   String
-  organizationId           String
+  userId           String
   version                  Int
   workflowId               String   @unique
   status                   String
@@ -1768,18 +1803,18 @@ model GoalPlanVersion {
   updatedAt                DateTime @updatedAt
 
   @@index([goalId])
-  @@index([organizationId])
+  @@index([userId])
 }
 
 model RolloutGate {
   id             String   @id @default(cuid())
-  organizationId String
+  userId String
   name           String
   enabled        Boolean  @default(false)
   updatedAt      DateTime @updatedAt
 
-  @@unique([organizationId, name])
-  @@index([organizationId])
+  @@unique([userId, name])
+  @@index([userId])
 }
 
 // ── platform administration ─────────────────────────────────────────────────
@@ -1843,7 +1878,6 @@ model ExportRequest {
   id             String       @id @default(cuid())
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationId String?
   status         ExportStatus @default(PENDING)
   downloadUrl    String?
   expiresAt      DateTime?
@@ -1871,8 +1905,7 @@ model NotificationPreference {
 
 model SupportTicket {
   id             String         @id @default(cuid())
-  organizationId String
-  userId         String
+  userId String
   title          String
   description    String
   status         TicketStatus   @default(OPEN)
@@ -1885,9 +1918,10 @@ model SupportTicket {
   user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments TicketComment[]
 
-  @@index([organizationId, status])
+  @@index([userId, status])
   @@index([userId, createdAt])
   @@index([assignedTo, priority])
+
 }
 
 model TicketComment {
@@ -1911,11 +1945,10 @@ model SystemLog {
   message        String
   stackTrace     String?
   metadata       Json?
-  organizationId String?
-  userId         String?
+  userId String?
   createdAt      DateTime       @default(now())
 
   @@index([level, createdAt])
   @@index([service, createdAt])
-  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
 }

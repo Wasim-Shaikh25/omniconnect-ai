@@ -3,20 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { brandDealCommands } from "../infrastructure/container";
 
-async function requireStoreAccess(storeId: string) {
+async function requireStoreAccess(projectId: string) {
   const user = await getCurrentUser();
   if (!user) return false;
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
+  const overview = user.userId
+    ? await organizationQueries.getOrganizationOverview(user.userId)
     : null;
-  return overview?.stores.some((s) => s.id === storeId) ?? false;
+  return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
 const createSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   brandName: z.string().min(1).max(200),
   contactEmail: z.string().email().optional().or(z.literal("")),
   value: z.coerce.number().nonnegative().optional(),
@@ -37,14 +37,14 @@ export async function createBrandDealAction(formData: FormData): Promise<void> {
     throw new Error(parsed.error.errors[0]?.message ?? "Validation failed");
   }
 
-  const { storeId, ...input } = parsed.data;
+  const { projectId, ...input } = parsed.data;
 
-  if (!(await requireStoreAccess(storeId))) {
+  if (!(await requireStoreAccess(projectId))) {
     throw new Error("Unauthorized");
   }
 
   await brandDealCommands.createBrandDeal({
-    storeId,
+    projectId,
     brandName: input.brandName,
     contactEmail: input.contactEmail || undefined,
     value: input.value,
@@ -52,5 +52,5 @@ export async function createBrandDealAction(formData: FormData): Promise<void> {
     notes: input.notes,
   });
 
-  revalidatePath(`/stores/${storeId}/brand-deals`);
+  revalidatePath(`/stores/${projectId}/brand-deals`);
 }

@@ -15,10 +15,20 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0076`–`0090` **Platform V2 Rewrite** — Two-pillar architecture (Meta Growth Engine +
-  Business Intelligence), Workspace/Project hierarchy, dynamic e-commerce adapters, unified
-  messaging, OpenRouter AI gateway, AI assistant with tools, and full cleanup of old
-  Organization/Store/Staff models. See requirements docs for full details.
+- `REQ-0076`–`0090` **Platform V2 Rewrite** — Phase 1 foundation complete on feature branch
+  `devin/batch-1-openrouter-1785912057`. Old `Organization`/`Store`/`Staff`/`StoreIntegration`
+  Prisma models removed, `User`/`Workspace`/`Project`/`EcommerceConnection`/`AIConfiguration`/
+  `TokenUsage` added, and the first migration (`20260805064000_v2_phase1_workspace_project`)
+  generated and applied. All org/store-scoped queries migrated to `userId`/`projectId`, session/
+  auth JWT carries `userId`/`projectId`, and the app routes moved from `/stores/[storeId]` to
+  `/stores/[projectId]`. `npx tsc --noEmit`, `npm run lint`, `npm run test`, and `npm run build`
+  all pass.
+
+### ⏭️ Next
+
+- Review/merge Phase 1 PR, then continue Phase 1 leftovers (T-038 delete overscoped features,
+  T-017 finish OpenRouter wiring, T-013 collapse RBAC remnants) in a new session/branch if
+  required.
 - `REQ-0091` **Deterministic Analysis Engine** — AnalysisSpec vocabulary + safe engine so numbers
   are computed by code and the LLM narrates only; modifies `analyze-media.ts` and
   `generate-trends.ts` to stop the LLM inventing metrics.

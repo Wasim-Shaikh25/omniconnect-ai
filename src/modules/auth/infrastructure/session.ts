@@ -10,8 +10,8 @@ export interface SessionUser {
   role: Role;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
-  organizationId: string | null;
-  storeId: string | null;
+  userId: string | null;
+  projectId: string | null;
 }
 
 function toSessionUser(row: {
@@ -21,10 +21,8 @@ function toSessionUser(row: {
   role: string;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
-  organizationId: string | null;
-  storeId: string | null;
-}): SessionUser {
-  const role = isRole(row.role) ? (row.role as Role) : "STORE_OWNER";
+}): Omit<SessionUser, "userId" | "projectId"> {
+  const role = isRole(row.role) ? (row.role as Role) : "USER";
   return {
     id: row.id,
     email: row.email,
@@ -32,8 +30,6 @@ function toSessionUser(row: {
     role,
     isSuperAdmin: row.isSuperAdmin,
     emailVerified: row.emailVerified,
-    organizationId: row.organizationId,
-    storeId: row.storeId,
   };
 }
 
@@ -49,22 +45,19 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const fresh = await loadFreshUser(user.id);
   if (!fresh) return null;
   if (user.tokenVersion !== fresh.tokenVersion) return null;
+  const { tokenVersion, ...sessionUser } = fresh;
+  void tokenVersion;
 
   return {
-    id: fresh.id,
-    email: fresh.email,
-    name: fresh.name,
-    role: fresh.role,
-    isSuperAdmin: fresh.isSuperAdmin,
-    emailVerified: fresh.emailVerified,
-    organizationId: fresh.organizationId,
-    storeId: fresh.storeId,
+    ...sessionUser,
+    userId: sessionUser.id,
+    projectId: user?.projectId ?? null,
   };
 }
 
 async function loadFreshUser(
   id: string,
-): Promise<(SessionUser & { tokenVersion: number }) | null> {
+): Promise<(Omit<SessionUser, "userId" | "projectId"> & { tokenVersion: number }) | null> {
   const row = await prisma.user.findUnique({
     where: { id, deletedAt: null },
     select: {
@@ -74,8 +67,6 @@ async function loadFreshUser(
       role: true,
       isSuperAdmin: true,
       emailVerified: true,
-      organizationId: true,
-      storeId: true,
       tokenVersion: true,
     },
   });

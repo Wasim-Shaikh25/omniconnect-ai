@@ -4,7 +4,7 @@ import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
 
 export interface AnalyzeCompetitorInput {
-  storeId: string;
+  projectId: string;
   handle: string;
   niche?: string | null;
   posts: MetaMediaItem[];
@@ -33,7 +33,7 @@ export function makeAnalyzeCompetitor(deps: {
   aiConfigurationRepository: AIConfigurationRepository;
 }): AnalyzeCompetitor {
   return async function analyzeCompetitor(input): Promise<CompetitorAnalysis> {
-    const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
+    const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const niche = input.niche ?? "their niche";
 
@@ -69,7 +69,7 @@ Posts:\n${postsSummary}\n\nAnalyze the content strategy and suggest how to outpe
       .withModel(selectModel("competitor-analysis", config?.model).model)
       .withFallback(DEFAULT_DEV_OUTPUT)
       .withOperation("competitor-analysis")
-      .withMetadata({ storeId: input.storeId, handle: input.handle, postCount: input.posts.length })
+      .withMetadata({ projectId: input.projectId, handle: input.handle, postCount: input.posts.length })
       .build();
 
     const raw = await deps.aiProvider.complete(context.messages, {

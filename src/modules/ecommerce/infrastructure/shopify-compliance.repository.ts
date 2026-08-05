@@ -9,11 +9,11 @@ import type {
 
 export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepository {
   async fetchCustomerData(input: {
-    storeId: string;
+    projectId: string;
     customerRef: string | null;
     customerEmail: string | null;
   }): Promise<CustomerDataPayload> {
-    const where = this.customerWhere(input.storeId, input.customerRef, input.customerEmail);
+    const where = this.customerWhere(input.projectId, input.customerRef, input.customerEmail);
 
     const [orders, carts] = await Promise.all([
       prisma.order.findMany({
@@ -30,7 +30,7 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
         },
       }),
       prisma.cart.findMany({
-        where: { storeId: input.storeId, ...(input.customerEmail ? { email: input.customerEmail } : {}) },
+        where: { projectId: input.projectId, ...(input.customerEmail ? { email: input.customerEmail } : {}) },
         orderBy: { createdAt: "desc" },
         take: 1000,
         select: {
@@ -69,12 +69,12 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
   }
 
   async redactCustomer(input: {
-    storeId: string;
+    projectId: string;
     customerRef: string | null;
     customerEmail: string | null;
   }): Promise<RedactionSummary> {
-    const { storeId, customerRef, customerEmail } = input;
-    const orderWhere = this.customerWhere(storeId, customerRef, customerEmail);
+    const { projectId, customerRef, customerEmail } = input;
+    const orderWhere = this.customerWhere(projectId, customerRef, customerEmail);
 
     const [orders, carts, customers, followers] = await Promise.all([
       prisma.order.updateMany({
@@ -82,11 +82,11 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
         data: { customerRef: null, customerEmail: null },
       }),
       prisma.cart.updateMany({
-        where: { storeId, ...(customerEmail ? { email: customerEmail } : {}) },
+        where: { projectId, ...(customerEmail ? { email: customerEmail } : {}) },
         data: { email: null },
       }),
       prisma.customer.updateMany({
-        where: { storeId, ...(customerEmail ? { username: customerEmail } : {}) },
+        where: { projectId, ...(customerEmail ? { username: customerEmail } : {}) },
         data: {
           igUserId: null,
           fbUserId: null,
@@ -98,7 +98,7 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
         },
       }),
       prisma.follower.updateMany({
-        where: { storeId, ...(customerEmail ? { username: customerEmail } : {}) },
+        where: { projectId, ...(customerEmail ? { username: customerEmail } : {}) },
         data: { username: null, welcomeMessageText: null, couponId: null },
       }),
     ]);
@@ -113,23 +113,23 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
     };
   }
 
-  async redactShop(storeId: string): Promise<ShopRedactionSummary> {
+  async redactShop(projectId: string): Promise<ShopRedactionSummary> {
     const now = new Date();
 
     const [products, orders, carts, coupons, customers, followers, messages, conversations, integrations] =
       await prisma.$transaction([
         prisma.product.updateMany({
-          where: { storeId, deletedAt: null },
+          where: { projectId, deletedAt: null },
           data: { deletedAt: now, title: "[REDACTED]", description: null, imageUrl: null },
         }),
-        prisma.order.deleteMany({ where: { storeId } }),
-        prisma.cart.deleteMany({ where: { storeId } }),
+        prisma.order.deleteMany({ where: { projectId } }),
+        prisma.cart.deleteMany({ where: { projectId } }),
         prisma.coupon.updateMany({
-          where: { storeId, deletedAt: null },
+          where: { projectId, deletedAt: null },
           data: { deletedAt: now, code: "[REDACTED]" },
         }),
         prisma.customer.updateMany({
-          where: { storeId },
+          where: { projectId },
           data: {
             igUserId: null,
             fbUserId: null,
@@ -140,11 +140,11 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
             consentUpdatedAt: null,
           },
         }),
-        prisma.follower.deleteMany({ where: { storeId } }),
-        prisma.message.deleteMany({ where: { conversation: { storeId } } }),
-        prisma.conversation.deleteMany({ where: { storeId } }),
-        prisma.integration.deleteMany({
-          where: { storeId, type: "ECOMMERCE" },
+        prisma.follower.deleteMany({ where: { projectId } }),
+        prisma.message.deleteMany({ where: { conversation: { projectId } } }),
+        prisma.conversation.deleteMany({ where: { projectId } }),
+        prisma.ecommerceConnection.deleteMany({
+          where: { projectId },
         }),
       ]);
 
@@ -161,28 +161,28 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
     };
   }
 
-  async disconnectStore(storeId: string): Promise<void> {
-    await prisma.integration.updateMany({
-      where: { storeId, type: "ECOMMERCE" },
+  async disconnectStore(projectId: string): Promise<void> {
+    await prisma.ecommerceConnection.updateMany({
+      where: { projectId },
       data: {
         accessToken: null,
         refreshToken: null,
-        externalId: null,
-        scopes: null,
-        metadata: Prisma.DbNull,
+        baseUrl: null,
+        config: Prisma.JsonNull,
+        isActive: false,
       },
     });
-    await prisma.store.updateMany({
-      where: { id: storeId },
+    await prisma.project.updateMany({
+      where: { id: projectId },
       data: { lastProductSyncAt: null },
     });
   }
 
   private customerWhere(
-    storeId: string,
+    projectId: string,
     customerRef: string | null,
     customerEmail: string | null,
-  ): { storeId: string; OR?: Array<{ customerRef?: string | null; customerEmail?: string | null }> } {
+  ): { projectId: string; OR?: Array<{ customerRef?: string | null; customerEmail?: string | null }> } {
     const or: Array<{ customerRef?: string | null; customerEmail?: string | null }> = [];
     if (customerRef) {
       or.push({ customerRef });
@@ -190,6 +190,6 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
     if (customerEmail) {
       or.push({ customerEmail });
     }
-    return or.length > 0 ? { storeId, OR: or } : { storeId };
+    return or.length > 0 ? { projectId, OR: or } : { projectId };
   }
 }

@@ -94,10 +94,10 @@ function CaptionResults({ state }: { state: GenerateCaptionsState }) {
 }
 
 export function ContentStudioForms({
-  storeId,
+  projectId,
   products,
 }: {
-  storeId: string;
+  projectId: string;
   products: Product[];
 }) {
   const [ideaState, ideaAction, ideaPending] = useActionState<GenerateContentIdeasState, FormData>(
@@ -118,7 +118,7 @@ export function ContentStudioForms({
         </CardHeader>
         <CardContent>
           <form action={ideaAction} className="space-y-4">
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">
@@ -194,7 +194,7 @@ export function ContentStudioForms({
         </CardHeader>
         <CardContent>
           <form action={captionAction} className="space-y-4">
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground">

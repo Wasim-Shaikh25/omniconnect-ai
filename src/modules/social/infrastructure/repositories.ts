@@ -9,7 +9,7 @@ import type {
 
 export class PrismaSocialCommentRepository implements SocialCommentRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     externalMediaId?: string | null;
     externalCommentId?: string | null;
     parentId?: string | null;
@@ -22,7 +22,7 @@ export class PrismaSocialCommentRepository implements SocialCommentRepository {
   }): Promise<SocialCommentRecord> {
     const created = await prisma.socialComment.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         externalMediaId: input.externalMediaId ?? null,
         externalCommentId: input.externalCommentId ?? null,
         parentId: input.parentId ?? null,
@@ -38,11 +38,11 @@ export class PrismaSocialCommentRepository implements SocialCommentRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     limit = 50,
   ): Promise<SocialCommentRecord[]> {
     const rows = await prisma.socialComment.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -76,7 +76,7 @@ export class PrismaSocialCommentRepository implements SocialCommentRepository {
 
 export class PrismaSocialMentionRepository implements SocialMentionRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     externalMediaId?: string | null;
     externalUserId?: string | null;
     handle?: string | null;
@@ -87,7 +87,7 @@ export class PrismaSocialMentionRepository implements SocialMentionRepository {
   }): Promise<SocialMentionRecord> {
     const created = await prisma.socialMention.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         externalMediaId: input.externalMediaId ?? null,
         externalUserId: input.externalUserId ?? null,
         handle: input.handle ?? null,
@@ -101,11 +101,11 @@ export class PrismaSocialMentionRepository implements SocialMentionRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     limit = 50,
   ): Promise<SocialMentionRecord[]> {
     const rows = await prisma.socialMention.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -115,7 +115,7 @@ export class PrismaSocialMentionRepository implements SocialMentionRepository {
 
 function toCommentRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   externalMediaId: string | null;
   externalCommentId: string | null;
   parentId: string | null;
@@ -136,7 +136,7 @@ function toCommentRecord(row: {
 
 function toMentionRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   externalMediaId: string | null;
   externalUserId: string | null;
   handle: string | null;

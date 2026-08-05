@@ -8,7 +8,7 @@ import type {
 
 function toRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   brandName: string;
   contactEmail: string | null;
   value: number | null;
@@ -19,7 +19,7 @@ function toRecord(row: {
 }): BrandDealRecord {
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     brandName: row.brandName,
     contactEmail: row.contactEmail,
     value: row.value,
@@ -32,11 +32,11 @@ function toRecord(row: {
 
 export class PrismaBrandDealRepository implements BrandDealRepository {
   async listByStore(
-    storeId: string,
+    projectId: string,
     limit = 50,
   ): Promise<BrandDealRecord[]> {
     const rows = await prisma.brandDeal.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -46,7 +46,7 @@ export class PrismaBrandDealRepository implements BrandDealRepository {
   async create(input: CreateBrandDealInput): Promise<BrandDealRecord> {
     const row = await prisma.brandDeal.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         brandName: input.brandName,
         contactEmail: input.contactEmail ?? null,
         value: input.value ?? null,

@@ -16,14 +16,14 @@ import type { EscalationRequestedPayload } from "@/modules/ai/events";
 import { notificationService } from "./container";
 import type { NotificationService } from "../application/ports";
 
-function notify(storeId: string, type: Parameters<NotificationService["notify"]>[0]["type"], title: string, body: string, payload?: unknown, dedupKey?: string) {
-  return notificationService.notify({ storeId, type, title, body, payload, dedupKey });
+function notify(projectId: string, type: Parameters<NotificationService["notify"]>[0]["type"], title: string, body: string, payload?: unknown, dedupKey?: string) {
+  return notificationService.notify({ projectId, type, title, body, payload, dedupKey });
 }
 
 const onNewMessage: EventHandler = async (event) => {
   const p = event.payload as NewMessagePayload;
   await notify(
-    p.storeId,
+    p.projectId,
     "NEW_MESSAGE",
     `New ${p.channel} message`,
     p.content.length > 80 ? `${p.content.slice(0, 80)}…` : p.content,
@@ -35,7 +35,7 @@ const onFirstTimeFollower: EventHandler = async (event) => {
   const p = event.payload as FirstTimeFollowerDetectedPayload;
   const username = p.username ?? p.externalUserId;
   await notify(
-    p.storeId,
+    p.projectId,
     "NEW_FOLLOWER",
     "New follower",
     username ? `${username} followed you on ${p.channel}.` : "A new user followed you.",
@@ -46,7 +46,7 @@ const onFirstTimeFollower: EventHandler = async (event) => {
 const onCouponGenerated: EventHandler = async (event) => {
   const p = event.payload as CouponGeneratedPayload;
   await notify(
-    p.storeId,
+    p.projectId,
     "COUPON_GENERATED",
     "Coupon generated",
     `Code ${p.code} (${p.discountPct}% off) was created.`,
@@ -57,7 +57,7 @@ const onCouponGenerated: EventHandler = async (event) => {
 const onEscalationRequested: EventHandler = async (event) => {
   const p = event.payload as EscalationRequestedPayload;
   await notify(
-    p.storeId,
+    p.projectId,
     "ESCALATION",
     "Escalation requested",
     `Conversation ${p.conversationId} needs a human agent: ${p.reason}`,
@@ -68,7 +68,7 @@ const onEscalationRequested: EventHandler = async (event) => {
 const onConversationTakenOver: EventHandler = async (event) => {
   const p = event.payload as ConversationTakenOverPayload;
   await notify(
-    p.storeId,
+    p.projectId,
     "CONVERSATION_TAKEN_OVER",
     "Conversation taken over",
     `Conversation ${p.conversationId} is now under human control.`,
@@ -79,7 +79,7 @@ const onConversationTakenOver: EventHandler = async (event) => {
 const onAIResumed: EventHandler = async (event) => {
   const p = event.payload as AIResumedPayload;
   await notify(
-    p.storeId,
+    p.projectId,
     "AI_RESUMED",
     "AI resumed",
     `Conversation ${p.conversationId} is back under AI control.`,
@@ -92,7 +92,7 @@ const onAbandonedCartDetected: EventHandler = async (event) => {
   const summary = p.lineItemTitles.slice(0, 3).join(", ");
   const suffix = p.lineItemTitles.length > 3 ? " and more" : "";
   await notify(
-    p.storeId,
+    p.projectId,
     "ABANDONED_CART",
     "Abandoned cart recovered",
     `A cart was abandoned (${summary}${suffix}). Total: ${p.totalPrice ?? "unknown"} ${p.currency ?? ""}`,

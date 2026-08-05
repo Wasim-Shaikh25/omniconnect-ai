@@ -7,7 +7,7 @@ export type { PaginationInput, PaginatedResult };
 export interface NotificationRecord {
   id: string;
   userId: string;
-  storeId: string | null;
+  projectId: string | null;
   type: NotificationType;
   channel: NotificationChannel;
   tier: NotificationDeliveryTier;
@@ -21,7 +21,7 @@ export interface NotificationRecord {
 
 export interface CreateNotificationInput {
   userId: string;
-  storeId?: string;
+  projectId?: string;
   type: NotificationType;
   channel?: NotificationChannel;
   tier?: NotificationDeliveryTier;
@@ -45,7 +45,7 @@ export interface NotificationRepository {
 }
 
 export interface OrganizationMembersResolver {
-  getUserIdsForStore(storeId: string): Promise<string[]>;
+  getUserIdsForStore(projectId: string): Promise<string[]>;
 }
 
 export interface NotificationChannelAdapter {
@@ -54,7 +54,7 @@ export interface NotificationChannelAdapter {
 
 export interface NotificationService {
   notify(input: {
-    storeId: string;
+    projectId: string;
     type: NotificationType;
     title: string;
     body: string;

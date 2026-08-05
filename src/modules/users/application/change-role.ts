@@ -16,7 +16,7 @@ export type ChangeRoleInput = z.infer<typeof changeRoleSchema>;
 export interface ChangedByContext {
   id: string;
   role: Role;
-  organizationId: string | null;
+  userId: string | null;
 }
 
 export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
@@ -27,7 +27,7 @@ export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
     const input = changeRoleSchema.parse(raw);
     const existing = await deps.users.findById(input.userId);
     if (!existing) return err(new UserNotFoundError(input.userId));
-    if (existing.organizationId !== changedBy.organizationId) {
+    if (existing.userId !== changedBy.userId) {
       return err(new ForbiddenError("User is not in your organization."));
     }
 
@@ -48,11 +48,11 @@ export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
 
     // Prevent removing the last admin-level user from the organization.
     const isDemotingAdmin =
-      roleSatisfies(existing.role, "STORE_OWNER") && !roleSatisfies(input.role, "STORE_OWNER");
+      roleSatisfies(existing.role, "USER") && !roleSatisfies(input.role, "USER");
     if (isDemotingAdmin) {
-      const peers = await deps.users.listByOrganization(existing.organizationId ?? "", { page: 1, limit: 10000 });
+      const peers = await deps.users.listByOrganization(existing.userId ?? "", { page: 1, limit: 10000 });
       const otherAdmins = peers.items.filter(
-        (p) => p.id !== input.userId && roleSatisfies(p.role, "STORE_OWNER"),
+        (p) => p.id !== input.userId && roleSatisfies(p.role, "USER"),
       );
       if (otherAdmins.length === 0) {
         return err(new ForbiddenError("Cannot remove the last owner/admin from the organization."));

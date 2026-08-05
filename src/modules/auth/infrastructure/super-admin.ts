@@ -30,7 +30,7 @@ export async function ensureSuperAdmin(deps: {
     email,
     name: "Super Admin",
     passwordHash,
-    role: "ADMIN",
+    role: "SUPER_ADMIN",
     phone: env.SUPER_ADMIN_PHONE ?? null,
     isSuperAdmin: true,
   });

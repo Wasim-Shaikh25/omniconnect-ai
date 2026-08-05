@@ -6,7 +6,7 @@ export interface PredictionServiceInput {
   predictions: PredictionRepository;
   signals: SignalRepository;
   metrics: MetricService;
-  listCustomers: (storeId: string, limit?: number) => Promise<{ id: string; lifecycleStage?: string | null }[]>;
+  listCustomers: (projectId: string, limit?: number) => Promise<{ id: string; lifecycleStage?: string | null }[]>;
 }
 
 function expiration(days: number): Date {
@@ -14,14 +14,14 @@ function expiration(days: number): Date {
 }
 
 function abstained(
-  organizationId: string,
-  storeId: string | undefined,
+  userId: string,
+  projectId: string | undefined,
   predictionType: PredictionType,
   reason: string,
 ): Omit<PredictionRecord, "id" | "createdAt" | "updatedAt"> {
   return {
-    organizationId,
-    storeId: storeId ?? null,
+    userId,
+    projectId: projectId ?? null,
     predictionType,
     targetEntityType: null,
     targetEntityId: null,
@@ -40,19 +40,19 @@ function abstained(
 
 export function makePredictionService(input: PredictionServiceInput) {
   return {
-    async generateForStore(organizationId: string, storeId?: string): Promise<PredictionRecord[]> {
+    async generateForStore(userId: string, projectId?: string): Promise<PredictionRecord[]> {
       const generated: PredictionRecord[] = [];
-      const base = { organizationId, storeId: storeId ?? null };
+      const base = { userId, projectId: projectId ?? null };
 
-      if (!storeId) {
-        generated.push(await input.predictions.save(abstained(organizationId, storeId, "REVENUE_FORECAST", "Store-level scope required for reliable revenue forecasting.")));
+      if (!projectId) {
+        generated.push(await input.predictions.save(abstained(userId, projectId, "REVENUE_FORECAST", "Store-level scope required for reliable revenue forecasting.")));
         return generated;
       }
 
-      const customers = await input.listCustomers(storeId, 1000);
-      const signals = await input.signals.listByStore(storeId, 1000);
+      const customers = await input.listCustomers(projectId, 1000);
+      const signals = await input.signals.listByStore(projectId, 1000);
 
-      const productSnapshot = await input.metrics.getMetric("product_count", organizationId, storeId);
+      const productSnapshot = await input.metrics.getMetric("product_count", userId, projectId);
       const productCount = typeof productSnapshot?.value === "number" ? productSnapshot.value : null;
 
       if (productCount !== null && productCount <= 5) {
@@ -61,7 +61,7 @@ export function makePredictionService(input: PredictionServiceInput) {
             ...base,
             predictionType: "STOCK_OUT",
             targetEntityType: "store",
-            targetEntityId: storeId,
+            targetEntityId: projectId,
             horizon: "7d",
             estimate: Math.max(0, 5 - productCount),
             probability: 0.6,
@@ -99,7 +99,7 @@ export function makePredictionService(input: PredictionServiceInput) {
             ...base,
             predictionType: "CHURN",
             targetEntityType: "store",
-            targetEntityId: storeId,
+            targetEntityId: projectId,
             horizon: "30d",
             estimate: churnRisk,
             probability: 0.5,
@@ -120,7 +120,7 @@ export function makePredictionService(input: PredictionServiceInput) {
             ...base,
             predictionType: "PURCHASE_PROPENSITY",
             targetEntityType: "store",
-            targetEntityId: storeId,
+            targetEntityId: projectId,
             horizon: "7d",
             estimate: highPropensity,
             probability: 0.55,
@@ -135,9 +135,9 @@ export function makePredictionService(input: PredictionServiceInput) {
         );
       }
 
-      const couponSnapshot = await input.metrics.getMetric("coupon_count", organizationId, storeId);
-      const conversationSnapshot = await input.metrics.getMetric("conversation_count", organizationId, storeId);
-      const followerSnapshot = await input.metrics.getMetric("follower_count", organizationId, storeId);
+      const couponSnapshot = await input.metrics.getMetric("coupon_count", userId, projectId);
+      const conversationSnapshot = await input.metrics.getMetric("conversation_count", userId, projectId);
+      const followerSnapshot = await input.metrics.getMetric("follower_count", userId, projectId);
       const weeklyRevenueEstimate = (Number(couponSnapshot?.value ?? 0) + Number(conversationSnapshot?.value ?? 0)) * (Number(followerSnapshot?.value ?? 0) || 1) * 10;
 
       generated.push(
@@ -145,7 +145,7 @@ export function makePredictionService(input: PredictionServiceInput) {
           ...base,
           predictionType: "REVENUE_FORECAST",
           targetEntityType: "store",
-          targetEntityId: storeId,
+          targetEntityId: projectId,
           horizon: "7d",
           estimate: weeklyRevenueEstimate,
           probability: 0.4,
@@ -166,8 +166,8 @@ export function makePredictionService(input: PredictionServiceInput) {
       return generated;
     },
 
-    async listActive(organizationId: string, storeId?: string, limit = 20): Promise<PredictionRecord[]> {
-      return input.predictions.listActive(organizationId, storeId, limit);
+    async listActive(userId: string, projectId?: string, limit = 20): Promise<PredictionRecord[]> {
+      return input.predictions.listActive(userId, projectId, limit);
     },
   };
 }

@@ -11,7 +11,6 @@ export interface SystemLogRecord {
   message: string;
   stackTrace: string | null;
   metadata: Record<string, unknown> | null;
-  organizationId: string | null;
   userId: string | null;
   createdAt: Date;
 }
@@ -19,7 +18,6 @@ export interface SystemLogRecord {
 export interface SystemLogFilter {
   level?: SystemLogLevel;
   service?: string;
-  organizationId?: string;
   userId?: string;
   limit?: number;
 }
@@ -31,7 +29,6 @@ export class PrismaSystemLogRepository {
     message: string;
     stackTrace?: string;
     metadata?: Record<string, unknown>;
-    organizationId?: string;
     userId?: string;
   }): Promise<SystemLogRecord> {
     const log = await prisma.systemLog.create({
@@ -41,7 +38,6 @@ export class PrismaSystemLogRepository {
         message: input.message,
         stackTrace: input.stackTrace,
         metadata: input.metadata as Prisma.InputJsonValue,
-        organizationId: input.organizationId,
         userId: input.userId,
       },
     });
@@ -53,7 +49,6 @@ export class PrismaSystemLogRepository {
       where: {
         level: filter.level,
         service: filter.service ? { contains: filter.service } : undefined,
-        organizationId: filter.organizationId,
         userId: filter.userId,
       },
       orderBy: { createdAt: "desc" },
@@ -72,7 +67,6 @@ export async function logSystem(
   fields: {
     stackTrace?: string;
     metadata?: Record<string, unknown>;
-    organizationId?: string;
     userId?: string;
   } = {},
 ): Promise<void> {
@@ -98,8 +92,7 @@ export async function logSystem(
       message,
       stackTrace: fields.stackTrace,
       metadata: safeMetadata,
-      organizationId: fields.organizationId,
-      userId: fields.userId,
+      userId: fields.userId
     });
   } catch (error) {
     // Fallback to console; do not throw from logger.
@@ -112,7 +105,6 @@ export async function logSystemError(
   error: unknown,
   fields: {
     metadata?: Record<string, unknown>;
-    organizationId?: string;
     userId?: string;
   } = {},
 ): Promise<void> {

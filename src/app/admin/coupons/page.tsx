@@ -1,5 +1,5 @@
 import { requireSuperAdmin } from "@/modules/auth";
-import { listSaaSCouponsAction, createSaaSCouponAction } from "@/modules/organizations";
+import { listSaaSCouponsAction, createSaaSCouponAction } from "@/modules/workspaces";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateSaaSCouponForm } from "@/components/create-saas-coupon-form";
 

@@ -10,15 +10,15 @@ type Action = (_prev: CreateContentRecommendationState, formData: FormData) => P
 
 interface CreateRecommendationFormProps {
   action: Action;
-  storeId: string;
+  projectId: string;
 }
 
-export function CreateRecommendationForm({ action, storeId }: CreateRecommendationFormProps) {
+export function CreateRecommendationForm({ action, projectId }: CreateRecommendationFormProps) {
   const [state, formAction, pending] = useActionState<CreateContentRecommendationState, FormData>(action, {});
 
   return (
     <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <div className="flex-1 space-y-2">
         <Label htmlFor="topic">Topic / niche</Label>
         <Input id="topic" name="topic" placeholder="e.g. summer collection" required />

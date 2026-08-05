@@ -6,7 +6,7 @@ const DEFAULT_TEMPLATE = "Hi {{username}}! Thanks for following us. Welcome to t
 
 function toRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   type: string;
   name: string;
   discountPct: number;
@@ -18,7 +18,7 @@ function toRecord(row: {
 }): CampaignRecord {
   return {
     id: row.id,
-    storeId: row.storeId,
+    projectId: row.projectId,
     type: row.type as "FIRST_TIME_FOLLOWER",
     name: row.name,
     discountPct: row.discountPct,
@@ -32,24 +32,24 @@ function toRecord(row: {
 
 export class PrismaCampaignRepository implements CampaignRepository {
   async getByStoreAndType(
-    storeId: string,
+    projectId: string,
     type: "FIRST_TIME_FOLLOWER",
   ): Promise<CampaignRecord | null> {
     const row = await prisma.campaign.findUnique({
-      where: { storeId_type: { storeId, type } },
+      where: { projectId_type: { projectId, type } },
     });
     return row ? toRecord(row) : null;
   }
 
   async getOrCreateDefault(
-    storeId: string,
+    projectId: string,
     type: "FIRST_TIME_FOLLOWER",
   ): Promise<CampaignRecord> {
     const row = await prisma.campaign.upsert({
-      where: { storeId_type: { storeId, type } },
+      where: { projectId_type: { projectId, type } },
       update: {},
       create: {
-        storeId,
+        projectId,
         type,
         name: DEFAULT_NAME,
         discountPct: 10,
@@ -62,16 +62,16 @@ export class PrismaCampaignRepository implements CampaignRepository {
   }
 
   async update(
-    storeId: string,
+    projectId: string,
     type: "FIRST_TIME_FOLLOWER",
     input: Partial<
-      Omit<CampaignRecord, "id" | "storeId" | "type" | "createdAt" | "updatedAt">
+      Omit<CampaignRecord, "id" | "projectId" | "type" | "createdAt" | "updatedAt">
     >,
   ): Promise<CampaignRecord> {
     const upserted = await prisma.campaign.upsert({
-      where: { storeId_type: { storeId, type } },
+      where: { projectId_type: { projectId, type } },
       create: {
-        storeId,
+        projectId,
         type,
         name: input.name ?? DEFAULT_NAME,
         discountPct: input.discountPct ?? 10,

@@ -1,8 +1,8 @@
 import { AlertTriangle } from "lucide-react";
 import { getRecommendationConflictsAction } from "../actions";
 
-export async function RecommendationConflictCard({ storeId }: { storeId: string }) {
-  const { conflicts } = await getRecommendationConflictsAction(storeId);
+export async function RecommendationConflictCard({ projectId }: { projectId: string }) {
+  const { conflicts } = await getRecommendationConflictsAction(projectId);
   const latest = conflicts[0];
   if (!latest) return null;
 

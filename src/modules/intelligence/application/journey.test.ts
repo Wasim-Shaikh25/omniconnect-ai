@@ -10,12 +10,12 @@ function makeFakeJourneys(): JourneyRepository & { store: JourneyRecord[] } {
   const store: JourneyRecord[] = [];
   return {
     store,
-    async findOpen(organizationId, storeId, key) {
+    async findOpen(userId, projectId, key) {
       return (
         store.find(
           (j) =>
-            j.organizationId === organizationId &&
-            j.storeId === storeId &&
+            j.userId === userId &&
+            j.projectId === projectId &&
             j.outcome !== "PURCHASE" &&
             j.outcome !== "CHURNED" &&
             ((key.customerId && j.customerId === key.customerId) ||
@@ -36,8 +36,8 @@ function makeFakeJourneys(): JourneyRepository & { store: JourneyRecord[] } {
       store.push(record);
       return record;
     },
-    async appendStep(journeyId, organizationId, step, update) {
-      const j = store.find((x) => x.id === journeyId && x.organizationId === organizationId)!;
+    async appendStep(journeyId, userId, step, update) {
+      const j = store.find((x) => x.id === journeyId && x.userId === userId)!;
       j.steps.push({
         ...step,
         id: nextId("step"),
@@ -53,12 +53,12 @@ function makeFakeJourneys(): JourneyRepository & { store: JourneyRecord[] } {
       }
       return j;
     },
-    async findById(id, organizationId) {
-      return store.find((j) => j.id === id && j.organizationId === organizationId) ?? null;
+    async findById(id, userId) {
+      return store.find((j) => j.id === id && j.userId === userId) ?? null;
     },
-    async list(organizationId, storeId) {
+    async list(userId, projectId) {
       return store.filter(
-        (j) => j.organizationId === organizationId && (storeId ? j.storeId === storeId : true),
+        (j) => j.userId === userId && (projectId ? j.projectId === projectId : true),
       );
     },
     async search() {
@@ -77,14 +77,14 @@ describe("journeyService.appendTouchpoint", () => {
     const svc = makeJourneyService({ journeys });
 
     await svc.appendTouchpoint({
-      organizationId: "org-1",
-      storeId: "store-1",
+      userId: "org-1",
+      projectId: "store-1",
       externalUserId: "u-1",
       step: { type: "POST_VIEW", externalId: "post-9" },
     });
     const j = await svc.appendTouchpoint({
-      organizationId: "org-1",
-      storeId: "store-1",
+      userId: "org-1",
+      projectId: "store-1",
       externalUserId: "u-1",
       step: { type: "DM" },
     });
@@ -100,16 +100,16 @@ describe("journeyService.appendTouchpoint", () => {
     const svc = makeJourneyService({ journeys });
 
     await svc.appendTouchpoint({
-      organizationId: "org-1",
-      storeId: "store-1",
+      userId: "org-1",
+      projectId: "store-1",
       customerId: "c-1",
       outcome: "PURCHASE",
       attributedRevenue: 99,
       step: { type: "ORDER", externalId: "order-1" },
     });
     const j = await svc.appendTouchpoint({
-      organizationId: "org-1",
-      storeId: "store-1",
+      userId: "org-1",
+      projectId: "store-1",
       customerId: "c-1",
       step: { type: "DM" },
     });
