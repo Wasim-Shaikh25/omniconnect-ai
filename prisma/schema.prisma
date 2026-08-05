@@ -236,6 +236,7 @@ model Project {
   backInStockSubscriptions BackInStockSubscription[]
   commentUnlockCampaigns CommentUnlockCampaign[]
   brandDeals BrandDeal[]
+  dashboardShares DashboardShare[]
 }
 
 model OrganizationInvite {
@@ -748,6 +749,21 @@ model ContentRecommendation {
   basedOnMediaIds Json
 
   @@index([projectId, generatedAt])
+}
+
+model DashboardShare {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  token     String   @unique
+  title     String?
+  schema    Json
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+  @@index([projectId, createdAt])
 }
 
 // ── notifications ───────────────────────────────────────────────────────────

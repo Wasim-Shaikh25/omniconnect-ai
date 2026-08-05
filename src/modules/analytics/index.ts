@@ -70,6 +70,11 @@ export {
 } from "./domain/events";
 
 export type { MarketingInsightsRepository } from "./application/ports";
+export type {
+  CreateDashboardShareInput,
+  DashboardShareRecord,
+  DashboardShareRepository,
+} from "./application/ports";
 
 export {
   trackCompetitorAction,
@@ -97,6 +102,10 @@ export {
   listContentRecommendationsAction,
   listReportsAction,
 } from "./presentation/actions";
+export {
+  createDashboardShareAction,
+  getDashboardShareByTokenAction,
+} from "./presentation/dashboard-share.actions";
 export type {
   TrackCompetitorState,
   ListCompetitorsState,
@@ -122,3 +131,7 @@ export type {
   ListContentRecommendationsState,
   ListReportsState,
 } from "./presentation/actions";
+export type {
+  CreateDashboardShareState,
+  GetDashboardShareState,
+} from "./presentation/dashboard-share.actions";

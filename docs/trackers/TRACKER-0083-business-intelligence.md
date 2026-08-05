@@ -1,10 +1,10 @@
 # TRACKER-0083: Business Intelligence
 
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0083-business-intelligence.md`
 - **Task:** `docs/tasks/TASK-0083-business-intelligence.md`
-- **Branch:** `devin/bi-brand-mentions-1785953983`
+- **Branch:** `devin/bi-dashboard-export-1785954826`
 - **Last updated:** 2026-08-05
 
 ## 1. Summary
@@ -30,7 +30,10 @@ Progress tracker for REQ-0083: Business Intelligence.
   - [x] T-070c: `mentionService` with `syncMentions` / `listMentionsWithSentiment`.
   - [x] T-070d: `syncMentionsAction` / `listMentionsWithSentimentAction`.
   - [x] T-070e: `/stores/[projectId]/analytics/mentions` page and nav link.
-- [ ] T-074: Dashboard export (PDF, image) — Phase 4.
+- [x] T-074: Dashboard export (PDF, image, shareable link) — Phase 4.
+  - [x] T-074a: `DashboardShare` model and share actions.
+  - [x] T-074b: Image/PDF export buttons on `/analytics/dashboard`.
+  - [x] T-074c: Read-only `/share/d/[token]` page.
 
 ### Verification
 - [x] `npm run lint` passes.
@@ -47,4 +50,4 @@ Progress tracker for REQ-0083: Business Intelligence.
 
 ## 4. Notes / Blockers
 
-- Status: In Progress — Batch 4 brand mention monitoring with AI/heuristic sentiment analysis.
+- Status: In Progress — Batch 5 dashboard export complete; REQ-0083 acceptance criteria met.
