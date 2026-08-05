@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { requireRole, registerUser, registerUserSchema, signIn, emailVerificationService } from "@/modules/auth";
 import { env } from "@/shared/config";
+import { logger } from "@/shared/observability";
 import { inviteMemberSchema } from "../application/invite-member";
 import {
   inviteMember,
@@ -60,18 +61,25 @@ export async function inviteOrganizationMemberAction(
     }
   }
 
-  const result = await inviteMember({
-    ...parsed.data,
-    userId: user.userId,
-    createdByUserId: user.id,
-  });
+  try {
+    const result = await inviteMember({
+      ...parsed.data,
+      userId: user.userId,
+      createdByUserId: user.id,
+    });
 
-  if (!result.ok) {
-    return { error: result.error.message };
+    if (!result.ok) {
+      return { error: result.error.message };
+    }
+
+    revalidatePath("/settings");
+    return { ok: true };
+  } catch (error) {
+    logger.error("workspaces.inviteMemberAction.failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { error: "Could not send the invite. Please try again." };
   }
-
-  revalidatePath("/settings");
-  return { ok: true };
 }
 
 export async function registerWithInviteAction(

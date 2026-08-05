@@ -18,15 +18,18 @@ All notable changes to **OmniConnect AI** are documented here.
 - `REQ-0076`–`0090` **Platform V2 Rewrite** — Owner/tenant mapping hotfix merged via PR #127.
   Canonical `User.userId`/`projectId` loaded from DB, onboarding sets owner `userId` to self, and
   owner/staff checks use `user.userId === user.id` with `isStaff()`.
+- `REQ-0076`–`0090` **Platform V2 Rewrite** — Staff isolation and audit follow-up merged via PR #128.
+  `/stores` and `/dashboard` scope staff by `projectId`, `/settings` lists all workspace members,
+  `npm audit` findings fixed, M7 smoke-test `scripts/check-http-status.ts` restored, and
+  `RootLayout`/`AppShell` fetch the session client-side so 404 bodies do not leak user/tenant data.
 
 ### 🚧 In Progress
 
-- `REQ-0076`–`0090` **Platform V2 Rewrite** — Staff isolation and audit follow-up on
-  `devin/fix-staff-isolation-audit-1785912057`: `/stores` and `/dashboard` scope staff by
-  `projectId`, `/settings` lists all workspace members, `npm audit` findings fixed, M7 smoke-test
-  `scripts/check-http-status.ts` restored and green, and `RootLayout`/`AppShell` now fetch the
-  session client-side so 404 bodies do not leak user/tenant data. Lint, typecheck, tests, build,
-  audit, and smoke test pass locally.
+- `REQ-0077` **Invite member email resilience** on `devin/fix-invite-email-robustness-1785932057`:
+  `/settings` invite form no longer 500s when the configured email provider (e.g. unreachable SMTP)
+  cannot deliver the message. `sendInviteEmail` catches and logs provider errors, and
+  `inviteOrganizationMemberAction` returns a friendly form error for any unexpected failure. Lint,
+  typecheck, tests, integration tests, build, and the M7 smoke test pass.
 
 ### ⏭️ Next
 

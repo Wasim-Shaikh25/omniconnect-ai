@@ -68,7 +68,9 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - `/stores` lists stores by `userId`, which is the owner id for both owners and staff. It is not filtered by `projectId`, so a staff user may see all owner stores plus the **Add a store** card.
   - `/dashboard` only redirects a staff user when `role === "USER" && projectId`; a staff with `projectId: null` falls through and sees the owner dashboard.
   - `/settings` does not list staff members because `UserRepository.listByOrganization` filters `where: { id: userId }` instead of the workspace/organization relation, so the **Update store** assignment flow cannot be exercised from the UI.
-  - `getCurrentUser()` now reloads canonical `User.userId`/`projectId` from the DB and bumps `tokenVersion` on assignment changes, so updating `User.projectId` in Postgres invalidates the staff session on next request.
+  - `getCurrentUser()` now reloads canonical `User.userId`/`projectId` from the DB and checks `tokenVersion`, so updating `User.projectId` in Postgres is reflected on the next request without re-authenticating as long as `tokenVersion` is unchanged.
+- The `/settings` **Invite member** form is resilient to email-provider failures: `sendInviteEmail` catches SMTP/console errors, logs them, and the action returns success so the invite record is created. If `EMAIL_PROVIDER=smtp` and the server is unreachable, the form still shows "Invite sent" but the email is not delivered.
+- Browser automation can attach CDP to the wrong window when multiple Chrome windows/tabs are open. Use a single incognito window and close other browser windows before relying on `browser_console`.
 
 ## Cross-tenant regression-test rule
 
