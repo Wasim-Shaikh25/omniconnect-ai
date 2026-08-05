@@ -53,6 +53,7 @@ ChatGPT-style AI assistant with OpenRouter function calling. Five AI tools: crea
 
 - Modules: `ai`, `coupons`, `ecommerce`, `messaging`, `analytics`
 - Depends on: REQ-0082 (AI config for guardrails), REQ-0086 (OpenRouter), REQ-0078 (adapter for coupon injection)
+- Augmented by: REQ-0091 (`queryAnalytics`/`generateDashboard` emit a validated `AnalysisSpec` executed by the deterministic engine; the LLM narrates results and never produces the numbers)
 
 ## 7. Code Snippets
 
