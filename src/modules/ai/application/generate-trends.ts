@@ -1,6 +1,16 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
+import type { MediaPost, BestTimeWindow } from "@/modules/analytics/pure";
+import type { OrderRecord } from "@/modules/ecommerce";
 import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
+import {
+  engagementScore,
+  percentileRank,
+  topN,
+  median,
+  bestTimeLabel,
+  type ScoredPost,
+} from "@/modules/analytics/pure";
 
 export interface GenerateTrendsInput {
   projectId: string;
@@ -29,12 +39,88 @@ export interface GenerateTrends {
   (input: GenerateTrendsInput): Promise<TrendIdea[]>;
 }
 
-const DEFAULT_TONE = "trendy, authentic, and platform-native";
+interface TrendSignals {
+  predictedEngagementScore: number;
+  predictedRevenue: number | null;
+  bestTimeToPost: string;
+  suggestedPublishAt: Date | null;
+  basedOnMediaIds: string[];
+}
 
-export function makeGenerateTrends(deps: {
+export interface GenerateTrendsDeps {
   aiProvider: AIProvider;
   aiConfigurationRepository: AIConfigurationRepository;
-}): GenerateTrends {
+  getBestTimeToPostForStore: (projectId: string) => Promise<BestTimeWindow[]>;
+  listMediaPosts: (projectId: string) => Promise<MediaPost[]>;
+  listOrders: (projectId: string, limit?: number) => Promise<OrderRecord[]>;
+}
+
+const DEFAULT_TONE = "trendy, authentic, and platform-native";
+
+function toScoredPost(post: MediaPost): ScoredPost | null {
+  const i = post.latestInsight;
+  if (!i) return null;
+  return {
+    id: post.id,
+    likes: i.likes ?? 0,
+    comments: i.comments ?? 0,
+    shares: i.shares ?? 0,
+    saves: i.saves ?? 0,
+    plays: i.plays ?? 0,
+    views: i.views ?? 0,
+    reach: i.reach ?? 0,
+    impressions: i.impressions ?? 0,
+  };
+}
+
+function computeSignals(
+  mediaPosts: MediaPost[],
+  orders: OrderRecord[],
+  bestWindows: BestTimeWindow[],
+  count: number,
+): TrendSignals {
+  const bestWindow = bestWindows[0];
+  const bestTimeToPost = bestTimeLabel(bestWindow);
+  const suggestedPublishAt = bestWindow ? nextOccurrence(bestWindow.dayOfWeek, bestWindow.hour) : null;
+
+  const scored = mediaPosts
+    .map((post) => ({ post, scoredPost: toScoredPost(post) }))
+    .filter((item): item is { post: MediaPost; scoredPost: ScoredPost } => item.scoredPost !== null)
+    .map((item) => ({ post: item.post, score: engagementScore(item.scoredPost) }));
+
+  const topScored = topN(scored, (item) => item.score, count);
+  const allScores = scored.map((item) => item.score);
+  const medianTopScore = topScored.length > 0 ? median(topScored.map((item) => item.score)) : 0;
+  const predictedEngagementScore =
+    allScores.length > 0 ? Math.min(100, Math.max(0, percentileRank(allScores, medianTopScore))) : 50;
+
+  const revenues = orders.map((o) => o.total).filter((t): t is number => t !== null);
+  const predictedRevenue = revenues.length > 0 ? Math.round(median(revenues) * 100) / 100 : null;
+
+  return {
+    predictedEngagementScore,
+    predictedRevenue,
+    bestTimeToPost,
+    suggestedPublishAt,
+    basedOnMediaIds: topScored.map((item) => item.post.id).slice(0, count),
+  };
+}
+
+function nextOccurrence(dayOfWeek: string, hour: number): Date {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const targetIndex = days.indexOf(dayOfWeek);
+  const now = new Date();
+  const current = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0));
+  const currentDay = current.getUTCDay();
+  const diff = targetIndex === -1 ? 0 : (targetIndex - currentDay + 7) % 7;
+  current.setUTCDate(current.getUTCDate() + diff);
+  if (diff === 0 && current.getTime() < now.getTime()) {
+    current.setUTCDate(current.getUTCDate() + 7);
+  }
+  return current;
+}
+
+export function makeGenerateTrends(deps: GenerateTrendsDeps): GenerateTrends {
   return async function generateTrends(input): Promise<TrendIdea[]> {
     const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
     const tone = config?.tone ?? DEFAULT_TONE;
@@ -42,8 +128,22 @@ export function makeGenerateTrends(deps: {
     const format = input.format ?? "ANY";
     const count = Math.min(Math.max(input.count ?? 5, 1), 10);
 
+    const [bestWindows, mediaPosts, orders] = await Promise.all([
+      deps.getBestTimeToPostForStore(input.projectId).catch(() => [] as BestTimeWindow[]),
+      deps.listMediaPosts(input.projectId).catch(() => [] as MediaPost[]),
+      deps.listOrders(input.projectId, 100).catch(() => [] as OrderRecord[]),
+    ]);
+
+    const signals = computeSignals(mediaPosts, orders, bestWindows, count);
+
     const system = `You are a social media trend analyst for Instagram. Tone: ${tone}.
 Niche: ${niche}. Format focus: ${format}.
+The following numbers are pre-computed from the account's own data and are final — do not invent different numbers:
+- predictedEngagementScore: ${signals.predictedEngagementScore} (0-100)
+- predictedRevenue: ${signals.predictedRevenue ?? "n/a"}
+- bestTimeToPost: ${signals.bestTimeToPost}
+- basedOnMediaIds: ${signals.basedOnMediaIds.join(", ") || "n/a"}
+
 Return a JSON array of ${count} current, high-performing content ideas that are trending or likely to trend on Instagram right now.
 For each idea return:
 - title (string, punchy idea name)
@@ -56,7 +156,7 @@ For each idea return:
 - predictedEngagementScore (number 0-100)
 - bestTimeToPost (string, human-readable like "Tuesday, 11:00 AM EST")
 - cta (string, a short call-to-action)
-Return only a JSON array. Do not wrap in markdown.`;
+Return only a JSON array. Do not wrap in markdown. You may omit the numeric fields; they will be replaced with the pre-computed values above.`;
 
     const user = `Niche: ${niche}. Format: ${format}.`;
     const context = new AIContextBuilder()
@@ -78,14 +178,14 @@ Return only a JSON array. Do not wrap in markdown.`;
     try {
       const parsed = JSON.parse(raw) as unknown;
       if (!Array.isArray(parsed)) {
-        return [parseSingleTrend(raw, format)];
+        return [parseSingleTrend(raw, format, signals)];
       }
       return parsed
-        .map((item) => parseTrend(item, format))
+        .map((item) => parseTrend(item, format, signals))
         .filter((t): t is TrendIdea => t !== null)
         .slice(0, count);
     } catch {
-      return [parseSingleTrend(raw, format)];
+      return [parseSingleTrend(raw, format, signals)];
     }
   };
 }
@@ -119,7 +219,7 @@ const DEFAULT_DEV_OUTPUT = JSON.stringify([
   },
 ]);
 
-function parseTrend(item: unknown, requestedFormat: string): TrendIdea | null {
+function parseTrend(item: unknown, requestedFormat: string, signals: TrendSignals): TrendIdea | null {
   if (typeof item !== "object" || item === null) return null;
   const raw = item as Record<string, unknown>;
   const title = typeof raw.title === "string" ? raw.title : "Trend idea";
@@ -131,18 +231,28 @@ function parseTrend(item: unknown, requestedFormat: string): TrendIdea | null {
     ? raw.hashtags.filter((h): h is string => typeof h === "string")
     : [];
   const audioSuggestion = typeof raw.audioSuggestion === "string" ? raw.audioSuggestion : "";
-  const score = typeof raw.predictedEngagementScore === "number" ? raw.predictedEngagementScore : 0;
-  const bestTimeToPost = typeof raw.bestTimeToPost === "string" ? raw.bestTimeToPost : "";
   const cta = typeof raw.cta === "string" ? raw.cta : "";
-  const predictedRevenue = typeof raw.predictedRevenue === "number" ? raw.predictedRevenue : null;
-  const suggestedPublishAt = typeof raw.suggestedPublishAt === "string" ? new Date(raw.suggestedPublishAt) : null;
-  const basedOnMediaIds = Array.isArray(raw.basedOnMediaIds)
-    ? raw.basedOnMediaIds.filter((id): id is string => typeof id === "string")
-    : undefined;
-  return { title, format, hook, description, whyItWorks, hashtags, audioSuggestion, predictedEngagementScore: score, bestTimeToPost, cta, predictedRevenue, suggestedPublishAt, basedOnMediaIds };
+  const suggestedPublishAt =
+    typeof raw.suggestedPublishAt === "string" ? new Date(raw.suggestedPublishAt) : signals.suggestedPublishAt;
+
+  return {
+    title,
+    format,
+    hook,
+    description,
+    whyItWorks,
+    hashtags,
+    audioSuggestion,
+    predictedEngagementScore: signals.predictedEngagementScore,
+    bestTimeToPost: signals.bestTimeToPost,
+    cta,
+    predictedRevenue: signals.predictedRevenue,
+    suggestedPublishAt,
+    basedOnMediaIds: signals.basedOnMediaIds,
+  };
 }
 
-function parseSingleTrend(raw: string, requestedFormat: string): TrendIdea {
+function parseSingleTrend(raw: string, requestedFormat: string, signals: TrendSignals): TrendIdea {
   return {
     title: "Trending idea",
     format: requestedFormat,
@@ -151,11 +261,11 @@ function parseSingleTrend(raw: string, requestedFormat: string): TrendIdea {
     whyItWorks: "AI returned unstructured output; refine the niche or try again.",
     hashtags: ["#trending", "#viral", "#smallbusiness"],
     audioSuggestion: "Trending audio",
-    predictedEngagementScore: 50,
-    bestTimeToPost: "Weekday, 11:00 AM local time",
+    predictedEngagementScore: signals.predictedEngagementScore,
+    bestTimeToPost: signals.bestTimeToPost,
     cta: "Tap the link in bio.",
-    predictedRevenue: null,
-    suggestedPublishAt: null,
-    basedOnMediaIds: undefined,
+    predictedRevenue: signals.predictedRevenue,
+    suggestedPublishAt: signals.suggestedPublishAt,
+    basedOnMediaIds: signals.basedOnMediaIds,
   };
 }

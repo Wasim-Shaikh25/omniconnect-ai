@@ -1,4 +1,4 @@
-import { validateSpec, UnsupportedOperationError, type AnalysisSpec, type AnalysisResult } from "../domain/analysis";
+import { validateSpec, UnsupportedOperationError, type AnalysisSpec, type AnalysisResult, type AnalysisOperation } from "../domain/analysis";
 
 export interface AnalysisContext {
   projectId: string;
@@ -8,17 +8,9 @@ export type DatasetFetcher<T = unknown> = (spec: AnalysisSpec, projectId: string
 
 export type AnalysisOp<T = unknown> = (dataset: T, spec: AnalysisSpec) => AnalysisResult | Promise<AnalysisResult>;
 
-export interface AnalysisEngineOperations {
-  single_post_analysis: AnalysisOp;
-  top_n: AnalysisOp;
-  compare_period: AnalysisOp;
-  anomaly_check: AnalysisOp;
-  cohort_trend: AnalysisOp;
-  attribution_breakdown: AnalysisOp;
-  best_time: AnalysisOp;
-  correlation: AnalysisOp;
-  profile_quality: AnalysisOp;
-}
+export type AnalysisEngineOperations = Partial<
+  Record<AnalysisOperation, AnalysisOp>
+>;
 
 export interface AnalysisEngineDeps {
   fetchDataset: DatasetFetcher;
