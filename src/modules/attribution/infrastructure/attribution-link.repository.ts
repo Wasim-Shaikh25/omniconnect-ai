@@ -83,6 +83,16 @@ export class PrismaAttributionLinkRepository implements AttributionLinkRepositor
     return rows.map((r) => toRecord(r as Row));
   }
 
+  async countByProjectThisMonth(projectId: string, now = new Date()): Promise<number> {
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return prisma.attributionLink.count({
+      where: {
+        projectId,
+        createdAt: { gte: startOfMonth },
+      },
+    });
+  }
+
   async incrementConversion(id: string, revenue: number): Promise<AttributionLink | null> {
     const row = await prisma.attributionLink.update({
       where: { id },

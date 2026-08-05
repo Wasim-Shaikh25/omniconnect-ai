@@ -58,6 +58,10 @@ export class PrismaTrackedAccountRepository implements TrackedAccountRepository 
     return rows.map(mapRow);
   }
 
+  async countByStore(projectId: string): Promise<number> {
+    return prisma.trackedAccount.count({ where: { projectId } });
+  }
+
   async findById(id: string): Promise<TrackedAccountRecord | null> {
     const row = await prisma.trackedAccount.findUnique({ where: { id } });
     return row ? mapRow(row) : null;

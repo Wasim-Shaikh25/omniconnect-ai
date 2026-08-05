@@ -18,3 +18,5 @@ const conversionEventSink = {
 export const createAttributionLink = makeCreateAttributionLink(links, couponLookup, projectConfig);
 export const recordConversion = makeRecordConversion(links, couponLookup, conversionEventSink);
 export const listAttributionLinks = makeListAttributionLinks(links);
+export const countAttributionLinksThisMonth = (projectId: string, now?: Date) =>
+  links.countByProjectThisMonth(projectId, now);

@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries, PLAN_FEATURES, Plan, parsePlan } from "@/modules/workspaces";
+import { organizationQueries, organizationUsage, PLAN_FEATURES, Plan, parsePlan, PlanLimits } from "@/modules/workspaces";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +13,33 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PricingCards } from "@/components/pricing-cards";
 import { env } from "@/shared/config/env";
+
+function formatLimit(limit: number | null): string {
+  return limit === null ? "Unlimited" : String(limit);
+}
+
+function limitRow(label: string, value: string, usage?: number, limit?: number | null) {
+  const showBar = limit !== null && limit !== undefined && usage !== undefined && limit > 0;
+  const percent = showBar ? Math.min(100, Math.round((usage / limit) * 100)) : 0;
+  return (
+    <li key={label} className="flex flex-col gap-1 py-2">
+      <div className="flex items-center justify-between text-sm">
+        <span>{label}</span>
+        <span className="font-medium">
+          {usage !== undefined ? `${usage} / ${value}` : value}
+        </span>
+      </div>
+      {showBar && (
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full bg-primary transition-all"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      )}
+    </li>
+  );
+}
 
 export default async function BillingPage({
   searchParams,
@@ -29,6 +56,11 @@ export default async function BillingPage({
     : null;
   const currentPlan = parsePlan(overview?.plan ?? Plan.FREE);
   const meta = PLAN_FEATURES[currentPlan];
+  const planLimits: PlanLimits | null = user.userId
+    ? await organizationUsage.getPlanLimits(user.userId)
+    : null;
+  const storeCount = overview?.stores.length ?? 0;
+
   const stripeConfigured = Boolean(
     env.STRIPE_SECRET_KEY &&
       env.STRIPE_PUBLISHABLE_KEY &&
@@ -87,6 +119,36 @@ export default async function BillingPage({
           </p>
         </CardContent>
       </Card>
+
+      {planLimits && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Plan limits</CardTitle>
+            <CardDescription>Your current entitlement and usage.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y">
+              {limitRow("Stores / projects", formatLimit(planLimits.maxStores), storeCount, planLimits.maxStores)}
+              {limitRow("AI replies / month", formatLimit(planLimits.monthlyAiReplies))}
+              {limitRow("Team seats", formatLimit(planLimits.teamSeats))}
+              {limitRow("Profile inspections / day", formatLimit(planLimits.maxProfileInspectionsPerDay))}
+              {limitRow("Competitors", formatLimit(planLimits.maxCompetitors))}
+              {limitRow("Attribution links / month", formatLimit(planLimits.maxAttributionLinksPerMonth))}
+              {limitRow("Content schedules / month", formatLimit(planLimits.maxContentSchedulesPerMonth))}
+              <li className="py-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Allowed models</span>
+                  <span className="font-medium">
+                    {planLimits.allowedModels.includes("*")
+                      ? "All models"
+                      : planLimits.allowedModels.join(", ") || "Default"}
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {!stripeConfigured && (
         <Alert className="mb-6" variant="destructive">

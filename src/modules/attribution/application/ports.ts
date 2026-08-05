@@ -34,6 +34,7 @@ export interface AttributionLinkRepository {
     projectId: string,
     options?: { limit?: number; offset?: number },
   ): Promise<AttributionLink[]>;
+  countByProjectThisMonth(projectId: string, now?: Date): Promise<number>;
   incrementConversion(id: string, revenue: number): Promise<AttributionLink | null>;
   incrementClick(id: string): Promise<AttributionLink | null>;
 }

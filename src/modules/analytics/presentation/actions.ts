@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole, getCurrentUser } from "@/modules/auth";
-import { organizationQueries, tenantGuard } from "@/modules/workspaces";
+import { organizationQueries, organizationUsage, tenantGuard } from "@/modules/workspaces";
 import { metaService } from "@/modules/meta/server";
 import { analyzeCompetitor } from "@/modules/ai/server";
 import { aiUsageGuard } from "@/modules/ai";
@@ -79,6 +79,7 @@ export async function trackCompetitorAction(
   formData: FormData,
 ): Promise<TrackCompetitorState> {
   const user = await requireRole("USER");
+  if (!user.userId) return { error: "User is not associated with an organization." };
   const parsed = trackCompetitorSchema.safeParse({
     projectId: formData.get("projectId"),
     handle: formData.get("handle"),
@@ -90,6 +91,21 @@ export async function trackCompetitorAction(
 
   if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
+  }
+
+  const currentCompetitors = await trackedAccountRepository.countByStore(parsed.data.projectId);
+  const { allowed, limit } = await organizationUsage.checkLimit(
+    user.userId,
+    currentCompetitors,
+    "maxCompetitors",
+  );
+  if (!allowed) {
+    return {
+      error:
+        limit === null
+          ? "Could not track competitor."
+          : `Your plan allows up to ${limit} competitor(s). Upgrade to track more.`,
+    };
   }
 
   try {

@@ -1,5 +1,5 @@
 import { OrganizationRepository } from "./ports";
-import { Plan, planLimits } from "../domain/plan";
+import { Plan, planLimits, PlanLimits, isWithinLimit } from "../domain/plan";
 
 export function makeOrganizationUsageService(deps: {
   organizations: OrganizationRepository;
@@ -27,6 +27,32 @@ export function makeOrganizationUsageService(deps: {
       if (!org) return false;
       const { maxProfileInspectionsPerDay } = planLimits(org.plan as Plan);
       return deps.organizations.incrementProfileInspections(userId, maxProfileInspectionsPerDay);
+    },
+
+    /**
+     * Checks whether `currentUsage` is still below the named plan limit for the organization.
+     * Returns the resolved limit and whether the operation is allowed.
+     */
+    async checkLimit(
+      userId: string,
+      currentUsage: number,
+      limitKey: keyof PlanLimits,
+    ): Promise<{ allowed: boolean; limit: number | null }> {
+      const org = await deps.organizations.findById(userId);
+      if (!org) return { allowed: false, limit: null };
+      const limits = planLimits(org.plan as Plan);
+      const limit = limits[limitKey];
+      const numericLimit = typeof limit === "number" ? limit : null;
+      return { allowed: isWithinLimit(numericLimit, currentUsage), limit: numericLimit };
+    },
+
+    /**
+     * Returns the full plan limits for the organization.
+     */
+    async getPlanLimits(userId: string): Promise<PlanLimits | null> {
+      const org = await deps.organizations.findById(userId);
+      if (!org) return null;
+      return planLimits(org.plan as Plan);
     },
   };
 }
