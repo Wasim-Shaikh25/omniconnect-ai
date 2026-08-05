@@ -34,6 +34,7 @@ export function defaultAIConfigurationRecord(
     escalationRules: { ...defaultEscalationRules } as EscalationRules,
     modelOverrides: { ...defaultModelOverrides } as ModelOverrides,
     knowledgeBase: null,
+    productKnowledge: null,
     model: "gpt-4o-mini",
     ...overrides,
   };

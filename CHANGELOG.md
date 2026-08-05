@@ -15,6 +15,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0082` + `REQ-0088` **Knowledge-base upload + Stripe billing lifecycle** on `devin/remaining-followups-0082-0088-1786060200`:
+  added `AIConfiguration.productKnowledge` and `User.stripeCustomerId` columns with migrations;
+  `extractKnowledgeBaseFiles` server action extracts PDF (via `pdfjs-dist`), Markdown, and text files
+  and appends them to the AI knowledge base; `AISettingsForm` supports multi-file upload with a text
+  preview; `ProductsSynced` event subscriber writes the product catalog into `productKnowledge` and
+  `buildSystemPrompt` appends it to the system prompt. Stripe lifecycle completed with
+  `createPortalSession` and `listInvoices` on `BillingService`/`StripePaymentGateway`, plus
+  `/api/stripe/portal` and `/api/stripe/invoices` routes; `/settings/billing` now shows a
+  "Manage subscription" button and paid invoice history.
 - `REQ-0084` **Attribution & Checkout Links** on `devin/attribution-checkout-links-1785956172`:
   new `attribution` module with `AttributionLink` Prisma model, `makeCreateAttributionLink` use-case
   that builds checkout URLs with coupon auto-apply (platform-specific `couponUrlPattern`) + UTM parameters,
@@ -207,7 +216,6 @@ None.
 
 ### ⏭️ Next
 
-- `REQ-0082` **AI Setup & Configuration** — PDF/MD knowledge-base file upload and product auto-sync.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
 - `REQ-0087` **Super Admin Panel** — user list/impersonate, plan management, system health dashboard.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live

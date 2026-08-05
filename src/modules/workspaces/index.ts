@@ -15,6 +15,7 @@ export {
 export type { EcommerceProvider } from "./domain/provider";
 export { Plan, isPlan, parsePlan, PLAN_FEATURES, PLAN_LIMITS } from "./domain/plan";
 export type { PlanLimits } from "./domain/plan";
+export type { InvoiceRecord } from "./application/payment-gateway";
 export {
   OrganizationError,
   OrganizationNotFoundError,

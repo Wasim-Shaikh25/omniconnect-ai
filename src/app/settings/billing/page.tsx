@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries, organizationUsage, PLAN_FEATURES, Plan, parsePlan, PlanLimits } from "@/modules/workspaces";
+import { organizationQueries, organizationUsage, PLAN_FEATURES, Plan, parsePlan, PlanLimits, billingService } from "@/modules/workspaces";
+import type { InvoiceRecord } from "@/modules/workspaces";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,7 +13,20 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PricingCards } from "@/components/pricing-cards";
+import { ManageSubscriptionButton } from "./manage-subscription-button";
 import { env } from "@/shared/config/env";
+
+function formatCurrency(amount: number, currency: string): string {
+  const major = amount / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(major);
+}
+
+function formatDate(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleDateString();
+}
 
 function formatLimit(limit: number | null): string {
   return limit === null ? "Unlimited" : String(limit);
@@ -60,6 +74,15 @@ export default async function BillingPage({
     ? await organizationUsage.getPlanLimits(user.userId)
     : null;
   const storeCount = overview?.stores.length ?? 0;
+
+  let invoices: InvoiceRecord[] = [];
+  if (overview?.stripeCustomerId && billingService) {
+    try {
+      invoices = await billingService.listInvoices(overview.stripeCustomerId);
+    } catch {
+      invoices = [];
+    }
+  }
 
   const stripeConfigured = Boolean(
     env.STRIPE_SECRET_KEY &&
@@ -117,6 +140,7 @@ export default async function BillingPage({
               ? `Subscription status: ${overview.subscriptionStatus}`
               : "No active subscription. Upgrade below to unlock more features."}
           </p>
+          <ManageSubscriptionButton disabled={!overview?.stripeCustomerId || !stripeConfigured} />
         </CardContent>
       </Card>
 
@@ -158,6 +182,39 @@ export default async function BillingPage({
             STRIPE_PRICE_STARTER, and STRIPE_PRICE_PRO to your environment to enable upgrades.
           </AlertDescription>
         </Alert>
+      )}
+
+      {invoices.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Invoice history</CardTitle>
+            <CardDescription>Recent payments for your subscription.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y">
+              {invoices.map((invoice) => (
+                <li key={invoice.id} className="flex items-center justify-between py-3 text-sm">
+                  <span>
+                    {invoice.number ?? "Invoice"} — {formatDate(invoice.createdAt)}
+                    {invoice.periodStart && invoice.periodEnd && (
+                      <span className="ml-2 text-muted-foreground">
+                        ({formatDate(invoice.periodStart)} – {formatDate(invoice.periodEnd)})
+                      </span>
+                    )}
+                  </span>
+                  <span className="font-medium">
+                    {formatCurrency(invoice.amount, invoice.currency)}
+                  </span>
+                  {invoice.pdfUrl && (
+                    <Button asChild variant="link" size="sm">
+                      <a href={invoice.pdfUrl} target="_blank" rel="noreferrer">PDF</a>
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       <h2 className="mb-4 text-xl font-semibold">Upgrade</h2>

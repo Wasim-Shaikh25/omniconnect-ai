@@ -73,4 +73,13 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("owner@example.com");
     expect(prompt).toContain("Free shipping over $50.");
   });
+
+  it("includes auto-synced product knowledge", () => {
+    const config = defaultAIConfigurationRecord("p1", {
+      productKnowledge: "Widget - $10 (in stock: 5)",
+    });
+    const prompt = buildSystemPrompt(config, { brandName: "Acme" });
+    expect(prompt).toContain("Product catalog:");
+    expect(prompt).toContain("Widget - $10 (in stock: 5)");
+  });
 });

@@ -1,6 +1,6 @@
 # TASK-0082: AI Setup & Configuration
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0082-ai-setup-configuration.md`
 - **Tracker:** `docs/trackers/TRACKER-0082-ai-setup-configuration.md`
@@ -52,14 +52,14 @@ Per-skill model override dropdown populated from OpenRouter model list. Plan-res
 - [x] T-047: AI Setup UI: skills & permissions toggles
 - [x] T-048: AI Setup UI: sales rules
 - [x] T-049: AI Setup UI: channel settings
-- [ ] T-050: Knowledge base file upload (PDF/MD) + product auto-sync
+- [x] T-050: Knowledge base file upload (PDF/MD) + product auto-sync
 - [x] T-051: Escalation rules
 - [x] T-052: Model selection per skill
 - [x] T-053: System prompt builder
 
 ## 5. Acceptance Criteria
 
-- [x] Matches REQ-0082 acceptance criteria (PDF/MD file upload still open).
+- [x] Matches REQ-0082 acceptance criteria.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 

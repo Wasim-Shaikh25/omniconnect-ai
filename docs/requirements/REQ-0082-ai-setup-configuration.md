@@ -4,7 +4,7 @@ description: AI Setup & Configuration
 
 # REQ-0082: AI Setup & Configuration
 
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0082-ai-setup-configuration.md`
@@ -44,7 +44,7 @@ Per-project AI agent configuration UI. Users configure personality prompt (with 
 - [x] Sales rules: maxDiscountPct (0-100), maxUses (1-100), dailyBudget (dollars), autoSend (boolean).
 - [x] Channel settings: per-channel enable, tone, business hours.
 - [x] Escalation rules: on complaint, on refund request, on low confidence.
-- [ ] Knowledge base upload: PDF, MD files + auto-sync with product data.
+- [x] Knowledge base upload: PDF, MD files + auto-sync with product data.
 - [x] Model selection: per-skill model override via OpenRouter model list.
 - [x] System prompt builder produces complete prompt from config.
 

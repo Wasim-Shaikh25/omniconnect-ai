@@ -87,6 +87,10 @@ export function buildSystemPrompt(
     sections.push(`\nKnowledge base:\n${config.knowledgeBase.trim()}`);
   }
 
+  if (config.productKnowledge?.trim()) {
+    sections.push(`\nProduct catalog:\n${config.productKnowledge.trim()}`);
+  }
+
   if (config.welcomeStrategy?.trim()) {
     sections.push(`\nWelcome strategy:\n${config.welcomeStrategy}`);
   }

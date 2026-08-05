@@ -38,7 +38,7 @@ import { OpenRouterProvider } from "./openrouter.provider";
 import { PrismaTokenUsageRepository } from "./token-usage.repository";
 import { makeWorkspaceContext } from "./workspace-context";
 
-const aiConfigurationRepository = new PrismaAIConfigurationRepository();
+export const aiConfigurationRepository = new PrismaAIConfigurationRepository();
 const brainMemoryRepository = new PrismaBrainMemoryRepository();
 const tokenUsageRepository = new PrismaTokenUsageRepository();
 export const aiProvider = new OpenRouterProvider(
