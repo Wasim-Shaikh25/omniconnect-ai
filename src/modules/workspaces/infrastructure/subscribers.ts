@@ -19,19 +19,21 @@ const onUserRegistered: EventHandler = async (event) => {
   // user is routed to `/onboarding` to create the workspace explicitly.
   if (autoProvisionOrganization === false) return;
 
-  // Idempotency: a user may already have an organization (e.g. re-login,
-  // onboarding retried) and should not get a second one.
+  // Idempotency: a user may already have a workspace and should not get a second one.
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { userId: true },
+    select: { workspaces: { select: { id: true }, take: 1 } },
   });
-  if (user?.userId) {
+  if (user?.workspaces.length) {
     logger.info("organizations.alreadyProvisioned", { userId });
     return;
   }
 
   const localPart = email.split("@")[0] ?? "My";
-  const org = await organizations.create({ name: `${localPart}'s Organization` });
+  const org = await organizations.create({
+    name: `${localPart}'s Organization`,
+    email,
+  });
 
   await eventBus.publish(
     new OrganizationCreated(org.id, {

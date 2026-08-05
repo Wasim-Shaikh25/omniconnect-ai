@@ -43,7 +43,6 @@ export function makeAnalyticsQueries(deps: {
   return {
     async getWorkspaceKpis(
       userId: string,
-      _userId: string,
     ): Promise<WorkspaceKpiSnapshot | null> {
       const overview = await deps.organizations.getOrganizationOverview(
         userId,

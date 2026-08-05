@@ -117,12 +117,14 @@ class InMemoryInvites implements OrganizationInviteRepository {
   createWithinSeatLimit(
     input: CreateInviteInput,
     teamSeats: number | null,
+    now?: Date,
   ): Promise<CreateInviteResult> {
+    const cutoff = now ?? new Date();
     const pendingCount = this.invites.filter(
       (i) =>
         i.userId === input.userId &&
         i.status === "PENDING" &&
-        i.expiresAt > new Date(),
+        i.expiresAt > cutoff,
     ).length;
 
     if (teamSeats !== null && this.userCount + pendingCount >= teamSeats) {
@@ -134,7 +136,7 @@ class InMemoryInvites implements OrganizationInviteRepository {
       projectId: input.projectId ?? null,
       status: input.status ?? "PENDING",
       id: `invite-${this.invites.length + 1}`,
-      createdAt: new Date(),
+      createdAt: cutoff,
     };
     this.invites.push(invite);
     return Promise.resolve({ ok: true as const, invite });

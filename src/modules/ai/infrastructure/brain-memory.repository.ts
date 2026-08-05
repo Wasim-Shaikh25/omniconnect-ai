@@ -4,7 +4,6 @@ import type { BrainConversationMemoryRecord, BrainMemoryRepository } from "../ap
 function toRecord(row: {
   id: string;
   userId: string;
-  userId: string;
   projectId: string | null;
   question: string;
   answer: string;
@@ -38,7 +37,6 @@ export class PrismaBrainMemoryRepository implements BrainMemoryRepository {
 
   async listRecent(
     userId: string,
-    _userId: string,
     projectId?: string,
     limit = 10,
   ): Promise<BrainConversationMemoryRecord[]> {

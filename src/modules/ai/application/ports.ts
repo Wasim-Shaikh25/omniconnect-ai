@@ -56,7 +56,7 @@ export interface BrainConversationMemoryRecord {
 
 export interface BrainMemoryRepository {
   save(entry: Omit<BrainConversationMemoryRecord, "id" | "createdAt" | "updatedAt">): Promise<BrainConversationMemoryRecord>;
-  listRecent(userId: string, userId: string, projectId?: string, limit?: number): Promise<BrainConversationMemoryRecord[]>;
+  listRecent(userId: string, projectId?: string, limit?: number): Promise<BrainConversationMemoryRecord[]>;
   updateFeedback(id: string, acceptedAdviceIds: string[], rejectedAdviceIds: string[], goals: string[]): Promise<BrainConversationMemoryRecord>;
   purgeExpiredBefore(before: Date): Promise<number>;
 }

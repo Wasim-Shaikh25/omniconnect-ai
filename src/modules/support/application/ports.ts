@@ -32,13 +32,12 @@ export interface SupportTicketRecord {
 export interface SupportTicketRepository {
   create(input: {
     userId: string;
-    userId: string;
     title: string;
     description: string;
     category: TicketCategory;
   }): Promise<SupportTicketRecord>;
   findById(id: string, userId?: string): Promise<SupportTicketRecord | null>;
-  listByUser(userId: string, userId?: string, limit?: number): Promise<SupportTicketRecord[]>;
+  listByUser(userId: string, limit?: number): Promise<SupportTicketRecord[]>;
   listAll(
     userId?: string | null,
     filters?: {
@@ -59,7 +58,6 @@ export interface SupportTicketRepository {
   ): Promise<SupportTicketRecord | null>;
   addComment(input: {
     ticketId: string;
-    userId: string;
     userId: string;
     message: string;
     isInternal: boolean;

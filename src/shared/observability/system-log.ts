@@ -106,7 +106,6 @@ export async function logSystemError(
   fields: {
     metadata?: Record<string, unknown>;
     userId?: string;
-    userId?: string;
   } = {},
 ): Promise<void> {
   const message = error instanceof Error ? error.message : String(error);

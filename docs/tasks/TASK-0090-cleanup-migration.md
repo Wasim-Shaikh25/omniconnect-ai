@@ -1,6 +1,6 @@
 # TASK-0090: Cleanup & Migration
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0090-cleanup-migration.md`
 - **Tracker:** `docs/trackers/TRACKER-0090-cleanup-migration.md`
@@ -36,35 +36,42 @@ Removed shopify, woocommerce, bigcommerce connector files.
 ### Step 4 — Delete Overscoped Features
 Remove product CRUD actions, standalone orders view, store lifecycle management.
 
-### Step 5 — Update All Queries
-Change every org/store scoped query to user/workspace/project scope. Touch every module.
+### Step 5 — Update All Queries ✅
+Mechanical and manual org/store → user/workspace/project migration applied across all modules.
+`organizationId` → `userId` and `storeId` → `projectId` in repository signatures, Prisma model
+references updated, unique constraint names aligned, and session/auth context now carries
+`userId`/`projectId` from the JWT.
 
-### Step 6 — Replace OpenAI
-Remove direct OpenAI imports, wire everything through OpenRouter client.
+### Step 6 — Replace OpenAI 🚧
+OpenRouter client and model router are in place; remaining direct OpenAI imports will be
+rewired in T-017 (Phase 1 follow-up).
 
-### Step 7 — Fix Compilation 🚧
-Schema generates (`prisma generate` passes). `tsc --noEmit` still has many code-level errors from deleted modules and renamed fields. Update or remove broken tests.
+### Step 7 — Fix Compilation ✅
+`npx prisma generate` passes, `npx tsc --noEmit` passes, `npm run lint`, `npm run test`, and
+`npm run build` all pass. Integration test fixtures and repository manual types were updated to
+match the V2 schema.
 
 ## 4. Subtasks
 
 - [x] T-001: Delete Organization/Store/Staff/StoreIntegration models
-- [~] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018; depends on T-002..T-006 across REQ-0076/0077/0080/0082/0084/0086/0088)
+- [x] T-007: Run Prisma migration — generated and applied to a local PostgreSQL instance (`20260805064000_v2_phase1_workspace_project`)
 - [x] T-019: Delete organizations module
 - [x] T-037: Delete hardcoded connectors
 - [~] T-038: Delete overscoped features
   - [x] T-038a: Delete obsolete verification/maintenance scripts (`scripts/verify-*.ts`, `backfill-past-due.ts`, `check-http-status.ts`, `reencrypt-credentials.ts`)
   - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants
-- [~] T-018: Update all queries (org/store → user/workspace/project)
-  - [~] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId` in record types / queries (safe rename applied to files without existing `userId`; remaining files with duplicate `userId` need manual mapping)
-  - [~] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration` with new model names (replaced in safe-rename pass; workspaces module still uses old model names and must be adapted)
-  - [ ] T-018c: Update session/auth context and `next-auth.d.ts` to carry `userId`/`projectId`
-- [~] T-039: Create `src/modules/workspaces` module to replace deleted `organizations` public barrel (shell imported; internal Prisma refs still being adapted)
+- [x] T-018: Update all queries (org/store → user/workspace/project)
+  - [x] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId` in record types / queries
+  - [x] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration` with new model names
+  - [x] T-018c: Update session/auth context and `next-auth.d.ts` to carry `userId`/`projectId`
+- [x] T-039: Create `src/modules/workspaces` module to replace deleted `organizations` public barrel
+(internal Prisma refs and repository mappings adapted to the V2 `User`/`Workspace`/`Project`/`EcommerceConnection` models)
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0090 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Phase 1 schema migration, query migration, and OpenRouter foundation pass lint, typecheck, tests, and build.
+- [x] `CHANGELOG.md` updated.
+- [ ] Remaining Phase 1 cleanup (T-038b, T-017) to be completed in a follow-up session.
 
 ## 6. Notes / Blockers
 

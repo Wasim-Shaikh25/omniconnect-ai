@@ -10,7 +10,7 @@ describe("PrismaOrganizationInviteRepository.createWithinSeatLimit", () => {
 
   beforeAll(async () => {
     const org = await prisma.user.create({
-      data: { name: "Seat Limit Concurrency Test" },
+      data: { name: "Seat Limit Concurrency Test", email: `seat-limit-${Date.now()}@example.com` },
     });
     userId = org.id;
 

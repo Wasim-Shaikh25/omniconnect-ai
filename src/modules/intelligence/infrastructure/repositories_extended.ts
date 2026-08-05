@@ -80,7 +80,6 @@ export class PrismaIntelligenceDismissalRepository implements IntelligenceDismis
   async dismiss(input: {
     insightId: string;
     userId: string;
-    userId: string;
     reason: string;
   }): Promise<IntelligenceDismissalRecord> {
     const upserted = await prisma.intelligenceDismissal.upsert({
@@ -265,13 +264,13 @@ export class PrismaRolloutGateRepository implements RolloutGateRepository {
   }
 
   async getGate(name: RolloutMode, userId: string): Promise<RolloutGateRecord | null> {
-    const row = await prisma.rolloutGate.findUnique({ where: { organizationId_name: { userId, name } } });
+    const row = await prisma.rolloutGate.findUnique({ where: { userId_name: { userId, name } } });
     return toRolloutGateRecord(row ?? null, name, userId);
   }
 
   async setGate(name: RolloutMode, userId: string, enabled: boolean): Promise<RolloutGateRecord> {
     const row = await prisma.rolloutGate.upsert({
-      where: { organizationId_name: { userId, name } },
+      where: { userId_name: { userId, name } },
       create: { userId, name, enabled },
       update: { enabled },
     });

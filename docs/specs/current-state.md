@@ -2,7 +2,7 @@
 
 - **Status:** Living document
 - **Owner:** Devin
-- **Last updated:** 2026-08-01
+- **Last updated:** 2026-08-05
 - **Changelog:** `CHANGELOG.md`
 - **Product charter:** `docs/requirements/REQ-0061-product-charter.md`
 
@@ -28,10 +28,8 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | Role | Description |
 |------|-------------|
 | `ANONYMOUS` | Visitor on landing/pricing pages. |
-| `USER` / `STORE_OWNER` | Owns the organization; can connect stores, invite team, manage billing, view analytics. |
-| `ADMIN` | Same as owner except billing ownership may differ. |
-| `STAFF` | Scoped to one assigned store; can view inbox, followers, analytics, and take over AI conversations. |
-| `SUPER_ADMIN` | Platform-level support; can triage tickets, manage organizations, view system logs. |
+| `USER` | Workspace/project owner; can create workspaces, connect projects (stores), invite team, manage billing, view analytics. |
+| `SUPER_ADMIN` | Platform-level support; can triage tickets, manage users, view system logs. |
 
 ---
 
@@ -80,7 +78,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | Database | PostgreSQL (Prisma ORM) |
 | Cache / Queue / Pub-Sub | Redis (BullMQ, ioredis) |
 | Auth | NextAuth.js v5 (Auth.js), JWT sessions, bcrypt, token version invalidation |
-| AI | OpenAI GPT-4o-mini via `AIProvider` interface |
+| AI | OpenRouter gateway via `AIProvider` interface (OpenAI adapter retained; model routing centralized) |
 | Payments | Stripe subscriptions + promotion codes |
 | E-commerce | Shopify Admin REST API (live) + webhooks for catalog/orders/abandoned cart + Mock connector (dev) |
 | Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified) |
@@ -95,7 +93,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 |--------|------|
 | `auth` | User credentials, sessions, password reset, MFA, super-admin OTP, role checks. |
 | `users` | User profile, organization membership, role changes, store assignment, GDPR export/delete. |
-| `organizations` | Organization lifecycle, stores, tenant guard, plan limits, team invites. |
+| `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits, team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons. |
 | `meta` | Meta Graph API client, inbound webhook verification, outbound messaging. |
 | `ai` | `AIProvider` interface, OpenAI adapter, content/trend/competitor generation, `AIUsageGuard`. |
@@ -113,11 +111,11 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 
 Core tables (see `prisma/schema.prisma` for full model):
 
-- `User` — authentication, RBAC role, `organizationId`, optional `storeId` for staff, `deletedAt`, `tokenVersion`.
-- `Organization` — tenant boundary, plan/subscription, AI quota counters, `aiRepliesThisMonth`, `aiRepliesResetAt`.
-- `Store` — a connected e-commerce or Meta source; `archivedAt`/`deletedAt` for soft lifecycle.
-- `Integration` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest.
-- `Product` / `Order` / `Customer` / `Coupon` — synced from e-commerce connectors; `externalId` + `storeId` uniqueness.
+- `User` — authentication, RBAC role (`USER` | `SUPER_ADMIN`), `userId` (owning-tenant id), `projectId` (selected active project), plan/subscription fields, AI quota counters, `deletedAt`, `tokenVersion`.
+- `Workspace` — tenant boundary; owned by a `userId`; carries plan/subscription metadata.
+- `Project` — a connected e-commerce or Meta source (replaces `Store`); `workspaceId`, `provider`, `domain`, `archivedAt`/`deletedAt` for soft lifecycle.
+- `EcommerceConnection` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest; `projectId` scoped.
+- `Product` / `Order` / `Customer` / `Coupon` — synced from e-commerce connectors; `externalId` + `projectId` uniqueness.
 - `Conversation` / `Message` — DM/comment threads; status `AI_ACTIVE` or `HUMAN_ACTIVE`.
 - `Follower` / `Campaign` — first-follower campaign tracking.
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
@@ -132,18 +130,18 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 - **NextAuth v5 JWT strategy** with `tokenVersion` invalidation.
 - `getCurrentUser()` loads the canonical DB record and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions.
-- `tenantGuard.assertStoreAccess(user, storeId)` enforces: staff only access `user.storeId`; owners/admins access any store in their organization.
+- `tenantGuard.assertStoreAccess(user, projectId)` enforces: staff only access `user.projectId`; owners access any project in their workspace.
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
-- Store pages use `checkStoreAccess(storeId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(storeId)` wrapper remains for server actions that need throwing semantics.
+- Store pages use `checkStoreAccess(projectId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(projectId)` wrapper remains for server actions that need throwing semantics.
 - The global `src/app/loading.tsx` was removed so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.
 - Super admin requires email-based OTP in addition to login.
 
 ### 7.5 Tenancy and Workspace Model
 
-- A user belongs to **exactly one `Organization`** at a time. The organization is created automatically during registration/onboarding.
-- Inviting an existing user to a different organization updates their `organizationId` (and bumps `tokenVersion`); this effectively moves them rather than adding a secondary membership.
-- Owners/admins can access any store in their organization. `STAFF` users are pinned to a single `storeId`; on login they are redirected from `/dashboard` to `/stores/{storeId}`.
-- `Project` and `ProjectMember` models have been removed (see CHANGELOG and `REQ-0073`). `Store` + `Integration` provide the same scoping.
+- A user is the root tenant (`userId` equals their own id for owners, or the owner id for invited staff). A `Workspace` is created automatically during onboarding.
+- Inviting an existing user to a project updates their `projectId` / `userId` (and bumps `tokenVersion`); staff are pinned to a single project.
+- Owners can access any project in their workspace. Assigned `USER` staff are pinned to a single `projectId`; on login they are redirected from `/dashboard` to `/stores/{projectId}`.
+- Old `Organization`/`Store`/`Staff`/`StoreIntegration` models have been removed; `Workspace` + `Project` + `EcommerceConnection` provide the same scoping.
 
 ---
 
@@ -151,20 +149,20 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 ### 8.1 Registration and Onboarding
 1. `/register` → `registerUserAction` → `UserRegistered` event.
-2. `organizations` module auto-creates `Organization` and links owner.
-3. Immediately after signup the user has a `User` and an `Organization`, but no `Store` and no `Integration`.
-4. `/onboarding` prompts the user to create a store (or connect an existing source).
-5. `completeOnboardingAction` updates the session with new `organizationId`/`tokenVersion`.
+2. `workspaces` module auto-creates a `Workspace` and links the owner.
+3. Immediately after signup the user has a `User` and a `Workspace`, but no `Project` and no `EcommerceConnection`.
+4. `/onboarding` prompts the user to create a project (or connect an existing source).
+5. `completeOnboardingAction` updates the session with new `userId`/`projectId`/`tokenVersion`.
 
 ### 8.2 Connect E-commerce Store
-1. Owner/admin visits `/stores` or `/stores/[storeId]`.
+1. Owner visits `/stores` or `/stores/[projectId]`.
 2. Chooses provider and enters credentials.
-3. `connectStoreAction` validates hostname/domain and persists encrypted `Integration`.
+3. `connectStoreAction` validates hostname/domain and persists an encrypted `EcommerceConnection`.
 4. `syncProductsAction` calls `EcommerceConnector.getProducts()` and upserts `Product` records.
 
 ### 8.3 Connect Meta
 1. Store detail Meta connection form.
-2. `connectMetaAction` persists `Integration` with page/IG ID and access token.
+2. `connectMetaAction` persists `EcommerceConnection` with page/IG ID and access token.
 3. `/api/meta/webhook` receives verified `MetaMessageReceived`/`MetaFollowReceived`/`MetaCommentReceived` events.
 
 ### 8.4 First-Follower Campaign
@@ -182,10 +180,10 @@ Core tables (see `prisma/schema.prisma` for full model):
 5. Staff can `takeOver` to set `HUMAN_ACTIVE`; `resumeAI` flips back.
 
 ### 8.6 Analytics
-1. `getMarketingPerformance(storeId)` fetches live Meta page/media/audience insights and Shopify orders.
+1. `getMarketingPerformance(projectId)` fetches live Meta page/media/audience insights and Shopify orders.
 2. `attributeOrdersToMedia` attributes orders to the most recent media within a 7-day window.
 3. Returns `MarketingPerformanceView` with `dataQuality` (`live`/`partial`/`simulated`) badge.
-4. Store-scoped analytics pages (`/stores/[storeId]/analytics/content`, `/trends`, `/reports`, `/recommendations`) list `MediaPost`, `TrendSnapshot`, `Report`, and `ContentRecommendation` records and trigger `syncMediaCatalog`, `searchTrendingHashtags`, `generateReport`, and `createContentRecommendation` actions.
+4. Project-scoped analytics pages (`/stores/[projectId]/analytics/content`, `/trends`, `/reports`, `/recommendations`) list `MediaPost`, `TrendSnapshot`, `Report`, and `ContentRecommendation` records and trigger `syncMediaCatalog`, `searchTrendingHashtags`, `generateReport`, and `createContentRecommendation` actions.
 5. Per-post detail page runs `analyzeMedia` to produce `whyItWorked` and a slide-by-slide storyboard.
 
 ---
@@ -194,7 +192,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 ### E-commerce
 - `EcommerceConnector` interface: `fetchStoreInfo`, `getProducts`, `getOrders`, `getCustomers`, `fetchDiscounts`, `generateCoupon`, `disableCoupon`.
-- Implemented: `ShopifyConnector` (Admin REST API v2024-01), `WooCommerceConnector`, `BigCommerceConnector`, and `MockConnector` (deterministic dev data).
+- Implemented: dynamic `EcommerceConnector` interface with `ShopifyConnector` (Admin REST API v2024-01), `WooCommerceConnector`, `BigCommerceConnector`, and `MockConnector` (deterministic dev data).
 - Shopify webhooks: `POST /api/shopify/webhooks` verifies HMAC-SHA256, maps shop domain to `Integration`, and handles `products/create`, `products/update`, `products/delete`, `orders/create`, `orders/paid`, `checkouts/create|update`, and the four GDPR/compliance topics `customers/data_request`, `customers/redact`, `shop/redact`, and `app/uninstalled`. Delivery is deduplicated by `x-shopify-webhook-id` using the shared `ProcessedWebhookEvent` ledger. Product/order payloads are normalized and persisted. Checkout payloads upsert a `Cart` row and do **not** publish domain events; `orders/create|paid` marks the matching cart `convertedAt` when `cart_token` is present. A periodic sweep identifies idle, unconverted, unnotified carts and publishes `AbandonedCartDetected` exactly once. `CartRepository.markNotified` uses `UPDATE ... WHERE notifiedAt IS NULL` and returns whether this call made the update, so concurrent sweeps cannot double-notify; a notification subscriber creates an in-app alert. Compliance webhooks are routed through `makeApplyShopifyWebhook` with a `PrismaShopifyComplianceRepository` that erases/anonymizes PII, deletes shop-scoped data and tokens, disconnects the integration, and writes an `AuditLog` record for each action. Unhandled `customers/*`, `shop/*`, and `app/*` topics return a non-2xx result instead of `{ ok: true }`.
 
 ### Meta

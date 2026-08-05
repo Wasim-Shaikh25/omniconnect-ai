@@ -78,6 +78,7 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
         expiresAt,
       },
       teamSeats,
+      deps.now(),
     );
 
     if (!result.ok) {

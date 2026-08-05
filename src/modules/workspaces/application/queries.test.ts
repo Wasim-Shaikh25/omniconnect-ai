@@ -49,9 +49,9 @@ function makeStoreRepo(): {
   };
 }
 
-function makeUser(role: SessionUser["role"], projectId: string | null): SessionUser {
+function makeUser(role: SessionUser["role"], projectId: string | null, id = "user-1"): SessionUser {
   return {
-    id: "user-1",
+    id,
     email: "user@example.com",
     name: "User",
     role,
@@ -71,7 +71,7 @@ describe("getOrganizationOverview store scoping", () => {
     });
     const overview = await queries.getOrganizationOverview(
       "org-1",
-      makeUser("USER", null),
+      makeUser("USER", null, "org-1"),
     );
     expect(overview?.stores).toHaveLength(2);
   });

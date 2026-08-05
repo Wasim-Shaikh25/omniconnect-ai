@@ -39,7 +39,7 @@ export class PrismaFollowerRepository implements FollowerRepository {
   }): Promise<{ record: FollowerRecord; isNew: boolean }> {
     const existing = await prisma.follower.findUnique({
       where: {
-        storeId_igUserId: {
+        projectId_igUserId: {
           projectId: input.projectId,
           igUserId: input.externalUserId,
         },

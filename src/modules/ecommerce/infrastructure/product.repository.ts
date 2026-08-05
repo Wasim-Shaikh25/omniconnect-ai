@@ -43,7 +43,7 @@ export class PrismaProductRepository implements ProductRepository {
       products.map((p) =>
         prisma.product.upsert({
           where: {
-            storeId_externalId: { projectId, externalId: p.externalId },
+            projectId_externalId: { projectId, externalId: p.externalId },
           },
           create: {
             projectId,
@@ -85,7 +85,7 @@ export class PrismaProductRepository implements ProductRepository {
       const upsertOps = products.map((p) =>
         tx.product.upsert({
           where: {
-            storeId_externalId: { projectId, externalId: p.externalId },
+            projectId_externalId: { projectId, externalId: p.externalId },
           },
           create: {
             projectId,

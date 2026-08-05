@@ -13,9 +13,9 @@ function toRecord(row: {
   id: string;
   email: string;
   userId: string;
-  role: Role;
+  role: string;
   projectId: string | null;
-  status: InviteStatus;
+  status: string;
   token: string;
   createdByUserId: string;
   createdAt: Date;
@@ -25,9 +25,9 @@ function toRecord(row: {
     id: row.id,
     email: row.email,
     userId: row.userId,
-    role: row.role,
+    role: row.role as Role,
     projectId: row.projectId,
-    status: row.status,
+    status: row.status as InviteStatus,
     token: row.token,
     createdByUserId: row.createdByUserId,
     createdAt: row.createdAt,
@@ -40,7 +40,7 @@ export class PrismaOrganizationInviteRepository
 {
   async findByToken(token: string): Promise<OrganizationInviteRecord | null> {
     const row = await prisma.organizationInvite.findUnique({ where: { token } });
-    return row ? toRecord(row as OrganizationInviteRecord) : null;
+    return row ? toRecord(row) : null;
   }
 
   async findPendingByEmail(
@@ -51,7 +51,7 @@ export class PrismaOrganizationInviteRepository
       where: { organizationId_email: { userId, email } },
     });
     if (!row || row.status !== "PENDING") return null;
-    return toRecord(row as OrganizationInviteRecord);
+    return toRecord(row);
   }
 
   async findById(
@@ -61,7 +61,7 @@ export class PrismaOrganizationInviteRepository
     const row = await prisma.organizationInvite.findFirst({
       where: { id, userId },
     });
-    return row ? toRecord(row as OrganizationInviteRecord) : null;
+    return row ? toRecord(row) : null;
   }
 
   async create(
@@ -79,12 +79,13 @@ export class PrismaOrganizationInviteRepository
         expiresAt: input.expiresAt,
       },
     });
-    return toRecord(row as OrganizationInviteRecord);
+    return toRecord(row);
   }
 
   async createWithinSeatLimit(
     input: CreateInviteInput,
     teamSeats: number | null,
+    now?: Date,
   ): Promise<CreateInviteResult> {
     const maxAttempts = 3;
     let attempt = 0;
@@ -97,13 +98,13 @@ export class PrismaOrganizationInviteRepository
             if (teamSeats !== null) {
               const [userCount, pendingCount] = await Promise.all([
                 tx.user.count({
-                  where: { userId: input.userId, deletedAt: null },
+                  where: { id: input.userId, deletedAt: null },
                 }),
                 tx.organizationInvite.count({
                   where: {
                     userId: input.userId,
                     status: "PENDING",
-                    expiresAt: { gt: new Date() },
+                    expiresAt: { gt: now ?? new Date() },
                   },
                 }),
               ]);
@@ -129,7 +130,7 @@ export class PrismaOrganizationInviteRepository
                 expiresAt: input.expiresAt,
               },
             });
-            return { ok: true as const, invite: toRecord(invite as OrganizationInviteRecord) };
+            return { ok: true as const, invite: toRecord(invite) };
           },
           { isolationLevel: "Serializable" },
         );
@@ -148,7 +149,7 @@ export class PrismaOrganizationInviteRepository
 
   async updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord> {
     const row = await prisma.organizationInvite.update({ where: { id }, data: { status } });
-    return toRecord(row as OrganizationInviteRecord);
+    return toRecord(row);
   }
 
   async updateToken(
@@ -161,7 +162,7 @@ export class PrismaOrganizationInviteRepository
       where: { id, userId },
       data: { token, expiresAt },
     });
-    return row ? toRecord(row as OrganizationInviteRecord) : null;
+    return row ? toRecord(row) : null;
   }
 
   async deleteInvite(id: string, userId: string): Promise<void> {
@@ -183,6 +184,6 @@ export class PrismaOrganizationInviteRepository
       orderBy: { createdAt: "desc" },
       take: limit,
     });
-    return rows.map((r) => toRecord(r as OrganizationInviteRecord));
+    return rows.map((r) => toRecord(r));
   }
 }

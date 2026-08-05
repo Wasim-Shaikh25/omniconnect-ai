@@ -10,7 +10,7 @@ import {
 
 function mapOrg(org: {
   id: string;
-  name: string;
+  name: string | null;
   plan: string;
   subscriptionId: string | null;
   subscriptionStatus: string | null;
@@ -18,7 +18,7 @@ function mapOrg(org: {
 }): OrganizationRecord {
   return {
     id: org.id,
-    name: org.name,
+    name: org.name ?? "",
     plan: parsePlan(org.plan),
     subscriptionId: org.subscriptionId,
     subscriptionStatus: org.subscriptionStatus,
@@ -26,9 +26,26 @@ function mapOrg(org: {
   };
 }
 
+function generateId(): string {
+  const crypto = globalThis.crypto as { randomUUID?: () => string } | undefined;
+  if (crypto?.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function generatePlaceholderEmail(name: string): string {
+  const safe = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return `${safe || "org"}-${generateId()}@example.com`;
+}
+
 export class PrismaOrganizationRepository implements OrganizationRepository {
-  async create(input: { name: string }): Promise<OrganizationRecord> {
-    const org = await prisma.user.create({ data: { name: input.name } });
+  async create(input: { name: string; email?: string }): Promise<OrganizationRecord> {
+    const org = await prisma.user.create({
+      data: {
+        name: input.name,
+        email: input.email ?? generatePlaceholderEmail(input.name),
+        passwordHash: null,
+      },
+    });
     return mapOrg(org);
   }
 
@@ -42,7 +59,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
     const client = tx ?? prisma;
-    const org = await client.organization.findUnique({ where: { subscriptionId } });
+    const org = await client.user.findFirst({ where: { subscriptionId } });
     return org ? mapOrg(org) : null;
   }
 
@@ -72,7 +89,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     const data: Record<string, unknown> = { plan: input.plan };
     if (input.subscriptionId !== undefined) data.subscriptionId = input.subscriptionId;
     if (input.subscriptionStatus !== undefined) data.subscriptionStatus = input.subscriptionStatus;
-    const org = await client.organization.update({ where: { id }, data });
+    const org = await client.user.update({ where: { id }, data });
     return mapOrg(org);
   }
 
@@ -83,14 +100,14 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
     try {
       return await prisma.$transaction(
         async (tx) => {
-          const org = await tx.organization.findUnique({ where: { id } });
+          const org = await tx.user.findUnique({ where: { id } });
           if (!org) return false;
 
           let used = org.aiRepliesThisMonth;
           const resetAt = org.aiRepliesResetAt;
           if (!resetAt || resetAt < monthStart) {
             used = 0;
-            await tx.organization.update({
+            await tx.user.update({
               where: { id },
               data: { aiRepliesThisMonth: 0, aiRepliesResetAt: monthStart },
             });
@@ -98,7 +115,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
 
           if (limit !== null && used >= limit) return false;
 
-          await tx.organization.update({
+          await tx.user.update({
             where: { id },
             data: { aiRepliesThisMonth: { increment: 1 } },
           });

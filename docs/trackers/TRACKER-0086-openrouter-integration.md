@@ -1,6 +1,6 @@
 # TRACKER-0086: OpenRouter Integration
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0086-openrouter-integration.md`
 - **Task:** `docs/tasks/TASK-0086-openrouter-integration.md`
@@ -13,29 +13,30 @@ Progress tracker for REQ-0086: OpenRouter Integration.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement REQ-0086 approved.
-- [ ] Task file TASK-0086 created.
-- [ ] Branch created.
+- [x] Requirement REQ-0086 approved.
+- [x] Task file TASK-0086 created.
+- [x] Branch created (`devin/batch-1-openrouter-1785912057`).
 
 ### Implementation
 - [x] T-016: OpenRouter client (API wrapper, streaming, tools).
-- [ ] T-017: Replace all OpenAI imports with OpenRouter.
+- [~] T-017: Replace all OpenAI imports with OpenRouter (mechanical wiring done; remaining direct imports tracked in TASK-0090 T-017).
 - [x] T-061: Per-feature model routing + plan validation.
-- [ ] T-062: AI usage tracking (tokens/model/feature/day).
+- [~] T-062: AI usage tracking (tokens/model/feature/day) (partial via `TokenUsage` model; full wiring in Phase 2).
 
 ### Verification
-- [ ] `npm run lint` passes.
-- [ ] `npm run typecheck` passes.
-- [ ] `npm run test` passes.
-- [ ] `npm run build` passes.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `docs/specs/current-state.md` updated if needed.
+- [x] `npm run lint` passes.
+- [x] `npm run typecheck` passes.
+- [x] `npm run test` passes.
+- [x] `npm run build` passes.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated (AI provider contract now OpenRouter).
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] Phase 1 OpenRouter client, model router, and per-feature model validation meet acceptance criteria and quality gates.
+- [x] All verification steps above pass.
+- [ ] T-017 and T-062 remaining for follow-up.
 
 ## 4. Notes / Blockers
 
-- Status: Todo — not yet started.
+- Status: Phase 1 OpenRouter foundation complete; remaining wiring tracked in TASK-0090/T-017.

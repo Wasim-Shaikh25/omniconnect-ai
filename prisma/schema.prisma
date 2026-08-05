@@ -44,6 +44,7 @@ model User {
   gender                  Gender?
   companyName             String?
   image                   String?
+  userId                  String?    // tenant / owning-user id (self for owners, owner id for invited staff)
   projectId               String?    // selected active project (session state persisted on user)
   role                    Role       @default(USER)
   isSuperAdmin            Boolean    @default(false)
@@ -188,12 +189,20 @@ model Project {
   id                String   @id @default(cuid())
   workspaceId       String
   workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId            String    // denormalized tenant for store-style queries
   name              String
+  provider          String?   // e.g. SHOPIFY, MOCK
+  domain            String?
   metaAccountId     String?
   metaAccessToken   String?   // encrypted at application layer
   metaTokenExpiresAt DateTime?
+  archivedAt        DateTime?
+  deletedAt         DateTime?
+  lastProductSyncAt DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
 
   ecommerceConnections EcommerceConnection[]
   aiConfigurations     AIConfiguration[]
@@ -228,6 +237,23 @@ model Project {
   brandDeals BrandDeal[]
 }
 
+model OrganizationInvite {
+  id              String   @id @default(cuid())
+  email           String
+  userId          String   // owning user / organization
+  projectId       String?
+  role            Role     @default(USER)
+  status          String   @default("PENDING")
+  token           String   @unique
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
+
+  @@unique([userId, email], name: "organizationId_email")
+  @@index([token])
+  @@index([userId, status])
+}
+
 model EcommerceConnection {
   id           String   @id @default(cuid())
   projectId    String
@@ -251,18 +277,14 @@ model AIConfiguration {
   id                String   @id @default(cuid())
   projectId         String   @unique
   project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  personalityPrompt String   @default("You are a helpful AI assistant for this brand.")
   aiName            String?
+  systemPrompt      String   @default("You are a helpful AI assistant for this brand.")
   tone              String?
   welcomeStrategy   String?
   couponStrategy    String?
   salesStrategy     String?
-  enabledSkills     Json     @default("{}")
-  salesRules        Json     @default("{}")
-  channelSettings   Json     @default("{}")
-  escalationRules   Json     @default("{}")
-  knowledgeBase     String?
-  modelOverrides    Json     @default("{}")
+  escalationRules   String?
+  model             String   @default("gpt-4o-mini")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -544,6 +566,8 @@ model BrainConversationMemory {
   question          String
   answer            String
   acceptedAdviceIds String[]
+  rejectedAdviceIds String[]
+  goals             String[]
   dailyActionId     String?
   outcomeId         String?
   expiresAt         DateTime

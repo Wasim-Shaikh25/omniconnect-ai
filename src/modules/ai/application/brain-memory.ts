@@ -34,11 +34,10 @@ export function makeBrainMemoryService(input: BrainMemoryServiceInput) {
 
     async getRecentContext(
       userId: string,
-      _userId: string,
       projectId?: string,
       limit = 5,
     ): Promise<BrainConversationMemoryRecord[]> {
-      return input.repository.listRecent(userId, userId, projectId, limit);
+      return input.repository.listRecent(userId, projectId, limit);
     },
 
     async recordFeedback(

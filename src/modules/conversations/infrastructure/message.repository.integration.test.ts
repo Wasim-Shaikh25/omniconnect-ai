@@ -11,12 +11,17 @@ describe("PrismaMessageRepository.listLatestByConversationIds (M4)", () => {
 
   beforeAll(async () => {
     const org = await prisma.user.create({
-      data: { name: "Message Query Test Org" },
+      data: { name: "Message Query Test Org", email: `message-query-${Date.now()}@example.com` },
     });
     userId = org.id;
 
+    const workspace = await prisma.workspace.create({
+      data: { userId, name: "Message Query Workspace" },
+    });
+
     const store = await prisma.project.create({
       data: {
+        workspaceId: workspace.id,
         name: "Test Store",
         domain: "message-query-test.example.com",
         userId,

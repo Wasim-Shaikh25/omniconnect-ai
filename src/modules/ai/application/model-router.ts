@@ -51,10 +51,8 @@ export function getModelForFeature(
       return overrides?.inspector ?? env.AI_DEFAULT_MODEL;
     case "analysis":
       return overrides?.analysis ?? env.AI_ANALYSIS_MODEL ?? env.AI_DEFAULT_MODEL;
-    default: {
-      const _exhaustive: never = feature;
+    default:
       return env.AI_DEFAULT_MODEL;
-    }
   }
 }
 

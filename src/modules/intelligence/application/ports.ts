@@ -272,7 +272,7 @@ export interface IntelligenceFeedbackRepository {
 }
 
 export interface IntelligenceDismissalRepository {
-  dismiss(input: { insightId: string; userId: string; userId: string; reason: string }): Promise<IntelligenceDismissalRecord>;
+  dismiss(input: { insightId: string; userId: string; reason: string }): Promise<IntelligenceDismissalRecord>;
   getReason(insightId: string, userId: string): Promise<string | null>;
 }
 

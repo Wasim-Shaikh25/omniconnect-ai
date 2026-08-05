@@ -155,7 +155,7 @@ export async function loginAction(
       email,
       password: parsed.data.password,
       mfaCode: parsed.data.mfaCode,
-      redirectTo: redirectPathForUser(account.userId),
+      redirectTo: redirectPathForUser(account.id),
     });
   } catch (error) {
     if (error instanceof RateLimitAuthError) {
@@ -176,7 +176,7 @@ export async function loginAction(
     }
     throw error;
   }
-  redirect(redirectPathForUser(account.userId));
+  redirect(redirectPathForUser(account.id));
 }
 
 const requestResetSchema = z.object({

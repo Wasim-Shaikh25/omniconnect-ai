@@ -27,21 +27,22 @@ afterEach(clean);
 
 async function seedStore() {
   const org = await prisma.user.create({
-    data: { name: "Compliance Test Org", plan: "FREE" },
+    data: { name: "Compliance Test Org", email: `compliance-${Date.now()}@example.com`, plan: "FREE" },
+  });
+  const workspace = await prisma.workspace.create({
+    data: { userId: org.id, name: "Compliance Workspace" },
   });
   const store = await prisma.project.create({
-    data: { name: "Test Store", provider: "SHOPIFY", domain: "test.myshopify.com", userId: org.id },
+    data: { workspaceId: workspace.id, name: "Test Store", provider: "SHOPIFY", domain: "test.myshopify.com", userId: org.id },
   });
   await prisma.ecommerceConnection.create({
     data: {
-      type: "ECOMMERCE",
-      provider: "shopify",
-      externalId: "test.myshopify.com",
+      provider: "SHOPIFY",
+      baseUrl: "test.myshopify.com",
       accessToken: "encrypted-token",
       refreshToken: "encrypted-refresh",
-      scopes: "read_orders",
+      config: { shopId: 42, scopes: "read_orders" },
       projectId: store.id,
-      metadata: { shopId: 42 },
     },
   });
   const customer = await prisma.customer.create({
@@ -149,8 +150,8 @@ describe("PrismaShopifyComplianceRepository", () => {
     const integration = await prisma.ecommerceConnection.findFirst({ where: { projectId: store.id } });
     expect(integration?.accessToken).toBeNull();
     expect(integration?.refreshToken).toBeNull();
-    expect(integration?.externalId).toBeNull();
-    expect(integration?.scopes).toBeNull();
+    expect(integration?.baseUrl).toBeNull();
+    expect(integration?.config).toBeNull();
 
     const updated = await prisma.project.findUnique({ where: { id: store.id } });
     expect(updated?.lastProductSyncAt).toBeNull();

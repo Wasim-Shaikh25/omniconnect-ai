@@ -53,7 +53,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
   async setOrganization(id: string, userId: string): Promise<void> {
     await prisma.user.update({
       where: { id, ...notDeleted },
-      data: { tokenVersion: { increment: 1 } },
+      data: { userId, tokenVersion: { increment: 1 } },
     });
   }
 
@@ -134,10 +134,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     return prisma.user.count({ where: { id: userId, ...notDeleted } });
   }
 
-  async requestDataExport(
-    userId: string,
-    _userId?: string | null,
-  ): Promise<ExportRequestRecord> {
+  async requestDataExport(userId: string): Promise<ExportRequestRecord> {
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const record = await prisma.exportRequest.create({
       data: {

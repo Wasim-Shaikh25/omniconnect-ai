@@ -20,7 +20,6 @@ export interface AskBusinessBrainInput {
 export interface WorkspaceContextPort {
   getContext(input: {
     userId: string;
-    userId: string;
     projectId?: string;
   }): Promise<{
     organizationName: string;
@@ -225,7 +224,7 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
 
     if (deps.brainMemory) {
       try {
-        recentMemory = await deps.brainMemory.getRecentContext(input.userId, input.userId, input.projectId, 5);
+        recentMemory = await deps.brainMemory.getRecentContext(input.userId, input.projectId, 5);
       } catch {
         // Conversation memory is optional.
       }

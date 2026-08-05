@@ -1,12 +1,13 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import { StoreRecord, StoreRepository } from "../application/ports";
-import { EcommerceProvider } from "../domain/provider";
+import { EcommerceProvider, isEcommerceProvider } from "../domain/provider";
 import { StoreLimitError } from "../domain/errors";
 
 type PrismaStore = {
   id: string;
   name: string;
-  provider: string;
+  provider: string | null;
   domain: string | null;
   userId: string;
   archivedAt: Date | null;
@@ -16,10 +17,11 @@ type PrismaStore = {
 };
 
 function toRecord(store: PrismaStore): StoreRecord {
+  const provider = isEcommerceProvider(store.provider) ? store.provider : "CUSTOM";
   return {
     id: store.id,
     name: store.name,
-    provider: store.provider as EcommerceProvider,
+    provider,
     domain: store.domain,
     userId: store.userId,
     archivedAt: store.archivedAt,
@@ -31,6 +33,23 @@ function toRecord(store: PrismaStore): StoreRecord {
 
 function notDeleted() {
   return { deletedAt: null };
+}
+
+async function ensureWorkspace(
+  tx: { workspace: Prisma.WorkspaceDelegate },
+  userId: string,
+  name: string,
+): Promise<string> {
+  const existing = await tx.workspace.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (existing) return existing.id;
+  const created = await tx.workspace.create({
+    data: { userId, name },
+  });
+  return created.id;
 }
 
 export class PrismaStoreRepository implements StoreRepository {
@@ -48,16 +67,18 @@ export class PrismaStoreRepository implements StoreRepository {
     const store = shouldEnforce
       ? await prisma.$transaction(
           async (tx) => {
-            const count = await tx.store.count({
-              where: { userId: input.userId },
+            const count = await tx.project.count({
+              where: { userId: input.userId, deletedAt: null },
             });
             if (count >= maxStores) {
               throw new StoreLimitError(
                 `Your plan allows up to ${maxStores} store(s). Upgrade to add more.`,
               );
             }
-            return tx.store.create({
+            const workspaceId = await ensureWorkspace(tx, input.userId, input.name);
+            return tx.project.create({
               data: {
+                workspaceId,
                 userId: input.userId,
                 name: input.name,
                 provider: input.provider,
@@ -67,13 +88,17 @@ export class PrismaStoreRepository implements StoreRepository {
           },
           { isolationLevel: "Serializable" },
         )
-      : await prisma.project.create({
-          data: {
-            userId: input.userId,
-            name: input.name,
-            provider: input.provider,
-            domain: input.domain,
-          },
+      : await prisma.$transaction(async (tx) => {
+          const workspaceId = await ensureWorkspace(tx, input.userId, input.name);
+          return tx.project.create({
+            data: {
+              workspaceId,
+              userId: input.userId,
+              name: input.name,
+              provider: input.provider,
+              domain: input.domain,
+            },
+          });
         });
 
     return toRecord(store);

@@ -6,33 +6,22 @@ import type {
   MetaIntegrationRepository,
 } from "../application/ports";
 
-type PrismaIntegration = {
+const TOKEN_TTL_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
+
+function toRecord(project: {
   id: string;
-  projectId: string;
-  provider: string;
-  externalId: string | null;
+  metaAccountId: string | null;
   createdAt: Date;
-};
-
-function toChannel(provider: string): MetaChannel {
-  return provider === "INSTAGRAM" ? "INSTAGRAM" : "FACEBOOK";
-}
-
-function toRecord(i: PrismaIntegration): MetaIntegrationRecord {
+}): MetaIntegrationRecord {
   return {
-    id: i.id,
-    projectId: i.projectId,
-    channel: toChannel(i.provider),
-    accountId: i.externalId,
-    connectedAt: i.createdAt,
+    id: project.id,
+    projectId: project.id,
+    channel: "FACEBOOK",
+    accountId: project.metaAccountId,
+    connectedAt: project.createdAt,
   };
 }
 
-/**
- * Owns META `Integration` persistence. The channel is stored in `provider`
- * (INSTAGRAM | FACEBOOK) and the page/IG id in `externalId`; the page token in
- * `accessToken` (read only here, never returned in the public record).
- */
 export class PrismaMetaIntegrationRepository
   implements MetaIntegrationRepository
 {
@@ -43,55 +32,44 @@ export class PrismaMetaIntegrationRepository
     accessToken: string | null;
     refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord> {
-    const existing = await prisma.ecommerceConnection.findFirst({
-      where: { projectId: input.projectId, type: "META", provider: input.channel },
+    // Meta tokens are stored directly on the Project row.
+    const expiresAt = input.accessToken
+      ? new Date(Date.now() + TOKEN_TTL_MS)
+      : null;
+
+    const updated = await prisma.project.update({
+      where: { id: input.projectId },
+      data: {
+        metaAccountId: input.accountId,
+        metaAccessToken: await encryptString(input.accessToken),
+        metaTokenExpiresAt: expiresAt,
+      },
     });
 
-    const data = {
-      type: "META" as const,
-      provider: input.channel,
-      externalId: input.accountId,
-      accessToken: await encryptString(input.accessToken),
-      refreshToken: await encryptString(input.refreshToken ?? null),
-      projectId: input.projectId,
-    };
-
-    const saved = existing
-      ? await prisma.ecommerceConnection.update({ where: { id: existing.id }, data })
-      : await prisma.ecommerceConnection.create({ data });
-
-    return toRecord(saved);
+    return toRecord(updated);
   }
 
   async findByStore(projectId: string): Promise<MetaIntegrationRecord | null> {
-    const found = await prisma.ecommerceConnection.findFirst({
-      where: { projectId, type: "META" },
-      orderBy: { createdAt: "desc" },
+    const found = await prisma.project.findUnique({
+      where: { id: projectId },
     });
-    return found ? toRecord(found) : null;
+    if (!found || !found.metaAccountId) return null;
+    return toRecord(found);
   }
 
   async findStoreByAccountId(accountId: string): Promise<string | null> {
-    const found = await prisma.ecommerceConnection.findFirst({
-      where: { type: "META", externalId: accountId },
-      select: { projectId: true },
+    const found = await prisma.project.findFirst({
+      where: { metaAccountId: accountId },
+      select: { id: true },
     });
-    return found?.projectId ?? null;
+    return found?.id ?? null;
   }
 
-  async findAccessToken(
-    projectId: string,
-    channel?: MetaChannel,
-  ): Promise<string | null> {
-    const found = await prisma.ecommerceConnection.findFirst({
-      where: {
-        projectId,
-        type: "META",
-        ...(channel ? { provider: channel } : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      select: { accessToken: true },
+  async findAccessToken(projectId: string): Promise<string | null> {
+    const found = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { metaAccessToken: true },
     });
-    return await decryptString(found?.accessToken ?? null);
+    return decryptString(found?.metaAccessToken ?? null);
   }
 }

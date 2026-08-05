@@ -36,7 +36,7 @@ export interface UserProfileRepository {
   countByOrganization(userId: string): Promise<number>;
   setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
   removeFromOrganization(id: string): Promise<UserProfile>;
-  requestDataExport(userId: string, userId?: string | null): Promise<ExportRequestRecord>;
+  requestDataExport(userId: string): Promise<ExportRequestRecord>;
   listExportRequests(userId: string, limit?: number): Promise<ExportRequestRecord[]>;
   getExportRequest(id: string, userId: string): Promise<ExportRequestRecord | null>;
   markExportCompleted(id: string, downloadUrl: string): Promise<ExportRequestRecord | null>;

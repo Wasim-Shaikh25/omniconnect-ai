@@ -184,7 +184,7 @@ export async function toggleUserSuperAdminAction(
 export async function requestDataExportAction(): Promise<{ downloadUrl?: string; error?: string; ok?: boolean }> {
   const user = await requireUser();
   try {
-    const exportRequest = await dataExportService.requestExport(user.id, user.userId);
+    const exportRequest = await dataExportService.requestExport(user.id);
     return { downloadUrl: exportRequest.downloadUrl ?? undefined, ok: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not create export" };

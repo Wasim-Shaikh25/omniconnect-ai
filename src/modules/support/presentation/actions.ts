@@ -49,14 +49,14 @@ export async function createTicketAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const ticket = await createTicket(parsed.data, user.userId, user.id);
+  const ticket = await createTicket(parsed.data, user.userId ?? user.id);
   revalidatePath("/support");
   return { ok: true, ticketId: ticket.id };
 }
 
 export async function listMyTicketsAction() {
   const user = await requireUser();
-  return listUserTickets(user.id, user.userId ?? undefined);
+  return listUserTickets(user.userId ?? user.id);
 }
 
 const DEFAULT_PAGE_LIMIT = 20;
@@ -148,7 +148,7 @@ export async function addTicketCommentAction(
   const ticket = await ticketRepository.findById(ticketId, user.userId ?? undefined);
   if (!ticket || (!user.isSuperAdmin && ticket.userId !== user.id)) return { error: "Ticket not found" };
 
-  const comment = await addTicketComment(ticketId, ticket.userId, user.id, message, isInternal);
+  const comment = await addTicketComment(ticketId, user.userId ?? user.id, message, isInternal);
   revalidatePath("/admin/tickets");
   revalidatePath("/support");
   return { ok: true, comment };

@@ -28,14 +28,13 @@ export interface ThinSliceResult {
 export async function runWeek4ThinSlice(input: {
   userId: string;
   projectId: string;
-  userId: string;
   userRole: string;
   outOfStockProductTitle: string;
   alternativeProductTitle: string;
   conversationContent: string;
   now: Date;
 }): Promise<ThinSliceResult> {
-  const { userId, projectId, userId, userRole, outOfStockProductTitle, alternativeProductTitle, conversationContent, now } = input;
+  const { userId, projectId, userRole, outOfStockProductTitle, alternativeProductTitle, conversationContent, now } = input;
 
   const oneDay = 24 * 60 * 60 * 1000;
   const occurredAt = new Date(now.getTime() - oneDay);

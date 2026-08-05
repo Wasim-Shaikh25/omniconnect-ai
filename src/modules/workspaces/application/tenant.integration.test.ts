@@ -69,8 +69,12 @@ describe("makeTenantGuard", () => {
 
   it("denies STAFF access to another store in the same organization (S3/S4)", async () => {
     const tenantA = await createTenant("A-Staff-Bound");
+    const workspace = await prisma.workspace.create({
+      data: { userId: tenantA.organization.id, name: "Other Workspace" },
+    });
     const otherStore = await prisma.project.create({
       data: {
+        workspaceId: workspace.id,
         name: "Other Store",
         userId: tenantA.organization.id,
         provider: "SHOPIFY",

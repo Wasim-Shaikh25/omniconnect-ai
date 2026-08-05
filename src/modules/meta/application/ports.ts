@@ -23,10 +23,7 @@ export interface MetaIntegrationRepository {
   findStoreByAccountId(accountId: string): Promise<string | null>;
 
   /** Read the stored page/IG token for outbound calls (infra-only). */
-  findAccessToken(
-    projectId: string,
-    channel?: MetaChannel,
-  ): Promise<string | null>;
+  findAccessToken(projectId: string): Promise<string | null>;
 }
 
 export interface MetaMediaMetrics {

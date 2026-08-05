@@ -48,7 +48,7 @@ export class PrismaCartRepository implements CartRepository {
     lastActivityAt: Date;
   }): Promise<CartRecord> {
     const result = await prisma.cart.upsert({
-      where: { storeId_cartToken: { projectId: input.projectId, cartToken: input.cartToken } },
+      where: { projectId_cartToken: { projectId: input.projectId, cartToken: input.cartToken } },
       create: {
         projectId: input.projectId,
         cartToken: input.cartToken,
@@ -76,7 +76,7 @@ export class PrismaCartRepository implements CartRepository {
     cartToken: string,
   ): Promise<CartRecord | null> {
     const row = await prisma.cart.findUnique({
-      where: { storeId_cartToken: { projectId, cartToken } },
+      where: { projectId_cartToken: { projectId, cartToken } },
     });
     return row ? toRecord(row) : null;
   }

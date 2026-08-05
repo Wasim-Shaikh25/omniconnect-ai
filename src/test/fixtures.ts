@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/shared/database";
 
 export interface TenantFixture {
-  organization: { id: string; name: string; plan: string };
+  organization: { id: string; name: string | null; plan: string };
   store: { id: string; name: string; userId: string };
   owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
   staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
@@ -23,11 +23,15 @@ const SALT_ROUNDS = 12;
 export async function createTenant(label: string, password = "password"): Promise<TenantFixture> {
   const suffix = `${label}-${randomUUID()}`;
   const organization = await prisma.user.create({
-    data: { name: `Tenant ${label}`, plan: "FREE" },
+    data: { name: `Tenant ${label}`, email: `tenant-${suffix}@example.com`, plan: "FREE" },
+  });
+
+  const workspace = await prisma.workspace.create({
+    data: { userId: organization.id, name: `Tenant ${label}` },
   });
 
   const store = await prisma.project.create({
-    data: { name: `Store ${label}`, userId: organization.id, provider: "SHOPIFY" },
+    data: { workspaceId: workspace.id, name: `Store ${label}`, userId: organization.id, provider: "SHOPIFY" },
   });
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);

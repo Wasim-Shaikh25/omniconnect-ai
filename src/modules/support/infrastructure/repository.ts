@@ -13,7 +13,6 @@ import type {
 export class PrismaSupportTicketRepository implements SupportTicketRepository {
   async create(input: {
     userId: string;
-    userId: string;
     title: string;
     description: string;
     category: TicketCategory;
@@ -43,11 +42,10 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async listByUser(
     userId: string,
-    _userId?: string,
     limit = 1000,
   ): Promise<SupportTicketRecord[]> {
     const tickets = await prisma.supportTicket.findMany({
-      where: { userId, ...(userId ? { userId } : {}) },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: limit,
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" }, take: 100 } },
@@ -106,7 +104,6 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
   async addComment(input: {
     ticketId: string;
     userId: string;
-    userId: string;
     message: string;
     isInternal: boolean;
   }): Promise<TicketCommentRecord> {
@@ -129,7 +126,6 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   private mapTicket(t: {
     id: string;
-    userId: string;
     userId: string;
     title: string;
     description: string;

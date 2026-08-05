@@ -70,7 +70,7 @@ export default async function ReportsPage() {
 
   const [kpis, rows] = await Promise.all([
     user.userId
-      ? analyticsQueries.getWorkspaceKpis(user.userId, user.id)
+      ? analyticsQueries.getWorkspaceKpis(user.userId)
       : Promise.resolve(null),
     Promise.all(
       overview.stores.map(async (store) => {

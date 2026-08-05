@@ -144,7 +144,7 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
         prisma.message.deleteMany({ where: { conversation: { projectId } } }),
         prisma.conversation.deleteMany({ where: { projectId } }),
         prisma.ecommerceConnection.deleteMany({
-          where: { projectId, type: "ECOMMERCE" },
+          where: { projectId },
         }),
       ]);
 
@@ -163,13 +163,13 @@ export class PrismaShopifyComplianceRepository implements ShopifyComplianceRepos
 
   async disconnectStore(projectId: string): Promise<void> {
     await prisma.ecommerceConnection.updateMany({
-      where: { projectId, type: "ECOMMERCE" },
+      where: { projectId },
       data: {
         accessToken: null,
         refreshToken: null,
-        externalId: null,
-        scopes: null,
-        metadata: Prisma.DbNull,
+        baseUrl: null,
+        config: Prisma.JsonNull,
+        isActive: false,
       },
     });
     await prisma.project.updateMany({

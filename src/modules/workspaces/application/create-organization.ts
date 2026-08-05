@@ -20,7 +20,7 @@ export function makeCreateOrganization(deps: {
     const localPart = input.userEmail.split("@")[0] ?? "My";
     const name = trimmed && trimmed.length > 0 ? trimmed : `${localPart}'s Organization`;
 
-    const org = await deps.organizations.create({ name });
+    const org = await deps.organizations.create({ name, email: input.userEmail });
     await deps.setUserOrganization(input.userId, org.id);
 
     return org;

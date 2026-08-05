@@ -36,7 +36,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
     type: "FIRST_TIME_FOLLOWER",
   ): Promise<CampaignRecord | null> {
     const row = await prisma.campaign.findUnique({
-      where: { storeId_type: { projectId, type } },
+      where: { projectId_type: { projectId, type } },
     });
     return row ? toRecord(row) : null;
   }
@@ -46,7 +46,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
     type: "FIRST_TIME_FOLLOWER",
   ): Promise<CampaignRecord> {
     const row = await prisma.campaign.upsert({
-      where: { storeId_type: { projectId, type } },
+      where: { projectId_type: { projectId, type } },
       update: {},
       create: {
         projectId,
@@ -69,7 +69,7 @@ export class PrismaCampaignRepository implements CampaignRepository {
     >,
   ): Promise<CampaignRecord> {
     const upserted = await prisma.campaign.upsert({
-      where: { storeId_type: { projectId, type } },
+      where: { projectId_type: { projectId, type } },
       create: {
         projectId,
         type,

@@ -901,7 +901,7 @@ export async function submitIntelligenceFeedbackAction(formData: FormData) {
   const falsePositive = formData.get("falsePositive") === "true";
   const falseNegative = formData.get("falseNegative") === "true";
   if (!insightId) return;
-  await intelligenceFeedbackService.submitRating({ insightId, userId: user.id, understood, hoursSaved, falsePositive, falseNegative }, user.userId);
+  await intelligenceFeedbackService.submitRating({ insightId, understood, hoursSaved, falsePositive, falseNegative }, user.userId);
   revalidatePath("/business-brain");
 }
 

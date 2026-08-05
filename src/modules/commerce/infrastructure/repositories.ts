@@ -73,7 +73,7 @@ export class PrismaProductMappingRepository implements ProductMappingRepository 
       products.map((p) =>
         prisma.metaProductMapping.upsert({
           where: {
-            storeId_productId: { projectId, productId: p.productId },
+            projectId_productId: { projectId, productId: p.productId },
           },
           create: {
             projectId,

@@ -45,7 +45,8 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const fresh = await loadFreshUser(user.id);
   if (!fresh) return null;
   if (user.tokenVersion !== fresh.tokenVersion) return null;
-  const { tokenVersion: _tokenVersion, ...sessionUser } = fresh;
+  const { tokenVersion, ...sessionUser } = fresh;
+  void tokenVersion;
 
   return {
     ...sessionUser,

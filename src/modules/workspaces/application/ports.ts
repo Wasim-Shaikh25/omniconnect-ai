@@ -27,7 +27,7 @@ export interface StoreRecord {
 }
 
 export interface OrganizationRepository {
-  create(input: { name: string }): Promise<OrganizationRecord>;
+  create(input: { name: string; email?: string }): Promise<OrganizationRecord>;
   findById(id: string): Promise<OrganizationRecord | null>;
   findBySubscriptionId(
     subscriptionId: string,
@@ -95,7 +95,11 @@ export interface OrganizationInviteRepository {
   findPendingByEmail(userId: string, email: string): Promise<OrganizationInviteRecord | null>;
   findById(id: string, userId: string): Promise<OrganizationInviteRecord | null>;
   create(input: CreateInviteInput): Promise<OrganizationInviteRecord>;
-  createWithinSeatLimit(input: CreateInviteInput, teamSeats: number | null): Promise<CreateInviteResult>;
+  createWithinSeatLimit(
+    input: CreateInviteInput,
+    teamSeats: number | null,
+    now?: Date,
+  ): Promise<CreateInviteResult>;
   updateStatus(id: string, status: InviteStatus): Promise<OrganizationInviteRecord>;
   updateToken(id: string, userId: string, token: string, expiresAt: Date): Promise<OrganizationInviteRecord | null>;
   deleteInvite(id: string, userId: string): Promise<void>;

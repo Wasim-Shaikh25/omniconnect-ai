@@ -14,11 +14,10 @@ export function makeCreateTicket(deps: { tickets: SupportTicketRepository }) {
   return async function createTicket(
     input: CreateTicketInput,
     userId: string,
-    userId: string,
   ): Promise<SupportTicketRecord> {
     return deps.tickets.create({
       ...input,
-      userId
+      userId,
     });
   };
 }
@@ -26,9 +25,9 @@ export function makeCreateTicket(deps: { tickets: SupportTicketRepository }) {
 export function makeListUserTickets(deps: { tickets: SupportTicketRepository }) {
   return async function listUserTickets(
     userId: string,
-    userId?: string,
+    limit?: number,
   ): Promise<SupportTicketRecord[]> {
-    return deps.tickets.listByUser(userId, userId);
+    return deps.tickets.listByUser(userId, limit);
   };
 }
 
@@ -59,7 +58,6 @@ export function makeUpdateTicket(deps: { tickets: SupportTicketRepository }) {
 export function makeAddTicketComment(deps: { tickets: SupportTicketRepository }) {
   return async function addTicketComment(
     ticketId: string,
-    userId: string,
     userId: string,
     message: string,
     isInternal: boolean,
