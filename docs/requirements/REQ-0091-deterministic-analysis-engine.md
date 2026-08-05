@@ -117,8 +117,11 @@ answered with an invented figure.
   re-scoping org/store → project — the engine is built project-scoped from day one).
 - Augments: REQ-0081, REQ-0083, REQ-0079, REQ-0085, REQ-0089 (all consume this engine instead of
   asking the LLM for numbers).
-- External: none at inference time (MiniLM runs locally; model weights fetched once at build/install
-  and cached).
+- External: none at inference time. **Decision (2026-08-05): MiniLM is self-hosted.** The model is
+  small (all-MiniLM-L6-v2 ≈ 22M params, ~90MB fp32 / ~23MB quantized), so it runs in-process via
+  transformers.js by default, and can alternatively be served from a small internal embedding
+  service behind the same `EmbeddingProvider` port with no change to callers. No third-party
+  embedding API and no per-call cost either way.
 
 ## 7. Code Snippets
 
@@ -307,7 +310,8 @@ reference implementations of the target pattern.
 
 ## 10. Open Questions
 
-1. MiniLM model choice + size (all-MiniLM-L6-v2 is the default candidate; confirm bundle-size budget
-   for the worker image).
+1. ~~MiniLM model choice + size.~~ **Resolved (2026-08-05):** self-host all-MiniLM-L6-v2 — small
+   enough to run in-process (transformers.js) or behind a small internal embedding service via the
+   `EmbeddingProvider` port. Quantized weights (~23MB) fit the worker-image budget; T-081 confirms.
 2. Confidence threshold for `OperationResolver` "unsupported" cutoff — start at a conservative
    value and tune against a labelled question set.
