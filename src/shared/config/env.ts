@@ -35,6 +35,16 @@ const envSchema = z.object({
 
   OPENAI_API_KEY: z.string().optional(),
 
+  // OpenRouter unified AI gateway
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_SITE_URL: z.string().url().optional(),
+  OPENROUTER_SITE_NAME: z.string().optional().default("OmniConnect AI"),
+  AI_DEFAULT_MODEL: z.string().optional().default("openai/gpt-4o-mini"),
+  AI_REPLY_MODEL: z.string().optional(),
+  AI_DASHBOARD_MODEL: z.string().optional(),
+  AI_CONTENT_MODEL: z.string().optional(),
+  AI_ANALYSIS_MODEL: z.string().optional(),
+
   SHOPIFY_API_KEY: z.string().optional(),
   SHOPIFY_API_SECRET: z.string().optional(),
 
