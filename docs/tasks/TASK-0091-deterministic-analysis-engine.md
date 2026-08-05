@@ -1,80 +1,97 @@
-# TASK-0091: Deterministic Analysis Engine (Batch 6 — OperationResolver, EmbeddingProvider port, golden tests)
+# TASK-0091: Deterministic Analysis Engine (Batch 7 — queryAnalytics / generateDashboard wiring)
 
 - **Status:** Completed
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Tracker:** `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
 - **Module(s):** analytics, ai
-- **Changelog entry:** `CHANGELOG.md [Unreleased]` — OperationResolver and EmbeddingProvider port.
+- **Changelog entry:** `CHANGELOG.md [Unreleased]` — queryAnalytics / generateDashboard wiring.
 - **Last updated:** 2026-08-05
 
 ## 1. Summary
 
-Sixth batch of REQ-0091. Add the `EmbeddingProvider` port and a deterministic `KeywordEmbeddingProvider` adapter inside the analytics/ai boundary, then build `OperationResolver` that maps a natural-language analytics question to a typed `AnalysisSpec` with a confidence score and an `unsupported` fallback. Also add golden/snapshot tests that assert each pure operation returns identical output for a fixed fixture. `queryAnalytics`/`generateDashboard` wiring and a local MiniLM `TransformersEmbeddingProvider` are deferred to Batch 7.
+Seventh batch of REQ-0091. Wire `queryAnalytics` and `generateDashboard` to the deterministic `AnalysisEngine` so that an AI assistant question is first resolved to an `AnalysisSpec`, the engine runs it with project-scoped data, and the result is either returned as structured data (`queryAnalytics`) or transformed into a `DashboardSchema` for the DynamicDashboard component (`generateDashboard`). Local MiniLM `TransformersEmbeddingProvider` is deferred to Batch 8.
 
 ## 2. References
 
 - Architecture: `docs/specs/current-state.md`
 - Requirement: `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
-- Tracker: `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
+- Related: `docs/requirements/REQ-0081-ai-assistant-tools.md`, `docs/requirements/REQ-0083-business-intelligence.md`
 - Related files:
-  - `src/modules/ai/application/operation-resolver.ts`
-  - `src/modules/ai/application/operation-resolver.test.ts`
-  - `src/modules/analytics/application/embedding-provider.ts`
-  - `src/modules/analytics/application/embedding-providers/keyword-embedding-provider.ts`
-  - `src/modules/analytics/application/operations/*.test.ts`
-  - `src/modules/analytics/index.ts`
-  - `src/modules/ai/index.ts`
+  - `src/modules/analytics/application/query-analytics.ts`
+  - `src/modules/analytics/application/generate-dashboard.ts`
+  - `src/modules/analytics/application/dataset-fetcher.ts`
+  - `src/modules/ai/application/tool-executor.ts` (if existing)
 
 ## 3. Implementation Plan
 
-### Step 1 — EmbeddingProvider port
-Define `EmbeddingProvider` port in `src/modules/analytics/application/embedding-provider.ts`:
+### Step 1 — DatasetFetcher port
+Define `DatasetFetcher` in `src/modules/analytics/application/dataset-fetcher.ts`:
 
 ```ts
-export interface EmbeddingProvider {
-  embed(text: string): Promise<number[]>;
-  cosine(a: number[], b: number[]): number;
+export type Dataset = unknown;
+
+export interface DatasetFetcher {
+  fetch(spec: AnalysisSpec, projectId: string): Promise<Dataset>;
 }
 ```
 
-### Step 2 — KeywordEmbeddingProvider
-Implement a deterministic, dependency-free adapter that builds a bag-of-words vector from a fixed vocabulary of operation-related terms and returns embeddings. This is pure (no network/model) and lets the resolver work immediately while keeping the port open for a future MiniLM adapter.
+### Step 2 — queryAnalytics application service
+Implement `queryAnalytics` in `src/modules/analytics/application/query-analytics.ts`:
 
-### Step 3 — OperationResolver
-Implement `resolveOperation(question, embeddings)` in `src/modules/ai/application/operation-resolver.ts`:
-- Tokenize the question.
-- Compute cosine similarity against `OPERATION_EXEMPLARS` (array of `{ op, terms, vector }`).
-- Combine with a simple BM25-ish term overlap bonus.
-- Return `{ spec, confidence }` for the best match if it exceeds a configurable threshold.
-- Return `{ unsupported: true, reason }` otherwise.
-- Build `AnalysisSpec` from the matched operation and any extracted entities (post id, date range hints) — keep extraction minimal and deterministic.
+```ts
+export interface QueryAnalyticsDeps {
+  resolveOperation(question: string): Promise<ResolveResult>;
+  engine: AnalysisEngine;
+  fetchDataset: DatasetFetcher;
+}
 
-### Step 4 — Golden tests
-Add `src/modules/analytics/application/operations/golden.test.ts` that replays fixed fixture datasets through every implemented operation and asserts the exact numeric output, ensuring reproducibility and guarding against regression.
+export async function queryAnalytics(
+  deps: QueryAnalyticsDeps,
+  question: string,
+  projectId: string,
+): Promise<{ result: AnalysisResult } | { unsupported: true; reason: string }> { ... }
+```
 
-### Step 5 — Exports and docs
-Export `EmbeddingProvider`, `KeywordEmbeddingProvider`, and resolver types/functions from `src/modules/analytics/index.ts` and `src/modules/ai/index.ts` as appropriate. Update CHANGELOG and current-state.
+- Resolve the question with `OperationResolver`.
+- If unsupported, return the reason.
+- Fetch the dataset for the resolved `AnalysisSpec` and projectId.
+- Run the engine and return the `AnalysisResult`.
+
+### Step 3 — generateDashboard application service
+Implement `generateDashboard` in `src/modules/analytics/application/generate-dashboard.ts`:
+
+- Reuse `queryAnalytics` to get an `AnalysisResult`.
+- Transform the `AnalysisResult` into a `DashboardSchema` with `kpi`, `line_chart`, and `table` widgets:
+  - `values` become KPI cards.
+  - `series` become line charts.
+  - `evidence` become a table widget.
+- Return `{ schema, result }` or `{ unsupported, reason }`.
+
+### Step 4 — Wired exports and tests
+- Export `queryAnalytics`, `generateDashboard`, `DatasetFetcher`, and `DashboardSchema` from `src/modules/analytics/index.ts` and `@/modules/analytics/pure` as appropriate.
+- Add unit tests using a fake `DatasetFetcher` and `KeywordEmbeddingProvider` to verify end-to-end question → result and question → dashboard transformation.
 
 ## 4. Subtasks
 
-- [x] T-081a: Define `EmbeddingProvider` port.
-- [x] T-081b: Implement `KeywordEmbeddingProvider` adapter.
-- [x] T-082a: Implement `OperationResolver` with confidence + unsupported fallback.
-- [x] T-088a: Add golden/snapshot tests for all implemented operations.
-- [x] Export new types/functions from `analytics` and `ai` barrels.
+- [x] T-084a: Define `DatasetFetcher` port (reused from `AnalysisEngine`).
+- [x] T-084b: Implement `queryAnalytics` application service.
+- [x] T-084c: Implement `generateDashboard` application service and `DashboardSchema`.
+- [x] Export new types/functions from `ai` barrel.
+- [x] Add unit tests for `queryAnalytics` and `generateDashboard`.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
 
 ## 5. Acceptance Criteria
 
-- `EmbeddingProvider` is a stable port with a pure, dependency-free `KeywordEmbeddingProvider` implementation.
-- `OperationResolver` returns a typed `AnalysisSpec` + confidence for supported natural-language questions.
-- `OperationResolver` returns `unsupported` with a reason for questions that don't match any operation.
-- Golden tests assert deterministic, byte-identical output for fixed fixtures across all implemented operations.
+- `queryAnalytics` resolves a natural-language question to an `AnalysisSpec`, fetches a project-scoped dataset, runs the `AnalysisEngine`, and returns the deterministic `AnalysisResult`.
+- `generateDashboard` transforms the `AnalysisResult` into a JSON `DashboardSchema` with at least KPI, line_chart, and table widgets.
+- Both services return `unsupported` with a reason when the resolver cannot map the question.
+- All pure numbers come from the engine; no numbers are invented by the LLM.
 - All quality gates pass.
 
 ## 6. Notes / Blockers
 
-- Local MiniLM `TransformersEmbeddingProvider` (via `@xenova/transformers` / transformers.js) and `queryAnalytics`/`generateDashboard` wiring are deferred to Batch 7.
+- Local MiniLM `TransformersEmbeddingProvider` and Profile Inspector integration are deferred to Batch 8.
+- The UI `DynamicDashboard` component (REQ-0083) is not touched here — only the JSON schema generator.

@@ -68,12 +68,15 @@ All notable changes to **OmniConnect AI** are documented here.
   added the `EmbeddingProvider` port, a dependency-free `KeywordEmbeddingProvider`, and
   `OperationResolver` that maps natural-language questions to typed `AnalysisSpec` values with
   confidence + unsupported fallback. Added golden snapshot tests for every implemented operation.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 7)** on `devin/deterministic-dashboard-wiring-1785942456`:
+  wired `queryAnalytics` and `generateDashboard` to the deterministic engine, added a
+  `DashboardSchema` transformer for KPI / line_chart / table widgets, and exposed everything through
+  the `ai` public barrel.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 7)** — local MiniLM `TransformersEmbeddingProvider`
-  (via `@xenova/transformers` / transformers.js), `queryAnalytics` / `generateDashboard` wiring, and
-  Profile Inspector integration.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 8)** — local MiniLM `TransformersEmbeddingProvider`
+  (via `@xenova/transformers` / transformers.js) and Profile Inspector integration.
 
 ### ⏭️ Next
 
