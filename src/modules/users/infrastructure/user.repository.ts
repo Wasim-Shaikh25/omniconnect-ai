@@ -186,6 +186,13 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
         deletedAt: new Date(),
         deletedReason: reason ?? null,
         tokenVersion: { increment: 1 },
+        email: `deleted-${userId}@anon.local`,
+        name: "Deleted User",
+        phone: null,
+        phoneVerified: null,
+        mobile: null,
+        mobileVerified: null,
+        image: null,
       },
     });
     return toProfile(user);

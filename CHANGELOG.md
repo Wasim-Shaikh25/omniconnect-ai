@@ -33,6 +33,10 @@ All notable changes to **OmniConnect AI** are documented here.
   `/settings` removes the four dead links (`/settings/quality`, `/settings/rollout`,
   `/settings/operating-model`, `/settings/unified-context`) and adds a test that every link resolves
   to an existing route.
+- `REQ-0070` **Privacy / GDPR export** on `devin/cleanup-task-status-1785946663`: `phone` is included
+  in the `UserDataExport`; account deletion erases `email` (to a unique anonymous placeholder),
+  `name`, `phone`, `phoneVerified`, `mobile`, `mobileVerified`, and `image` while bumping
+  `tokenVersion` to invalidate sessions; integration tests cover both behaviors.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 11)** on `devin/cleanup-task-status-1785946663`:
   wired `AIUsageGuard` into `inspectProfileAction` so AI-powered profile narration consumes one
   `monthlyAiReplies` entitlement; deterministic narrator remains the fallback when `OPENROUTER_API_KEY`
@@ -114,7 +118,8 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0070` Privacy / GDPR export review for `phone` and `dateOfBirth` (latter omitted for MVP).
+- `REQ-0083` Business Intelligence — read-only `DynamicDashboard` component and `/analytics/dashboard`
+  page wired to `queryAnalytics` / `generateDashboard`.
 
 ### ⏭️ Next
 

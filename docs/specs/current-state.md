@@ -300,6 +300,9 @@ Core tables (see `prisma/schema.prisma` for full model):
   on bootstrap. The super-admin MFA flow sends the code via email and, when `SUPER_ADMIN_PHONE`
   is set and an SMS provider is configured, by SMS as well. The break-glass procedure is documented
   in `docs/operations.md`. The `/settings` page no longer links to dead routes.
+- Privacy / GDPR (`REQ-0070`): `phone` is included in the `UserDataExport`; account deletion erases
+  `email` (to a unique anonymous placeholder), `name`, `phone`, `phoneVerified`, `mobile`,
+  `mobileVerified`, and `image`, and bumps `tokenVersion` so existing sessions are invalidated.
 - `User.phoneVerified` and the `VerificationRequest` table are in place; `dateOfBirth` remains
   omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
   `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.

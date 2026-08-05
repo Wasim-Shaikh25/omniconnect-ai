@@ -1,6 +1,6 @@
 # REQ-0070: Identity and Account Self-Service Completeness
 
-- **Status:** In Progress (Packages E, F, G done; Privacy / GDPR export review remaining)
+- **Status:** Implemented
 - **Owner:** Auth / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
@@ -9,11 +9,10 @@
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
 - **Last updated:** 2026-08-05
 
-> **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2. Package E
-> (phone verification), Package F (session management / "sign out everywhere"), and Package G
-> (super-admin reconciliation / SMS MFA / settings dead-links cleanup) have been completed on top of
-> the V2 `User`/`Workspace`/`Project` model. Remaining: privacy/GDPR export review for `phone` and
-> `dateOfBirth` (the latter omitted for the MVP).
+> **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2. Packages
+> E–G (phone verification, session management, super-admin reconciliation / SMS MFA / settings
+> dead-links cleanup, and privacy/GDPR export handling) have been completed on top of the V2
+> `User`/`Workspace`/`Project` model. `dateOfBirth` is omitted for the MVP.
 
 ## 1. Summary
 

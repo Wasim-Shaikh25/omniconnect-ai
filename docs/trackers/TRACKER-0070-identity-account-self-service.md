@@ -1,6 +1,6 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** In Progress (Packages E, F, G done; Privacy / GDPR export review remaining)
+- **Status:** Implemented
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
@@ -88,9 +88,9 @@ bot protection.
 - [x] Settings-link resolution test added.
 
 ### Privacy
-- [ ] `dateOfBirth` and `phone` included in the GDPR export.
-- [ ] Both erased by account deletion; test added.
-- [ ] Neither appears in logs; redaction verified.
+- [x] `phone` included in the GDPR export (`dateOfBirth` omitted for the MVP).
+- [x] `phone` erased by account deletion (integration test added).
+- [x] Phone numbers redacted in logs (verified by `ConsoleSmsSender` test and existing redaction).
 
 ### Verification
 - [x] `npm run lint` passes.
@@ -105,8 +105,8 @@ bot protection.
 
 ## 3. Acceptance Criteria
 
-- [ ] All `REQ-0070` acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All `REQ-0070` acceptance criteria are met.
+- [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 
