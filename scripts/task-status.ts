@@ -197,7 +197,13 @@ function main() {
     const trackerStatusText = (r.tracker.status ?? "").toLowerCase();
     const taskStatusText = (r.task?.status ?? "").toLowerCase();
 
-    const isCancelled = reqStatus === "cancelled" || trackerStatusText === "cancelled" || taskStatusText === "cancelled";
+    const isCancelled =
+      reqStatus === "cancelled" ||
+      reqStatus.startsWith("superseded") ||
+      trackerStatusText === "cancelled" ||
+      trackerStatusText.startsWith("superseded") ||
+      taskStatusText === "cancelled" ||
+      taskStatusText.startsWith("superseded");
     const isDone = !isCancelled && reqPct === 100 && taskPct === 100 && trackerPct === 100;
 
     if (isDone) doneCount++;
@@ -246,7 +252,14 @@ function isCancelled(r: TaskRecord): boolean {
   const req = (r.requirement?.status ?? "").toLowerCase();
   const task = (r.task?.status ?? "").toLowerCase();
   const tracker = (r.tracker.status ?? "").toLowerCase();
-  return req === "cancelled" || task === "cancelled" || tracker === "cancelled";
+  return (
+    req === "cancelled" ||
+    req.startsWith("superseded") ||
+    task === "cancelled" ||
+    task.startsWith("superseded") ||
+    tracker === "cancelled" ||
+    tracker.startsWith("superseded")
+  );
 }
 
 function isDone(r: TaskRecord): boolean {
