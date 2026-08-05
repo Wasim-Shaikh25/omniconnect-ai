@@ -4,7 +4,7 @@ description: Profile & Reel Inspector
 
 # REQ-0085: Profile & Reel Inspector
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0085-profile-reel-inspector.md`
@@ -46,9 +46,9 @@ Built entirely on free Meta APIs + AI estimation. No paid third-party data. Thre
 - [x] Top content ranking from public media engagement.
 - [x] Business Discovery API fetch for public profile data (adapter behind `ProfileFetcher` port).
 - [x] AI narration of the deterministic result via an OpenRouter-backed `ProfileNarrator` adapter.
-- [ ] AI demographic estimation from comment language, posting times, hashtags, locations (adapter behind `ProfileNarrator` / estimator port).
-- [ ] Inspector UI: username input, results dashboard with confidence labels.
-- [ ] Plan limits: Free (3/day), Pro (50/day), Business (unlimited).
+- [x] AI demographic estimation from comment language, posting times, hashtags, locations (adapter behind `ProfileNarrator` / estimator port).
+- [x] Inspector UI: username input, results dashboard with confidence labels.
+- [x] Plan limits: Free (3/day), Pro (50/day), Business (unlimited).
 
 ## 6. Scope & Dependencies
 

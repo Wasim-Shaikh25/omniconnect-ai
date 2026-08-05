@@ -131,4 +131,43 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
       return false;
     }
   }
+
+  async incrementProfileInspections(id: string, limit: number | null): Promise<boolean> {
+    const now = new Date();
+    const dayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    try {
+      return await prisma.$transaction(
+        async (tx) => {
+          const org = await tx.user.findUnique({ where: { id } });
+          if (!org) return false;
+
+          let used = org.profileInspectionsToday;
+          const resetAt = org.profileInspectionsResetAt;
+          if (!resetAt || resetAt < dayStart) {
+            used = 0;
+            await tx.user.update({
+              where: { id },
+              data: { profileInspectionsToday: 0, profileInspectionsResetAt: dayStart },
+            });
+          }
+
+          if (limit !== null && used >= limit) return false;
+
+          await tx.user.update({
+            where: { id },
+            data: { profileInspectionsToday: { increment: 1 } },
+          });
+          return true;
+        },
+        { isolationLevel: "Serializable" },
+      );
+    } catch (error) {
+      logger.error("organization.incrementProfileInspections.failed", {
+        userId: id,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return false;
+    }
+  }
 }

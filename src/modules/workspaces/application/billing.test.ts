@@ -72,6 +72,10 @@ class FakeOrganizationRepository implements OrganizationRepository {
     return true;
   }
 
+  async incrementProfileInspections(_id: string, _limit: number | null): Promise<boolean> {
+    return true;
+  }
+
   seed(record: OrganizationRecord): void {
     this.orgs.set(record.id, record);
   }
@@ -314,14 +318,14 @@ describe("billing service", () => {
           id: "evt_1",
           sessionId: "cs_1",
           userId: org.id,
-          plan: Plan.STARTER,
+          plan: Plan.PRO,
         }),
       );
 
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.STARTER);
+      expect(updated?.plan).toBe(Plan.PRO);
       expect(ctx.processedEvents.has({ id: "evt_1", provider: "stripe", type: "checkout.session.completed" })).toBe(true);
     });
 
@@ -332,7 +336,7 @@ describe("billing service", () => {
         id: "evt_dup",
         sessionId: "cs_1",
         userId: org.id,
-        plan: Plan.STARTER,
+        plan: Plan.PRO,
       });
       ctx.paymentGateway.queue(event);
       await ctx.billing.fulfillCheckout("payload", "sig");
@@ -340,7 +344,7 @@ describe("billing service", () => {
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.STARTER);
+      expect(updated?.plan).toBe(Plan.PRO);
       expect(ctx.processedEvents.has({ id: "evt_dup", provider: "stripe", type: "checkout.session.completed" })).toBe(true);
     });
 
@@ -352,7 +356,7 @@ describe("billing service", () => {
         id: "evt_coupon",
         sessionId: "cs_1",
         userId: org.id,
-        plan: Plan.PRO,
+        plan: Plan.BUSINESS,
         couponCode: "WELCOME",
       });
       ctx.paymentGateway.queue(event);
@@ -369,7 +373,7 @@ describe("billing service", () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.PRO,
+        plan: Plan.BUSINESS,
         subscriptionId: "sub_change",
         subscriptionStatus: "active",
       });
@@ -387,7 +391,7 @@ describe("billing service", () => {
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.STARTER);
+      expect(updated?.plan).toBe(Plan.PRO);
       expect(updated?.subscriptionStatus).toBe("active");
     });
 
@@ -395,7 +399,7 @@ describe("billing service", () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.PRO,
+        plan: Plan.BUSINESS,
         subscriptionId: "sub_pastdue",
         subscriptionStatus: "active",
       });
@@ -413,7 +417,7 @@ describe("billing service", () => {
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.PRO);
+      expect(updated?.plan).toBe(Plan.BUSINESS);
       expect(updated?.subscriptionStatus).toBe("past_due");
     });
 
@@ -421,7 +425,7 @@ describe("billing service", () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.PRO,
+        plan: Plan.BUSINESS,
         subscriptionId: "sub_recover",
         subscriptionStatus: "past_due",
       });
@@ -437,7 +441,7 @@ describe("billing service", () => {
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.PRO);
+      expect(updated?.plan).toBe(Plan.BUSINESS);
       expect(updated?.subscriptionStatus).toBe("active");
     });
 
@@ -445,7 +449,7 @@ describe("billing service", () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.PRO,
+        plan: Plan.BUSINESS,
         subscriptionId: "sub_unpaid",
         subscriptionStatus: "active",
       });
@@ -471,7 +475,7 @@ describe("billing service", () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.PRO,
+        plan: Plan.BUSINESS,
         subscriptionId: "sub_unknown",
         subscriptionStatus: "active",
       });
@@ -489,7 +493,7 @@ describe("billing service", () => {
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.PRO);
+      expect(updated?.plan).toBe(Plan.BUSINESS);
       expect(updated?.subscriptionStatus).toBe("active");
     });
   });

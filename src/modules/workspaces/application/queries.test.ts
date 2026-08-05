@@ -10,11 +10,13 @@ function makeOrgRepo(): OrganizationRepository {
     findById: async (id: string) => ({
       id,
       name: "Org",
-      plan: Plan.PRO,
+      plan: Plan.BUSINESS,
       subscriptionId: null,
       subscriptionStatus: null,
     }),
     updatePlan: async () => null,
+    incrementAIReplies: async () => true,
+    incrementProfileInspections: async () => true,
   } as unknown as OrganizationRepository;
 }
 

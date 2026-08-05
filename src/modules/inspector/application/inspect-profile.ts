@@ -1,10 +1,11 @@
 import { profileQuality, engagementScore } from "@/modules/analytics/pure";
 import type { PublicMedia, PublicProfile, ProfileInspectionResult, DemographicEstimate, AudienceQuality, TopContentItem, GrowthTrend } from "../domain/types";
-import type { ProfileFetcher, ProfileNarrator } from "./ports";
+import type { ProfileFetcher, ProfileNarrator, DemographicEstimator } from "./ports";
 
 export interface InspectProfileDeps {
   fetcher: ProfileFetcher;
   narrator: ProfileNarrator;
+  demographicEstimator?: DemographicEstimator;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -35,27 +36,6 @@ function topValues(items: string[], topN = 3): Array<{ value: string; percentage
     .map(([value, count]) => ({ value, percentage: Math.round((count / total) * 1000) / 10 }));
 }
 
-function estimateDemographics(profile: PublicProfile): DemographicEstimate {
-  const locations = profile.media.map((m) => m.location).filter((l): l is string => l !== null && l.length > 0);
-  const comments = profile.comments.map((c) => c.text);
-  const hashtags = profile.media.flatMap((m) => m.hashtags);
-
-  const geoTokens = [...locations, ...hashtags];
-  const topCities = topValues(geoTokens.map((t) => t.split(/[,\/]/)[0] ?? t).filter(Boolean), 3);
-  const topCountries = topValues(geoTokens, 3);
-
-  const hasGeoSignal = locations.length > 0 || hashtags.length > 0;
-  const confidence: DemographicEstimate["confidence"] = hasGeoSignal && comments.length >= 10 ? "medium" : "low";
-
-  return {
-    confidence,
-    topCountries: topCountries.map(({ value, percentage }) => ({ country: value, percentage })),
-    topCities: topCities.map(({ value, percentage }) => ({ city: value, percentage })),
-    ageRanges: [{ range: "18-34", percentage: 45 }, { range: "35-54", percentage: 35 }, { range: "55+", percentage: 20 }],
-    genderSplit: { male: 45, female: 45, other: 10 },
-  };
-}
-
 function computeTopContent(media: PublicMedia[], limit = 5): TopContentItem[] {
   return media
     .map((m) => ({ ...m, engagement: engagementScore({ id: m.id, likes: m.likes, comments: m.comments, shares: m.shares ?? 0, saves: m.saves ?? 0, plays: 0, views: 0, reach: 0, impressions: 0 }) }))
@@ -76,10 +56,35 @@ function classifyGrowthTrend(profile: PublicProfile): GrowthTrend {
   return "stable";
 }
 
+function deterministicEstimateDemographics(profile: PublicProfile): DemographicEstimate {
+  const locations = profile.media.map((m) => m.location).filter((l): l is string => l !== null && l.length > 0);
+  const comments = profile.comments.map((c) => c.text);
+  const hashtags = profile.media.flatMap((m) => m.hashtags);
+
+  const geoTokens = [...locations, ...hashtags];
+  const topCities = topValues(geoTokens.map((t) => t.split(/[,\/]/)[0] ?? t).filter(Boolean), 3);
+  const topCountries = topValues(geoTokens, 3);
+
+  const hasGeoSignal = locations.length > 0 || hashtags.length > 0;
+  const confidence: DemographicEstimate["confidence"] = hasGeoSignal && comments.length >= 10 ? "medium" : "low";
+
+  return {
+    confidence,
+    topCountries: topCountries.map(({ value, percentage }) => ({ country: value, percentage })),
+    topCities: topCities.map(({ value, percentage }) => ({ city: value, percentage })),
+    ageRanges: [{ range: "18-34", percentage: 45 }, { range: "35-54", percentage: 35 }, { range: "55+", percentage: 20 }],
+    genderSplit: { male: 45, female: 45, other: 10 },
+  };
+}
+
+export const deterministicDemographicEstimator: DemographicEstimator = {
+  estimate: async (profile: PublicProfile) => deterministicEstimateDemographics(profile),
+};
+
 export async function inspectProfile(
   deps: InspectProfileDeps,
   username: string,
-  projectId: string
+  projectId: string,
 ): Promise<ProfileInspectionResult | null> {
   const profile = await deps.fetcher.fetch(username, projectId);
   if (!profile) return null;
@@ -103,7 +108,8 @@ export async function inspectProfile(
   });
 
   const audienceQuality = audienceQualityFromScore(qualityResult.values.profileQuality ?? 0);
-  const demographics = estimateDemographics(profile);
+  const estimator = deps.demographicEstimator ?? deterministicDemographicEstimator;
+  const demographics = await estimator.estimate(profile);
   const topContent = computeTopContent(profile.media);
   const growthTrend = classifyGrowthTrend(profile);
 

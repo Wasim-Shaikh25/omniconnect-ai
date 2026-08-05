@@ -32,7 +32,7 @@ export function PricingCards({
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
 
-  const plans = [Plan.FREE, Plan.STARTER, Plan.PRO].filter(
+  const plans = [Plan.FREE, Plan.PRO, Plan.BUSINESS].filter(
     (p) => showFree || p !== Plan.FREE,
   );
 
@@ -83,7 +83,7 @@ export function PricingCards({
         return (
           <Card
             key={plan}
-            className={`flex flex-col ${plan === Plan.PRO ? "border-primary ring-1 ring-primary" : ""}`}
+            className={`flex flex-col ${plan === Plan.BUSINESS ? "border-primary ring-1 ring-primary" : ""}`}
           >
             <CardHeader className={compact ? "pb-2" : ""}>
               <CardTitle className="flex items-baseline justify-between">
@@ -102,7 +102,7 @@ export function PricingCards({
                 ))}
               </ul>
               <Button
-                variant={plan === Plan.PRO ? "default" : "outline"}
+                variant={plan === Plan.BUSINESS ? "default" : "outline"}
                 disabled={isCurrent || loadingPlan === plan}
                 onClick={() => selectPlan(plan)}
               >

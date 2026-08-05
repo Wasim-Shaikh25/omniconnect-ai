@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { inspectProfile } from "./inspect-profile";
 import { deterministicProfileNarrator } from "./deterministic-narrator";
-import type { ProfileFetcher } from "./ports";
-import type { PublicProfile } from "../domain/types";
+import type { ProfileFetcher, DemographicEstimator } from "./ports";
+import type { PublicProfile, DemographicEstimate } from "../domain/types";
 
 function makeProfile(overrides: Partial<PublicProfile> = {}): PublicProfile {
   return {
@@ -71,6 +71,29 @@ describe("inspectProfile", () => {
     const fetcher: ProfileFetcher = { async fetch() { return null; } };
     const result = await inspectProfile({ fetcher, narrator: deterministicProfileNarrator }, "missing", "project-1");
     expect(result).toBeNull();
+  });
+
+  it("uses a custom demographic estimator when provided", async () => {
+    const customEstimate: DemographicEstimate = {
+      confidence: "high",
+      topCountries: [{ country: "India", percentage: 60 }, { country: "USA", percentage: 40 }],
+      topCities: [{ city: "Mumbai", percentage: 60 }, { city: "New York", percentage: 40 }],
+      ageRanges: [{ range: "18-24", percentage: 100 }],
+      genderSplit: { male: 50, female: 45, other: 5 },
+    };
+    const customEstimator: DemographicEstimator = {
+      async estimate() {
+        return customEstimate;
+      },
+    };
+
+    const result = await inspectProfile(
+      { fetcher: fakeFetcher, narrator: deterministicProfileNarrator, demographicEstimator: customEstimator },
+      "testuser",
+      "project-1",
+    );
+    expect(result).not.toBeNull();
+    expect(result!.demographics).toEqual(customEstimate);
   });
 
   it("labels low audience quality for spammy signals", async () => {
