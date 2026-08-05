@@ -102,8 +102,10 @@ answered with an invented figure.
       via the DynamicDashboard component (REQ-0083).
 - [x] `analyze-media.ts` refactored: verdict + evidence computed deterministically; LLM narrates
       only (see §9).
-- [ ] `generate-trends.ts` refactored: `predictedEngagementScore`, `predictedRevenue`, and
+- [x] `generate-trends.ts` refactored: `predictedEngagementScore`, `predictedRevenue`, and
       `bestTimeToPost` sourced from deterministic engines, not invented by the LLM (see §9).
+- [ ] Remaining operation library (`compare_period`, `anomaly_check`, `cohort_trend`,
+      `attribution_breakdown`, `correlation`, `profile_quality`) to be implemented in later batches.
 - [ ] Golden tests: each operation produces identical output for a fixed fixture dataset.
 - [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 

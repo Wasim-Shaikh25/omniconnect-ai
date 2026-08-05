@@ -1,5 +1,19 @@
-import type { MetaMediaItem } from "@/modules/meta";
-import type { OrderRecord } from "@/modules/ecommerce";
+export interface BestTimeMediaInput {
+  publishedAt: Date | null;
+  metrics: {
+    likes?: number | null;
+    comments?: number | null;
+    shares?: number | null;
+    saved?: number | null;
+    plays?: number | null;
+    videoViews?: number | null;
+  };
+}
+
+export interface BestTimeOrderInput {
+  orderDate: Date | null;
+  total: number | null;
+}
 
 export interface BestTimeWindow {
   dayOfWeek: string;
@@ -13,14 +27,14 @@ export interface BestTimeWindow {
 }
 
 export interface GetBestTimeToPostInput {
-  media: MetaMediaItem[];
-  orders: Pick<OrderRecord, "orderDate" | "total">[];
+  media: BestTimeMediaInput[];
+  orders: BestTimeOrderInput[];
   topN?: number;
 }
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-function engagementScore(item: MetaMediaItem): number {
+function engagementScore(item: BestTimeMediaInput): number {
   const m = item.metrics ?? {};
   return (
     (m.likes ?? 0) +

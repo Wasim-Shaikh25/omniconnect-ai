@@ -51,6 +51,16 @@ export function percentileRank(values: number[], value: number): number {
   return Math.round(((lower + same / 2) / values.length) * 100);
 }
 
+export function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = values.slice().sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1]! + sorted[mid]!) / 2;
+  }
+  return sorted[mid]!;
+}
+
 export function topN<T>(items: T[], score: (item: T) => number, limit: number): T[] {
   return items
     .slice()

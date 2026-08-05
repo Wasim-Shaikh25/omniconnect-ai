@@ -43,13 +43,19 @@ All notable changes to **OmniConnect AI** are documented here.
   completed T-062 by persisting `TokenUsage` rows per user/project/feature/model/day through
   `PrismaTokenUsageRepository` wired into `OpenRouterProvider`; added `/admin/ai-usage` super-admin
   dashboard showing totals, daily summary, and recent calls.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 2)** on `devin/deterministic-trends-1785939993`:
+  `generate-trends.ts` now computes `predictedEngagementScore` from the percentile rank of the top
+  recent posts, `predictedRevenue` from median order total, and `bestTimeToPost` from the
+  deterministic `best_time` engine; parsed LLM output is overwritten with those deterministic
+  values. Added `best_time` and `top_n` pure operations plus unit tests for both. `getBestTimeToPost`
+  now accepts a generic `BestTimeMediaInput`/`BestTimeOrderInput` interface so the engine can call
+  it without a Meta API round-trip.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 2)** — deterministic `best_time`/`top_n`/
-  `compare_period` operations, local MiniLM `EmbeddingProvider` and `OperationResolver`, and
-  `generate-trends.ts` sourcing `predictedEngagementScore`/`predictedRevenue`/`bestTimeToPost`
-  from deterministic engines instead of the LLM.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 3)** — remaining operations
+  (`compare_period`, `anomaly_check`, `cohort_trend`, `attribution_breakdown`, `correlation`,
+  `profile_quality`), local MiniLM `EmbeddingProvider`, and `OperationResolver` NL → `AnalysisSpec`.
 
 ### ⏭️ Next
 

@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Progress (Batch 1)
+- **Status:** In Progress (Batch 3)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -16,36 +16,37 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Requirement REQ-0091 approved.
 - [x] Task file TASK-0091 created.
 - [x] Tracker file TRACKER-0091 created.
-- [x] Branch created (`devin/deterministic-analysis-1785938129`).
 
-### Batch 1 — Core Engine + analyze-media
+### Batch 1 — Core Engine + analyze-media (merged in PR #132)
 - [x] T-078: Define `AnalysisSpec` schema + closed operation vocabulary + `validateSpec()`.
 - [x] T-079: Build `AnalysisEngine` interpreter (validate → dispatch, no eval).
 - [x] T-080: Implement deterministic operation library + shared stats helpers.
 - [x] T-085: `analyze-media.ts` → deterministic verdict/evidence + AI narration only.
-
-### Deferred to Batch 2
-- [ ] T-081: `EmbeddingProvider` port + local MiniLM adapter.
-- [ ] T-082: `OperationResolver` — NL → spec with confidence + unsupported fallback.
-- [ ] T-084: Wire REQ-0081 `queryAnalytics` / `generateDashboard` to emit/run `AnalysisSpec`.
-- [ ] T-086: `generate-trends.ts` → deterministic numeric predictions.
-- [ ] T-087: Profile Inspector deterministic signals + AI narration.
-- [ ] T-088: Golden/snapshot tests per operation + narration guard.
-
-### Verification
 - [x] `npm run lint` passes.
 - [x] `npx tsc --noEmit` passes.
 - [x] `npm run test` passes.
 - [x] `npm run build` passes.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
+- [x] PR #132 merged.
+
+### Batch 2 — generate-trends + best_time (merged in PR pending)
+- [x] T-086: Refactor `generate-trends.ts` → deterministic numeric predictions.
+- [x] T-080b: Add `best_time` and `top_n` deterministic operations.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
+- [ ] PR created and merged.
+
+### Batch 3 (In Progress)
+- [ ] T-081: `EmbeddingProvider` port + local MiniLM adapter.
+- [ ] T-082: `OperationResolver` — NL → spec with confidence + unsupported fallback.
+- [ ] T-084: Wire REQ-0081 `queryAnalytics` / `generateDashboard` to emit/run `AnalysisSpec`.
+- [ ] T-087: Profile Inspector deterministic signals + AI narration.
+- [ ] T-088: Golden/snapshot tests per operation + narration guard.
 
 ## 3. Acceptance Criteria
 
-- [ ] Batch 1 acceptance criteria from TASK-0091 met.
+- [ ] Batch 3 acceptance criteria from TASK-0091 met.
 - [ ] All verification steps above pass.
-- [ ] Full REQ-0091 acceptance criteria remain for Batch 2.
-
-## 4. Notes / Blockers
-
-- `transformers.js` integration deferred to Batch 2; Batch 1 does not add the embedding dependency.
+- [ ] Full REQ-0091 acceptance criteria remain for Batch 3.

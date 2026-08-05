@@ -10,6 +10,10 @@ import { notificationQueries } from "@/modules/notifications";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
 import {
+  getBestTimeToPostForStore,
+  marketingInsightsRepository,
+} from "@/modules/analytics/server";
+import {
   updateMarketingMemory,
   generateDailyBrief,
   businessBrainContextService,
@@ -92,6 +96,9 @@ export const generateCaptions = makeGenerateCaptions({
 export const generateTrends = makeGenerateTrends({
   aiProvider,
   aiConfigurationRepository,
+  getBestTimeToPostForStore,
+  listMediaPosts: (projectId) => marketingInsightsRepository.listMediaPosts(projectId, { limit: 50 }),
+  listOrders: (projectId, limit) => ecommerceQueries.listOrders(projectId, limit),
 });
 
 export const brainMemoryService = makeBrainMemoryService({ repository: brainMemoryRepository });
