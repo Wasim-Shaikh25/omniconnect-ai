@@ -22,6 +22,7 @@ export {
   getCompetitorBenchmark,
   marketingInsightsService,
   marketingInsightsRepository,
+  queryAnalytics,
 } from "./infrastructure/container";
 export { PrismaTrackedAccountRepository } from "./infrastructure/tracked-account.repository";
 export { PrismaMarketingInsightsRepository } from "./infrastructure/marketing-insights.repository";

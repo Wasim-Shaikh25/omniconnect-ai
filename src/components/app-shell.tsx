@@ -24,6 +24,7 @@ import {
   HelpCircle,
   Inbox,
   LayoutDashboard,
+  LineChart,
   Mail,
   Map,
   Menu,
@@ -135,6 +136,7 @@ export function AppShell({ children }: AppShellProps) {
       label: "Analyze",
       items: [
         { href: "/analytics", label: "Analytics", icon: BarChart3 },
+        { href: "/analytics/dashboard", label: "AI Dashboard", icon: LineChart },
         { href: "/analytics/growth", label: "Growth", icon: TrendingUp },
         { href: "/analytics/journeys", label: "Journeys", icon: Map },
         { href: "/reports", label: "Reports", icon: DollarSign },

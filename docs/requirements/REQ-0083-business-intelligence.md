@@ -37,11 +37,11 @@ Read-only business intelligence dashboard powered by e-commerce adapter data and
 
 ## 5. Acceptance Criteria
 
-- [ ] DynamicDashboard component renders: kpi, line_chart, bar_chart, pie_chart, table, sparkline.
-- [ ] Widget sizes: small (col-span-3), medium (col-span-6), large (col-span-9), full (col-span-12).
-- [ ] AI generateDashboard tool returns valid DashboardSchema.
-- [ ] Six metric groups available via queryAnalytics.
-- [ ] All data read-only — no mutations via dashboard.
+- [x] DynamicDashboard component renders: kpi, line_chart, bar_chart, pie_chart, table, sparkline.
+- [x] Widget sizes: small (col-span-3), medium (col-span-6), large (col-span-9), full (col-span-12).
+- [x] AI generateDashboard tool returns valid DashboardSchema.
+- [x] Six metric groups available via queryAnalytics.
+- [x] All data read-only — no mutations via dashboard.
 
 ## 6. Scope & Dependencies
 

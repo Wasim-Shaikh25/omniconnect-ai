@@ -9,6 +9,7 @@ import { analyzeCompetitor } from "@/modules/ai/server";
 import { aiUsageGuard } from "@/modules/ai";
 import type { MetaMediaItem } from "@/modules/meta";
 import type { CompetitorAnalysis } from "@/modules/ai";
+import type { DashboardSchema } from "@/modules/ai";
 import type { TrackedAccountRecord, SuggestedCompetitor } from "../application/ports";
 import {
   getMarketingPerformance,
@@ -16,6 +17,7 @@ import {
   getContentCalendarForStore,
   marketingInsightsService,
   marketingInsightsRepository,
+  queryAnalytics,
 } from "../server";
 import { getCompetitorBenchmark } from "../infrastructure/container";
 import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
@@ -717,5 +719,49 @@ export async function listReportsAction(projectId: string): Promise<ListReportsS
     return { reports };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not load reports" };
+  }
+}
+
+export interface QueryAnalyticsState {
+  error?: string;
+  schema?: DashboardSchema;
+  operation?: string;
+}
+
+const queryAnalyticsSchema = z.object({
+  projectId: z.string().min(1),
+  question: z.string().min(1).max(500),
+});
+
+export async function queryAnalyticsAction(
+  _prev: QueryAnalyticsState,
+  formData: FormData,
+): Promise<QueryAnalyticsState> {
+  const user = await getCurrentUser();
+  const parsed = queryAnalyticsSchema.safeParse({
+    projectId: formData.get("projectId"),
+    question: formData.get("question"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  const guard = await guardStoreAccess(user, parsed.data.projectId);
+  if (guard.error) return guard;
+
+  try {
+    const result = await queryAnalytics({
+      question: parsed.data.question,
+      projectId: parsed.data.projectId,
+    });
+
+    if ("unsupported" in result) {
+      return { error: result.reason };
+    }
+
+    return {
+      schema: result.schema,
+      operation: result.result.operation,
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not generate dashboard" };
   }
 }
