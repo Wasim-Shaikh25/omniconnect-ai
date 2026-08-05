@@ -7,6 +7,7 @@
 - **Module(s):** analytics, ai
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Read-only BI dashboard with DynamicDashboard component.
 - **Last updated:** 2026-08-05
+- **Active branch:** `devin/bi-brand-mentions-1785953983`
 
 ## 1. Summary
 
@@ -54,7 +55,13 @@ Marketing dashboard with default widgets. AI-generated custom dashboards via cha
 - [x] T-055a: Devin Review fixes — top_n limit, compare window, today inclusion, typed adapters, infra injection
 - [x] T-056: /analytics/dashboard page with NL query input and DynamicDashboard
 - [x] T-072: Competitor comparison dashboard (project-scoped)
-- [ ] T-070: Brand mention monitoring — Mentions API + AI sentiment analysis (P2)
+- [x] T-072a: Link competitor page from analytics hub.
+- [x] T-070: Brand mention monitoring — Mentions API + AI sentiment analysis (P2)
+  - [x] T-070a: `MentionSentimentAnalyzer` and `BrandMentionSource` ports with `HeuristicMentionSentimentAnalyzer` and `MockBrandMentionSource` adapters.
+  - [x] T-070b: `OpenRouterMentionSentimentAnalyzer` AI adapter with heuristic fallback.
+  - [x] T-070c: `mentionService` with `syncMentions` and `listMentionsWithSentiment`.
+  - [x] T-070d: `syncMentionsAction` and `listMentionsWithSentimentAction`.
+  - [x] T-070e: `/stores/[projectId]/analytics/mentions` page and nav link.
 - [ ] T-074: Dashboard export (PDF, image, shareable link) — Phase 4
 
 ## 5. Acceptance Criteria

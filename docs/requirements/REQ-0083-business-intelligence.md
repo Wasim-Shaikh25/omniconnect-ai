@@ -41,6 +41,7 @@ Read-only business intelligence dashboard powered by e-commerce adapter data and
 - [x] Widget sizes: small (col-span-3), medium (col-span-6), large (col-span-9), full (col-span-12).
 - [x] AI generateDashboard tool returns valid DashboardSchema.
 - [x] Six metric groups available via queryAnalytics.
+- [x] Brand mention monitoring: project-scoped `SocialMention` feed with AI/heuristic sentiment (positive / negative / neutral / mixed) and a sync action backed by a `BrandMentionSource` port.
 - [x] All data read-only — no mutations via dashboard.
 
 ## 6. Scope & Dependencies
