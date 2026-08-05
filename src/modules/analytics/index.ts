@@ -33,6 +33,8 @@ export type { AnalysisContext, AnalysisEngine, DatasetFetcher, AnalysisEngineOpe
 export { makeAnalysisEngine } from "./application/analysis-engine";
 export type { EmbeddingProvider } from "./application/embedding-provider";
 export { keywordEmbeddingProvider } from "./application/embedding-providers/keyword-embedding-provider";
+export { TransformersEmbeddingProvider } from "./infrastructure/transformers-embedding-provider";
+export type { TransformersEmbeddingProviderConfig } from "./infrastructure/transformers-embedding-provider";
 export { singlePostAnalysis } from "./application/operations/single-post-analysis";
 export { bestTime, bestTimeLabel } from "./application/operations/best-time";
 export type { BestTimeWindow } from "./application/best-time-to-post";

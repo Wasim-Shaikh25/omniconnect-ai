@@ -115,10 +115,13 @@ answered with an invented figure.
 - [x] `queryAnalytics` resolves, fetches data, runs the engine, and returns structured `AnalysisResult`.
 - [x] `generateDashboard` transforms `AnalysisResult` into a `DashboardSchema` with KPI, chart,
       and table widgets.
-- [ ] Local MiniLM `TransformersEmbeddingProvider` to be implemented in a later batch.
+- [x] `EmbeddingProvider` port defined; local MiniLM `TransformersEmbeddingProvider` adapter loads
+      via `@xenova/transformers` with `local_files_only: true` and falls back to keyword embeddings.
 - [x] Profile Inspector core integrated: deterministic `inspectProfile` uses `profileQuality` and
       public signals to compute audience quality, demographics, top content, growth trend, and
       narration through `ProfileFetcher` / `ProfileNarrator` ports.
+- [x] `makeMetaProfileFetcher` and `makeOpenRouterProfileNarrator` infrastructure adapters implemented
+      behind the `inspector` ports.
 - [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 
 ## 6. Scope & Dependencies

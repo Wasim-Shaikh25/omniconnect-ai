@@ -44,7 +44,8 @@ Built entirely on free Meta APIs + AI estimation. No paid third-party data. Thre
 - [x] Low confidence metrics labeled with the `confidence` field; `generateDashboard` / UI can gate display.
 - [x] Growth trend classification: growing, stable, declining from follower snapshots.
 - [x] Top content ranking from public media engagement.
-- [ ] Business Discovery API fetch for public profile data (adapter behind `ProfileFetcher` port).
+- [x] Business Discovery API fetch for public profile data (adapter behind `ProfileFetcher` port).
+- [x] AI narration of the deterministic result via an OpenRouter-backed `ProfileNarrator` adapter.
 - [ ] AI demographic estimation from comment language, posting times, hashtags, locations (adapter behind `ProfileNarrator` / estimator port).
 - [ ] Inspector UI: username input, results dashboard with confidence labels.
 - [ ] Plan limits: Free (3/day), Pro (50/day), Business (unlimited).
