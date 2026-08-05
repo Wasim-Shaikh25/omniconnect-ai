@@ -62,8 +62,13 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - Phase 1 V2 (`Workspace`/`Project` model): after a normal owner registers, `/onboarding` may render with a blank main area because `getCurrentUser()` returns `userId` from the session instead of the persisted `User.userId`, causing the onboarding redirect to fire before the workspace form is shown.
   - Phase 1 V2 store route: a normal `USER` role owner will get a 404 on `/stores/{projectId}` because `tenantGuard.assertStoreAccess` requires `user.projectId` to match. The session carries `projectId` as `null` for owners (only staff get a `projectId`), so the owner cannot view their own store. To verify the route/MOCK connector itself, temporarily promote the test user to `SUPER_ADMIN` in Postgres and re-authenticate.
 - A pre-existing circular dependency between `@/modules/ai` and `@/modules/intelligence` containers can cause `ReferenceError: Cannot access 'X' before initialization` on server actions such as `/register` and invite creation. If this happens, the smoke test can be unblocked with temporary lazy wrappers in `src/modules/ai/infrastructure/container.ts`, but the real fix is to break the circular dependency.
-- The `FREE` plan has only 1 team seat (occupied by the owner), so testing the STAFF invite flow requires upgrading `"Organization".plan` to `STARTER` or `PRO` in Postgres, or creating the STAFF user directly in the DB.
-- New STAFF users (via invite registration) are redirected from `/dashboard` to `/stores/{storeId}` when `role === "STAFF" && storeId` is set.
+- The `FREE` plan has only 1 team seat (occupied by the owner), so testing the STAFF invite flow requires upgrading `"User".plan` to `STARTER` or `PRO` in Postgres (V2 stores the plan on `User`), or creating the STAFF user directly in the DB.
+- New STAFF users (via invite registration) are redirected from `/dashboard` to `/stores/{projectId}` when `role === "USER" && projectId` is set.
+- PR #127 V2 owner/staff tenant mapping gotchas:
+  - `/stores` lists stores by `userId`, which is the owner id for both owners and staff. It is not filtered by `projectId`, so a staff user may see all owner stores plus the **Add a store** card.
+  - `/dashboard` only redirects a staff user when `role === "USER" && projectId`; a staff with `projectId: null` falls through and sees the owner dashboard.
+  - `/settings` does not list staff members because `UserRepository.listByOrganization` filters `where: { id: userId }` instead of the workspace/organization relation, so the **Update store** assignment flow cannot be exercised from the UI.
+  - `getCurrentUser()` now reloads canonical `User.userId`/`projectId` from the DB and bumps `tokenVersion` on assignment changes, so updating `User.projectId` in Postgres invalidates the staff session on next request.
 
 ## Cross-tenant regression-test rule
 

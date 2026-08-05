@@ -77,7 +77,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     userId: string,
     pagination?: PaginationInput,
   ) {
-    const where = { id: userId, ...notDeleted };
+    const where = { userId, ...notDeleted };
     const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -131,7 +131,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
   }
 
   async countByOrganization(userId: string): Promise<number> {
-    return prisma.user.count({ where: { id: userId, ...notDeleted } });
+    return prisma.user.count({ where: { userId, ...notDeleted } });
   }
 
   async requestDataExport(userId: string): Promise<ExportRequestRecord> {

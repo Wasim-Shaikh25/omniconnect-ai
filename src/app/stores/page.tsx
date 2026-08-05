@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/modules/auth";
+import { isStaff } from "@/modules/auth/domain";
 import {
   ECOMMERCE_PROVIDERS,
   createStoreAction,
@@ -21,9 +22,9 @@ export default async function StoresPage() {
   if (!user) redirect("/login");
 
   const overview = user.userId
-    ? await organizationQueries.getOrganizationOverview(user.userId)
+    ? await organizationQueries.getOrganizationOverview(user.userId, user)
     : null;
-  const canManage = user.role === "SUPER_ADMIN" || user.role === "USER";
+  const canManage = user.role === "SUPER_ADMIN" || !isStaff(user);
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-8">
