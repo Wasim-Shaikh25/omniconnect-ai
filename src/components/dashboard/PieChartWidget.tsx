@@ -46,7 +46,7 @@ export function PieChartWidget({ data }: PieChartWidgetProps) {
         className="h-40 w-40 shrink-0"
       >
         {primaryDataset.data.map((value, i) => {
-          const angle = (value / total) * 360;
+          const angle = Math.min((value / total) * 360, 359.99);
           const start = currentAngle;
           const end = currentAngle + angle;
           const d = describeArc(cx, cy, radius, start, end);

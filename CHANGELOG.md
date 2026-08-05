@@ -137,8 +137,6 @@ All notable changes to **OmniConnect AI** are documented here.
 
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
-- `REQ-0083` Business Intelligence — read-only `DynamicDashboard` component and `/analytics/dashboard`
-  page wired to `queryAnalytics` / `generateDashboard`.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 
