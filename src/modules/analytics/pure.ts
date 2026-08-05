@@ -8,7 +8,7 @@
 export type { AnalysisOperation, MetricName, AnalysisSpec, AnalysisResult } from "./domain/analysis";
 export type { MediaPost } from "./domain/types";
 export { UnsupportedOperationError, validateSpec } from "./domain/analysis";
-export type { AnalysisContext } from "./application/analysis-engine";
+export type { AnalysisContext, AnalysisEngine, DatasetFetcher, AnalysisEngineOperations } from "./application/analysis-engine";
 export { makeAnalysisEngine } from "./application/analysis-engine";
 export type { EmbeddingProvider } from "./application/embedding-provider";
 export { keywordEmbeddingProvider } from "./application/embedding-providers/keyword-embedding-provider";

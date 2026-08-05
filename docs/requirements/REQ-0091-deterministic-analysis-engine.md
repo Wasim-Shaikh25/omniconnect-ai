@@ -112,8 +112,11 @@ answered with an invented figure.
 - [x] `EmbeddingProvider` port + dependency-free `KeywordEmbeddingProvider` adapter implemented.
 - [x] `OperationResolver` maps NL questions to `AnalysisSpec` with confidence + unsupported fallback.
 - [x] Golden tests: each operation produces identical output for a fixed fixture dataset.
-- [ ] Local MiniLM `TransformersEmbeddingProvider` and `queryAnalytics` / `generateDashboard` wiring
-      to be implemented in later batches.
+- [x] `queryAnalytics` resolves, fetches data, runs the engine, and returns structured `AnalysisResult`.
+- [x] `generateDashboard` transforms `AnalysisResult` into a `DashboardSchema` with KPI, chart,
+      and table widgets.
+- [ ] Local MiniLM `TransformersEmbeddingProvider` and Profile Inspector integration to be
+      implemented in later batches.
 - [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 
 ## 6. Scope & Dependencies

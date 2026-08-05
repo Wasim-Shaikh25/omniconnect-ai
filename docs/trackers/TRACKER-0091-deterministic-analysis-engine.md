@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Progress (Batch 6)
+- **Status:** In Progress (Batch 7)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -16,7 +16,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Requirement REQ-0091 approved.
 - [x] Task file TASK-0091 created.
 - [x] Tracker file TRACKER-0091 created.
-- [x] Branch created (`devin/deterministic-resolver-1785941957`).
+- [x] Branch created (`devin/deterministic-dashboard-wiring-1785942456`).
 
 ### Batch 1 — Core Engine + analyze-media (merged in PR #132)
 - [x] T-078: Define `AnalysisSpec` schema + closed operation vocabulary + `validateSpec()`.
@@ -69,7 +69,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `docs/specs/current-state.md` updated.
 - [x] PR #136 merged.
 
-### Batch 6 — OperationResolver, EmbeddingProvider port, golden tests (In Review)
+### Batch 6 — OperationResolver, EmbeddingProvider port, golden tests (merged in PR #137)
 - [x] T-081a: Define `EmbeddingProvider` port.
 - [x] T-081b: Implement `KeywordEmbeddingProvider` adapter.
 - [x] T-082a: Implement `OperationResolver` with confidence + unsupported fallback.
@@ -78,15 +78,25 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
+- [x] PR #137 merged.
+
+### Batch 7 — queryAnalytics / generateDashboard wiring (In Review)
+- [x] T-084a: Define `DatasetFetcher` port.
+- [x] T-084b: Implement `queryAnalytics` application service.
+- [x] T-084c: Implement `generateDashboard` application service and `DashboardSchema`.
+- [x] Export new types/functions from `analytics` barrel.
+- [x] Add unit tests for `queryAnalytics` and `generateDashboard`.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 - [ ] PR created and merged.
 
-### Batch 7 (Deferred)
+### Batch 8 (Deferred)
 - [ ] Local MiniLM `TransformersEmbeddingProvider` via `@xenova/transformers` / transformers.js.
-- [ ] Wire REQ-0081 `queryAnalytics` / `generateDashboard` to emit/run `AnalysisSpec`.
 - [ ] Profile Inspector feature integration (T-087 full).
 
 ## 3. Acceptance Criteria
 
-- [ ] Batch 6 acceptance criteria from TASK-0091 met.
+- [ ] Batch 7 acceptance criteria from TASK-0091 met.
 - [ ] All verification steps above pass.
-- [ ] Full REQ-0091 acceptance criteria remain for Batch 7.
+- [ ] Full REQ-0091 acceptance criteria remain for Batch 8.
