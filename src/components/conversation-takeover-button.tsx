@@ -11,14 +11,14 @@ type Action = (
 
 interface ConversationTakeoverButtonProps {
   action: Action;
-  storeId: string;
+  projectId: string;
   conversationId: string;
   isHuman: boolean;
 }
 
 export function ConversationTakeoverButton({
   action,
-  storeId,
+  projectId,
   conversationId,
   isHuman,
 }: ConversationTakeoverButtonProps) {
@@ -26,7 +26,7 @@ export function ConversationTakeoverButton({
 
   return (
     <form action={formAction} className="space-y-2">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="conversationId" value={conversationId} />
       <Button
         type="submit"

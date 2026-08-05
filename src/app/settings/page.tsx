@@ -20,7 +20,7 @@ import {
   resendInviteAction,
   removeOrganizationMemberAction,
   organizationQueries,
-} from "@/modules/organizations";
+} from "@/modules/workspaces";
 import {
   Card,
   CardContent,

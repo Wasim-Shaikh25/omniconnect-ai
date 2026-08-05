@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { metaQueries } from "@/modules/meta/server";
 import { formatNumber } from "@/lib/currency";
@@ -17,11 +17,11 @@ import {
 export default async function IntegrationsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -29,8 +29,8 @@ export default async function IntegrationsPage({
   const { store } = access;
 
   const [ecommerce, meta] = await Promise.all([
-    ecommerceQueries.getStoreConnection(storeId),
-    metaQueries.getMetaConnection(storeId),
+    ecommerceQueries.getStoreConnection(projectId),
+    metaQueries.getMetaConnection(projectId),
   ]);
 
   const connectedCount = [ecommerce.connected, meta.connected].filter(Boolean)
@@ -46,7 +46,7 @@ export default async function IntegrationsPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -110,7 +110,7 @@ export default async function IntegrationsPage({
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${storeId}`}>Manage connection</Link>
+              <Link href={`/stores/${projectId}`}>Manage connection</Link>
             </Button>
           </CardContent>
         </Card>
@@ -158,7 +158,7 @@ export default async function IntegrationsPage({
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${storeId}`}>Manage connection</Link>
+              <Link href={`/stores/${projectId}`}>Manage connection</Link>
             </Button>
           </CardContent>
         </Card>

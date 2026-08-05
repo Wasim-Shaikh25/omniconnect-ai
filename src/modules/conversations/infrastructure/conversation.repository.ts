@@ -7,7 +7,7 @@ import type {
 
 type PrismaConversation = {
   id: string;
-  storeId: string;
+  projectId: string;
   channel: string;
   status: string;
   externalId: string | null;
@@ -24,7 +24,7 @@ function toChannel(channel: string): ConversationChannel {
 function toRecord(c: PrismaConversation): ConversationRecord {
   return {
     id: c.id,
-    storeId: c.storeId,
+    projectId: c.projectId,
     channel: toChannel(c.channel),
     status: c.status,
     externalId: c.externalId,
@@ -37,7 +37,7 @@ function toRecord(c: PrismaConversation): ConversationRecord {
 
 export class PrismaConversationRepository implements ConversationRepository {
   async upsert(input: {
-    storeId: string;
+    projectId: string;
     channel: ConversationChannel;
     externalId: string | null;
     customerId?: string;
@@ -45,7 +45,7 @@ export class PrismaConversationRepository implements ConversationRepository {
     const existing = input.externalId
       ? await prisma.conversation.findFirst({
           where: {
-            storeId: input.storeId,
+            projectId: input.projectId,
             channel: input.channel,
             externalId: input.externalId,
           },
@@ -62,7 +62,7 @@ export class PrismaConversationRepository implements ConversationRepository {
 
     const created = await prisma.conversation.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         channel: input.channel,
         externalId: input.externalId,
         customerId: input.customerId ?? null,
@@ -72,10 +72,10 @@ export class PrismaConversationRepository implements ConversationRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     options: { limit?: number; offset?: number; search?: string } = {},
   ): Promise<ConversationRecord[]> {
-    const where: { storeId: string; externalId?: { contains: string; mode: "insensitive" } } = { storeId };
+    const where: { projectId: string; externalId?: { contains: string; mode: "insensitive" } } = { projectId };
     if (options.search) {
       where.externalId = { contains: options.search, mode: "insensitive" };
     }
@@ -89,10 +89,10 @@ export class PrismaConversationRepository implements ConversationRepository {
   }
 
   async countByStore(
-    storeId: string,
+    projectId: string,
     options: { search?: string } = {},
   ): Promise<number> {
-    const where: { storeId: string; externalId?: { contains: string; mode: "insensitive" } } = { storeId };
+    const where: { projectId: string; externalId?: { contains: string; mode: "insensitive" } } = { projectId };
     if (options.search) {
       where.externalId = { contains: options.search, mode: "insensitive" };
     }
@@ -104,27 +104,27 @@ export class PrismaConversationRepository implements ConversationRepository {
     limit = 100,
   ): Promise<ConversationRecord[]> {
     const rows = await prisma.conversation.findMany({
-      where: { storeId: { in: storeIds } },
+      where: { projectId: { in: storeIds } },
       orderBy: { updatedAt: "desc" },
       take: limit,
     });
     return rows.map(toRecord);
   }
 
-  async findById(id: string, storeId?: string): Promise<ConversationRecord | null> {
+  async findById(id: string, projectId?: string): Promise<ConversationRecord | null> {
     const found = await prisma.conversation.findUnique({
-      where: storeId ? { id, storeId } : { id },
+      where: projectId ? { id, projectId } : { id },
     });
     return found ? toRecord(found) : null;
   }
 
   async updateStatus(
     id: string,
-    storeId: string,
+    projectId: string,
     status: "AI_ACTIVE" | "HUMAN_ACTIVE",
   ): Promise<ConversationRecord> {
     const updated = await prisma.conversation.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: { status },
     });
     return toRecord(updated);
@@ -132,11 +132,11 @@ export class PrismaConversationRepository implements ConversationRepository {
 
   async takeOver(input: {
     id: string;
-    storeId: string;
+    projectId: string;
     humanUserId: string;
   }): Promise<ConversationRecord> {
     const updated = await prisma.conversation.update({
-      where: { id: input.id, storeId: input.storeId },
+      where: { id: input.id, projectId: input.projectId },
       data: {
         status: "HUMAN_ACTIVE",
         assignedHumanId: input.humanUserId,
@@ -145,9 +145,9 @@ export class PrismaConversationRepository implements ConversationRepository {
     return toRecord(updated);
   }
 
-  async resumeAI(id: string, storeId: string): Promise<ConversationRecord> {
+  async resumeAI(id: string, projectId: string): Promise<ConversationRecord> {
     const updated = await prisma.conversation.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: {
         status: "AI_ACTIVE",
         assignedHumanId: null,

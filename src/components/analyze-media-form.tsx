@@ -9,16 +9,16 @@ type Action = (_prev: AnalyzeMediaState, formData: FormData) => Promise<AnalyzeM
 
 interface AnalyzeMediaFormProps {
   action: Action;
-  storeId: string;
+  projectId: string;
   mediaPostId: string;
 }
 
-export function AnalyzeMediaForm({ action, storeId, mediaPostId }: AnalyzeMediaFormProps) {
+export function AnalyzeMediaForm({ action, projectId, mediaPostId }: AnalyzeMediaFormProps) {
   const [state, formAction, pending] = useActionState<AnalyzeMediaState, FormData>(action, {});
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="mediaPostId" value={mediaPostId} />
       <Button type="submit" disabled={pending}>
         {pending ? "Analyzing…" : "AI: Why it worked"}

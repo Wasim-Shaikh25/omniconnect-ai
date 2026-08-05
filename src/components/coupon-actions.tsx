@@ -14,10 +14,10 @@ import {
 
 export function CouponActions({
   coupon,
-  storeId,
+  projectId,
 }: {
   coupon: CouponRecord;
-  storeId: string;
+  projectId: string;
 }) {
   const router = useRouter();
   const [updateState, updateAction, updatePending] = useActionState(
@@ -41,7 +41,7 @@ export function CouponActions({
     <div className="space-y-3">
       <form action={updateAction} className="flex flex-wrap items-end gap-2">
         <input type="hidden" name="couponId" value={coupon.id} />
-        <input type="hidden" name="storeId" value={storeId} />
+        <input type="hidden" name="projectId" value={projectId} />
         <div>
           <Label htmlFor={`discount-${coupon.id}`} className="text-xs">
             Discount %
@@ -107,7 +107,7 @@ export function CouponActions({
         className="flex items-center gap-2"
       >
         <input type="hidden" name="couponId" value={coupon.id} />
-        <input type="hidden" name="storeId" value={storeId} />
+        <input type="hidden" name="projectId" value={projectId} />
         <Button type="submit" size="sm" variant="destructive" disabled={deletePending}>
           {deletePending ? "Deleting…" : "Delete"}
         </Button>

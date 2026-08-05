@@ -5,7 +5,7 @@ import {
   ECOMMERCE_PROVIDERS,
   createStoreAction,
   organizationQueries,
-} from "@/modules/organizations";
+} from "@/modules/workspaces";
 import { CreateStoreForm } from "@/components/create-store-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,8 @@ export default async function StoresPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
+  const overview = user.userId
+    ? await organizationQueries.getOrganizationOverview(user.userId)
     : null;
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
 
@@ -70,7 +70,7 @@ export default async function StoresPage() {
           </CardContent>
         </Card>
 
-        {canManage && user.organizationId && (
+        {canManage && user.userId && (
           <Card>
             <CardHeader>
               <CardTitle>Add a store</CardTitle>

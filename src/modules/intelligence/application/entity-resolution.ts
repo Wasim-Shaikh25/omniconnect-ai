@@ -4,8 +4,8 @@ import { EntityLinked } from "../domain/events";
 import type { ConfidenceLevel, EntityLinkRecord, LinkStatus } from "../domain/types";
 
 export interface ResolveEntityInput {
-  organizationId: string;
-  storeId?: string | null;
+  userId: string;
+  projectId?: string | null;
   sourceType: string;
   sourceId: string;
   targetType: string;
@@ -19,7 +19,7 @@ export function makeEntityResolutionService(links: EntityLinkRepository) {
   return {
     async resolve(input: ResolveEntityInput): Promise<EntityLinkRecord> {
       const existing = await links.findBetween(
-        input.organizationId,
+        input.userId,
         input.sourceType,
         input.sourceId,
         input.targetType,
@@ -28,12 +28,12 @@ export function makeEntityResolutionService(links: EntityLinkRepository) {
 
       if (existing && existing.status !== "REVOKED") {
         if (existing.confidence === input.confidence) return existing;
-        return links.updateConfidence(existing.id, input.organizationId, input.confidence, input.resolutionMethod);
+        return links.updateConfidence(existing.id, input.userId, input.confidence, input.resolutionMethod);
       }
 
       const link = await links.save({
-        organizationId: input.organizationId,
-        storeId: input.storeId ?? null,
+        userId: input.userId,
+        projectId: input.projectId ?? null,
         sourceType: input.sourceType,
         sourceId: input.sourceId,
         targetType: input.targetType,
@@ -58,24 +58,24 @@ export function makeEntityResolutionService(links: EntityLinkRepository) {
       return link;
     },
 
-    async merge(linkId: string, organizationId: string): Promise<EntityLinkRecord> {
-      return links.updateConfidence(linkId, organizationId, "VERIFIED", "manual");
+    async merge(linkId: string, userId: string): Promise<EntityLinkRecord> {
+      return links.updateConfidence(linkId, userId, "VERIFIED", "manual");
     },
 
-    async split(linkId: string, organizationId: string): Promise<EntityLinkRecord> {
-      return links.updateStatus(linkId, organizationId, "REVOKED");
+    async split(linkId: string, userId: string): Promise<EntityLinkRecord> {
+      return links.updateStatus(linkId, userId, "REVOKED");
     },
 
     async getLinkedEntities(
-      organizationId: string,
+      userId: string,
       entityType: string,
       entityId: string,
     ): Promise<EntityLinkRecord[]> {
-      return links.findByEntity(organizationId, entityType, entityId, true);
+      return links.findByEntity(userId, entityType, entityId, true);
     },
 
-    async getLinkById(id: string, organizationId?: string): Promise<EntityLinkRecord | null> {
-      return links.findById(id, organizationId);
+    async getLinkById(id: string, userId?: string): Promise<EntityLinkRecord | null> {
+      return links.findById(id, userId);
     },
   };
 }

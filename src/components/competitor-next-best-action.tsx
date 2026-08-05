@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCompetitorNextBestActionAction } from "@/modules/intelligence";
 
-export async function CompetitorNextBestAction({ storeId }: { storeId: string }) {
-  const { action } = await getCompetitorNextBestActionAction(storeId);
+export async function CompetitorNextBestAction({ projectId }: { projectId: string }) {
+  const { action } = await getCompetitorNextBestActionAction(projectId);
   if (!action) return null;
 
   const hasActions = action.experiments.length > 0 || action.warnings.length > 0;

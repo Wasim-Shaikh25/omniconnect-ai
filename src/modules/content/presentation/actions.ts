@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { requireRole } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import type { TrendIdea } from "@/modules/ai";
 import { generateContentIdeas } from "../infrastructure/container";
 
@@ -13,7 +13,7 @@ export interface GenerateContentIdeasState {
 }
 
 const generateContentIdeasSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   caption: z.string().max(5000).optional(),
   hashtags: z.string().max(2000).optional(),
   mediaType: z.string().max(50),
@@ -25,10 +25,10 @@ const generateContentIdeasSchema = z.object({
   count: z.coerce.number().min(1).max(10).default(3),
 });
 
-async function assertStoreInOrg(organizationId: string | null, storeId: string): Promise<boolean> {
-  if (!organizationId) return false;
-  const overview = await organizationQueries.getOrganizationOverview(organizationId);
-  return overview?.stores.some((s) => s.id === storeId) ?? false;
+async function assertStoreInOrg(userId: string | null, projectId: string): Promise<boolean> {
+  if (!userId) return false;
+  const overview = await organizationQueries.getOrganizationOverview(userId);
+  return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
 export async function generateContentIdeasAction(
@@ -38,7 +38,7 @@ export async function generateContentIdeasAction(
   const user = await requireRole("STORE_OWNER");
 
   const parsed = generateContentIdeasSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     caption: formData.get("caption") || undefined,
     hashtags: formData.get("hashtags") || undefined,
     mediaType: formData.get("mediaType"),
@@ -51,7 +51,7 @@ export async function generateContentIdeasAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -61,8 +61,8 @@ export async function generateContentIdeasAction(
 
   try {
     const { ideas, evidence } = await generateContentIdeas({
-      storeId: parsed.data.storeId,
-      organizationId: user.organizationId ?? undefined,
+      projectId: parsed.data.projectId,
+      userId: user.userId ?? undefined,
       caption: parsed.data.caption ?? null,
       hashtags: hashtagList,
       mediaType: parsed.data.mediaType,

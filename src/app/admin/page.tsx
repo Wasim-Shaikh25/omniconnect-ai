@@ -1,7 +1,7 @@
 import { requireSuperAdmin } from "@/modules/auth";
-import { listAllOrganizationsAction } from "@/modules/organizations";
+import { listAllOrganizationsAction } from "@/modules/workspaces";
 import { listAllUsersAction } from "@/modules/users";
-import { listSaaSCouponsAction } from "@/modules/organizations";
+import { listSaaSCouponsAction } from "@/modules/workspaces";
 import { listAllTicketsAction } from "@/modules/support";
 import { listSystemLogs } from "@/shared/observability";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

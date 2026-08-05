@@ -12,14 +12,14 @@ import type { NormalizedMetaEvent } from "../domain/types";
  * module never writes their tables.
  */
 export async function publishMetaEvent(
-  storeId: string,
+  projectId: string,
   event: NormalizedMetaEvent,
 ): Promise<void> {
   switch (event.kind) {
     case "message":
       await eventBus.publish(
-        new MetaMessageReceived(storeId, {
-          storeId,
+        new MetaMessageReceived(projectId, {
+          projectId,
           channel: event.channel,
           externalUserId: event.externalUserId,
           username: event.username,
@@ -30,8 +30,8 @@ export async function publishMetaEvent(
       return;
     case "follow":
       await eventBus.publish(
-        new MetaFollowReceived(storeId, {
-          storeId,
+        new MetaFollowReceived(projectId, {
+          projectId,
           channel: event.channel,
           externalUserId: event.externalUserId,
           username: event.username,
@@ -40,8 +40,8 @@ export async function publishMetaEvent(
       return;
     case "comment":
       await eventBus.publish(
-        new MetaCommentReceived(storeId, {
-          storeId,
+        new MetaCommentReceived(projectId, {
+          projectId,
           channel: event.channel,
           externalUserId: event.externalUserId,
           username: event.username,

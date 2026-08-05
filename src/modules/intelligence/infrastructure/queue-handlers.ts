@@ -16,27 +16,27 @@ export const JOB_MEASURE_ACTION_OUTCOME = "MEASURE_ACTION_OUTCOME";
 
 export interface MeasureActionOutcomeData {
   outcomeId: string;
-  organizationId: string;
+  userId: string;
 }
 
 export interface ActionOutcomeMeasurer {
-  measureById(outcomeId: string, organizationId: string): Promise<unknown>;
+  measureById(outcomeId: string, userId: string): Promise<unknown>;
 }
 
 export interface RefreshReadModelsData {
-  organizationId: string;
-  storeId?: string;
+  userId: string;
+  projectId?: string;
 }
 
 export interface RefreshPredictionsData {
-  organizationId: string;
-  storeId?: string;
+  userId: string;
+  projectId?: string;
 }
 
 export interface LearnFromOutcomeData {
   recommendationId: string;
   outcomeId: string;
-  organizationId: string;
+  userId: string;
 }
 
 export interface IntelligenceQueueHandlersInput {
@@ -50,29 +50,29 @@ export interface IntelligenceQueueHandlersInput {
 
 export function registerIntelligenceQueueHandlers(deps: IntelligenceQueueHandlersInput): void {
   jobRegistry.register<RefreshReadModelsData>(JOB_REFRESH_READ_MODELS, async ({ data }) => {
-    if (data.storeId) {
-      await deps.readModelRefresher.refreshStore(data.organizationId, data.storeId);
+    if (data.projectId) {
+      await deps.readModelRefresher.refreshStore(data.userId, data.projectId);
     } else {
-      logger.info("queue.refreshReadModels.workspace", { organizationId: data.organizationId });
+      logger.info("queue.refreshReadModels.workspace", { userId: data.userId });
       // Workspace-level refresh is not yet implemented in the refresher.
     }
   });
 
   jobRegistry.register<RefreshPredictionsData>(JOB_REFRESH_PREDICTIONS, async ({ data }) => {
-    await deps.predictions.generateForStore(data.organizationId, data.storeId);
+    await deps.predictions.generateForStore(data.userId, data.projectId);
   });
 
   jobRegistry.register<MeasureActionOutcomeData>(JOB_MEASURE_ACTION_OUTCOME, async ({ data }) => {
-    await deps.actionOutcomeMeasurer.measureById(data.outcomeId, data.organizationId);
+    await deps.actionOutcomeMeasurer.measureById(data.outcomeId, data.userId);
   });
 
   jobRegistry.register<LearnFromOutcomeData>(JOB_LEARN_FROM_OUTCOME, async ({ data }) => {
-    const outcome = await deps.outcomes.findById(data.outcomeId, data.organizationId);
+    const outcome = await deps.outcomes.findById(data.outcomeId, data.userId);
     if (!outcome) {
       logger.warn("queue.learnFromOutcome.missingOutcome", { outcomeId: data.outcomeId });
       return;
     }
-    const recommendation = await deps.recommendations.findById(data.recommendationId, data.organizationId);
+    const recommendation = await deps.recommendations.findById(data.recommendationId, data.userId);
     if (recommendation) {
       await deps.businessLearning.learnFromOutcome(recommendation, outcome);
     } else {

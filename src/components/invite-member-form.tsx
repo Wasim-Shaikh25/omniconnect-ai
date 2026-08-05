@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { InviteMemberActionState } from "@/modules/organizations";
+import type { InviteMemberActionState } from "@/modules/workspaces";
 
 interface StoreOption {
   id: string;
@@ -65,7 +65,7 @@ export function InviteMemberForm({
         <Label htmlFor="invite-store">Store</Label>
         <select
           id="invite-store"
-          name="storeId"
+          name="projectId"
           required={role === "STAFF"}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
         >

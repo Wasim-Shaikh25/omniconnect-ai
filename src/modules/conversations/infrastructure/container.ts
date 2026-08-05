@@ -1,5 +1,5 @@
 import { crmQueries } from "@/modules/crm";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { makeConversationCommands } from "../application/commands";
 import { makeConversationQueries } from "../application/queries";
 import { makeDetectConversationInsights } from "../application/detect-insights";

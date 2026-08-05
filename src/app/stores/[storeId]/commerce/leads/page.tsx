@@ -28,23 +28,23 @@ function formatPayload(payload: unknown): string {
 export default function LeadsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const storeId = use(params).storeId;
+  const projectId = use(params).projectId;
   const [leads, setLeads] = useState<Awaited<ReturnType<typeof listLeadsAction>>>([]);
   const [captureState, captureAction, capturePending] = useActionState(captureLeadAction, { ok: false });
   const [scoreState, scoreAction, scorePending] = useActionState(scoreLeadAction, { ok: false });
 
   useEffect(() => {
-    listLeadsAction(storeId).then(setLeads);
-  }, [storeId, captureState, scoreState]);
+    listLeadsAction(projectId).then(setLeads);
+  }, [projectId, captureState, scoreState]);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-xl font-semibold">Leads</h1>
         <p className="text-sm text-muted-foreground">Capture and score leads from ads, DMs, comments, and follows.</p>
-        <Link href={`/stores/${storeId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
+        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
       </header>
 
       <Card className="mb-6">
@@ -54,7 +54,7 @@ export default function LeadsPage({
         </CardHeader>
         <CardContent>
           <form action={captureAction} className="grid gap-4 md:grid-cols-2">
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <div>
               <label className="text-sm font-medium">Source</label>
               <select name="source" className="w-full rounded-md border bg-background px-3 py-2 text-sm" required>
@@ -104,7 +104,7 @@ export default function LeadsPage({
                   </div>
                   <form action={scoreAction}>
                     <input type="hidden" name="leadId" value={l.id} />
-                    <input type="hidden" name="storeId" value={storeId} />
+                    <input type="hidden" name="projectId" value={projectId} />
                     <Button type="submit" variant="outline" size="sm" disabled={scorePending}>Re-score</Button>
                   </form>
                 </li>

@@ -4,7 +4,7 @@ import { META_CHANNELS } from "../domain/types";
 import type { MetaIntegrationRecord, MetaIntegrationRepository } from "./ports";
 
 export const connectMetaSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   channel: z.enum(META_CHANNELS),
   accountId: z.string().min(1).max(255),
   accessToken: z.string().max(512).optional(),
@@ -25,13 +25,13 @@ export function makeConnectMeta(deps: {
   ): Promise<MetaIntegrationRecord> {
     const input = connectMetaSchema.parse(raw);
     const record = await deps.integrations.connect({
-      storeId: input.storeId,
+      projectId: input.projectId,
       channel: input.channel,
       accountId: input.accountId,
       accessToken: input.accessToken ?? null,
     });
     logger.info("meta.connected", {
-      storeId: input.storeId,
+      projectId: input.projectId,
       channel: input.channel,
     });
     return record;

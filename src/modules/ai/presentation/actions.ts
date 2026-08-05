@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser, requireRole, requireVerifiedEmail, ForbiddenError } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { aiUsageGuard } from "../application/usage-guard";
 import { updateAIConfiguration, generateCaptions, generateTrends, generatePostIdeas, askBusinessBrain } from "../infrastructure/container";

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser, requireRole, ForbiddenError } from "@/modules/auth";
-import { tenantGuard } from "@/modules/organizations";
+import { tenantGuard } from "@/modules/workspaces";
 import { paginatedResult, toSkip } from "@/shared/kernel";
 import type { PaginationInput } from "@/shared/kernel";
 import { conversationCommands, unifiedInboxQueries } from "../infrastructure/container";
@@ -20,7 +20,7 @@ export async function getUnifiedInboxAction(
   pagination?: PaginationInput,
 ) {
   const user = await getCurrentUser();
-  if (!user || !user.organizationId) {
+  if (!user || !user.userId) {
     return { items: [], total: 0, page: 1, limit: 10, totalPages: 0 };
   }
   const all = await unifiedInboxQueries(user, filter);
@@ -33,7 +33,7 @@ export async function getUnifiedInboxAction(
 }
 
 const takeoverSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   conversationId: z.string().min(1),
 });
 
@@ -49,9 +49,9 @@ export async function takeOverConversationAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { storeId, conversationId } = parsed.data;
+  const { projectId, conversationId } = parsed.data;
   try {
-    await tenantGuard.assertStoreAccess(user, storeId);
+    await tenantGuard.assertStoreAccess(user, projectId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return { error: "Store not found in your organization." };
@@ -61,13 +61,13 @@ export async function takeOverConversationAction(
 
   await conversationCommands.takeOver({
     conversationId,
-    storeId,
+    projectId,
     humanUserId: user.id,
   });
 
   revalidatePath("/inbox");
-  revalidatePath(`/stores/${storeId}/conversations`);
-  revalidatePath(`/stores/${storeId}/conversations/${conversationId}`);
+  revalidatePath(`/stores/${projectId}/conversations`);
+  revalidatePath(`/stores/${projectId}/conversations/${conversationId}`);
   return { ok: true, message: "Conversation taken over." };
 }
 
@@ -83,9 +83,9 @@ export async function resumeAIConversationAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { storeId, conversationId } = parsed.data;
+  const { projectId, conversationId } = parsed.data;
   try {
-    await tenantGuard.assertStoreAccess(user, storeId);
+    await tenantGuard.assertStoreAccess(user, projectId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return { error: "Store not found in your organization." };
@@ -93,10 +93,10 @@ export async function resumeAIConversationAction(
     throw error;
   }
 
-  await conversationCommands.resumeAI({ conversationId, storeId });
+  await conversationCommands.resumeAI({ conversationId, projectId });
 
   revalidatePath("/inbox");
-  revalidatePath(`/stores/${storeId}/conversations`);
-  revalidatePath(`/stores/${storeId}/conversations/${conversationId}`);
+  revalidatePath(`/stores/${projectId}/conversations`);
+  revalidatePath(`/stores/${projectId}/conversations/${conversationId}`);
   return { ok: true, message: "AI resumed." };
 }

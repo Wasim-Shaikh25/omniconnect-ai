@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCampaignsNextBestActionAction } from "@/modules/intelligence";
 
-export async function CampaignsNextBestAction({ storeId }: { storeId: string }) {
-  const { action } = await getCampaignsNextBestActionAction(storeId);
+export async function CampaignsNextBestAction({ projectId }: { projectId: string }) {
+  const { action } = await getCampaignsNextBestActionAction(projectId);
   if (!action) return null;
 
   const hasActions = action.underperforming.length > 0 || action.highPerforming.length > 0;

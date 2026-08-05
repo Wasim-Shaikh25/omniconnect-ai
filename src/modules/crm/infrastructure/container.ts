@@ -1,4 +1,4 @@
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { makeCrmCommands } from "../application/commands";
 import { makeCrmQueries } from "../application/queries";
 import { makeDetectCrmInsights } from "../application/detect-insights";

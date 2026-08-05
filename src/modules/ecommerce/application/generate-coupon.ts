@@ -11,7 +11,7 @@ import type {
 } from "./ports";
 
 export const generateCouponSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   code: z
     .string()
     .min(3)
@@ -38,9 +38,9 @@ export function makeGenerateCoupon(deps: {
     if (input.pushToProvider) {
       let connector;
       try {
-        connector = await deps.connectors.forStore(input.storeId);
+        connector = await deps.connectors.forStore(input.projectId);
       } catch {
-        return err(new StoreNotConnectedError(input.storeId));
+        return err(new StoreNotConnectedError(input.projectId));
       }
 
       provider = connector.provider;
@@ -57,7 +57,7 @@ export function makeGenerateCoupon(deps: {
     }
 
     const coupon = await deps.coupons.create({
-      storeId: input.storeId,
+      projectId: input.projectId,
       code: input.code,
       discountPct: input.discountPct,
       expiresAt: input.expiresAt ?? null,
@@ -65,8 +65,8 @@ export function makeGenerateCoupon(deps: {
     });
 
     await eventBus.publish(
-      new CouponGenerated(input.storeId, {
-        storeId: input.storeId,
+      new CouponGenerated(input.projectId, {
+        projectId: input.projectId,
         couponId: coupon.id,
         code: coupon.code,
         discountPct: coupon.discountPct,
@@ -75,7 +75,7 @@ export function makeGenerateCoupon(deps: {
     );
 
     logger.info("ecommerce.couponGenerated", {
-      storeId: input.storeId,
+      projectId: input.projectId,
       provider,
       code: coupon.code,
     });

@@ -5,7 +5,7 @@ import type { ProductRecord } from "@/modules/ecommerce";
 
 interface ProductListProps {
   products: ProductRecord[];
-  storeId?: string;
+  projectId?: string;
 }
 
 export function ProductList({ products }: ProductListProps) {

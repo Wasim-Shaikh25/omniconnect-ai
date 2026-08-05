@@ -14,7 +14,7 @@ import {
 
 export default async function JourneysPage() {
   const user = await getCurrentUser();
-  if (!user || !user.organizationId) redirect("/login");
+  if (!user || !user.userId) redirect("/login");
 
   const { journeys } = await getJourneysAction();
 

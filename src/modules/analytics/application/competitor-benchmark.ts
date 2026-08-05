@@ -148,8 +148,8 @@ function computeBenchmark(account: TrackedAccountRecord): CompetitorBenchmark {
 }
 
 export interface GetCompetitorBenchmarkInput {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   accountId: string;
 }
 
@@ -161,7 +161,7 @@ export function makeGetCompetitorBenchmark(deps: {
     input: GetCompetitorBenchmarkInput,
   ): Promise<CompetitorBenchmark | null> {
     const account = await deps.trackedAccounts.findById(input.accountId);
-    if (!account || account.storeId !== input.storeId) return null;
+    if (!account || account.projectId !== input.projectId) return null;
 
     const previousMedia = account.lastMedia as MetaMediaItem[] | null;
     const benchmark = computeBenchmark(account);
@@ -169,9 +169,9 @@ export function makeGetCompetitorBenchmark(deps: {
     const now = new Date();
     if (previousMedia && previousMedia.length !== benchmark.postCount) {
       await deps.eventBus.publish(
-        new CompetitorChangeDetected(input.storeId, {
-          organizationId: input.organizationId,
-          storeId: input.storeId,
+        new CompetitorChangeDetected(input.projectId, {
+          userId: input.userId,
+          projectId: input.projectId,
           accountId: account.id,
           handle: account.handle,
           previousPostCount: previousMedia.length,
@@ -182,9 +182,9 @@ export function makeGetCompetitorBenchmark(deps: {
     }
 
     await deps.eventBus.publish(
-      new CompetitorBenchmarkReady(input.storeId, {
-        organizationId: input.organizationId,
-        storeId: input.storeId,
+      new CompetitorBenchmarkReady(input.projectId, {
+        userId: input.userId,
+        projectId: input.projectId,
         accountId: account.id,
         handle: account.handle,
         generatedAt: now,
@@ -265,23 +265,23 @@ function comparisonGaps(workspace: WorkspaceCompetitorComparison["workspace"], c
 }
 
 export interface GetWorkspaceCompetitorComparisonInput {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   accountId: string;
 }
 
 export function makeGetWorkspaceCompetitorComparison(deps: {
   trackedAccounts: TrackedAccountRepository;
-  getAccountMedia: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
+  getAccountMedia: (projectId: string, limit?: number) => Promise<MetaMediaItem[]>;
 }) {
   return async function getWorkspaceCompetitorComparison(
     input: GetWorkspaceCompetitorComparisonInput,
   ): Promise<WorkspaceCompetitorComparison | null> {
     const account = await deps.trackedAccounts.findById(input.accountId);
-    if (!account || account.storeId !== input.storeId) return null;
+    if (!account || account.projectId !== input.projectId) return null;
 
     const [workspacePosts, competitorPosts] = await Promise.all([
-      deps.getAccountMedia(input.storeId, 25),
+      deps.getAccountMedia(input.projectId, 25),
       Promise.resolve((account.lastMedia as MetaMediaItem[] | null) ?? []),
     ]);
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { listContentRecommendationsAction, createContentRecommendationAction } from "@/modules/analytics";
 import { CreateRecommendationForm } from "@/components/create-recommendation-form";
 import { Button } from "@/components/ui/button";
@@ -11,19 +11,19 @@ import type { ContentRecommendation } from "@/modules/analytics";
 export default async function RecommendationsAnalyticsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.organizationId) notFound();
+  if (!user.userId) notFound();
 
-  const { recommendations, error } = await listContentRecommendationsAction(storeId);
+  const { recommendations, error } = await listContentRecommendationsAction(projectId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -33,7 +33,7 @@ export default async function RecommendationsAnalyticsPage({
           <p className="text-sm text-muted-foreground">AI content ideas for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
+          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
         </Button>
       </header>
 
@@ -43,7 +43,7 @@ export default async function RecommendationsAnalyticsPage({
           <CardDescription>Ask the AI for a post or reel idea.</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateRecommendationForm action={createContentRecommendationAction} storeId={storeId} />
+          <CreateRecommendationForm action={createContentRecommendationAction} projectId={projectId} />
         </CardContent>
       </Card>
 

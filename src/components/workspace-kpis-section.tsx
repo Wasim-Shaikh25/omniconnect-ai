@@ -1,5 +1,5 @@
 import { WorkspaceKpis } from "./workspace-kpis";
 
-export function WorkspaceKpisSection({ storeId }: { storeId?: string }) {
-  return <WorkspaceKpis storeId={storeId} />;
+export function WorkspaceKpisSection({ projectId }: { projectId?: string }) {
+  return <WorkspaceKpis projectId={projectId} />;
 }

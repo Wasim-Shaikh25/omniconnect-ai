@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,11 +27,11 @@ export default async function StoreProductsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
   searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
-  const { storeId } = await params;
-  const access = await checkStoreAccess(storeId);
+  const { projectId } = await params;
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -42,7 +42,7 @@ export default async function StoreProductsPage({
   const search = paramsResolved.q?.trim();
 
   const { items: products, total, totalPages } = await ecommerceQueries.listProductsPaginated(
-    storeId,
+    projectId,
     pagination,
     search,
   );
@@ -58,7 +58,7 @@ export default async function StoreProductsPage({
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${storeId}`}>Back to store</Link>
+            <Link href={`/stores/${projectId}`}>Back to store</Link>
           </Button>
         </div>
       </header>
@@ -74,7 +74,7 @@ export default async function StoreProductsPage({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <ProductList products={products} storeId={storeId} />
+          <ProductList products={products} projectId={projectId} />
           <PaginationControls
             page={pagination.page}
             totalPages={totalPages}

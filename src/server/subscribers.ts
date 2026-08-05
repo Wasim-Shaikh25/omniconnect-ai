@@ -1,6 +1,6 @@
 import { eventBus, setEventBus } from "@/shared/events";
 import { QueueEventBus } from "@/shared/events/queue-event-bus";
-import { registerOrganizationSubscribers } from "@/modules/organizations/bootstrap";
+import { registerOrganizationSubscribers } from "@/modules/workspaces/bootstrap";
 import { registerUsersSubscribers } from "@/modules/users/bootstrap";
 import { registerCrmSubscribers } from "@/modules/crm/bootstrap";
 import { registerCouponsBootstrap } from "@/modules/coupons/bootstrap";

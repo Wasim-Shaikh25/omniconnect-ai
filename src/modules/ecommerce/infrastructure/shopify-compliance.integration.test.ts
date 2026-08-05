@@ -16,9 +16,9 @@ async function clean() {
     prisma.order.deleteMany(),
     prisma.cart.deleteMany(),
     prisma.product.deleteMany(),
-    prisma.integration.deleteMany(),
-    prisma.store.deleteMany(),
-    prisma.organization.deleteMany(),
+    prisma.ecommerceConnection.deleteMany(),
+    prisma.project.deleteMany(),
+    prisma.user.deleteMany(),
   ]);
 }
 
@@ -26,13 +26,13 @@ beforeEach(clean);
 afterEach(clean);
 
 async function seedStore() {
-  const org = await prisma.organization.create({
+  const org = await prisma.user.create({
     data: { name: "Compliance Test Org", plan: "FREE" },
   });
-  const store = await prisma.store.create({
-    data: { name: "Test Store", provider: "SHOPIFY", domain: "test.myshopify.com", organizationId: org.id },
+  const store = await prisma.project.create({
+    data: { name: "Test Store", provider: "SHOPIFY", domain: "test.myshopify.com", userId: org.id },
   });
-  await prisma.integration.create({
+  await prisma.ecommerceConnection.create({
     data: {
       type: "ECOMMERCE",
       provider: "shopify",
@@ -40,13 +40,13 @@ async function seedStore() {
       accessToken: "encrypted-token",
       refreshToken: "encrypted-refresh",
       scopes: "read_orders",
-      storeId: store.id,
+      projectId: store.id,
       metadata: { shopId: 42 },
     },
   });
   const customer = await prisma.customer.create({
     data: {
-      storeId: store.id,
+      projectId: store.id,
       username: "shopper@example.com",
       igUserId: "ig-1",
       fbUserId: "fb-1",
@@ -56,7 +56,7 @@ async function seedStore() {
   });
   const order = await prisma.order.create({
     data: {
-      storeId: store.id,
+      projectId: store.id,
       externalId: "order-1",
       total: 29.99,
       currency: "USD",
@@ -67,7 +67,7 @@ async function seedStore() {
   });
   const cart = await prisma.cart.create({
     data: {
-      storeId: store.id,
+      projectId: store.id,
       cartToken: "abc123",
       email: "shopper@example.com",
       lineItemTitles: ["T-Shirt"],
@@ -84,7 +84,7 @@ describe("PrismaShopifyComplianceRepository", () => {
     const { store, order, cart } = await seedStore();
 
     const data = await repo.fetchCustomerData({
-      storeId: store.id,
+      projectId: store.id,
       customerRef: "123",
       customerEmail: "shopper@example.com",
     });
@@ -98,7 +98,7 @@ describe("PrismaShopifyComplianceRepository", () => {
     const { store } = await seedStore();
 
     const summary = await repo.redactCustomer({
-      storeId: store.id,
+      projectId: store.id,
       customerRef: "123",
       customerEmail: "shopper@example.com",
     });
@@ -107,14 +107,14 @@ describe("PrismaShopifyComplianceRepository", () => {
     expect(summary.carts).toBeGreaterThanOrEqual(1);
     expect(summary.customers).toBeGreaterThanOrEqual(1);
 
-    const order = await prisma.order.findFirst({ where: { storeId: store.id } });
+    const order = await prisma.order.findFirst({ where: { projectId: store.id } });
     expect(order?.customerRef).toBeNull();
     expect(order?.customerEmail).toBeNull();
 
-    const cart = await prisma.cart.findFirst({ where: { storeId: store.id } });
+    const cart = await prisma.cart.findFirst({ where: { projectId: store.id } });
     expect(cart?.email).toBeNull();
 
-    const customer = await prisma.customer.findFirst({ where: { storeId: store.id } });
+    const customer = await prisma.customer.findFirst({ where: { projectId: store.id } });
     expect(customer?.username).toBeNull();
     expect(customer?.igUserId).toBeNull();
     expect(customer?.fbUserId).toBeNull();
@@ -131,13 +131,13 @@ describe("PrismaShopifyComplianceRepository", () => {
     expect(summary.carts).toBeGreaterThanOrEqual(1);
     expect(summary.integrations).toBe(1);
 
-    const order = await prisma.order.findFirst({ where: { storeId: store.id } });
+    const order = await prisma.order.findFirst({ where: { projectId: store.id } });
     expect(order).toBeNull();
 
-    const cart = await prisma.cart.findFirst({ where: { storeId: store.id } });
+    const cart = await prisma.cart.findFirst({ where: { projectId: store.id } });
     expect(cart).toBeNull();
 
-    const integration = await prisma.integration.findFirst({ where: { storeId: store.id } });
+    const integration = await prisma.ecommerceConnection.findFirst({ where: { projectId: store.id } });
     expect(integration).toBeNull();
   });
 
@@ -146,13 +146,13 @@ describe("PrismaShopifyComplianceRepository", () => {
 
     await repo.disconnectStore(store.id);
 
-    const integration = await prisma.integration.findFirst({ where: { storeId: store.id } });
+    const integration = await prisma.ecommerceConnection.findFirst({ where: { projectId: store.id } });
     expect(integration?.accessToken).toBeNull();
     expect(integration?.refreshToken).toBeNull();
     expect(integration?.externalId).toBeNull();
     expect(integration?.scopes).toBeNull();
 
-    const updated = await prisma.store.findUnique({ where: { id: store.id } });
+    const updated = await prisma.project.findUnique({ where: { id: store.id } });
     expect(updated?.lastProductSyncAt).toBeNull();
   });
 });

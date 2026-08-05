@@ -1,4 +1,4 @@
-import type { StoreRecord } from "@/modules/organizations";
+import type { StoreRecord } from "@/modules/workspaces";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";

@@ -1,5 +1,5 @@
 import { requireSuperAdmin } from "@/modules/auth";
-import { listAllOrganizationsAction } from "@/modules/organizations";
+import { listAllOrganizationsAction } from "@/modules/workspaces";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AdminOrganizationsPageProps {

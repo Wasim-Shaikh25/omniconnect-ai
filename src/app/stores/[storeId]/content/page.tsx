@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { Button } from "@/components/ui/button";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
@@ -10,18 +10,18 @@ import { ContentStudioForms } from "@/components/content-studio-forms";
 export default async function ContentStudioPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { store } = access;
 
-  const products = await ecommerceQueries.listProducts(storeId, 100);
+  const products = await ecommerceQueries.listProducts(projectId, 100);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -33,14 +33,14 @@ export default async function ContentStudioPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
-      <ContentNextBestAction storeId={storeId} />
+      <ContentNextBestAction projectId={projectId} />
 
       <ContentStudioForms
-        storeId={storeId}
+        projectId={projectId}
         products={products.map((p) => ({ id: p.id, title: p.title }))}
       />
     </main>

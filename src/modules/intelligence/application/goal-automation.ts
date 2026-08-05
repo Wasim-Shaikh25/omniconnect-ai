@@ -177,8 +177,8 @@ export interface GoalAutomationServiceInput {
 }
 
 export interface CreateGoalAutomationInput {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   templateId: string;
   target?: number;
   endDate?: Date | null;
@@ -244,8 +244,8 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
       const endDate = opts.endDate ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       const goal = await input.goalService.create(
-        opts.organizationId,
-        opts.storeId,
+        opts.userId,
+        opts.projectId,
         template.name,
         template.targetMetric,
         target,
@@ -255,8 +255,8 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
 
       const now = new Date();
       const recommendation = await input.recommendations.save({
-        organizationId: opts.organizationId,
-        storeId: opts.storeId,
+        userId: opts.userId,
+        projectId: opts.projectId,
         insightId: null,
         producedByModule: "intelligence",
         producedByService: "goalAutomation",
@@ -278,8 +278,8 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
         eligibility: { templateId: template.id, channel: template.defaultChannel, stopConditions: template.stopConditions },
         status: "PROPOSED",
         actionType: template.actionType,
-        actionParams: { storeId: opts.storeId, targetMetric: template.targetMetric, channel: template.defaultChannel },
-        deepLink: `/stores/${opts.storeId}/automations/goals`,
+        actionParams: { projectId: opts.projectId, targetMetric: template.targetMetric, channel: template.defaultChannel },
+        deepLink: `/stores/${opts.projectId}/automations/goals`,
         validFrom: now,
         validUntil: null,
         invalidatedAt: null,
@@ -290,8 +290,8 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
       });
 
       const actionPlan = await input.actionPlans.save({
-        organizationId: opts.organizationId,
-        storeId: opts.storeId,
+        userId: opts.userId,
+        projectId: opts.projectId,
         recommendationId: recommendation.id,
         title: template.name,
         steps: [
@@ -311,7 +311,7 @@ export function makeGoalAutomationService(input: GoalAutomationServiceInput) {
       });
 
       // Update goal with the action plan reference if the repository supports it; otherwise leave it.
-      const updatedGoal = await input.goals.findById(goal.id, goal.organizationId) ?? goal;
+      const updatedGoal = await input.goals.findById(goal.id, goal.userId) ?? goal;
 
       const guard = evaluateAutomationGuard({
         audienceEstimate: opts.audienceEstimate ?? 0,

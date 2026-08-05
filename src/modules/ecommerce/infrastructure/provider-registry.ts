@@ -1,5 +1,5 @@
 import { logger } from "@/shared/observability/logger";
-import type { EcommerceProvider } from "@/modules/organizations";
+import type { EcommerceProvider } from "@/modules/workspaces";
 import type {
   ConnectorCredentials,
   EcommerceConnector,

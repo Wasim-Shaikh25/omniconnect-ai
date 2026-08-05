@@ -4,9 +4,9 @@ import { prisma } from "@/shared/database";
 
 export interface TenantFixture {
   organization: { id: string; name: string; plan: string };
-  store: { id: string; name: string; organizationId: string };
-  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; organizationId: string | null; storeId: string | null; tokenVersion: number };
-  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; organizationId: string | null; storeId: string | null; tokenVersion: number };
+  store: { id: string; name: string; userId: string };
+  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
+  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
 }
 
 export interface SuperAdminFixture {
@@ -22,12 +22,12 @@ const SALT_ROUNDS = 12;
 
 export async function createTenant(label: string, password = "password"): Promise<TenantFixture> {
   const suffix = `${label}-${randomUUID()}`;
-  const organization = await prisma.organization.create({
+  const organization = await prisma.user.create({
     data: { name: `Tenant ${label}`, plan: "FREE" },
   });
 
-  const store = await prisma.store.create({
-    data: { name: `Store ${label}`, organizationId: organization.id, provider: "SHOPIFY" },
+  const store = await prisma.project.create({
+    data: { name: `Store ${label}`, userId: organization.id, provider: "SHOPIFY" },
   });
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -40,8 +40,8 @@ export async function createTenant(label: string, password = "password"): Promis
         role: "STORE_OWNER",
         isSuperAdmin: false,
         emailVerified: new Date(),
-        organizationId: organization.id,
-        storeId: null,
+        userId: organization.id,
+        projectId: null,
         passwordHash,
       },
     }),
@@ -52,8 +52,8 @@ export async function createTenant(label: string, password = "password"): Promis
         role: "STAFF",
         isSuperAdmin: false,
         emailVerified: new Date(),
-        organizationId: organization.id,
-        storeId: store.id,
+        userId: organization.id,
+        projectId: store.id,
         passwordHash,
       },
     }),
@@ -77,8 +77,8 @@ export async function createSuperAdmin(password = "password"): Promise<SuperAdmi
       role: "ADMIN",
       isSuperAdmin: true,
       emailVerified: new Date(),
-      organizationId: null,
-      storeId: null,
+      userId: null,
+      projectId: null,
       passwordHash,
     },
   });

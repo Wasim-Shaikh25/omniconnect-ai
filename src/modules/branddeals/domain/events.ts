@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface BrandDealCreatedPayload {
-  storeId: string;
+  projectId: string;
   dealId: string;
   brandName: string;
   value: number | null;
@@ -12,8 +12,8 @@ export class BrandDealCreated extends BaseDomainEvent<BrandDealCreatedPayload> {
 }
 
 export interface BrandDealInsight {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   dealId: string;
   type: "RISK" | "OPPORTUNITY" | "ANOMALY";
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -25,8 +25,8 @@ export interface BrandDealInsight {
 }
 
 export interface BrandDealRecommendation {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   dealId: string;
   type: "ACTION" | "INVESTIGATE" | "WAIT";
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -37,8 +37,8 @@ export interface BrandDealRecommendation {
 }
 
 export interface BrandDealInsightGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   dealId: string;
   insight: BrandDealInsight;
 }
@@ -48,8 +48,8 @@ export class BrandDealInsightGenerated extends BaseDomainEvent<BrandDealInsightG
 }
 
 export interface BrandDealRecommendationGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   dealId: string;
   recommendation: BrandDealRecommendation;
 }

@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface UgcAssetCollectedPayload {
-  storeId: string;
+  projectId: string;
   assetId: string;
   creatorHandle: string | null;
   source: string;
@@ -13,7 +13,7 @@ export class UgcAssetCollected extends BaseDomainEvent<UgcAssetCollectedPayload>
 }
 
 export interface UgcRightsRequestedPayload {
-  storeId: string;
+  projectId: string;
   assetId: string;
   creatorHandle: string | null;
 }
@@ -23,7 +23,7 @@ export class UgcRightsRequested extends BaseDomainEvent<UgcRightsRequestedPayloa
 }
 
 export interface UgcRightsApprovedPayload {
-  storeId: string;
+  projectId: string;
   assetId: string;
   approvedBy: string;
 }
@@ -33,7 +33,7 @@ export class UgcRightsApproved extends BaseDomainEvent<UgcRightsApprovedPayload>
 }
 
 export interface AmbassadorEnrolledPayload {
-  storeId: string;
+  projectId: string;
   ambassadorId: string;
   code: string;
   discountPct: number;
@@ -45,7 +45,7 @@ export class AmbassadorEnrolled extends BaseDomainEvent<AmbassadorEnrolledPayloa
 }
 
 export interface ReferralConvertedPayload {
-  storeId: string;
+  projectId: string;
   ambassadorId: string;
   referralOrderId: string;
   orderId: string;
@@ -58,7 +58,7 @@ export class ReferralConverted extends BaseDomainEvent<ReferralConvertedPayload>
 }
 
 export interface DmCampaignCreatedPayload {
-  storeId: string;
+  projectId: string;
   campaignId: string;
   campaignType: string;
   status: string;
@@ -69,7 +69,7 @@ export class DmCampaignCreated extends BaseDomainEvent<DmCampaignCreatedPayload>
 }
 
 export interface DmCampaignSentPayload {
-  storeId: string;
+  projectId: string;
   campaignId: string;
   sentAt: string;
 }
@@ -79,7 +79,7 @@ export class DmCampaignSent extends BaseDomainEvent<DmCampaignSentPayload> {
 }
 
 export interface BackInStockSubscribedPayload {
-  storeId: string;
+  projectId: string;
   subscriptionId: string;
   productId: string;
   externalUserId: string | null;
@@ -90,7 +90,7 @@ export class BackInStockSubscribed extends BaseDomainEvent<BackInStockSubscribed
 }
 
 export interface BackInStockAlertSentPayload {
-  storeId: string;
+  projectId: string;
   subscriptionId: string;
   productId: string;
   externalUserId: string | null;
@@ -101,7 +101,7 @@ export class BackInStockAlertSent extends BaseDomainEvent<BackInStockAlertSentPa
 }
 
 export interface CommentUnlockTriggeredPayload {
-  storeId: string;
+  projectId: string;
   campaignId: string;
   redemptionId: string;
   externalUserId: string;
@@ -113,7 +113,7 @@ export class CommentUnlockTriggered extends BaseDomainEvent<CommentUnlockTrigger
 }
 
 export interface CommentUnlockSentPayload {
-  storeId: string;
+  projectId: string;
   campaignId: string;
   redemptionId: string;
   externalUserId: string;
@@ -124,8 +124,8 @@ export class CommentUnlockSent extends BaseDomainEvent<CommentUnlockSentPayload>
 }
 
 export interface GrowthInsight {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   type: "RISK" | "OPPORTUNITY" | "ANOMALY";
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   status: "OPEN" | "DISMISSED" | "SNOOZED";
@@ -136,8 +136,8 @@ export interface GrowthInsight {
 }
 
 export interface GrowthRecommendation {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   type: "ACTION" | "INVESTIGATE" | "WAIT";
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   title: string;
@@ -147,8 +147,8 @@ export interface GrowthRecommendation {
 }
 
 export interface GrowthInsightGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   insight: GrowthInsight;
 }
 
@@ -157,8 +157,8 @@ export class GrowthInsightGenerated extends BaseDomainEvent<GrowthInsightGenerat
 }
 
 export interface GrowthRecommendationGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   recommendation: GrowthRecommendation;
 }
 

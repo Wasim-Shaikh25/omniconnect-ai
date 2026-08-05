@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { conversationQueries } from "@/modules/conversations";
 import {
   takeOverConversationAction,
@@ -20,11 +20,11 @@ import {
 export default async function ConversationDetailPage({
   params,
 }: {
-  params: Promise<{ storeId: string; conversationId: string }>;
+  params: Promise<{ projectId: string; conversationId: string }>;
 }) {
-  const { storeId, conversationId } = await params;
+  const { projectId, conversationId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -32,7 +32,7 @@ export default async function ConversationDetailPage({
   const { store } = access;
 
   const detail = await conversationQueries.getConversation(conversationId);
-  if (!detail || detail.conversation.storeId !== storeId) notFound();
+  if (!detail || detail.conversation.projectId !== projectId) notFound();
 
   const isHuman = detail.conversation.status === "HUMAN_ACTIVE";
 
@@ -46,7 +46,7 @@ export default async function ConversationDetailPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/conversations`}>
+          <Link href={`/stores/${projectId}/conversations`}>
             Back to conversations
           </Link>
         </Button>
@@ -79,7 +79,7 @@ export default async function ConversationDetailPage({
               action={
                 isHuman ? resumeAIConversationAction : takeOverConversationAction
               }
-              storeId={storeId}
+              projectId={projectId}
               conversationId={conversationId}
               isHuman={isHuman}
             />

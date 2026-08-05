@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { couponsQueries } from "@/modules/coupons";
 import { CampaignsNextBestAction } from "@/components/campaigns-next-best-action";
 import { Button } from "@/components/ui/button";
@@ -16,18 +16,18 @@ import {
 export default async function CampaignsHubPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { store } = access;
 
-  const campaign = await couponsQueries.getCampaign(storeId);
+  const campaign = await couponsQueries.getCampaign(projectId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -39,11 +39,11 @@ export default async function CampaignsHubPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
-      <CampaignsNextBestAction storeId={storeId} />
+      <CampaignsNextBestAction projectId={projectId} />
 
       <div className="space-y-4">
         <Card>
@@ -78,7 +78,7 @@ export default async function CampaignsHubPage({
               </p>
             </div>
             <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${storeId}/campaigns/first-follower`}>
+              <Link href={`/stores/${projectId}/campaigns/first-follower`}>
                 Configure campaign
               </Link>
             </Button>

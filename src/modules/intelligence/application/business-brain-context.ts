@@ -29,7 +29,7 @@ export interface BusinessBrainContextInput {
   goals: GoalRepository;
   dailyActions: DailyActionRepository;
   journeys: JourneyRepository;
-  getMemory?: (organizationId: string, storeId: string) => Promise<MarketingMemoryRecord | null>;
+  getMemory?: (userId: string, projectId: string) => Promise<MarketingMemoryRecord | null>;
 }
 
 export type CitationSource =
@@ -49,8 +49,8 @@ export interface SourceCitation {
 }
 
 export interface BusinessBrainContext {
-  organizationId: string;
-  storeId?: string;
+  userId: string;
+  projectId?: string;
   topInsights: BusinessInsightRecord[];
   topRecommendations: RecommendationRecord[];
   activePredictions: PredictionRecord[];
@@ -66,7 +66,7 @@ export interface BusinessBrainContext {
 
 export function makeBusinessBrainContextService(input: BusinessBrainContextInput) {
   return {
-    async getContext(organizationId: string, storeId?: string): Promise<BusinessBrainContext> {
+    async getContext(userId: string, projectId?: string): Promise<BusinessBrainContext> {
       const [
         topInsights,
         topRecommendations,
@@ -77,31 +77,31 @@ export function makeBusinessBrainContextService(input: BusinessBrainContextInput
         todayActions,
         recentJourneys,
       ] = await Promise.all([
-        input.insights.listOpen(organizationId, storeId, 5),
-        input.recommendations.listActive(organizationId, storeId, 5),
-        input.predictions.listActive(organizationId, storeId, 5),
-        input.outcomes.list(organizationId, storeId, 5),
-        input.learning.list(organizationId, storeId, 5),
-        input.goals.list(organizationId, storeId, 5),
-        input.dailyActions.listPending(organizationId, storeId, 5),
-        input.journeys.list(organizationId, storeId, 5),
+        input.insights.listOpen(userId, projectId, 5),
+        input.recommendations.listActive(userId, projectId, 5),
+        input.predictions.listActive(userId, projectId, 5),
+        input.outcomes.list(userId, projectId, 5),
+        input.learning.list(userId, projectId, 5),
+        input.goals.list(userId, projectId, 5),
+        input.dailyActions.listPending(userId, projectId, 5),
+        input.journeys.list(userId, projectId, 5),
       ]);
 
       let marketingMemory: MarketingMemoryRecord | null = null;
-      if (storeId && input.getMemory) {
-        marketingMemory = await input.getMemory(organizationId, storeId).catch(() => null);
+      if (projectId && input.getMemory) {
+        marketingMemory = await input.getMemory(userId, projectId).catch(() => null);
       }
 
       const citations: SourceCitation[] = [];
       if (marketingMemory) {
         citations.push({
           source: "MarketingMemory",
-          reference: `memory:${marketingMemory.storeId}`,
+          reference: `memory:${marketingMemory.projectId}`,
           detail: `${marketingMemory.productScores.length} scored product(s); winning posting times tracked.`,
         });
         citations.push({
           source: "DailyBrief",
-          reference: `brief:${marketingMemory.storeId}`,
+          reference: `brief:${marketingMemory.projectId}`,
           detail: "Latest daily brief derived from marketing memory.",
         });
       }
@@ -146,8 +146,8 @@ export function makeBusinessBrainContextService(input: BusinessBrainContextInput
       }
 
       return {
-        organizationId,
-        storeId,
+        userId,
+        projectId,
         topInsights,
         topRecommendations,
         activePredictions,

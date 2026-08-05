@@ -37,7 +37,7 @@ export function makeProactiveNotificationService(input: ProactiveNotificationSer
   const quietHours = input.quietHours ?? { start: 22, end: 8 };
 
   async function notifyInsight(insight: BusinessInsightRecord): Promise<void> {
-    if (!insight.storeId) return;
+    if (!insight.projectId) return;
     const tier = tierForInsight(insight);
     if (tier === "DIGEST" || tier === "ON_DEMAND") return;
 
@@ -51,7 +51,7 @@ export function makeProactiveNotificationService(input: ProactiveNotificationSer
     if (isQuietHour(new Date(), quietHours) && tier !== "CRITICAL_INTERRUPT") return;
 
     await input.notifications.notify({
-      storeId: insight.storeId,
+      projectId: insight.projectId,
       type: "INTELLIGENCE",
       title: insight.title,
       body: insight.description,
@@ -61,7 +61,7 @@ export function makeProactiveNotificationService(input: ProactiveNotificationSer
   }
 
   async function notifyRecommendation(recommendation: RecommendationRecord): Promise<void> {
-    if (!recommendation.storeId) return;
+    if (!recommendation.projectId) return;
     const tier = tierForRecommendation(recommendation);
     if (tier === "DIGEST" || tier === "ON_DEMAND") return;
 
@@ -75,7 +75,7 @@ export function makeProactiveNotificationService(input: ProactiveNotificationSer
     if (isQuietHour(new Date(), quietHours) && tier !== "CRITICAL_INTERRUPT") return;
 
     await input.notifications.notify({
-      storeId: recommendation.storeId,
+      projectId: recommendation.projectId,
       type: "INTELLIGENCE",
       title: recommendation.title,
       body: recommendation.description,

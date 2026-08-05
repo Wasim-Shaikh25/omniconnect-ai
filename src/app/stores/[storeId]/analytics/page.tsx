@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { type MarketingPerformanceView } from "@/modules/analytics";
 import { getMarketingPerformance } from "@/modules/analytics/server";
 import { Button } from "@/components/ui/button";
@@ -25,22 +25,22 @@ function formatCurrency(value: number, currency: string | null): string {
 export default async function StoreAnalyticsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.organizationId) notFound();
+  if (!user.userId) notFound();
 
   let view: MarketingPerformanceView | null = null;
   let error: string | null = null;
   try {
-    view = await getMarketingPerformance({ organizationId: user.organizationId, storeId });
+    view = await getMarketingPerformance({ userId: user.userId, projectId });
   } catch (e) {
     error = e instanceof Error ? e.message : "Could not load marketing performance";
   }
@@ -53,7 +53,7 @@ export default async function StoreAnalyticsPage({
           <p className="text-sm text-muted-foreground">Snapshot for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -75,16 +75,16 @@ export default async function StoreAnalyticsPage({
 
           <div className="mb-6 flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/analytics/content`}>Content</Link>
+              <Link href={`/stores/${projectId}/analytics/content`}>Content</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/analytics/audience`}>Audience</Link>
+              <Link href={`/stores/${projectId}/analytics/audience`}>Audience</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/analytics/product`}>Product</Link>
+              <Link href={`/stores/${projectId}/analytics/product`}>Product</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${storeId}/analytics/campaign`}>Campaign</Link>
+              <Link href={`/stores/${projectId}/analytics/campaign`}>Campaign</Link>
             </Button>
           </div>
 

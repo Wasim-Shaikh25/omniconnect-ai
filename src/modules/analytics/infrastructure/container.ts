@@ -1,5 +1,5 @@
 import { eventBus } from "@/shared/events";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { conversationQueries } from "@/modules/conversations";
 import { crmQueries } from "@/modules/crm";

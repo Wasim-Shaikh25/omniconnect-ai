@@ -11,7 +11,7 @@ import type {
 export function makeListBrandDeals(deps: {
   brandDeals: BrandDealRepository;
 }): BrandDealQueries["listByStore"] {
-  return (storeId, limit) => deps.brandDeals.listByStore(storeId, limit);
+  return (projectId, limit) => deps.brandDeals.listByStore(projectId, limit);
 }
 
 export function makeCreateBrandDeal(deps: {
@@ -23,8 +23,8 @@ export function makeCreateBrandDeal(deps: {
       ...input,
     });
     await eventBus.publish(
-      new BrandDealCreated(deal.storeId, {
-        storeId: deal.storeId,
+      new BrandDealCreated(deal.projectId, {
+        projectId: deal.projectId,
         dealId: deal.id,
         brandName: deal.brandName,
         value: deal.value,

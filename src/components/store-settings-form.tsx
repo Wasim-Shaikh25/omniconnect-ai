@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import type { StoreLifecycleActionState } from "@/modules/organizations";
+import type { StoreLifecycleActionState } from "@/modules/workspaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ export function StoreSettingsForm({ store, providers, updateAction }: StoreSetti
 
   return (
     <form action={updateFormAction} className="space-y-4">
-      <input type="hidden" name="storeId" value={store.id} />
+      <input type="hidden" name="projectId" value={store.id} />
       <div className="space-y-2">
         <Label htmlFor="store-name">Store name</Label>
         <Input

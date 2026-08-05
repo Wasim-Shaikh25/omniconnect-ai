@@ -22,10 +22,10 @@ import {
 } from "@/modules/analytics";
 
 export default function CompetitorsPageClient({
-  storeId,
+  projectId,
   initialAccounts,
 }: {
-  storeId: string;
+  projectId: string;
   initialAccounts: TrackedAccountRecord[];
 }) {
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function CompetitorsPageClient({
       <header className="mb-6">
         <h1 className="text-xl font-semibold">Competitor analysis</h1>
         <p className="text-sm text-muted-foreground">Track competitor accounts, fetch their latest posts, and get AI strategy breakdowns.</p>
-        <Link href={`/stores/${storeId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
+        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
       </header>
 
       <section className="space-y-6 mb-10">
@@ -60,7 +60,7 @@ export default function CompetitorsPageClient({
           </CardHeader>
           <CardContent>
             <form action={trackAction} className="grid gap-4 md:grid-cols-4">
-              <input type="hidden" name="storeId" value={storeId} />
+              <input type="hidden" name="projectId" value={projectId} />
               <div className="md:col-span-1">
                 <Label htmlFor="handle">Handle</Label>
                 <Input id="handle" name="handle" placeholder="@competitor" required />
@@ -89,7 +89,7 @@ export default function CompetitorsPageClient({
           </CardHeader>
           <CardContent>
             <form action={discoverAction} className="grid gap-4 md:grid-cols-4">
-              <input type="hidden" name="storeId" value={storeId} />
+              <input type="hidden" name="projectId" value={projectId} />
               <input type="hidden" name="mediaLimit" value={25} />
               <input type="hidden" name="topAccounts" value={5} />
               <div className="md:col-span-2">
@@ -117,7 +117,7 @@ export default function CompetitorsPageClient({
                         <p className="text-xs text-muted-foreground">{s.postCount} posts · {s.avgLikes.toLocaleString()} avg likes · {s.avgComments.toLocaleString()} avg comments</p>
                       </div>
                       <form action={trackAction}>
-                        <input type="hidden" name="storeId" value={storeId} />
+                        <input type="hidden" name="projectId" value={projectId} />
                         <input type="hidden" name="handle" value={s.handle} />
                         <input type="hidden" name="niche" value={discoverState.query ?? ''} />
                         <input type="hidden" name="note" value="Discovered via competitor search" />
@@ -137,7 +137,7 @@ export default function CompetitorsPageClient({
         ) : (
           <div className="space-y-4">
             {accounts.map((account) => (
-              <CompetitorCard key={account.id} account={account} storeId={storeId} onDelete={deleteAction} deletePending={deletePending} />
+              <CompetitorCard key={account.id} account={account} projectId={projectId} onDelete={deleteAction} deletePending={deletePending} />
             ))}
           </div>
         )}
@@ -148,12 +148,12 @@ export default function CompetitorsPageClient({
 
 function CompetitorCard({
   account,
-  storeId,
+  projectId,
   onDelete,
   deletePending,
 }: {
   account: TrackedAccountRecord;
-  storeId: string;
+  projectId: string;
   onDelete: (payload: FormData) => void;
   deletePending: boolean;
 }) {
@@ -173,7 +173,7 @@ function CompetitorCard({
             <CardDescription>{account.niche ?? "No niche set"} · {account.platform}</CardDescription>
           </div>
           <form action={onDelete}>
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="accountId" value={account.id} />
             <Button type="submit" variant="destructive" size="sm" disabled={deletePending}>Remove</Button>
           </form>
@@ -183,22 +183,22 @@ function CompetitorCard({
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-3">
           <form action={mediaAction}>
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="accountId" value={account.id} />
             <Button type="submit" size="sm" disabled={mediaPending}>{mediaPending ? "Fetching…" : "Fetch latest posts"}</Button>
           </form>
           <form action={analysisAction}>
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="accountId" value={account.id} />
             <Button type="submit" variant="secondary" size="sm" disabled={analysisPending}>{analysisPending ? "Analyzing…" : "AI strategy analysis"}</Button>
           </form>
           <form action={benchmarkAction}>
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="accountId" value={account.id} />
             <Button type="submit" variant="outline" size="sm" disabled={benchmarkPending}>{benchmarkPending ? "Benchmarking…" : "Benchmark"}</Button>
           </form>
           <form action={comparisonAction}>
-            <input type="hidden" name="storeId" value={storeId} />
+            <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="accountId" value={account.id} />
             <Button type="submit" variant="outline" size="sm" disabled={comparisonPending}>{comparisonPending ? "Comparing…" : "Compare with me"}</Button>
           </form>
@@ -224,7 +224,7 @@ function CompetitorCard({
           <div className="space-y-4">
             <p className="text-sm font-medium">Latest posts</p>
             {media.map((m: MetaMediaItem, idx: number) => (
-              <MediaCard key={idx} media={m} storeId={storeId} />
+              <MediaCard key={idx} media={m} projectId={projectId} />
             ))}
           </div>
         )}
@@ -365,7 +365,7 @@ function AnalysisPanel({ analysis }: { analysis: CompetitorAnalysis }) {
   );
 }
 
-function MediaCard({ media, storeId }: { media: MetaMediaItem; storeId: string }) {
+function MediaCard({ media, projectId }: { media: MetaMediaItem; projectId: string }) {
   const [ideasState, ideasAction, ideasPending] = useActionState(generatePostIdeasAction, {});
   const src = media.thumbnailUrl ?? media.mediaUrl ?? null;
 
@@ -389,7 +389,7 @@ function MediaCard({ media, storeId }: { media: MetaMediaItem; storeId: string }
       {media.publishedAt && <p className="text-xs text-muted-foreground">Posted {new Date(media.publishedAt).toLocaleDateString()}</p>}
       <p className="text-sm text-muted-foreground">{media.hashtags.slice(0, 12).join(" ")}</p>
       <form action={ideasAction} className="mt-2">
-        <input type="hidden" name="storeId" value={storeId} />
+        <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="caption" value={media.caption ?? ""} />
         <input type="hidden" name="hashtags" value={media.hashtags.join(" ")} />
         <input type="hidden" name="mediaType" value={media.mediaType} />

@@ -28,7 +28,7 @@ import type {
 
 export class PrismaUgcRepository implements UgcRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     socialMentionId?: string | null;
     customerId?: string | null;
     creatorHandle?: string | null;
@@ -39,7 +39,7 @@ export class PrismaUgcRepository implements UgcRepository {
   }): Promise<UgcAssetRecord> {
     const created = await prisma.ugcAsset.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         socialMentionId: input.socialMentionId ?? null,
         customerId: input.customerId ?? null,
         creatorHandle: input.creatorHandle ?? null,
@@ -53,9 +53,9 @@ export class PrismaUgcRepository implements UgcRepository {
     return toUgcRecord(created);
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<UgcAssetRecord[]> {
+  async listByStore(projectId: string, limit = 50): Promise<UgcAssetRecord[]> {
     const rows = await prisma.ugcAsset.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -64,12 +64,12 @@ export class PrismaUgcRepository implements UgcRepository {
 
   async updateRights(
     id: string,
-    storeId: string,
+    projectId: string,
     status: string,
     approvedBy?: string | null,
   ): Promise<UgcAssetRecord> {
     const updated = await prisma.ugcAsset.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: {
         rightsStatus: status as UgcRightsStatus,
         approvedBy: approvedBy ?? null,
@@ -82,7 +82,7 @@ export class PrismaUgcRepository implements UgcRepository {
 
 export class PrismaAmbassadorRepository implements AmbassadorRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     customerId?: string | null;
     code: string;
     discountPct?: number;
@@ -91,7 +91,7 @@ export class PrismaAmbassadorRepository implements AmbassadorRepository {
   }): Promise<AmbassadorRecord> {
     const created = await prisma.ambassador.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         customerId: input.customerId ?? null,
         code: input.code,
         discountPct: input.discountPct ?? 10,
@@ -102,28 +102,28 @@ export class PrismaAmbassadorRepository implements AmbassadorRepository {
     return toAmbassadorRecord(created);
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<AmbassadorRecord[]> {
+  async listByStore(projectId: string, limit = 50): Promise<AmbassadorRecord[]> {
     const rows = await prisma.ambassador.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
     return rows.map(toAmbassadorRecord);
   }
 
-  async findById(id: string, storeId: string): Promise<AmbassadorRecord | null> {
-    const row = await prisma.ambassador.findUnique({ where: { id, storeId } });
+  async findById(id: string, projectId: string): Promise<AmbassadorRecord | null> {
+    const row = await prisma.ambassador.findUnique({ where: { id, projectId } });
     return row ? toAmbassadorRecord(row) : null;
   }
 
   async incrementEarnings(
     id: string,
-    storeId: string,
+    projectId: string,
     amount: number,
     referrals: number,
   ): Promise<AmbassadorRecord> {
     const updated = await prisma.ambassador.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: {
         totalEarnings: { increment: amount },
         totalReferrals: { increment: referrals },
@@ -135,7 +135,7 @@ export class PrismaAmbassadorRepository implements AmbassadorRepository {
 
 export class PrismaReferralOrderRepository implements ReferralOrderRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     ambassadorId: string;
     orderId: string;
     orderAmount: number;
@@ -144,7 +144,7 @@ export class PrismaReferralOrderRepository implements ReferralOrderRepository {
   }): Promise<ReferralOrderRecord> {
     const created = await prisma.referralOrder.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         ambassadorId: input.ambassadorId,
         orderId: input.orderId,
         orderAmount: input.orderAmount,
@@ -156,11 +156,11 @@ export class PrismaReferralOrderRepository implements ReferralOrderRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     limit = 50,
   ): Promise<ReferralOrderRecord[]> {
     const rows = await prisma.referralOrder.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -170,7 +170,7 @@ export class PrismaReferralOrderRepository implements ReferralOrderRepository {
 
 export class PrismaDmCampaignRepository implements DmCampaignRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     campaignType: string;
     audienceCriteria?: unknown;
     status?: string;
@@ -178,7 +178,7 @@ export class PrismaDmCampaignRepository implements DmCampaignRepository {
   }): Promise<DmCampaignRecord> {
     const created = await prisma.dmCampaign.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         campaignType: input.campaignType as DmCampaignType,
         audienceCriteria: input.audienceCriteria as Prisma.InputJsonValue,
         status: (input.status ?? "DRAFT") as DmCampaignStatus,
@@ -189,20 +189,20 @@ export class PrismaDmCampaignRepository implements DmCampaignRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     limit = 50,
   ): Promise<DmCampaignRecord[]> {
     const rows = await prisma.dmCampaign.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
     return rows.map(toDmCampaignRecord);
   }
 
-  async markSent(id: string, storeId: string, metrics?: unknown): Promise<DmCampaignRecord> {
+  async markSent(id: string, projectId: string, metrics?: unknown): Promise<DmCampaignRecord> {
     const updated = await prisma.dmCampaign.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: {
         status: "SENT" as DmCampaignStatus,
         sentAt: new Date(),
@@ -215,14 +215,14 @@ export class PrismaDmCampaignRepository implements DmCampaignRepository {
 
 export class PrismaBackInStockRepository implements BackInStockRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     productId: string;
     externalUserId?: string | null;
     customerId?: string | null;
   }): Promise<BackInStockSubscriptionRecord> {
     const created = await prisma.backInStockSubscription.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         productId: input.productId,
         externalUserId: input.externalUserId ?? null,
         customerId: input.customerId ?? null,
@@ -232,20 +232,20 @@ export class PrismaBackInStockRepository implements BackInStockRepository {
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     limit = 50,
   ): Promise<BackInStockSubscriptionRecord[]> {
     const rows = await prisma.backInStockSubscription.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
     return rows.map(toBackInStockRecord);
   }
 
-  async markNotified(id: string, storeId: string): Promise<BackInStockSubscriptionRecord> {
+  async markNotified(id: string, projectId: string): Promise<BackInStockSubscriptionRecord> {
     const updated = await prisma.backInStockSubscription.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: { notifiedAt: new Date() },
     });
     return toBackInStockRecord(updated);
@@ -254,7 +254,7 @@ export class PrismaBackInStockRepository implements BackInStockRepository {
 
 function toUgcRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   socialMentionId: string | null;
   customerId: string | null;
   creatorHandle: string | null;
@@ -273,7 +273,7 @@ function toUgcRecord(row: {
 
 function toAmbassadorRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   customerId: string | null;
   code: string;
   discountPct: number;
@@ -292,7 +292,7 @@ function toAmbassadorRecord(row: {
 
 function toReferralOrderRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   ambassadorId: string;
   orderId: string;
   orderAmount: unknown;
@@ -311,7 +311,7 @@ function toReferralOrderRecord(row: {
 
 function toDmCampaignRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   campaignType: string;
   audienceCriteria: unknown;
   status: string;
@@ -326,7 +326,7 @@ function toDmCampaignRecord(row: {
 
 function toBackInStockRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   productId: string;
   externalUserId: string | null;
   customerId: string | null;
@@ -340,7 +340,7 @@ export class PrismaCommentUnlockRepository
   implements CommentUnlockRepository
 {
   async createCampaign(input: {
-    storeId: string;
+    projectId: string;
     keyword: string;
     rewardType: "LINK" | "COUPON" | "MESSAGE";
     rewardValue?: string | null;
@@ -349,7 +349,7 @@ export class PrismaCommentUnlockRepository
   }): Promise<CommentUnlockCampaignRecord> {
     const created = await prisma.commentUnlockCampaign.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         keyword: input.keyword.toLowerCase().trim(),
         rewardType: input.rewardType as CommentUnlockRewardType,
         rewardValue: input.rewardValue ?? null,
@@ -361,11 +361,11 @@ export class PrismaCommentUnlockRepository
   }
 
   async listCampaignsByStore(
-    storeId: string,
+    projectId: string,
     limit = 1000,
   ): Promise<CommentUnlockCampaignRecord[]> {
     const rows = await prisma.commentUnlockCampaign.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -373,12 +373,12 @@ export class PrismaCommentUnlockRepository
   }
 
   async findActiveCampaignByKeyword(
-    storeId: string,
+    projectId: string,
     keyword: string,
   ): Promise<CommentUnlockCampaignRecord | null> {
     const row = await prisma.commentUnlockCampaign.findFirst({
       where: {
-        storeId,
+        projectId,
         active: true,
         keyword: keyword.toLowerCase().trim(),
       },
@@ -388,7 +388,7 @@ export class PrismaCommentUnlockRepository
 
   async createRedemption(input: {
     campaignId: string;
-    storeId: string;
+    projectId: string;
     externalUserId: string;
     username?: string | null;
     commentId?: string | null;
@@ -396,7 +396,7 @@ export class PrismaCommentUnlockRepository
     const created = await prisma.commentUnlockRedemption.create({
       data: {
         campaignId: input.campaignId,
-        storeId: input.storeId,
+        projectId: input.projectId,
         externalUserId: input.externalUserId,
         username: input.username ?? null,
         commentId: input.commentId ?? null,
@@ -418,17 +418,17 @@ export class PrismaCommentUnlockRepository
     return rows.map(toCommentUnlockRedemptionRecord);
   }
 
-  async markSent(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord> {
+  async markSent(id: string, projectId: string): Promise<CommentUnlockRedemptionRecord> {
     const updated = await prisma.commentUnlockRedemption.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: { status: CommentUnlockStatus.SENT, sentAt: new Date() },
     });
     return toCommentUnlockRedemptionRecord(updated);
   }
 
-  async markReferred(id: string, storeId: string): Promise<CommentUnlockRedemptionRecord> {
+  async markReferred(id: string, projectId: string): Promise<CommentUnlockRedemptionRecord> {
     const updated = await prisma.commentUnlockRedemption.update({
-      where: { id, storeId },
+      where: { id, projectId },
       data: { status: CommentUnlockStatus.REFERRED },
     });
     return toCommentUnlockRedemptionRecord(updated);
@@ -447,7 +447,7 @@ export class PrismaCommentUnlockRepository
 
 function toCommentUnlockCampaignRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   keyword: string;
   rewardType: string;
   rewardValue: string | null;
@@ -466,7 +466,7 @@ function toCommentUnlockCampaignRecord(row: {
 function toCommentUnlockRedemptionRecord(row: {
   id: string;
   campaignId: string;
-  storeId: string;
+  projectId: string;
   externalUserId: string;
   username: string | null;
   commentId: string | null;

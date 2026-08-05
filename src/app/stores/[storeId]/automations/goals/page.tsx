@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { getAutomationTemplatesAction, createGoalAutomationAction, goalAutomationService } from "@/modules/intelligence";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,11 +11,11 @@ import { Label } from "@/components/ui/label";
 export default async function GoalAutomationsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -54,7 +54,7 @@ export default async function GoalAutomationsPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/automations`}>Back to automations</Link>
+          <Link href={`/stores/${projectId}/automations`}>Back to automations</Link>
         </Button>
       </header>
 
@@ -70,7 +70,7 @@ export default async function GoalAutomationsPage({
             </CardHeader>
             <CardContent>
               <form action={createGoalAutomationAction} className="space-y-3">
-                <input type="hidden" name="storeId" value={storeId} />
+                <input type="hidden" name="projectId" value={projectId} />
                 <input type="hidden" name="templateId" value={t.id} />
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1">

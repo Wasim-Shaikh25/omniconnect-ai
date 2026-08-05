@@ -31,12 +31,12 @@ export interface WelcomeFirstFollowerDeps {
   crmCommands: CrmCommands;
   conversationCommands: ConversationCommands;
   getCustomerConsent: (input: {
-    storeId: string;
+    projectId: string;
     externalUserId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
   }) => Promise<CustomerConsent | null>;
   organizationQueries: {
-    getOrganizationIdByStoreId(storeId: string): Promise<string | null>;
+    getOrganizationIdByStoreId(projectId: string): Promise<string | null>;
   };
 }
 
@@ -50,7 +50,7 @@ function sanitizeUsername(username: string | null): string {
 
 export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
   return async function welcomeFirstFollower(input: {
-    storeId: string;
+    projectId: string;
     followerId: string;
     customerId: string;
     externalUserId: string;
@@ -58,26 +58,26 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
     channel: "INSTAGRAM" | "FACEBOOK";
   }): Promise<void> {
     const campaign = await deps.campaigns.getOrCreateDefault(
-      input.storeId,
+      input.projectId,
       "FIRST_TIME_FOLLOWER",
     );
 
     if (!campaign.active) {
       logger.info("coupons.firstTimeFollower.disabled", {
-        storeId: input.storeId,
+        projectId: input.projectId,
         followerId: input.followerId,
       });
       return;
     }
 
     const consent = await deps.getCustomerConsent({
-      storeId: input.storeId,
+      projectId: input.projectId,
       externalUserId: input.externalUserId,
       channel: input.channel,
     });
     if (consent === "DECLINED") {
       logger.info("coupons.firstTimeFollower.consentDeclined", {
-        storeId: input.storeId,
+        projectId: input.projectId,
         followerId: input.followerId,
         externalUserId: input.externalUserId,
       });
@@ -90,7 +90,7 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
     const code = sanitizeUsername(input.username);
 
     const couponResult = await deps.generateCoupon({
-      storeId: input.storeId,
+      projectId: input.projectId,
       code,
       discountPct: campaign.discountPct,
       expiresAt,
@@ -100,7 +100,7 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
 
     if (!couponResult.ok) {
       logger.error("coupons.firstTimeFollower.couponFailed", {
-        storeId: input.storeId,
+        projectId: input.projectId,
         error: couponResult.error.message,
       });
       return;
@@ -109,8 +109,8 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
     const coupon = couponResult.value;
 
     await eventBus.publish(
-      new WelcomeCouponGenerated(input.storeId, {
-        storeId: input.storeId,
+      new WelcomeCouponGenerated(input.projectId, {
+        projectId: input.projectId,
         followerId: input.followerId,
         customerId: input.customerId,
         externalUserId: input.externalUserId,
@@ -121,19 +121,19 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
       }),
     );
 
-    const organizationId = await deps.organizationQueries.getOrganizationIdByStoreId(
-      input.storeId,
+    const userId = await deps.organizationQueries.getOrganizationIdByStoreId(
+      input.projectId,
     );
-    if (organizationId) {
+    if (userId) {
       try {
-        await aiUsageGuard.assertAvailable(organizationId);
+        await aiUsageGuard.assertAvailable(userId);
       } catch {
-        logger.warn("coupons.firstTimeFollower.aiQuotaExceeded", { storeId: input.storeId });
+        logger.warn("coupons.firstTimeFollower.aiQuotaExceeded", { projectId: input.projectId });
         return;
       }
     }
 
-    const messageText = await deps.generateWelcome(input.storeId, {
+    const messageText = await deps.generateWelcome(input.projectId, {
       username: input.username,
       couponCode: coupon.code,
       discountPct: coupon.discountPct,
@@ -143,26 +143,26 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
 
     try {
       await deps.metaService.sendMessage({
-        storeId: input.storeId,
+        projectId: input.projectId,
         recipientId: input.externalUserId,
         text: messageText,
       });
     } catch (error) {
       logger.error("coupons.firstTimeFollower.sendFailed", {
-        storeId: input.storeId,
+        projectId: input.projectId,
         error: error instanceof Error ? error.message : String(error),
       });
     }
 
     await deps.crmCommands.recordFollowerCampaignEnrollment({
       followerId: input.followerId,
-      storeId: input.storeId,
+      projectId: input.projectId,
       couponId: coupon.id,
       welcomeMessageText: messageText,
     });
 
     const conversation = await deps.conversationCommands.createConversation({
-      storeId: input.storeId,
+      projectId: input.projectId,
       channel: input.channel,
       externalId: input.externalUserId,
       customerId: input.customerId,
@@ -170,14 +170,14 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
 
     await deps.conversationCommands.appendMessage(
       conversation.id,
-      input.storeId,
+      input.projectId,
       "AI",
       messageText,
     );
 
     await eventBus.publish(
-      new WelcomeMessageSent(input.storeId, {
-        storeId: input.storeId,
+      new WelcomeMessageSent(input.projectId, {
+        projectId: input.projectId,
         followerId: input.followerId,
         customerId: input.customerId,
         externalUserId: input.externalUserId,
@@ -187,7 +187,7 @@ export function makeWelcomeFirstFollower(deps: WelcomeFirstFollowerDeps) {
     );
 
     logger.info("coupons.firstTimeFollower.enrolled", {
-      storeId: input.storeId,
+      projectId: input.projectId,
       followerId: input.followerId,
       couponId: coupon.id,
     });

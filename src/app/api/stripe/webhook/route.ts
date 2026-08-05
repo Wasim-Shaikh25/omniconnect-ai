@@ -3,7 +3,7 @@ import {
   billingService,
   BillingConfigurationError,
   BillingSignatureError,
-} from "@/modules/organizations";
+} from "@/modules/workspaces";
 
 export async function POST(request: Request) {
   try {

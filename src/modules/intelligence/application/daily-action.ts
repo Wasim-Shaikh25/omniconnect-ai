@@ -34,10 +34,10 @@ export interface DailyActionServiceInput {
   dailyActions: DailyActionRepository;
   actionOutcomes: ActionOutcomeRepository;
   recommendations: RecommendationRepository;
-  prioritize: (organizationId: string, storeId?: string, limit?: number) => Promise<RankedRecommendationLike[]>;
-  metrics: { getMetric: (name: string, organizationId: string, storeId: string | null) => Promise<{ value: number | null } | null> };
-  getMemory?: (organizationId: string, storeId: string) => Promise<MarketingMemoryRecord | null>;
-  enqueueMeasurement?: (outcomeId: string, organizationId: string, delayMs: number) => Promise<void>;
+  prioritize: (userId: string, projectId?: string, limit?: number) => Promise<RankedRecommendationLike[]>;
+  metrics: { getMetric: (name: string, userId: string, projectId: string | null) => Promise<{ value: number | null } | null> };
+  getMemory?: (userId: string, projectId: string) => Promise<MarketingMemoryRecord | null>;
+  enqueueMeasurement?: (outcomeId: string, userId: string, delayMs: number) => Promise<void>;
   now?: () => Date;
   maxActions?: number;
   windowHours?: number;
@@ -55,8 +55,8 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
   const windowHours = input.windowHours ?? DEFAULT_WINDOW_HOURS;
 
   function memoryActions(
-    organizationId: string,
-    storeId: string,
+    userId: string,
+    projectId: string,
     memory: MarketingMemoryRecord,
   ): Array<Omit<DailyActionRecord, "id" | "createdAt" | "updatedAt">> {
     const drafts: Array<Omit<DailyActionRecord, "id" | "createdAt" | "updatedAt">> = [];
@@ -65,8 +65,8 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     if (bestTime && topProduct) {
       const objective: BusinessObjective = "ENGAGEMENT";
       drafts.push({
-        organizationId,
-        storeId,
+        userId,
+        projectId,
         title: `Post about "${topProduct.productTitle}" at your winning time`,
         description: `Your audience engages most on ${bestTime.dayOfWeek} around ${bestTime.hour}:00. "${topProduct.productTitle}" is your strongest performer — schedule a post to capitalize on both signals.`,
         objective,
@@ -78,7 +78,7 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
           product: { id: topProduct.productId, title: topProduct.productTitle, score: topProduct.compositeScore },
         },
         suggestedAction: "OPEN_CONTENT_STUDIO",
-        deepLink: `/stores/${storeId}/content`,
+        deepLink: `/stores/${projectId}/content`,
         status: "PENDING",
         metricName: OBJECTIVE_METRIC[objective],
         completedAt: null,
@@ -91,15 +91,15 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     return drafts;
   }
 
-  async function generate(organizationId: string, storeId?: string): Promise<DailyActionRecord[]> {
+  async function generate(userId: string, projectId?: string): Promise<DailyActionRecord[]> {
     // Idempotent per day: return today's actions if already generated.
     const since = startOfDay(now());
-    const existing = await input.dailyActions.listForDate(organizationId, since, storeId, 50);
+    const existing = await input.dailyActions.listForDate(userId, since, projectId, 50);
     if (existing.length > 0) {
       return existing.filter((a) => a.status === "PENDING");
     }
 
-    const ranked = await input.prioritize(organizationId, storeId, 25);
+    const ranked = await input.prioritize(userId, projectId, 25);
     const drafts: Array<Omit<DailyActionRecord, "id" | "createdAt" | "updatedAt">> = [];
 
     for (const rec of ranked) {
@@ -107,8 +107,8 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
         rec.businessObjective ?? inferBusinessObjective(rec.reasonCodes, rec.objective);
       const confidence = rec.confidence ?? 0.5;
       drafts.push({
-        organizationId,
-        storeId: rec.storeId,
+        userId,
+        projectId: rec.projectId,
         title: rec.title,
         description: rec.description,
         objective,
@@ -133,9 +133,9 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
       });
     }
 
-    if (storeId && input.getMemory) {
-      const memory = await input.getMemory(organizationId, storeId);
-      if (memory) drafts.push(...memoryActions(organizationId, storeId, memory));
+    if (projectId && input.getMemory) {
+      const memory = await input.getMemory(userId, projectId);
+      if (memory) drafts.push(...memoryActions(userId, projectId, memory));
     }
 
     drafts.sort((a, b) => b.priority - a.priority);
@@ -147,9 +147,9 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
 
     if (saved.length > 0) {
       await eventBus.publish(
-        new DailyActionsGenerated(organizationId, {
-          organizationId,
-          storeId: storeId ?? null,
+        new DailyActionsGenerated(userId, {
+          userId,
+          projectId: projectId ?? null,
           actionIds: saved.map((a) => a.id),
           generatedAt: now(),
         }),
@@ -158,34 +158,34 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     return saved;
   }
 
-  async function listToday(organizationId: string, storeId?: string): Promise<DailyActionRecord[]> {
-    const pending = await listPending(organizationId, storeId);
+  async function listToday(userId: string, projectId?: string): Promise<DailyActionRecord[]> {
+    const pending = await listPending(userId, projectId);
     if (pending.length > 0) return pending;
-    return generate(organizationId, storeId);
+    return generate(userId, projectId);
   }
 
-  async function listPending(organizationId: string, storeId?: string): Promise<DailyActionRecord[]> {
-    return input.dailyActions.listPending(organizationId, storeId, 20);
+  async function listPending(userId: string, projectId?: string): Promise<DailyActionRecord[]> {
+    return input.dailyActions.listPending(userId, projectId, 20);
   }
 
   async function complete(
     actionId: string,
     feedback?: string | null,
-    organizationId?: string,
+    userId?: string,
   ): Promise<ActionOutcomeRecord | null> {
-    const action = await input.dailyActions.findById(actionId, organizationId);
+    const action = await input.dailyActions.findById(actionId, userId);
     if (!action) return null;
     if (action.status !== "PENDING") return null;
 
     const metricName = action.metricName;
     const before = metricName
-      ? (await input.metrics.getMetric(metricName, action.organizationId, action.storeId))?.value ?? null
+      ? (await input.metrics.getMetric(metricName, action.userId, action.projectId))?.value ?? null
       : null;
 
     const outcome = await input.actionOutcomes.save({
       actionId: action.id,
-      organizationId: action.organizationId,
-      storeId: action.storeId,
+      userId: action.userId,
+      projectId: action.projectId,
       metricName,
       metricBefore: before !== null ? { value: before } : null,
       metricAfter: null,
@@ -194,13 +194,13 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
       status: "PENDING",
     });
 
-    await input.dailyActions.complete(actionId, action.organizationId, feedback ?? null, outcome.id);
+    await input.dailyActions.complete(actionId, action.userId, feedback ?? null, outcome.id);
 
     await eventBus.publish(
       new DailyActionCompleted(actionId, {
         actionId,
-        organizationId: action.organizationId,
-        storeId: action.storeId,
+        userId: action.userId,
+        projectId: action.projectId,
         outcomeId: outcome.id,
         observationWindowHours: windowHours,
         feedback: feedback ?? null,
@@ -208,22 +208,22 @@ export function makeDailyActionService(input: DailyActionServiceInput) {
     );
 
     if (input.enqueueMeasurement) {
-      await input.enqueueMeasurement(outcome.id, outcome.organizationId, windowHours * 60 * 60 * 1000);
+      await input.enqueueMeasurement(outcome.id, outcome.userId, windowHours * 60 * 60 * 1000);
     }
 
     return outcome;
   }
 
-  async function skip(actionId: string, reason?: string | null, organizationId?: string): Promise<void> {
-    const action = await input.dailyActions.findById(actionId, organizationId);
+  async function skip(actionId: string, reason?: string | null, userId?: string): Promise<void> {
+    const action = await input.dailyActions.findById(actionId, userId);
     if (!action) return;
     if (action.status !== "PENDING") return;
-    await input.dailyActions.skip(actionId, action.organizationId, reason ?? null);
+    await input.dailyActions.skip(actionId, action.userId, reason ?? null);
     await eventBus.publish(
       new DailyActionSkipped(actionId, {
         actionId,
-        organizationId: action.organizationId,
-        storeId: action.storeId,
+        userId: action.userId,
+        projectId: action.projectId,
         reason: reason ?? null,
       }),
     );

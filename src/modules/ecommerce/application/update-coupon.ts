@@ -3,7 +3,7 @@ import type { CouponRepository } from "./ports";
 
 export const updateCouponSchema = z.object({
   couponId: z.string().min(1),
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   discountPct: z.coerce.number().int().min(1).max(100).optional(),
   status: z.enum(["ACTIVE", "DISABLED", "EXPIRED"]).optional(),
   expiresAt: z.coerce.date().optional().nullable(),
@@ -17,7 +17,7 @@ export function makeUpdateCoupon(deps: { coupons: CouponRepository }) {
     if (!coupon) {
       throw new Error("Coupon not found.");
     }
-    if (coupon.storeId !== input.storeId) {
+    if (coupon.projectId !== input.projectId) {
       throw new Error("Coupon does not belong to this store.");
     }
 

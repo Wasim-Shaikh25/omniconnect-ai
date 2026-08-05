@@ -7,7 +7,7 @@ export function makeCrmCommands(deps: {
   return {
     recordFollowerCampaignEnrollment(input: {
       followerId: string;
-      storeId: string;
+      projectId: string;
       couponId: string;
       welcomeMessageText: string;
     }) {
@@ -15,7 +15,7 @@ export function makeCrmCommands(deps: {
     },
 
     upsertByExternalId(input: {
-      storeId: string;
+      projectId: string;
       channel: "INSTAGRAM" | "FACEBOOK";
       externalUserId: string;
       username: string | null;

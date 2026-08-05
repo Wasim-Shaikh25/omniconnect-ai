@@ -1,6 +1,6 @@
 export interface CampaignRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   type: "FIRST_TIME_FOLLOWER";
   name: string;
   discountPct: number;
@@ -13,16 +13,16 @@ export interface CampaignRecord {
 
 export interface CampaignRepository {
   getByStoreAndType(
-    storeId: string,
+    projectId: string,
     type: "FIRST_TIME_FOLLOWER",
   ): Promise<CampaignRecord | null>;
   getOrCreateDefault(
-    storeId: string,
+    projectId: string,
     type: "FIRST_TIME_FOLLOWER",
   ): Promise<CampaignRecord>;
   update(
-    storeId: string,
+    projectId: string,
     type: "FIRST_TIME_FOLLOWER",
-    input: Partial<Omit<CampaignRecord, "id" | "storeId" | "type" | "createdAt" | "updatedAt">>,
+    input: Partial<Omit<CampaignRecord, "id" | "projectId" | "type" | "createdAt" | "updatedAt">>,
   ): Promise<CampaignRecord>;
 }

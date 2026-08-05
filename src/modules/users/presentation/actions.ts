@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser, requireRole, requireSuperAdmin } from "@/modules/auth";
-import { tenantGuard } from "@/modules/organizations";
+import { tenantGuard } from "@/modules/workspaces";
 import { updateProfileSchema } from "../application/update-profile";
 import { changeRoleSchema } from "../application/change-role";
 import {

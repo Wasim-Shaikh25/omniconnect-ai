@@ -37,7 +37,7 @@ function makeSut({
   };
 
   const baseConfig: AIConfigurationRecord = {
-    storeId: "store-1",
+    projectId: "store-1",
     systemPrompt: config.systemPrompt ?? "You are a helpful assistant.",
     tone: config.tone ?? null,
     welcomeStrategy: config.welcomeStrategy ?? null,
@@ -52,7 +52,7 @@ function makeSut({
     getConversation: vi.fn().mockResolvedValue({
       conversation: {
         id: "conv-1",
-        storeId: "store-1",
+        projectId: "store-1",
         channel: "INSTAGRAM" as const,
         status: "AI_ACTIVE",
         externalId: "ext-1",

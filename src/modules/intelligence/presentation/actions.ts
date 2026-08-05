@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getQueue } from "@/shared/queue";
 import { getCurrentUser, requireRole, requireSuperAdmin, ForbiddenError, type SessionUser } from "@/modules/auth";
-import { organizationQueries, tenantGuard } from "@/modules/organizations";
+import { organizationQueries, tenantGuard } from "@/modules/workspaces";
 import { customerDirectory } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
 import {

@@ -41,24 +41,24 @@ export interface ShopRedactionSummary extends RedactionSummary {
 
 export interface ShopifyComplianceRepository {
   fetchCustomerData(input: {
-    storeId: string;
+    projectId: string;
     customerRef: string | null;
     customerEmail: string | null;
   }): Promise<CustomerDataPayload>;
 
   redactCustomer(input: {
-    storeId: string;
+    projectId: string;
     customerRef: string | null;
     customerEmail: string | null;
   }): Promise<RedactionSummary>;
 
-  redactShop(storeId: string): Promise<ShopRedactionSummary>;
+  redactShop(projectId: string): Promise<ShopRedactionSummary>;
 
-  disconnectStore(storeId: string): Promise<void>;
+  disconnectStore(projectId: string): Promise<void>;
 }
 
 export interface AuditLogEntry {
-  organizationId: string | null;
+  userId: string | null;
   action: string;
   resource: string;
   resourceId?: string;
@@ -70,7 +70,7 @@ export function makeRecordCompliance(
 ) {
   return async function record(entry: AuditLogEntry): Promise<void> {
     await auditLog.create({
-      organizationId: entry.organizationId,
+      userId: entry.userId,
       action: entry.action,
       resource: entry.resource,
       resourceId: entry.resourceId,

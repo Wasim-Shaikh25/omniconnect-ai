@@ -18,7 +18,7 @@ import {
 
 export default async function LoginPage() {
   const user = await getCurrentUser();
-  if (user) redirect(user.organizationId ? "/dashboard" : "/onboarding");
+  if (user) redirect(user.userId ? "/dashboard" : "/onboarding");
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">

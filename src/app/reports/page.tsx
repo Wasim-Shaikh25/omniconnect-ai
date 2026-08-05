@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
-import { organizationQueries } from "@/modules/organizations";
+import { organizationQueries } from "@/modules/workspaces";
 import { analyticsQueries } from "@/modules/analytics/server";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { crmQueries } from "@/modules/crm";
@@ -53,8 +53,8 @@ export default async function ReportsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
+  const overview = user.userId
+    ? await organizationQueries.getOrganizationOverview(user.userId)
     : null;
 
   if (!overview) {
@@ -69,8 +69,8 @@ export default async function ReportsPage() {
   }
 
   const [kpis, rows] = await Promise.all([
-    user.organizationId
-      ? analyticsQueries.getWorkspaceKpis(user.organizationId, user.id)
+    user.userId
+      ? analyticsQueries.getWorkspaceKpis(user.userId, user.id)
       : Promise.resolve(null),
     Promise.all(
       overview.stores.map(async (store) => {

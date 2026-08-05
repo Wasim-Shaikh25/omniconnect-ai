@@ -13,32 +13,32 @@ export function makeCrmQueries(deps: {
   followers: FollowerRepository;
 }) {
   return {
-    listCustomers(storeId: string, limit = 50): Promise<CustomerRecord[]> {
-      return deps.customers.listByStore(storeId, limit);
+    listCustomers(projectId: string, limit = 50): Promise<CustomerRecord[]> {
+      return deps.customers.listByStore(projectId, limit);
     },
     listFollowers(
-      storeId: string,
+      projectId: string,
       limitOrOptions: number | { limit?: number; offset?: number; search?: string } = 50,
     ): Promise<FollowerRecord[]> {
       const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
-      return deps.followers.listByStore(storeId, options);
+      return deps.followers.listByStore(projectId, options);
     },
     async listFollowersPaginated(
-      storeId: string,
+      projectId: string,
       pagination: PaginationInput,
       search?: string,
     ): Promise<PaginatedResult<FollowerRecord>> {
       const [items, total] = await Promise.all([
-        deps.followers.listByStore(storeId, { ...pagination, offset: toSkip(pagination), search }),
-        deps.followers.countByStore(storeId, search),
+        deps.followers.listByStore(projectId, { ...pagination, offset: toSkip(pagination), search }),
+        deps.followers.countByStore(projectId, search),
       ]);
       return paginatedResult(items, total, pagination);
     },
-    countFollowers(storeId: string, search?: string): Promise<number> {
-      return deps.followers.countByStore(storeId, search);
+    countFollowers(projectId: string, search?: string): Promise<number> {
+      return deps.followers.countByStore(projectId, search);
     },
     getCustomerProfile(input: {
-      storeId: string;
+      projectId: string;
       externalUserId: string;
       channel: "INSTAGRAM" | "FACEBOOK";
     }): Promise<CustomerProfile | null> {

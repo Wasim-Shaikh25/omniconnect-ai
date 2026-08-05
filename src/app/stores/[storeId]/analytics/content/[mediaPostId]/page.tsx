@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { getMediaPostAction, analyzeMediaAction } from "@/modules/analytics";
 import { AnalyzeMediaForm } from "@/components/analyze-media-form";
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,17 @@ function formatNumber(value: number | null | undefined): string {
 export default async function MediaPostDetailPage({
   params,
 }: {
-  params: Promise<{ storeId: string; mediaPostId: string }>;
+  params: Promise<{ projectId: string; mediaPostId: string }>;
 }) {
-  const { storeId, mediaPostId } = await params;
+  const { projectId, mediaPostId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.organizationId) notFound();
+  if (!user.userId) notFound();
 
   const { post, error } = await getMediaPostAction(mediaPostId);
   if (error || !post) notFound();
@@ -37,7 +37,7 @@ export default async function MediaPostDetailPage({
           <p className="text-sm text-muted-foreground">{store.name} · {post.mediaType}</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/analytics/content`}>Back to content</Link>
+          <Link href={`/stores/${projectId}/analytics/content`}>Back to content</Link>
         </Button>
       </header>
 
@@ -85,7 +85,7 @@ export default async function MediaPostDetailPage({
         </CardContent>
       </Card>
 
-      <AnalyzeMediaForm action={analyzeMediaAction} storeId={storeId} mediaPostId={mediaPostId} />
+      <AnalyzeMediaForm action={analyzeMediaAction} projectId={projectId} mediaPostId={mediaPostId} />
     </main>
   );
 }

@@ -1,7 +1,7 @@
 
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { checkStoreAccess } from "@/modules/organizations";
+import { checkStoreAccess } from "@/modules/workspaces";
 import { conversationQueries } from "@/modules/conversations";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,11 +27,11 @@ export default async function ConversationsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
   searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
-  const { storeId } = await params;
-  const access = await checkStoreAccess(storeId);
+  const { projectId } = await params;
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -42,7 +42,7 @@ export default async function ConversationsPage({
   const search = paramsResolved.q?.trim();
 
   const { items: conversations, total, totalPages } = await conversationQueries.listConversationsPaginated(
-    storeId,
+    projectId,
     pagination,
     search,
   );
@@ -55,7 +55,7 @@ export default async function ConversationsPage({
           <p className="text-sm text-muted-foreground">Conversations</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -95,7 +95,7 @@ export default async function ConversationsPage({
                       </span>
                     </div>
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/stores/${storeId}/conversations/${c.id}`}>
+                      <Link href={`/stores/${projectId}/conversations/${c.id}`}>
                         View
                       </Link>
                     </Button>

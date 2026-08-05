@@ -66,11 +66,11 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
   }
 
   async function prioritizeRecommendations(
-    organizationId: string,
-    storeId?: string,
+    userId: string,
+    projectId?: string,
     limit = 20,
   ): Promise<RankedRecommendation[]> {
-    const active = await input.recommendations.listActive(organizationId, storeId, 200);
+    const active = await input.recommendations.listActive(userId, projectId, 200);
     const ranked = active.map((rec) => ({ ...rec, score: scoreRecommendation(rec) }));
     ranked.sort((a, b) => b.score - a.score);
     return ranked.slice(0, limit);
@@ -132,8 +132,8 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
 
       if (input.conflicts && winnerRec) {
         await input.conflicts.save({
-          organizationId: winnerRec.organizationId,
-          storeId: winnerRec.storeId,
+          userId: winnerRec.userId,
+          projectId: winnerRec.projectId,
           winnerId: winner.recommendationId,
           runnerUpId: runnerUp?.recommendationId ?? null,
           winnerTitle: winnerRec.title,
@@ -156,14 +156,14 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
     return { ranked, resolutions };
   }
 
-  async function expireStaleRecommendations(organizationId: string): Promise<{ expired: string[]; skipped: string[] }> {
+  async function expireStaleRecommendations(userId: string): Promise<{ expired: string[]; skipped: string[] }> {
     const expired: string[] = [];
     const skipped: string[] = [];
 
-    const allOpen = await input.recommendations.listOpen(organizationId, undefined, 500);
+    const allOpen = await input.recommendations.listOpen(userId, undefined, 500);
     for (const rec of allOpen) {
       if (isRecommendationExpired(rec, now)) {
-        await input.recommendations.invalidate(rec.id, organizationId, "RecommendationExpired");
+        await input.recommendations.invalidate(rec.id, userId, "RecommendationExpired");
         await eventBus.publish(
           new RecommendationExpired(rec.id, { recommendationId: rec.id, reason: "validUntil elapsed or recommendation invalidated" }),
         );
@@ -176,9 +176,9 @@ export function makeRecommendationLifecycleService(input: RecommendationLifecycl
     return { expired, skipped };
   }
 
-  async function getRecentConflicts(organizationId: string, storeId?: string, limit = 5): Promise<RecommendationConflictRecord[]> {
+  async function getRecentConflicts(userId: string, projectId?: string, limit = 5): Promise<RecommendationConflictRecord[]> {
     if (!input.conflicts) return [];
-    return input.conflicts.listRecent(organizationId, storeId, limit);
+    return input.conflicts.listRecent(userId, projectId, limit);
   }
 
   return {
