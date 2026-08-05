@@ -1,0 +1,331 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden tests — deterministic output for fixed fixtures > anomaly_check 1`] = `
+{
+  "confidence": "low",
+  "dataQuality": "insufficient",
+  "evidence": [
+    "Mean 19.17 with std-dev 39.63",
+    "Max z-score 2.04 against threshold 2.5",
+    "IQR bounds -2.50 – 9.50",
+    "Found 1 anomalies",
+  ],
+  "operation": "anomaly_check",
+  "series": [
+    {
+      "data": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        100,
+      ],
+      "label": "values",
+    },
+    {
+      "data": [
+        0.46,
+        0.43,
+        0.41,
+        0.38,
+        0.36,
+        2.04,
+      ],
+      "label": "zScores",
+    },
+    {
+      "data": [
+        100,
+      ],
+      "label": "anomalyValues",
+    },
+    {
+      "data": [
+        5,
+      ],
+      "label": "anomalyIndices",
+    },
+  ],
+  "values": {
+    "anomalyCount": 1,
+    "maxZScore": 2.04,
+    "mean": 19.17,
+    "stdDev": 39.63,
+    "threshold": 2.5,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > attribution_breakdown 1`] = `
+{
+  "confidence": "medium",
+  "dataQuality": "live",
+  "evidence": [
+    "Rank 1: post-b — revenue 1200.00, orders 12",
+    "Rank 2: post-a — revenue 500.00, orders 5",
+    "Rank 3: post-c — revenue 300.00, orders 3",
+  ],
+  "operation": "attribution_breakdown",
+  "series": [
+    {
+      "data": [
+        500,
+        1200,
+        300,
+      ],
+      "label": "revenue",
+    },
+    {
+      "data": [
+        5,
+        12,
+        3,
+      ],
+      "label": "orders",
+    },
+    {
+      "data": [
+        0.25,
+        0.6,
+        0.15,
+      ],
+      "label": "revenueShare",
+    },
+  ],
+  "values": {
+    "averageOrderValue": 666.67,
+    "averageRevenue": 100,
+    "topOrders": 12,
+    "topRevenue": 1200,
+    "topRevenueShare": 0.6,
+    "totalOrders": 20,
+    "totalRevenue": 2000,
+    "uniqueKeys": 3,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > best_time 1`] = `
+{
+  "confidence": "low",
+  "dataQuality": "insufficient",
+  "evidence": [
+    "Best posting window: Monday 10:00 UTC",
+    "Window engagement score 132.00",
+    "Window revenue score 65.00",
+    "Composite score 197.00",
+    "Based on 2 posts and 2 orders",
+  ],
+  "operation": "best_time",
+  "values": {
+    "compositeScore": 197,
+    "engagementScore": 132,
+    "hour": 10,
+    "orderCount": 2,
+    "postCount": 2,
+    "revenueScore": 65,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > cohort_trend 1`] = `
+{
+  "confidence": "low",
+  "dataQuality": "live",
+  "evidence": [
+    "Linear trend slope 10.000 across 3 points",
+    "Intercept 10.00",
+    "R² = 1.000",
+    "Predicted next value 40.00",
+    "Trend: growing",
+  ],
+  "operation": "cohort_trend",
+  "series": [
+    {
+      "data": [
+        10,
+        20,
+        30,
+      ],
+      "label": "actual",
+    },
+    {
+      "data": [
+        10,
+        20,
+        30,
+      ],
+      "label": "fitted",
+    },
+  ],
+  "values": {
+    "intercept": 10,
+    "pointCount": 3,
+    "predictedNext": 40,
+    "r2": 1,
+    "slope": 10,
+    "trendDirection": 1,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > compare_period 1`] = `
+{
+  "confidence": "medium",
+  "dataQuality": "live",
+  "evidence": [
+    "Current period mean 20.00 across 3 values",
+    "Previous period mean 10.00 across 3 values",
+    "Delta 10.00 (100.00%)",
+    "Trend: up",
+  ],
+  "operation": "compare_period",
+  "values": {
+    "currentCount": 3,
+    "currentMean": 20,
+    "delta": 10,
+    "direction": 1,
+    "percentChange": 100,
+    "previousCount": 3,
+    "previousMean": 10,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > correlation 1`] = `
+{
+  "confidence": "low",
+  "dataQuality": "partial",
+  "evidence": [
+    "Pearson r = 1.000 (R² = 1.000)",
+    "Sample size 5",
+    "Approximate p-value 1.000",
+    "Strong positive association",
+  ],
+  "operation": "correlation",
+  "series": [
+    {
+      "data": [
+        1,
+        2,
+        3,
+        4,
+        5,
+      ],
+      "label": "x",
+    },
+    {
+      "data": [
+        2,
+        4,
+        6,
+        8,
+        10,
+      ],
+      "label": "y",
+    },
+  ],
+  "values": {
+    "pValue": 1,
+    "r": 1,
+    "rSquared": 1,
+    "sampleSize": 5,
+    "slope": 1,
+    "xMean": 3,
+    "yMean": 6,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > profile_quality 1`] = `
+{
+  "confidence": "high",
+  "dataQuality": "live",
+  "evidence": [
+    "Followers 10000 across 100 media (100.0 followers/media)",
+    "Average engagement rate 6.45%",
+    "Content diversity (unique hashtags ratio) 52.5%",
+    "Geo diversity 25.0%",
+    "Caption consistency 100.0%",
+    "Spam risk 0.0%",
+    "Authenticity score 70.6%",
+    "Profile quality score 65.9%",
+  ],
+  "operation": "profile_quality",
+  "values": {
+    "authenticityScore": 0.706,
+    "bioLength": 120,
+    "captionConsistency": 1,
+    "commentEntropy": 4.322,
+    "contentDiversity": 0.525,
+    "engagementCoefficient": 0.101,
+    "engagementRate": 0.064,
+    "followerCount": 10000,
+    "followerToMediaRatio": 100,
+    "geoDiversity": 0.25,
+    "mediaCount": 100,
+    "profileQuality": 0.659,
+    "spamRisk": 0,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > single_post_analysis 1`] = `
+{
+  "confidence": "medium",
+  "dataQuality": "live",
+  "evidence": [
+    "Engagement score 151.00 vs 4 recent posts",
+    "Percentile rank 50",
+    "z-score -0.35 against account baseline",
+    "Verdict: average-performed",
+  ],
+  "operation": "single_post_analysis",
+  "values": {
+    "baselineCount": 4,
+    "baselineMean": 182.5,
+    "engagementScore": 151,
+    "percentile": 50,
+    "zScore": -0.35,
+  },
+}
+`;
+
+exports[`golden tests — deterministic output for fixed fixtures > top_n 1`] = `
+{
+  "confidence": "medium",
+  "dataQuality": "live",
+  "evidence": [
+    "Rank 1: base-4 scored 291.00",
+    "Rank 2: base-2 scored 221.00",
+    "Rank 3: post-1 scored 151.00",
+  ],
+  "operation": "top_n",
+  "series": [
+    {
+      "data": [
+        291,
+      ],
+      "label": "rank-1",
+    },
+    {
+      "data": [
+        221,
+      ],
+      "label": "rank-2",
+    },
+    {
+      "data": [
+        151,
+      ],
+      "label": "rank-3",
+    },
+  ],
+  "values": {
+    "count": 3,
+    "meanScore": 176.2,
+    "topScore": 291,
+  },
+}
+`;

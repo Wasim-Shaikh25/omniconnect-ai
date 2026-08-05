@@ -10,6 +10,8 @@ export type { MediaPost } from "./domain/types";
 export { UnsupportedOperationError, validateSpec } from "./domain/analysis";
 export type { AnalysisContext } from "./application/analysis-engine";
 export { makeAnalysisEngine } from "./application/analysis-engine";
+export type { EmbeddingProvider } from "./application/embedding-provider";
+export { keywordEmbeddingProvider } from "./application/embedding-providers/keyword-embedding-provider";
 export { singlePostAnalysis } from "./application/operations/single-post-analysis";
 export { bestTime, bestTimeLabel } from "./application/operations/best-time";
 export type { BestTimeWindow } from "./application/best-time-to-post";

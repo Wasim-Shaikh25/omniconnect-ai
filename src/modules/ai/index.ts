@@ -83,3 +83,5 @@ export {
   askBusinessBrainAction,
 } from "./presentation/actions";
 export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState, AskBusinessBrainState } from "./presentation/actions";
+export { resolveOperation } from "./application/operation-resolver";
+export type { ResolveResult, ResolvedOperation, UnsupportedOperation, OperationExemplar } from "./application/operation-resolver";
