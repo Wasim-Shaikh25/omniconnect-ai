@@ -137,14 +137,26 @@ All notable changes to **OmniConnect AI** are documented here.
   action that composes `resolveOperation` / `generateDashboard`, and `/analytics/dashboard` with an
   NL query input and `DynamicDashboard` output; all operations are read-only and tenant-scoped.
 
+- `REQ-0083` **Business Intelligence (Batch 2 review fixes)** on `devin/bi-competitor-dashboard-1785953265`:
+  fixed `top_n` empty results by reading `AnalysisSpec.topN`, corrected the `compare_period` previous
+  window so it abuts the current range, included today's data by defaulting `dateRange` to end-of-day,
+  replaced `as unknown as` operation casts with typed adapters, and injected `DatasetFetcher` from the
+  composition root so the analytics application no longer depends on infrastructure.
+
+- `REQ-0083` **Business Intelligence (Batch 3 / Phase 2)** on `devin/bi-competitor-dashboard-1785953265`:
+  added `getCompetitorComparisonDashboard` and `getCompetitorComparisonDashboardAction` to aggregate
+  all tracked competitors for a project, benchmark the workspace's own media, and surface project-scoped
+  comparison insights; added `/stores/[projectId]/analytics/competitors` page with a workspace snapshot,
+  insights list, and competitor table.
+
 ### 🚧 In Progress
 
 None.
 
 ### ⏭️ Next
 
-- `REQ-0083` **Business Intelligence (Batch 3 / Phase 2)** — brand mention monitoring with sentiment
-  analysis, competitor tracking UI, and dashboard export (PDF / image / shareable link).
+- `REQ-0083` **Business Intelligence (Phase 2)** — brand mention monitoring with sentiment analysis
+  and dashboard export (PDF / image / shareable link).
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

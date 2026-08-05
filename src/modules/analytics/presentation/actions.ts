@@ -18,6 +18,7 @@ import {
   marketingInsightsService,
   marketingInsightsRepository,
   queryAnalytics,
+  getCompetitorComparisonDashboard,
 } from "../server";
 import { getCompetitorBenchmark } from "../infrastructure/container";
 import { makeGetWorkspaceCompetitorComparison } from "../application/competitor-benchmark";
@@ -434,6 +435,36 @@ export async function getWorkspaceCompetitorComparisonAction(
     return { comparison };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not load workspace comparison" };
+  }
+}
+
+export interface CompetitorComparisonDashboardState {
+  error?: string;
+  dashboard?: Awaited<ReturnType<typeof getCompetitorComparisonDashboard>>;
+}
+
+const competitorDashboardSchema = z.object({
+  projectId: z.string().min(1),
+});
+
+export async function getCompetitorComparisonDashboardAction(
+  projectId: string,
+): Promise<CompetitorComparisonDashboardState> {
+  const user = await getCurrentUser();
+  if (!user?.userId) return { error: "Not authenticated" };
+
+  const parsed = competitorDashboardSchema.safeParse({ projectId });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const dashboard = await getCompetitorComparisonDashboard({ projectId: parsed.data.projectId });
+    return { dashboard };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not load competitor dashboard" };
   }
 }
 
