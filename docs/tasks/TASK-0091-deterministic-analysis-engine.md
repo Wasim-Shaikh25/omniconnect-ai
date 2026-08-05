@@ -1,16 +1,16 @@
-# TASK-0091: Deterministic Analysis Engine (Batch 4 — cohort_trend, attribution_breakdown)
+# TASK-0091: Deterministic Analysis Engine (Batch 5 — profile_quality)
 
 - **Status:** Completed
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Tracker:** `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
 - **Module(s):** analytics
-- **Changelog entry:** `CHANGELOG.md [Unreleased]` — Additional deterministic analysis operations.
+- **Changelog entry:** `CHANGELOG.md [Unreleased]` — Profile quality deterministic operation.
 - **Last updated:** 2026-08-05
 
 ## 1. Summary
 
-Fourth batch of REQ-0091. Implement pure deterministic operations for `cohort_trend` (linear trend + slope over a time series) and `attribution_breakdown` (revenue/orders attributed by media, coupon, or channel). These are fully deterministic, unit-testable, and do not require AI or external dependencies. `profile_quality`, `EmbeddingProvider`, `OperationResolver`, and golden tests are deferred to Batch 5.
+Fifth batch of REQ-0091. Implement the final pure deterministic operation `profile_quality` for the `AnalysisEngine` vocabulary. It scores an Instagram/TikTok-style profile from public signals (follower count, media count, engagement rates, captions, hashtags, locations, and comments) without any AI or external dependencies. `EmbeddingProvider`, `OperationResolver`, golden tests, and dashboard wiring are deferred to Batch 6.
 
 ## 2. References
 
@@ -18,43 +18,47 @@ Fourth batch of REQ-0091. Implement pure deterministic operations for `cohort_tr
 - Requirement: `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - Tracker: `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
 - Related files:
-  - `src/modules/analytics/application/operations/cohort-trend.ts`
-  - `src/modules/analytics/application/operations/attribution-breakdown.ts`
+  - `src/modules/analytics/application/operations/profile-quality.ts`
   - `src/modules/analytics/application/analysis-engine.ts`
   - `src/modules/analytics/pure.ts`
   - `src/modules/analytics/index.ts`
 
 ## 3. Implementation Plan
 
-### Step 1 — cohort_trend
-Create `cohort-trend.ts` that accepts a dataset of `{ label: string; value: number }[]` (ordered by time) and computes a simple linear regression (least squares) to produce `slope`, `intercept`, `r2`, `predictedNext`, and `trendDirection` (`-1`/`0`/`1`). Use `series` to return the original values and the fitted trend line.
+### Step 1 — profile_quality
+Create `profile-quality.ts` that accepts a `ProfileQualityDataset` with `profile`, `media` array, and `comments` array. It computes a deterministic audience quality score from:
+- `engagementRate` (avg likes+comments per post / follower count)
+- `followerToMediaRatio`
+- `contentDiversity` (unique hashtags / total hashtags)
+- `geoDiversity` (unique locations)
+- `captionConsistency` (avg caption length / variability)
+- `spamRisk` (repeated comments, excessive hashtags, suspicious engagement ratios)
 
-### Step 2 — attribution_breakdown
-Create `attribution-breakdown.ts` that accepts a dataset of attribution records (`{ key: string; revenue: number; orders: number }[]`) and computes totals, averages, and the top contributor by revenue. Grouping key (media/coupon/channel) is implicit in the dataset; the operation is pure aggregation.
+Returns an `AnalysisResult` with `profileQuality`, `engagementRate`, `authenticityScore`, `contentDiversity`, `spamRisk`, `geoDiversity`, evidence, and confidence/dataQuality labels.
 
-### Step 3 — Register and export
-Export `cohortTrend` and `attributionBreakdown` from `src/modules/analytics/pure.ts` and `src/modules/analytics/index.ts`.
+### Step 2 — Register and export
+Export `profileQuality` from `src/modules/analytics/pure.ts` and `src/modules/analytics/index.ts`.
 
-### Step 4 — Tests
-Add unit tests for both operations covering positive/negative/flat trends, empty data, and attribution ranking.
+### Step 3 — Tests
+Add unit tests covering high/medium/low quality profiles, spam signals, and empty input.
 
 ## 4. Subtasks
 
-- [x] T-080f: Implement `cohort_trend` deterministic operation.
-- [x] T-080g: Implement `attribution_breakdown` deterministic operation.
-- [x] Export new operations from `analytics/pure.ts` and `analytics/index.ts`.
-- [x] Add unit tests for both operations.
+- [x] T-087a: Implement `profile_quality` deterministic operation.
+- [x] Export `profileQuality` from `analytics/pure.ts` and `analytics/index.ts`.
+- [x] Add unit tests for `profile_quality`.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
 
 ## 5. Acceptance Criteria
 
-- `cohort_trend` computes slope, intercept, R², next predicted value, and trend direction from an ordered time series.
-- `attribution_breakdown` totals revenue and orders per key, computes averages, and identifies the top revenue contributor.
-- Both operations are pure (no I/O, no LLM, no framework imports) and unit-tested.
+- `profile_quality` computes a deterministic audience-quality score and component metrics from public profile/media/comment signals.
+- It does not require an LLM or network call.
+- It returns `confidence` and `dataQuality` based on input size and signal strength.
+- Unit tests cover high-quality, medium-quality, low-quality/spam, and empty profiles.
 - All quality gates pass.
 
 ## 6. Notes / Blockers
 
-- `profile_quality`, `EmbeddingProvider` (T-081), `OperationResolver` (T-082), `queryAnalytics`/`generateDashboard` wiring (T-084), Profile Inspector (T-087), and golden tests (T-088) are deferred to Batch 5.
+- `EmbeddingProvider` (T-081), `OperationResolver` (T-082), `queryAnalytics`/`generateDashboard` wiring (T-084), Profile Inspector feature integration (T-087 full), and golden tests (T-088) are deferred to Batch 6.
