@@ -6,12 +6,14 @@ import {
   requestPhoneVerificationAction,
   verifyPhoneAction,
   removePhoneAction,
+  signOutEverywhereAction,
 } from "@/modules/auth";
 import { env } from "@/shared/config";
 import { listDataExportsAction } from "@/modules/users";
 import { AccountActions } from "@/components/account-actions";
 import { AccountSecurityForms } from "@/components/account-security-forms";
 import { PhoneVerificationForm } from "@/components/phone-verification-form";
+import { SignOutEverywhereButton } from "@/components/sign-out-everywhere-button";
 import {
   Card,
   CardContent,
@@ -55,6 +57,18 @@ export default async function AccountPage({
               changePasswordAction={changePasswordAction}
               requestEmailChangeAction={requestEmailChangeAction}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sessions</CardTitle>
+            <CardDescription>
+              Manage your active sessions. Signing out everywhere invalidates all devices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SignOutEverywhereButton action={signOutEverywhereAction} />
           </CardContent>
         </Card>
 

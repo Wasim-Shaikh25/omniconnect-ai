@@ -81,5 +81,6 @@ export {
   requestPhoneVerificationAction,
   verifyPhoneAction,
   removePhoneAction,
+  signOutEverywhereAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";

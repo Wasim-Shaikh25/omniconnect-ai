@@ -441,3 +441,21 @@ export async function removePhoneAction(
 
   return { ok: true, message: "Your phone number has been removed." };
 }
+
+export async function signOutEverywhereAction(): Promise<ActionState> {
+  const user = await requireUser();
+  const updated = await accounts.bumpTokenVersion(user.id);
+  if (!updated) return { error: "Could not sign out everywhere. Please try again." };
+
+  await auditCommands.create({
+    userId: user.id,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "USER_SIGN_OUT_EVERYWHERE",
+    resource: "User",
+    resourceId: user.id,
+    details: JSON.stringify({ tokenVersion: updated.tokenVersion }),
+  });
+
+  return { ok: true, message: "All other sessions have been signed out." };
+}

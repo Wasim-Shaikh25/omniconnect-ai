@@ -1,6 +1,6 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** In Progress (Package E done; Packages F/G next)
+- **Status:** In Progress (Packages E and F done; Package G next)
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
@@ -76,8 +76,8 @@ bot protection.
 - [x] Tests: expiry, attempt cap, replay, rate limit.
 
 ### Package F — Session management
-- [ ] Minimal vs full session-list decision recorded.
-- [ ] "Sign out everywhere" implemented with confirmation.
+- [x] Minimal vs full session-list decision recorded (minimal: bump `tokenVersion` to invalidate all JWTs).
+- [x] "Sign out everywhere" implemented with confirmation.
 - [ ] (If full) `UserSession` added and populated on sign-in.
 
 ### Package G — Super admin and settings navigation

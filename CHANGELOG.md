@@ -21,6 +21,10 @@ All notable changes to **OmniConnect AI** are documented here.
   rate limit; `/settings/account` renders a phone card when `SMS_PROVIDER` is not `disabled`; users can
   add, verify, and remove a phone number. Unit tests assert expiry, attempt cap, replay, rate-limit,
   and that the OTP body never reaches the logs.
+- `REQ-0070` **Session management (Package F)** on `devin/cleanup-task-status-1785946663`:
+  minimal "sign out everywhere" implemented by bumping `User.tokenVersion`, writing an `AuditLog`
+  entry, and calling `next-auth` `signOut` from the client to clear the current session and redirect
+  to `/login`.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 11)** on `devin/cleanup-task-status-1785946663`:
   wired `AIUsageGuard` into `inspectProfileAction` so AI-powered profile narration consumes one
   `monthlyAiReplies` entitlement; deterministic narrator remains the fallback when `OPENROUTER_API_KEY`
@@ -102,8 +106,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0070` Packages F–G — session management ("sign out everywhere"), super-admin reconciliation,
-  and settings dead links.
+- `REQ-0070` Package G — super-admin reconciliation and settings dead links.
 
 ### ⏭️ Next
 

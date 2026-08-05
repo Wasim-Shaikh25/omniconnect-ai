@@ -1,6 +1,6 @@
 # REQ-0070: Identity and Account Self-Service Completeness
 
-- **Status:** In Progress (Package E done; F/G next)
+- **Status:** In Progress (Packages E and F done; Package G next)
 - **Owner:** Auth / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
@@ -10,8 +10,9 @@
 - **Last updated:** 2026-08-05
 
 > **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2. Package E
-> (phone verification) has been completed on top of the V2 `User`/`Workspace`/`Project` model. Packages F
-> (session management) and G (super-admin reconciliation / settings cleanup) are in progress.
+> (phone verification) and Package F (session management / "sign out everywhere") have been completed
+> on top of the V2 `User`/`Workspace`/`Project` model. Package G (super-admin reconciliation /
+> settings cleanup) is in progress.
 
 ## 1. Summary
 

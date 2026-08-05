@@ -292,6 +292,9 @@ Core tables (see `prisma/schema.prisma` for full model):
   `SMS_PROVIDER` is not `disabled`; users can add, verify, and remove a phone number. `User.phone`
   and `User.phoneVerified` are updated only on successful verification; the plaintext OTP is never
   stored or logged.
+- Session management (`REQ-0070` Package F): the minimal "sign out everywhere" flow bumps
+  `User.tokenVersion`, writes an `AuditLog` entry, and calls `next-auth` `signOut` on the client to
+  clear the current session cookie and redirect to `/login`.
 - `User.phoneVerified` and the `VerificationRequest` table are in place; `dateOfBirth` remains
   omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
   `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.
