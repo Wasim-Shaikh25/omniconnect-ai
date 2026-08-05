@@ -141,10 +141,36 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
       const userId = await organizationQueries.getOrganizationIdByStoreId(projectId);
       if (!userId) throw new Error("Organization not found.");
 
+      const [allPosts] = await Promise.all([
+        repo.listMediaPosts(projectId, { limit: 50 }),
+      ]);
+
+      const baseline = allPosts
+        .filter((p) => p.id !== mediaPostId && p.latestInsight)
+        .map((p) => {
+          const i = p.latestInsight!;
+          return {
+            id: p.id,
+            mediaType: p.mediaType,
+            caption: p.caption,
+            hashtags: p.hashtags,
+            likes: i.likes ?? null,
+            comments: i.comments ?? null,
+            shares: i.shares ?? null,
+            saves: i.saves ?? null,
+            plays: i.plays ?? null,
+            views: i.views ?? null,
+            reach: i.reach ?? null,
+            impressions: i.impressions ?? null,
+            engagementRate: i.engagementRate ?? null,
+          };
+        });
+
       return analyzeMedia({
         projectId,
         mediaPostId,
         media: {
+          id: post.id,
           mediaType: post.mediaType,
           caption: post.caption,
           hashtags: post.hashtags,
@@ -158,6 +184,7 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
           impressions: insight?.impressions ?? null,
           engagementRate: insight?.engagementRate ?? null,
         },
+        baseline,
       });
     },
 

@@ -26,6 +26,14 @@ export type {
   Report,
   MediaAnalysis,
 } from "./domain/types";
+
+export type { AnalysisOperation, MetricName, AnalysisSpec, AnalysisResult } from "./domain/analysis";
+export { UnsupportedOperationError, validateSpec } from "./domain/analysis";
+export type { AnalysisContext } from "./application/analysis-engine";
+export { makeAnalysisEngine } from "./application/analysis-engine";
+export { singlePostAnalysis } from "./application/operations/single-post-analysis";
+export { engagementScore, percentileRank, zScore, topN, correlation, mean, stdDev } from "./application/operations/stats";
+export type { ScoredPost } from "./application/operations/stats";
 export type { GetMarketingPerformance } from "./application/marketing-analytics";
 export type { CompetitorBenchmark, GetCompetitorBenchmark, WorkspaceCompetitorComparison, GetWorkspaceCompetitorComparison } from "./application/competitor-benchmark";
 

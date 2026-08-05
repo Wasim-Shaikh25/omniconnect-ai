@@ -1,8 +1,15 @@
 import type { AIConfigurationRepository, AIProvider } from "./ports";
 import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
+import {
+  engagementScore,
+  singlePostAnalysis,
+  type AnalysisResult,
+  type ScoredPost,
+} from "@/modules/analytics/pure";
 
 export interface MediaMetricsInput {
+  id?: string;
   mediaType: string;
   caption: string | null;
   hashtags: string[];
@@ -35,6 +42,7 @@ export interface AnalyzeMediaInput {
   projectId: string;
   mediaPostId: string;
   media: MediaMetricsInput;
+  baseline?: MediaMetricsInput[];
 }
 
 export interface AnalyzeMedia {
@@ -42,6 +50,44 @@ export interface AnalyzeMedia {
 }
 
 const DEFAULT_TONE = "trendy, authentic, and platform-native";
+
+function toScoredPost(input: MediaMetricsInput): ScoredPost {
+  return {
+    id: input.id ?? "unknown",
+    likes: input.likes ?? 0,
+    comments: input.comments ?? 0,
+    shares: input.shares ?? 0,
+    saves: input.saves ?? 0,
+    plays: input.plays ?? 0,
+    views: input.views ?? 0,
+    reach: input.reach ?? 0,
+    impressions: input.impressions ?? 0,
+  };
+}
+
+function analyzeMediaPost(media: MediaMetricsInput, baseline: MediaMetricsInput[]): AnalysisResult {
+  if (baseline.length === 0) {
+    const score = engagementScore(toScoredPost(media));
+    return {
+      operation: "single_post_analysis",
+      values: {
+        engagementScore: Math.round(score * 100) / 100,
+        percentile: 50,
+        zScore: 0,
+        baselineCount: 0,
+        baselineMean: 0,
+      },
+      evidence: ["No baseline posts available; returned raw engagement score only."],
+      confidence: "low",
+      dataQuality: "insufficient",
+    };
+  }
+
+  return singlePostAnalysis({
+    target: toScoredPost(media),
+    baseline: baseline.map(toScoredPost),
+  });
+}
 
 export function makeAnalyzeMedia(deps: {
   aiProvider: AIProvider;
@@ -51,19 +97,27 @@ export function makeAnalyzeMedia(deps: {
     const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
     const tone = config?.tone ?? DEFAULT_TONE;
 
+    const analysis = analyzeMediaPost(input.media, input.baseline ?? []);
+
     const system = `You are a Meta content strategist. Tone: ${tone}.
-Analyze the provided Instagram/Facebook post metrics and caption. Return a JSON object only (no markdown) with the following keys:
-- whyItWorked (string, 2-3 sentences explaining what made the post succeed or flop)
+You are narrating a pre-computed media analysis for a business owner.
+The numbers (engagement score, percentile, z-score, baseline count/mean) are provided below and are final.
+Use ONLY these numbers and the computed verdict/evidence. Never introduce a percentile, score, or metric that is not in the payload.
+Return a JSON object only (no markdown) with:
+- whyItWorked (string, 2-3 sentences explaining what made the post succeed or flop, referencing only the provided facts)
 - slideBySlideStoryboard (array of 3-5 objects, each with slide (number), visual (string), caption (string)). Use this for Reels/carousels/stories; for single-image posts return 3 frames that tell a story.
-- suggestedImprovements (array of 3-5 actionable strings)
+- suggestedImprovements (array of 3-5 actionable strings tailored to the verdict)
 Be concise and strategic. Do not mention that you are an AI.`;
 
     const user = `Media type: ${input.media.mediaType}
 Caption: ${input.media.caption ?? "(no caption)"}
 Hashtags: ${input.media.hashtags.join(", ")}
-Metrics: likes=${input.media.likes ?? "n/a"}, comments=${input.media.comments ?? "n/a"}, shares=${input.media.shares ?? "n/a"}, saves=${input.media.saves ?? "n/a"}, plays=${input.media.plays ?? "n/a"}, views=${input.media.views ?? "n/a"}, reach=${input.media.reach ?? "n/a"}, impressions=${input.media.impressions ?? "n/a"}, engagementRate=${input.media.engagementRate ?? "n/a"}
-
-Explain why it worked and provide a slide-by-slide storyboard.`;
+Computed analysis: ${JSON.stringify({
+      values: analysis.values,
+      evidence: analysis.evidence,
+      confidence: analysis.confidence,
+      dataQuality: analysis.dataQuality,
+    })}`;
 
     const context = new AIContextBuilder()
       .withSystem(system)

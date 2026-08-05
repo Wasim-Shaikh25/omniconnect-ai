@@ -4,7 +4,7 @@ description: Deterministic Analysis Engine with AI Narration
 
 # REQ-0091: Deterministic Analysis Engine (AnalysisSpec) with AI Narration
 
-- **Status:** Draft
+- **Status:** In Progress
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -87,11 +87,11 @@ answered with an invented figure.
 
 ## 5. Acceptance Criteria
 
-- [ ] `AnalysisSpec` type defined with a closed `operation` enum and validated params per operation.
-- [ ] `AnalysisEngine.run(spec, ctx)` validates the spec, rejects unknown operations, and executes
+- [x] `AnalysisSpec` type defined with a closed `operation` enum and validated params per operation.
+- [x] `AnalysisEngine.run(spec, ctx)` validates the spec, rejects unknown operations, and executes
       only within `ctx.projectId` scope (cross-project data access is impossible by construction).
-- [ ] Operation library implemented as **pure functions** with no I/O in the compute step (data is
-      fetched by the engine, passed in, then computed).
+- [x] Operation library implemented as **pure functions** with no I/O in the compute step (data is
+      fetched by the engine, passed in, then computed). (Batch 1: `stats`, `single_post_analysis`; Batch 2: remaining operations.)
 - [ ] `EmbeddingProvider` port defined; local MiniLM adapter loads via `transformers.js` with no
       network call at inference and no Python dependency.
 - [ ] `OperationResolver` returns `{ spec, confidence }` or `{ unsupported: true, reason }` below a
@@ -100,12 +100,12 @@ answered with an invented figure.
       numeric token in the narration is absent from the computed result** (no invented numbers).
 - [ ] REQ-0081 `queryAnalytics` and `generateDashboard` emit an `AnalysisSpec` and render results
       via the DynamicDashboard component (REQ-0083).
-- [ ] `analyze-media.ts` refactored: verdict + evidence computed deterministically; LLM narrates
+- [x] `analyze-media.ts` refactored: verdict + evidence computed deterministically; LLM narrates
       only (see §9).
 - [ ] `generate-trends.ts` refactored: `predictedEngagementScore`, `predictedRevenue`, and
       `bestTimeToPost` sourced from deterministic engines, not invented by the LLM (see §9).
 - [ ] Golden tests: each operation produces identical output for a fixed fixture dataset.
-- [ ] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
+- [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 
 ## 6. Scope & Dependencies
 
