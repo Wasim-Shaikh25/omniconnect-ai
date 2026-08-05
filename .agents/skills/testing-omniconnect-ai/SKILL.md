@@ -42,6 +42,7 @@ Use this skill before running end-to-end or integration tests against the OmniCo
 
 ## Common gotchas
 
+- Do not run `npm run build` while `npm run dev` is serving; the production build artifacts can overwrite the dev cache and cause `Cannot find module './<chunk>.js'` runtime errors. Run the build gate first, then `rm -rf .next && npm run dev` to restart the dev server cleanly.
 - `npm run lint`, `npm run typecheck`, and `npm run build` should all pass before claiming the code is healthy.
 - `/analytics` is a server-side redirect to `/analytics/journeys` for authenticated users; unauthenticated requests redirect to `/login`.
 - The local `.env` must comment out or remove empty optional email fields (`SUPER_ADMIN_EMAIL`, `SMTP_FROM`) so Zod validation passes.
@@ -58,6 +59,8 @@ Use this skill before running end-to-end or integration tests against the OmniCo
 - Browser automation gotchas:
   - Input fields may not focus/click reliably in the headless environment; set values and submit forms via JS (`document.forms[i].requestSubmit()`).
   - Use `/api/auth/signout` to end a session reliably, then navigate to `/register?inviteToken=...&storeId=...` to test invite acceptance.
+  - Phase 1 V2 (`Workspace`/`Project` model): after a normal owner registers, `/onboarding` may render with a blank main area because `getCurrentUser()` returns `userId` from the session instead of the persisted `User.userId`, causing the onboarding redirect to fire before the workspace form is shown.
+  - Phase 1 V2 store route: a normal `USER` role owner will get a 404 on `/stores/{projectId}` because `tenantGuard.assertStoreAccess` requires `user.projectId` to match. The session carries `projectId` as `null` for owners (only staff get a `projectId`), so the owner cannot view their own store. To verify the route/MOCK connector itself, temporarily promote the test user to `SUPER_ADMIN` in Postgres and re-authenticate.
 - A pre-existing circular dependency between `@/modules/ai` and `@/modules/intelligence` containers can cause `ReferenceError: Cannot access 'X' before initialization` on server actions such as `/register` and invite creation. If this happens, the smoke test can be unblocked with temporary lazy wrappers in `src/modules/ai/infrastructure/container.ts`, but the real fix is to break the circular dependency.
 - The `FREE` plan has only 1 team seat (occupied by the owner), so testing the STAFF invite flow requires upgrading `"Organization".plan` to `STARTER` or `PRO` in Postgres, or creating the STAFF user directly in the DB.
 - New STAFF users (via invite registration) are redirected from `/dashboard` to `/stores/{storeId}` when `role === "STAFF" && storeId` is set.

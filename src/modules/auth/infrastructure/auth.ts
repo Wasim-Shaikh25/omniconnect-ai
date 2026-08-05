@@ -93,8 +93,8 @@ const providers: NextAuthConfig["providers"] = [
         role: account.role,
         isSuperAdmin: account.isSuperAdmin,
         emailVerified: account.emailVerified,
-        userId: account.id,
-        projectId: null,
+        userId: account.userId,
+        projectId: account.projectId,
         tokenVersion: account.tokenVersion,
       };
     },
@@ -161,8 +161,8 @@ async function refreshTokenFromDb(
     role: fresh.role,
     isSuperAdmin: fresh.isSuperAdmin,
     emailVerified: fresh.emailVerified,
-    userId: token.id ?? fresh.id,
-    projectId: token.projectId ?? null,
+    userId: fresh.userId,
+    projectId: fresh.projectId,
     tokenVersion: fresh.tokenVersion,
   };
 }
@@ -180,7 +180,8 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user, account, trigger }) {
       if (user) {
         token.id = user.id;
-        token.userId = user.id;
+        token.userId =
+          typeof user.userId === "string" ? user.userId : null;
         token.email = user.email;
         token.name = user.name;
         token.projectId =
@@ -202,7 +203,7 @@ export const authConfig: NextAuthConfig = {
           }
         }
         // Always hydrate from the database so the token carries the current
-        // canonical claims (role, organization, tokenVersion).
+        // canonical claims (role, userId, projectId, tokenVersion).
         const refreshed = await refreshTokenFromDb(token);
         if (!refreshed) return token;
         return refreshed;
@@ -221,11 +222,7 @@ export const authConfig: NextAuthConfig = {
           ? (token.role as Role)
           : "USER";
         session.user.userId =
-          typeof token.userId === "string"
-            ? token.userId
-            : typeof token.id === "string"
-              ? token.id
-              : null;
+          typeof token.userId === "string" ? token.userId : null;
         session.user.isSuperAdmin =
           typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
         session.user.emailVerified =
