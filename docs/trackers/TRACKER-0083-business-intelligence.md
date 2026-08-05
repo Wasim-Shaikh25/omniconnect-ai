@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0083-business-intelligence.md`
 - **Task:** `docs/tasks/TASK-0083-business-intelligence.md`
-- **Branch:** `devin/bi-dynamic-dashboard-1785946663`
+- **Branch:** `devin/bi-review-fixes-1785946663`
 - **Last updated:** 2026-08-05
 
 ## 1. Summary
@@ -41,4 +41,4 @@ Progress tracker for REQ-0083: Business Intelligence.
 
 ## 4. Notes / Blockers
 
-- Status: Todo — not yet started.
+- Status: In Progress — Batch 2 server action and `/analytics/dashboard` page wiring.

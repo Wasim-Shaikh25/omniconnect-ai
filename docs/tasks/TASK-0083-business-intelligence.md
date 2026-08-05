@@ -48,7 +48,8 @@ Marketing dashboard with default widgets. AI-generated custom dashboards via cha
 
 ## 4. Subtasks
 
-- [ ] T-054: DynamicDashboard React component
+- [x] T-054: DynamicDashboard React component
+- [x] T-054a: PieChartWidget 100% slice fix and changelog/tracker cleanup
 - [ ] T-070: Brand mention monitoring — Mentions API + AI sentiment analysis (P2)
 - [ ] T-072: Competitor tracking UI — add competitors, comparison dashboard (P2)
 - [ ] T-074: Dashboard export (PDF, image, shareable link) — Phase 4
