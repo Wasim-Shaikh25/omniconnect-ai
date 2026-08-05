@@ -51,13 +51,14 @@ Schema generates (`prisma generate` passes). `tsc --noEmit` still has many code-
 - [~] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018; depends on T-002..T-006 across REQ-0076/0077/0080/0082/0084/0086/0088)
 - [x] T-019: Delete organizations module
 - [x] T-037: Delete hardcoded connectors
-- [ ] T-038: Delete overscoped features
-  - [ ] T-038a: Delete obsolete verification/maintenance scripts (`scripts/verify-*.ts`, `backfill-past-due.ts`, `check-http-status.ts`, `reencrypt-credentials.ts`)
+- [~] T-038: Delete overscoped features
+  - [x] T-038a: Delete obsolete verification/maintenance scripts (`scripts/verify-*.ts`, `backfill-past-due.ts`, `check-http-status.ts`, `reencrypt-credentials.ts`)
   - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants
-- [ ] T-018: Update all queries (org/store → user/workspace/project)
-  - [ ] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId` in record types / queries
-  - [ ] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration` with new model names
+- [~] T-018: Update all queries (org/store → user/workspace/project)
+  - [~] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId` in record types / queries (safe rename applied to files without existing `userId`; remaining files with duplicate `userId` need manual mapping)
+  - [~] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration` with new model names (replaced in safe-rename pass; workspaces module still uses old model names and must be adapted)
   - [ ] T-018c: Update session/auth context and `next-auth.d.ts` to carry `userId`/`projectId`
+- [~] T-039: Create `src/modules/workspaces` module to replace deleted `organizations` public barrel (shell imported; internal Prisma refs still being adapted)
 
 ## 5. Acceptance Criteria
 

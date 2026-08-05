@@ -23,12 +23,13 @@ Progress tracker for REQ-0090: Cleanup & Migration.
 - [x] T-019: Delete organizations module entirely.
 - [x] T-037: Delete hardcoded connectors.
 - [~] T-038: Delete overscoped features (product CRUD, standalone views, obsolete scripts).
-  - [ ] T-038a: Delete obsolete verification/maintenance scripts.
+  - [x] T-038a: Delete obsolete verification/maintenance scripts.
   - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants.
 - [~] T-018: Update all queries (org/store → user/workspace/project).
-  - [ ] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId`.
-  - [ ] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration`.
+  - [~] T-018a: Safe rename applied; remaining files with duplicate `userId` need manual mapping.
+  - [~] T-018b: Prisma model accessors replaced in safe-rename pass; workspaces module refs still being adapted.
   - [ ] T-018c: Update session/auth context to carry `userId`/`projectId`.
+- [~] T-039: `src/modules/workspaces` shell created from old `organizations` module; internal Prisma refs and public contract must be adapted.
 - [~] Replace OpenAI with OpenRouter (client + model router done; wiring in progress — T-017).
 - [ ] Fix all TypeScript compilation errors.
 
