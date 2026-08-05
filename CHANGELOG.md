@@ -56,12 +56,15 @@ All notable changes to **OmniConnect AI** are documented here.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 3)** on `devin/deterministic-operations-1785940945`:
   added pure deterministic `compare_period`, `anomaly_check`, and `correlation` operations to the
   `AnalysisEngine` vocabulary, with unit tests and public exports via `@/modules/analytics/pure`.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 4)** on `devin/deterministic-cohort-attribution-1785941345`:
+  added pure deterministic `cohort_trend` (linear regression over time series) and
+  `attribution_breakdown` (revenue/order aggregation by key) operations, with unit tests and
+  public exports via `@/modules/analytics/pure`.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 4)** — remaining operations
-  (`cohort_trend`, `attribution_breakdown`, `profile_quality`), local MiniLM `EmbeddingProvider`,
-  and `OperationResolver` NL → `AnalysisSpec`.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 5)** — final operation (`profile_quality`),
+  local MiniLM `EmbeddingProvider`, `OperationResolver` NL → `AnalysisSpec`, and golden tests.
 
 ### ⏭️ Next
 
