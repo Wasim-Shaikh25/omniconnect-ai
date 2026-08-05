@@ -149,14 +149,21 @@ All notable changes to **OmniConnect AI** are documented here.
   comparison insights; added `/stores/[projectId]/analytics/competitors` page with a workspace snapshot,
   insights list, and competitor table.
 
+- `REQ-0083` **Business Intelligence (Batch 4 / Phase 2)** on `devin/bi-brand-mentions-1785953983`:
+  added brand mention monitoring with `MentionSentimentAnalyzer` and `BrandMentionSource` ports,
+  a heuristic analyzer, an `OpenRouterMentionSentimentAnalyzer` AI adapter with heuristic fallback,
+  a `mentionService` with idempotent `syncMentions` and `listMentionsWithSentiment`,
+  `syncMentionsAction` / `listMentionsWithSentimentAction`, and the
+  `/stores/[projectId]/analytics/mentions` page with source badges, sentiment badges, confidence,
+  and a sync button; linked the page from the project analytics hub.
+
 ### 🚧 In Progress
 
 None.
 
 ### ⏭️ Next
 
-- `REQ-0083` **Business Intelligence (Phase 2)** — brand mention monitoring with sentiment analysis
-  and dashboard export (PDF / image / shareable link).
+- `REQ-0083` **Business Intelligence (Phase 4)** — dashboard export (PDF / image / shareable link).
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

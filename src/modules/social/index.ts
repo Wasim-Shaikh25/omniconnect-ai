@@ -12,6 +12,12 @@ export type {
   SocialQueries,
   SocialAutomationService,
 } from "./application/ports";
+export type {
+  MentionWithSentiment,
+  MentionSentiment,
+  MentionSentimentAnalyzer,
+  BrandMentionSource,
+} from "./application/mention-service";
 export type { SocialLeadRecord } from "./application/lead.ports";
 
 export { socialAutomationService, socialQueries } from "./infrastructure/container";
@@ -21,6 +27,10 @@ export {
   replyToCommentAction,
   toggleCommentHiddenAction,
 } from "./presentation/actions";
+export {
+  syncMentionsAction,
+  listMentionsWithSentimentAction,
+} from "./presentation/mention-actions";
 export {
   listLeadsAction,
   captureLeadAction,

@@ -19,3 +19,9 @@ export {
   askBusinessBrain,
   brainMemoryService,
 } from "./infrastructure/container";
+
+export type {
+  AIProvider,
+  AIMessage,
+  AICompletionConfig,
+} from "./application/ports";
