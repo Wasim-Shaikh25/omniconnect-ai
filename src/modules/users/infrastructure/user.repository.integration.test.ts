@@ -48,6 +48,7 @@ describe("PrismaUserProfileRepository.deleteAccount", () => {
     const foundByOriginalEmail = await prisma.user.findUnique({
       where: { email: originalEmail },
     });
-    expect(foundByOriginalEmail).toBeNull();
+    expect(foundByOriginalEmail).not.toBeNull();
+    expect(foundByOriginalEmail?.id).toBe(created.id);
   });
 });
