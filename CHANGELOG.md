@@ -123,10 +123,15 @@ All notable changes to **OmniConnect AI** are documented here.
   added `/stores/[projectId]/analytics/audience/inspector` page with a username form and deterministic
   results dashboard.
 
+- `REQ-0083` **Business Intelligence (Batch 1)** on `devin/bi-dynamic-dashboard-1785946663`:
+  added the `DynamicDashboard` React component in `src/components/dashboard` with inline-SVG
+  renderers for KPI, line_chart, bar_chart, pie_chart, table, and sparkline widgets; grid sizes
+  small/medium/large/full map to `col-span-3/6/9/12`; unit tests cover all widget types.
+
 ### 🚧 In Progress
 
-- `REQ-0083` Business Intelligence — read-only `DynamicDashboard` component and `/analytics/dashboard`
-  page wired to `queryAnalytics` / `generateDashboard`.
+- `REQ-0083` **Business Intelligence (Batch 2)** — `/analytics/dashboard` page and server action wired
+  to `queryAnalytics` / `generateDashboard` with a project-scoped `PrismaDatasetFetcher`.
 
 ### ⏭️ Next
 

@@ -4,7 +4,7 @@ description: Business Intelligence (Read-Only Analytics)
 
 # REQ-0083: Business Intelligence (Read-Only Analytics)
 
-- **Status:** Draft
+- **Status:** In Progress
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0083-business-intelligence.md`
