@@ -332,6 +332,16 @@
       "subscribers": []
     },
     {
+      "name": "OrderSynced",
+      "module": "ecommerce",
+      "file": "modules/ecommerce/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0084",
+      "subscribers": [
+        "modules/attribution/infrastructure/subscribers.ts"
+      ]
+    },
+    {
       "name": "AmbassadorEnrolled",
       "module": "growth",
       "file": "modules/growth/domain/events.ts",

@@ -31,7 +31,7 @@ const compliance = new PrismaShopifyComplianceRepository();
 /** Composition root for the ecommerce module. */
 export const connectStore = makeConnectStore({ integrations });
 export const syncProducts = makeSyncProducts({ connectors, products });
-export const syncOrders = makeSyncOrders({ connectors, orders });
+export const syncOrders = makeSyncOrders({ connectors, orders, eventBus });
 export const applyShopifyWebhook = makeApplyShopifyWebhook({
   integrations,
   products,
@@ -40,6 +40,7 @@ export const applyShopifyWebhook = makeApplyShopifyWebhook({
   processedEvents,
   compliance,
   auditLog: auditCommands,
+  eventBus,
 });
 export const generateCoupon = makeGenerateCoupon({ connectors, coupons });
 export const updateCoupon = makeUpdateCoupon({ coupons });

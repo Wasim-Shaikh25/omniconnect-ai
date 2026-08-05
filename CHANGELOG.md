@@ -15,6 +15,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0084` **Attribution & Checkout Links** on `devin/attribution-checkout-links-1785956172`:
+  new `attribution` module with `AttributionLink` Prisma model, `makeCreateAttributionLink` use-case
+  that builds checkout URLs with coupon auto-apply (platform-specific `couponUrlPattern`) + UTM parameters,
+  `makeRecordConversion` that listens to `OrderSynced` events, matches coupon codes to links, increments
+  conversion/revenue, and forwards to `MetaService.sendPurchaseEvent`; `GraphApiMetaService` sends
+  server-side Meta Conversions API `Purchase` events with SHA-256 hashed `em`/`external_id`, stable
+  `event_id` dedup, and `custom_data` (currency, value, line items); new
+  `/stores/[projectId]/analytics/attribution` page and `AttributionLinkForm` to create links and view
+  revenue per campaign, coupon, and channel.
 - `REQ-0070` **Phone verification (Package E)** on `devin/cleanup-task-status-1785946663`:
   added the `SmsSender` port with `ConsoleSmsSender` and `TwilioSmsSender` (Twilio REST API) adapters;
   `PhoneVerificationService` issues 6-digit OTPs with 10-minute expiry, 5-attempt cap, and 3-sends/hour
@@ -168,7 +177,6 @@ None.
 
 ### ⏭️ Next
 
-- `REQ-0084` **Attribution & direct checkout links** — coupon + UTM, order webhook matching, Meta CAPI, attribution dashboard.
 - `REQ-0085` **Profile/reel inspector plan gating** — AI demographic estimation and plan-limit enforcement.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
@@ -237,7 +245,7 @@ no gaps.
 | REQ-0081 | AI Assistant & Tools | 3 | Draft |
 | REQ-0082 | AI Setup & Configuration | 3 | Draft |
 | REQ-0083 | Business Intelligence | 3 | Draft |
-| REQ-0084 | Attribution & Checkout Links | 2 | Draft |
+| REQ-0084 | Attribution & Checkout Links | 2 | Implemented |
 | REQ-0085 | Profile & Reel Inspector | 3 | Draft |
 | REQ-0086 | OpenRouter Integration | 1 | Draft |
 | REQ-0087 | Super Admin Panel | 4 | Draft |

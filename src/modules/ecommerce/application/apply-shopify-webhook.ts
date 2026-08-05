@@ -1,8 +1,10 @@
 import { logger } from "@/shared/observability";
+import type { EventBus } from "@/shared/events";
 import type { AuditLogCommands } from "@/modules/users";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import type { IntegrationRepository, ProductRepository, OrderRepository, CartRepository } from "./ports";
 import type { ConnectorProduct, ConnectorOrder } from "../domain/connector";
+import { OrderSynced } from "../domain/events";
 import type { ShopifyComplianceRepository } from "./shopify-compliance";
 
 export interface ShopifyWebhookInput {
@@ -27,6 +29,7 @@ export function makeApplyShopifyWebhook(deps: {
   compliance: ShopifyComplianceRepository;
   auditLog: AuditLogCommands;
   jobScheduler?: { cancelForStore(projectId: string): Promise<void> };
+  eventBus?: EventBus;
 }) {
   return async function applyShopifyWebhook(input: ShopifyWebhookInput): Promise<ShopifyWebhookResult> {
     const integration = await deps.integrations.findByShopDomain(input.shopDomain);
@@ -72,6 +75,9 @@ export function makeApplyShopifyWebhook(deps: {
         await deps.orders.upsertMany(projectId, [order]);
         if (order.cartToken) {
           await deps.carts.markConverted(projectId, order.cartToken);
+        }
+        if (deps.eventBus) {
+          await deps.eventBus.publish(new OrderSynced(projectId, { projectId, order }));
         }
         logger.info("shopify.webhook.orderUpserted", { projectId, externalId: order.externalId, topic });
         return { ok: true };

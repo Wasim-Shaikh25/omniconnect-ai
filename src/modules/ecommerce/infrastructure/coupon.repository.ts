@@ -98,6 +98,27 @@ export class PrismaCouponRepository implements CouponRepository {
     });
   }
 
+  async findByCode(projectId: string, code: string): Promise<CouponRecord | null> {
+    const coupon = await prisma.coupon.findFirst({
+      where: { projectId, code, ...notDeleted() },
+    });
+    return coupon ? toRecord(coupon) : null;
+  }
+
+  async incrementRedemption(
+    projectId: string,
+    code: string,
+    revenue: number,
+  ): Promise<CouponRecord | null> {
+    const current = await this.findByCode(projectId, code);
+    if (!current) return null;
+    return this.update(current.id, {
+      usageCount: current.usageCount + 1,
+      revenueAttributed: (current.revenueAttributed ?? 0) + revenue,
+      lastUsedAt: new Date(),
+    });
+  }
+
   async delete(id: string): Promise<CouponRecord | null> {
     const coupon = await prisma.coupon.update({
       where: { id },

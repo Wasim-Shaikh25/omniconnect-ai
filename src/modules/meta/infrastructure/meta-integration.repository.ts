@@ -11,6 +11,7 @@ const TOKEN_TTL_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
 function toRecord(project: {
   id: string;
   metaAccountId: string | null;
+  metaPixelId: string | null;
   createdAt: Date;
 }): MetaIntegrationRecord {
   return {
@@ -18,6 +19,7 @@ function toRecord(project: {
     projectId: project.id,
     channel: "FACEBOOK",
     accountId: project.metaAccountId,
+    pixelId: project.metaPixelId,
     connectedAt: project.createdAt,
   };
 }
@@ -29,6 +31,7 @@ export class PrismaMetaIntegrationRepository
     projectId: string;
     channel: MetaChannel;
     accountId: string | null;
+    pixelId?: string | null;
     accessToken: string | null;
     refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord> {
@@ -41,6 +44,7 @@ export class PrismaMetaIntegrationRepository
       where: { id: input.projectId },
       data: {
         metaAccountId: input.accountId,
+        metaPixelId: input.pixelId ?? null,
         metaAccessToken: await encryptString(input.accessToken),
         metaTokenExpiresAt: expiresAt,
       },
@@ -54,7 +58,7 @@ export class PrismaMetaIntegrationRepository
       where: { id: projectId },
     });
     if (!found || !found.metaAccountId) return null;
-    return toRecord(found);
+    return toRecord(found as { id: string; metaAccountId: string | null; metaPixelId: string | null; createdAt: Date });
   }
 
   async findStoreByAccountId(accountId: string): Promise<string | null> {

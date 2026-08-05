@@ -84,6 +84,23 @@ export function makeEcommerceQueries(deps: {
       return deps.coupons.countByStore(projectId, search);
     },
 
+    async getCouponByCode(projectId: string, code: string): Promise<CouponRecord | null> {
+      return deps.coupons.findByCode(projectId, code);
+    },
+
+    async getCouponById(projectId: string, id: string): Promise<CouponRecord | null> {
+      const coupon = await deps.coupons.findById(id);
+      return coupon && coupon.projectId === projectId ? coupon : null;
+    },
+
+    async incrementCouponUsage(
+      projectId: string,
+      code: string,
+      revenue: number,
+    ): Promise<CouponRecord | null> {
+      return deps.coupons.incrementRedemption(projectId, code, revenue);
+    },
+
     async listOrders(
       projectId: string,
       limit = 50,

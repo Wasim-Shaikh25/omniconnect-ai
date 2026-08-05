@@ -4,7 +4,7 @@ description: Attribution & Direct Checkout Links
 
 # REQ-0084: Attribution & Direct Checkout Links
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0084-attribution-checkout-links.md`
@@ -36,11 +36,11 @@ Dual attribution strategy: coupon-based (primary, individual-level, highest reli
 
 ## 5. Acceptance Criteria
 
-- [ ] Attribution link generation with coupon auto-apply + UTM parameters.
-- [ ] Platform-specific URL patterns from adapter config (couponUrlPattern).
-- [ ] Order webhook matches coupon code → attribution link → increments conversion count + revenue.
-- [ ] Meta CAPI sends Purchase events with SHA-256 hashed user data and event_id dedup.
-- [ ] Dashboard shows revenue per campaign, per coupon, per channel.
+- [x] Attribution link generation with coupon auto-apply + UTM parameters.
+- [x] Platform-specific URL patterns from adapter config (couponUrlPattern).
+- [x] Order webhook matches coupon code → attribution link → increments conversion count + revenue.
+- [x] Meta CAPI sends Purchase events with SHA-256 hashed user data and event_id dedup.
+- [x] Dashboard shows revenue per campaign, per coupon, per channel.
 
 ## 6. Scope & Dependencies
 

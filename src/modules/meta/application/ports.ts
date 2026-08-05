@@ -1,10 +1,12 @@
 import type { MetaChannel } from "../domain/types";
+import type { ConnectorOrder } from "@/modules/ecommerce";
 
 export interface MetaIntegrationRecord {
   id: string;
   projectId: string;
   channel: MetaChannel;
   accountId: string | null;
+  pixelId: string | null;
   connectedAt: Date;
 }
 
@@ -13,6 +15,7 @@ export interface MetaIntegrationRepository {
     projectId: string;
     channel: MetaChannel;
     accountId: string | null;
+    pixelId?: string | null;
     accessToken: string | null;
     refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord>;
@@ -138,4 +141,10 @@ export interface MetaService {
 
   /** Return the connected Instagram Business Account ID for this project, or null. */
   getAccountId(projectId: string): Promise<string | null>;
+
+  /** Return the Meta Pixel ID for this project, or null if not configured. */
+  getPixelId(projectId: string): Promise<string | null>;
+
+  /** Send a server-side Purchase event to the Meta Conversions API. No-ops when the pixel or access token is missing. */
+  sendPurchaseEvent(projectId: string, order: ConnectorOrder): Promise<void>;
 }

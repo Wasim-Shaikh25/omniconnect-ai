@@ -1,4 +1,5 @@
 import { BaseDomainEvent } from "@/shared/kernel";
+import type { ConnectorOrder } from "./connector";
 
 export interface StoreConnectedPayload {
   projectId: string;
@@ -105,4 +106,13 @@ export interface AbandonedCartDetectedPayload {
 
 export class AbandonedCartDetected extends BaseDomainEvent<AbandonedCartDetectedPayload> {
   readonly name = "AbandonedCartDetected";
+}
+
+export interface OrderSyncedPayload {
+  projectId: string;
+  order: ConnectorOrder;
+}
+
+export class OrderSynced extends BaseDomainEvent<OrderSyncedPayload> {
+  readonly name = "OrderSynced";
 }
