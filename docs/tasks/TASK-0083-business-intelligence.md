@@ -50,15 +50,17 @@ Marketing dashboard with default widgets. AI-generated custom dashboards via cha
 
 - [x] T-054: DynamicDashboard React component
 - [x] T-054a: PieChartWidget 100% slice fix and changelog/tracker cleanup
+- [x] T-055: queryAnalytics server action and PrismaDatasetFetcher
+- [x] T-056: /analytics/dashboard page with NL query input and DynamicDashboard
 - [ ] T-070: Brand mention monitoring — Mentions API + AI sentiment analysis (P2)
 - [ ] T-072: Competitor tracking UI — add competitors, comparison dashboard (P2)
 - [ ] T-074: Dashboard export (PDF, image, shareable link) — Phase 4
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0083 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0083 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

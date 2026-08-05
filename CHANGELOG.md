@@ -128,13 +128,23 @@ All notable changes to **OmniConnect AI** are documented here.
   renderers for KPI, line_chart, bar_chart, pie_chart, table, and sparkline widgets; grid sizes
   small/medium/large/full map to `col-span-3/6/9/12`; unit tests cover all widget types.
 
+- `REQ-0083` **Business Intelligence (review fix)** on `devin/bi-review-fixes-1785946663`:
+  clamped `PieChartWidget` sweep to 359.99° so a 100% slice no longer collapses to an empty SVG
+  path; added `PieChartWidget.test.tsx` regression guard.
+
+- `REQ-0083` **Business Intelligence (Batch 2)** on `devin/bi-dashboard-wiring-1785946663`:
+  added `PrismaDatasetFetcher` for project-scoped analytics data, a `queryAnalyticsAction` server
+  action that composes `resolveOperation` / `generateDashboard`, and `/analytics/dashboard` with an
+  NL query input and `DynamicDashboard` output; all operations are read-only and tenant-scoped.
+
 ### 🚧 In Progress
 
-- `REQ-0083` **Business Intelligence (Batch 2)** — `/analytics/dashboard` page and server action wired
-  to `queryAnalytics` / `generateDashboard` with a project-scoped `PrismaDatasetFetcher`.
+None.
 
 ### ⏭️ Next
 
+- `REQ-0083` **Business Intelligence (Batch 3 / Phase 2)** — brand mention monitoring with sentiment
+  analysis, competitor tracking UI, and dashboard export (PDF / image / shareable link).
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

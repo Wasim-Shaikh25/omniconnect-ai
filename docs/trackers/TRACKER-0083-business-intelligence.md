@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0083-business-intelligence.md`
 - **Task:** `docs/tasks/TASK-0083-business-intelligence.md`
-- **Branch:** `devin/bi-review-fixes-1785946663`
+- **Branch:** `devin/bi-dashboard-wiring-1785946663`
 - **Last updated:** 2026-08-05
 
 ## 1. Summary
@@ -20,8 +20,8 @@ Progress tracker for REQ-0083: Business Intelligence.
 
 ### Implementation
 - [x] T-054: DynamicDashboard React component (KPI, line/bar/pie charts, tables, sparklines, grid sizes).
-- [ ] queryAnalytics handler for 6 metric groups.
-- [ ] Dashboard page with default widgets.
+- [x] T-055: queryAnalytics server action and project-scoped PrismaDatasetFetcher.
+- [x] T-056: /analytics/dashboard page with NL query input and DynamicDashboard.
 - [ ] T-070: Brand mention monitoring — Mentions API + AI sentiment analysis (P2).
 - [ ] T-072: Competitor tracking UI — add competitors, comparison dashboard (P2).
 - [ ] T-074: Dashboard export (PDF, image) — Phase 4.
@@ -36,8 +36,8 @@ Progress tracker for REQ-0083: Business Intelligence.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 
