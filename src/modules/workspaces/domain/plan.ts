@@ -21,12 +21,43 @@ export interface PlanLimits {
   monthlyAiReplies: number | null;
   teamSeats: number | null;
   maxProfileInspectionsPerDay: number | null;
+  maxCompetitors: number | null;
+  maxAttributionLinksPerMonth: number | null;
+  maxContentSchedulesPerMonth: number | null;
+  allowedModels: string[];
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  [Plan.FREE]: { maxStores: 1, monthlyAiReplies: 50, teamSeats: 1, maxProfileInspectionsPerDay: 3 },
-  [Plan.PRO]: { maxStores: 3, monthlyAiReplies: 500, teamSeats: 3, maxProfileInspectionsPerDay: 50 },
-  [Plan.BUSINESS]: { maxStores: null, monthlyAiReplies: null, teamSeats: null, maxProfileInspectionsPerDay: null },
+  [Plan.FREE]: {
+    maxStores: 1,
+    monthlyAiReplies: 50,
+    teamSeats: 1,
+    maxProfileInspectionsPerDay: 3,
+    maxCompetitors: 1,
+    maxAttributionLinksPerMonth: 10,
+    maxContentSchedulesPerMonth: 5,
+    allowedModels: ["openai/gpt-4o-mini"],
+  },
+  [Plan.PRO]: {
+    maxStores: 3,
+    monthlyAiReplies: 500,
+    teamSeats: 3,
+    maxProfileInspectionsPerDay: 50,
+    maxCompetitors: 10,
+    maxAttributionLinksPerMonth: null,
+    maxContentSchedulesPerMonth: null,
+    allowedModels: ["openai/gpt-4o-mini", "openai/gpt-4o", "anthropic/claude-3-haiku"],
+  },
+  [Plan.BUSINESS]: {
+    maxStores: null,
+    monthlyAiReplies: null,
+    teamSeats: null,
+    maxProfileInspectionsPerDay: null,
+    maxCompetitors: null,
+    maxAttributionLinksPerMonth: null,
+    maxContentSchedulesPerMonth: null,
+    allowedModels: ["*"],
+  },
 };
 
 /** Returns true when `current` usage is still within the plan's limit. */

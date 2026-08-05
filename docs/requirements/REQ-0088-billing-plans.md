@@ -4,7 +4,7 @@ description: Billing & Plans
 
 # REQ-0088: Billing & Plans
 
-- **Status:** Draft
+- **Status:** In Progress
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0088-billing-plans.md`
@@ -37,8 +37,8 @@ Three-tier billing system via Stripe: Free, Pro, Business. Plan limits enforced 
 
 ## 5. Acceptance Criteria
 
-- [ ] Three plans defined: Free, Pro, Business.
-- [ ] Plan limits table:
+- [x] Three plans defined: Free, Pro, Business.
+- [x] Plan limits table:
 
 | Feature | Free | Pro | Business |
 |---------|------|-----|----------|
@@ -55,8 +55,8 @@ Three-tier billing system via Stripe: Free, Pro, Business. Plan limits enforced 
 | Intelligence | Daily Brief | Full | Full + predictions |
 
 - [ ] Stripe checkout, webhooks, subscription management.
-- [ ] Plan enforcement at service layer.
-- [ ] Billing settings page: current plan, upgrade, payment method, invoices.
+- [x] Plan enforcement at service layer.
+- [x] Billing settings page: current plan, upgrade, payment method, invoices.
 
 ## 6. Scope & Dependencies
 

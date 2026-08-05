@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { makeGenerateReply } from "./generate-reply";
 import type { GenerateReplyDeps } from "./generate-reply";
 import type { AIConfigurationRecord, AIProvider, AIMessage } from "./ports";
+import { defaultAIConfigurationRecord } from "./ai-config";
 import type { ContentModerator } from "./content-moderation";
 import type { ConversationCommands, ConversationQueries, MessageRecord, MessageSender } from "@/modules/conversations";
 import type { CrmQueries, CustomerProfile } from "@/modules/crm";
@@ -36,16 +37,13 @@ function makeSut({
     moderate: vi.fn().mockResolvedValue({ flagged, categories: flagged ? ["hate"] : [] }),
   };
 
-  const baseConfig: AIConfigurationRecord = {
-    projectId: "store-1",
+  const baseConfig: AIConfigurationRecord = defaultAIConfigurationRecord("store-1", {
     systemPrompt: config.systemPrompt ?? "You are a helpful assistant.",
     tone: config.tone ?? null,
     welcomeStrategy: config.welcomeStrategy ?? null,
     couponStrategy: config.couponStrategy ?? null,
     salesStrategy: config.salesStrategy ?? null,
-    escalationRules: config.escalationRules ?? null,
-    model: "gpt-4o-mini",
-  };
+  });
 
   const conversationQueries: ConversationQueries = {
     findReplyByInReplyToMessageId: vi.fn().mockResolvedValue(null),

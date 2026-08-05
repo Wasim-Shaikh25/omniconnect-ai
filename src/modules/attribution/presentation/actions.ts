@@ -2,8 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireStoreAccess } from "@/modules/workspaces";
-import { createAttributionLink, listAttributionLinks } from "../infrastructure/container";
+import { organizationUsage, requireStoreAccess } from "@/modules/workspaces";
+import {
+  createAttributionLink,
+  listAttributionLinks,
+  countAttributionLinksThisMonth,
+} from "../infrastructure/container";
 import type { AttributionLink } from "../application/ports";
 
 const createSchema = z.object({
@@ -29,7 +33,26 @@ export async function createAttributionLinkAction(
   }
 
   try {
-    await requireStoreAccess(parsed.data.projectId);
+    const { user } = await requireStoreAccess(parsed.data.projectId);
+    if (!user.userId) {
+      return { ok: false, error: "User is not associated with an organization." };
+    }
+    const currentLinks = await countAttributionLinksThisMonth(parsed.data.projectId);
+    const { allowed, limit } = await organizationUsage.checkLimit(
+      user.userId,
+      currentLinks,
+      "maxAttributionLinksPerMonth",
+    );
+    if (!allowed) {
+      return {
+        ok: false,
+        error:
+          limit === null
+            ? "Could not create attribution link."
+            : `Your plan allows up to ${limit} attribution link(s) per month. Upgrade to create more.`,
+      };
+    }
+
     const link = await createAttributionLink({
       projectId: parsed.data.projectId,
       couponId: parsed.data.couponId,

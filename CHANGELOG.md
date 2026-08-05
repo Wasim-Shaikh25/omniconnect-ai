@@ -188,6 +188,18 @@ All notable changes to **OmniConnect AI** are documented here.
   Added a `DemographicEstimator` port, `makeOpenRouterDemographicEstimator` (LLM estimation from comments,
   posting times, hashtags, locations with deterministic fallback), and wired it into `inspectProfile`.
   Updated `pricing-cards.tsx` to render `PRO` and `BUSINESS` tiers. All quality gates pass.
+- `REQ-0088` **Billing & Plans (enforcement + billing page)** on `devin/billing-plans-enforcement-1786001020`:
+  extended `PLAN_LIMITS` with `maxCompetitors`, `maxAttributionLinksPerMonth`, `maxContentSchedulesPerMonth`,
+  and `allowedModels`; added `organizationUsage.checkLimit`/`getPlanLimits`; wired plan enforcement into
+  `trackCompetitorAction` (via `TrackedAccountRepository.countByStore`) and `createAttributionLinkAction`
+  (via `AttributionLinkRepository.countByProjectThisMonth`); upgraded `/settings/billing` to show the
+  current plan, a `PLAN_LIMITS` matrix with store-usage progress bars, and upgrade `PricingCards`.
+- `REQ-0082` **AI Setup & Configuration** on `devin/billing-plans-enforcement-1786001020`:
+  extended `AIConfiguration` with `aiName`, `brandVoice`, `language`, enabled skills, sales guardrails,
+  channel settings, escalation rules, per-skill OpenRouter `modelOverrides`, and a `knowledgeBase`.
+  Added pure `buildSystemPrompt()` with variable interpolation and a full AI settings form on
+  `/stores/[projectId]`. `generate-reply` now selects `modelOverrides.reply` and serializes guardrails
+  into the prompt. PDF/MD knowledge-base file upload is still open.
 
 ### 🚧 In Progress
 
@@ -195,9 +207,9 @@ None.
 
 ### ⏭️ Next
 
-- `REQ-0088` **Billing & Plans** — Stripe checkout lifecycle, plan entitlement enforcement, billing settings UI.
+- `REQ-0082` **AI Setup & Configuration** — PDF/MD knowledge-base file upload and product auto-sync.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
-- `REQ-0082` **AI Setup & Configuration** — onboarding AI config, model overrides, brand voice settings.
+- `REQ-0087` **Super Admin Panel** — user list/impersonate, plan management, system health dashboard.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 
@@ -269,7 +281,7 @@ no gaps.
 | REQ-0085 | Profile & Reel Inspector | 3 | Implemented |
 | REQ-0086 | OpenRouter Integration | 1 | Draft |
 | REQ-0087 | Super Admin Panel | 4 | Draft |
-| REQ-0088 | Billing & Plans | 4 | Draft |
+| REQ-0088 | Billing & Plans | 4 | In Progress |
 | REQ-0089 | Intelligence Layer | 4 | Draft |
 | REQ-0090 | Cleanup & Migration | 1 | Draft |
 | REQ-0091 | Deterministic Analysis Engine (AnalysisSpec) | 3 | Draft |

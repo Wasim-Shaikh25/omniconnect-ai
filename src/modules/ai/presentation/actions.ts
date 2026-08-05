@@ -52,15 +52,14 @@ export async function updateAIConfigurationAction(
   const user = await requireRole("USER");
   await requireVerifiedEmail(user);
 
+  const configJson = formData.get("config");
+  const config =
+    typeof configJson === "string" && configJson.length
+      ? (JSON.parse(configJson) as Record<string, unknown>)
+      : {};
   const parsed = updateAIConfigSchema.safeParse({
     projectId: formData.get("projectId"),
-    systemPrompt: formData.get("systemPrompt"),
-    tone: formData.get("tone") || undefined,
-    welcomeStrategy: formData.get("welcomeStrategy") || undefined,
-    couponStrategy: formData.get("couponStrategy") || undefined,
-    salesStrategy: formData.get("salesStrategy") || undefined,
-    escalationRules: formData.get("escalationRules") || undefined,
-    model: formData.get("model") || "gpt-4o-mini",
+    ...config,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };

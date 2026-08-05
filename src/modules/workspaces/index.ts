@@ -13,7 +13,8 @@ export {
   isEcommerceProvider,
 } from "./domain/provider";
 export type { EcommerceProvider } from "./domain/provider";
-export { Plan, isPlan, parsePlan, PLAN_FEATURES } from "./domain/plan";
+export { Plan, isPlan, parsePlan, PLAN_FEATURES, PLAN_LIMITS } from "./domain/plan";
+export type { PlanLimits } from "./domain/plan";
 export {
   OrganizationError,
   OrganizationNotFoundError,

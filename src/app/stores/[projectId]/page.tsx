@@ -18,7 +18,7 @@ import { metaQueries } from "@/modules/meta/server";
 import { conversationQueries, type ConversationRecord } from "@/modules/conversations";
 import { crmQueries, type FollowerRecord } from "@/modules/crm";
 import { aiQueries } from "@/modules/ai/server";
-import { updateAIConfigurationAction } from "@/modules/ai";
+import { updateAIConfigurationAction, defaultAIConfigurationRecord } from "@/modules/ai";
 import { ConnectStoreForm } from "@/components/connect-store-form";
 import { AISettingsForm } from "@/components/ai-settings-form";
 import { SyncProductsButton } from "@/components/sync-products-button";
@@ -302,17 +302,7 @@ export default async function StoreDetailPage({
               <AISettingsForm
                 action={updateAIConfigurationAction}
                 projectId={projectId}
-                defaultValues={{
-                  systemPrompt:
-                    aiConfig?.systemPrompt ??
-                    "You are a helpful eCommerce customer assistant.",
-                  tone: aiConfig?.tone ?? "",
-                  welcomeStrategy: aiConfig?.welcomeStrategy ?? "",
-                  couponStrategy: aiConfig?.couponStrategy ?? "",
-                  salesStrategy: aiConfig?.salesStrategy ?? "",
-                  escalationRules: aiConfig?.escalationRules ?? "",
-                  model: aiConfig?.model ?? "gpt-4o-mini",
-                }}
+                defaultValues={aiConfig ?? defaultAIConfigurationRecord(projectId)}
               />
             ) : (
               <p className="text-sm text-muted-foreground">

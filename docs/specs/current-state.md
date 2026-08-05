@@ -210,6 +210,18 @@ Core tables (see `prisma/schema.prisma` for full model):
 5. `MetaService.sendPurchaseEvent` sends a server-side Purchase event to the Meta Conversions API with SHA-256 hashed `em` and `external_id`, a stable `event_id` built from `purchase_${externalId}_${createdAt.getTime()}`, and `custom_data` containing currency, value, and line-item IDs. No-ops when `metaPixelId` or the access token is missing.
 6. The `/stores/[projectId]/analytics/attribution` dashboard lists every link with short code, full URL, UTM source, clicks, conversions, and revenue; groupings by source/medium/campaign and coupon can be derived from the link rows.
 
+### 8.8 Billing and Plan Enforcement
+1. `Plan` enum (`FREE`, `PRO`, `BUSINESS`) and `PLAN_LIMITS` matrix live in `workspaces/domain/plan.ts` and are the single source of truth for user entitlements.
+2. `PLAN_LIMITS` covers stores/projects, monthly AI replies, team seats, daily profile inspections, competitors, attribution links per month, content schedules per month, and allowed OpenRouter models.
+3. `organizationUsage` exposes `consumeAIReply`, `consumeProfileInspection`, `checkLimit`, and `getPlanLimits` so application actions can enforce limits centrally without importing Prisma.
+4. Plan enforcement is wired at the service/action layer:
+   - `createStore`/`store.repository` blocks new stores beyond `maxStores`.
+   - `inviteMember` blocks invites beyond `teamSeats`.
+   - `inspectProfileAction` consumes a daily profile inspection.
+   - `trackCompetitorAction` blocks new tracked accounts beyond `maxCompetitors`.
+   - `createAttributionLinkAction` blocks new links beyond `maxAttributionLinksPerMonth` for the current project.
+5. `/settings/billing` displays the current plan, a `PLAN_LIMITS` matrix with store usage progress, and `PricingCards` for upgrades. Stripe checkout and webhook lifecycle remain in `api/stripe/*` and `billingService`.
+
 ---
 
 ## 9. External Integrations
@@ -237,6 +249,13 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Token usage is persisted per completion (user, project, feature, model, prompt/completion/total
   tokens, cost) via `PrismaTokenUsageRepository` wired into `OpenRouterProvider`; super admins can
   view the last 30 days of usage and recent calls on `/admin/ai-usage`.
+- AI configuration is stored per project in `AIConfiguration` with: `aiName`, `brandVoice`, `language`, `systemPrompt`,
+  `tone`, `welcomeStrategy`, `couponStrategy`, `salesStrategy`, enabled skills (`createCoupon`, `sendMessage`, `generateDashboard`, `accessOrderData`, `triggerCampaigns`),
+  sales guardrails (`maxDiscountPct`, `maxUses`, `dailyBudget`, `autoSend`), per-channel settings (Instagram/Facebook/WhatsApp with enable/tone/business hours),
+  escalation rules (complaint/refund/low-confidence with notify email/push), per-skill OpenRouter `modelOverrides`, and a free-text `knowledgeBase`.
+- `buildSystemPrompt()` (pure, in `ai/application/build-system-prompt.ts`) interpolates `{{ai_name}}`, `{{brand_name}}`, `{{product_count}}`, `{{top_products}}`, `{{store_url}}` and appends skill rules, guardrails, channel/escalation settings, and knowledge base.
+- The AI settings form (`src/components/ai-settings-form.tsx`) on `/stores/[projectId]` edits the full `AIConfigurationRecord` client-side and submits it as JSON to `updateAIConfigurationAction`.
+- `generate-reply` uses the per-skill model override (`modelOverrides.reply`) when selecting the model and serializes enabled skills, sales rules, and escalation rules into the system prompt.
 - Prompt-injection defences: `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` /
   `wrapExternalData` live in `src/modules/ai/domain/prompt-safety.ts` (pure, no IO). The reply
   system prompt instructs the model that `<<<USER_MESSAGE>>>` and every `<<<DATA>>>` region are

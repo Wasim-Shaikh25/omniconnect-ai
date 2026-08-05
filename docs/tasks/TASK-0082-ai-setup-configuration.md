@@ -47,21 +47,21 @@ Per-skill model override dropdown populated from OpenRouter model list. Plan-res
 
 ## 4. Subtasks
 
-- [ ] T-004: Create AIConfiguration Prisma model
-- [ ] T-046: AI Setup UI: personality prompt editor
-- [ ] T-047: AI Setup UI: skills & permissions toggles
-- [ ] T-048: AI Setup UI: sales rules
-- [ ] T-049: AI Setup UI: channel settings
-- [ ] T-050: Knowledge base upload
-- [ ] T-051: Escalation rules
-- [ ] T-052: Model selection per skill
-- [ ] T-053: System prompt builder
+- [x] T-004: Create AIConfiguration Prisma model
+- [x] T-046: AI Setup UI: personality prompt editor
+- [x] T-047: AI Setup UI: skills & permissions toggles
+- [x] T-048: AI Setup UI: sales rules
+- [x] T-049: AI Setup UI: channel settings
+- [ ] T-050: Knowledge base file upload (PDF/MD) + product auto-sync
+- [x] T-051: Escalation rules
+- [x] T-052: Model selection per skill
+- [x] T-053: System prompt builder
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0082 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0082 acceptance criteria (PDF/MD file upload still open).
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 
