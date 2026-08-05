@@ -7,6 +7,18 @@ import { dashboardShareCommands, dashboardShareQueries } from "../server";
 
 const projectIdSchema = z.string().min(1);
 
+const dashboardSchema = z.object({
+  title: z.string().min(1),
+  widgets: z.array(
+    z.object({
+      type: z.enum(["kpi", "line_chart", "bar_chart", "pie_chart", "table", "sparkline"]),
+      title: z.string().min(1),
+      size: z.enum(["small", "medium", "large", "full"]),
+      data: z.record(z.unknown()),
+    }),
+  ),
+});
+
 export interface CreateDashboardShareState {
   ok?: boolean;
   url?: string;
@@ -23,12 +35,17 @@ export async function createDashboardShareAction(
     return { error: parsedProjectId.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  const parsedSchema = dashboardSchema.safeParse(schema);
+  if (!parsedSchema.success) {
+    return { error: "Invalid dashboard schema." };
+  }
+
   try {
     await requireStoreAccess(parsedProjectId.data);
     const result = await dashboardShareCommands.create({
       projectId: parsedProjectId.data,
       title,
-      schema,
+      schema: parsedSchema.data as unknown as DashboardSchema,
       expiresAt: null,
     });
     return { ok: true, url: result.url };

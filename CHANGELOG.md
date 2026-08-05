@@ -24,6 +24,12 @@ All notable changes to **OmniConnect AI** are documented here.
   `event_id` dedup, and `custom_data` (currency, value, line items); new
   `/stores/[projectId]/analytics/attribution` page and `AttributionLinkForm` to create links and view
   revenue per campaign, coupon, and channel.
+- `REQ-0083` **Dashboard export review fixes** on `devin/fix-dashboard-export-review-1785961880`:
+  added `/share` to `PUBLIC_PATHS` so shared dashboard links work for anonymous visitors;
+  moved `DashboardSchema` import to the top of `analytics/application/ports.ts`; broadened
+  `cross-tenant-action-census.test.ts` to scan all `*.actions.ts` files under `presentation/`;
+  added a Zod schema validation to `createDashboardShareAction` so malformed dashboard snapshots
+  are rejected before persistence.
 - `REQ-0070` **Phone verification (Package E)** on `devin/cleanup-task-status-1785946663`:
   added the `SmsSender` port with `ConsoleSmsSender` and `TwilioSmsSender` (Twilio REST API) adapters;
   `PhoneVerificationService` issues 6-digit OTPs with 10-minute expiry, 5-attempt cap, and 3-sends/hour

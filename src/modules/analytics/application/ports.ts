@@ -1,5 +1,5 @@
 import type { MetaMediaItem } from "@/modules/meta";
-import type { CompetitorAnalysis } from "@/modules/ai";
+import type { CompetitorAnalysis, DashboardSchema } from "@/modules/ai";
 import type {
   MediaPost,
   MediaInsight,
@@ -117,8 +117,6 @@ export interface CreateReportInput {
   content: Record<string, unknown>;
   generatedAt?: Date;
 }
-
-import type { DashboardSchema } from "@/modules/ai";
 
 export interface DashboardShareRecord {
   id: string;

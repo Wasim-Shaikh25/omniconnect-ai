@@ -32,6 +32,7 @@ const ALLOWLIST: Record<string, string> = {
   "src/modules/auth/presentation/actions.ts:resetPasswordAction": "token-based password reset",
   "src/modules/auth/presentation/actions.ts:resendVerificationEmailAction": "public resend verification email",
   "src/modules/analytics/presentation/dashboard-share.actions.ts:getDashboardShareByTokenAction": "public token-based read of a shared dashboard",
+  "src/modules/workspaces/presentation/invite-member.actions.ts:registerWithInviteAction": "public invite acceptance with token-based organization verification",
 };
 
 function actionFiles(dir: string): string[] {
@@ -40,7 +41,7 @@ function actionFiles(dir: string): string[] {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
       result.push(...actionFiles(full));
-    } else if (full.endsWith("/presentation/actions.ts") || full.endsWith("/presentation/actions.tsx")) {
+    } else if (full.includes("/presentation/") && (full.endsWith(".actions.ts") || full.endsWith(".actions.tsx"))) {
       result.push(full);
     }
   }
