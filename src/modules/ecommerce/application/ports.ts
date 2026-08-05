@@ -128,6 +128,12 @@ export interface CouponRepository {
 
   disable(projectId: string, code: string): Promise<void>;
 
+  /** Find a live coupon by its code within a project. */
+  findByCode(projectId: string, code: string): Promise<CouponRecord | null>;
+
+  /** Atomically increment usage count and attributed revenue for a coupon. */
+  incrementRedemption(projectId: string, code: string, revenue: number): Promise<CouponRecord | null>;
+
   /** Soft-delete a coupon. */
   delete(id: string): Promise<CouponRecord | null>;
 

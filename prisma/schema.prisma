@@ -197,6 +197,7 @@ model Project {
   metaAccountId     String?
   metaAccessToken   String?   // encrypted at application layer
   metaTokenExpiresAt DateTime?
+  metaPixelId       String?
   archivedAt        DateTime?
   deletedAt         DateTime?
   lastProductSyncAt DateTime?
@@ -237,6 +238,7 @@ model Project {
   commentUnlockCampaigns CommentUnlockCampaign[]
   brandDeals BrandDeal[]
   dashboardShares DashboardShare[]
+  attributionLinks AttributionLink[]
 }
 
 model OrganizationInvite {
@@ -272,6 +274,28 @@ model EcommerceConnection {
 
   @@index([projectId])
   @@index([provider])
+}
+
+model AttributionLink {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  couponId      String?
+  coupon        Coupon?  @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  fullUrl       String
+  shortCode     String   @unique
+  utmSource     String
+  utmMedium     String?
+  utmCampaign   String?
+  clicks        Int      @default(0)
+  conversions   Int      @default(0)
+  revenue       Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId, createdAt])
+  @@index([shortCode])
+  @@index([couponId])
 }
 
 // ── ai configuration ─────────────────────────────────────────────────────────
@@ -373,6 +397,7 @@ model Coupon {
   updatedAt         DateTime     @updatedAt
 
   usages CouponUsage[]
+  attributionLinks AttributionLink[]
 
   @@unique([projectId, code])
   @@index([deletedAt])

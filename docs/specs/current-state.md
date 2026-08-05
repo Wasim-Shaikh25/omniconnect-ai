@@ -104,6 +104,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
 | `support` | Support tickets, admin triage, system logs. `/support` is authenticated-only and not in `publicPaths`. |
+| `attribution` | UTM/coupon checkout links, order → conversion attribution, Meta CAPI purchase events. |
 
 ---
 
@@ -121,6 +122,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
+- `AttributionLink` — checkout URL with coupon auto-apply, UTM tags, short code, clicks, conversions, and attributed revenue; linked to `Project` and `Coupon`.
 - `ProcessedWebhookEvent` — provider-scoped idempotency ledger for Stripe, Shopify, and Meta webhooks; pruned after 30 days.
 - `ExportRequest` — GDPR data-export jobs.
 
@@ -200,6 +202,14 @@ Core tables (see `prisma/schema.prisma` for full model):
 11. Brand mention monitoring (`/stores/[projectId]/analytics/mentions`) is project-scoped through `social` module ports: `BrandMentionSource` defines how public mentions are collected; `MentionSentimentAnalyzer` returns `POSITIVE` / `NEGATIVE` / `NEUTRAL` / `MIXED` with confidence and a short summary. `makeMentionService` wires the source, repository, and analyzer into idempotent `syncMentions` and `listMentionsWithSentiment` queries. `syncMentionsAction` and `listMentionsWithSentimentAction` are tenant-guarded and revalidate the page after sync. Adapters: `HeuristicMentionSentimentAnalyzer` (keyword-based, always available), `OpenRouterMentionSentimentAnalyzer` (calls `aiProvider.complete` and falls back to the heuristic), and `MockBrandMentionSource` (deterministic dev data). A live Meta Mentions API adapter can be added later behind the same `BrandMentionSource` port.
 12. Dashboard export: the `/analytics/dashboard` page includes a `DashboardExportToolbar` with client-side PNG image and PDF download using `html-to-image` and `jspdf`. A tenant-guarded `createDashboardShareAction` persists a `DashboardSchema` snapshot as a `DashboardShare` row and returns a public `/share/d/[token]` link; the share page renders the stored dashboard read-only. Expired or missing tokens return 404.
 
+### 8.7 Attribution and Checkout Links
+1. Owner creates an `AttributionLink` at `/stores/[projectId]/analytics/attribution` with an optional coupon, UTM source/medium/campaign, and a generated short code.
+2. `createAttributionLink` builds a checkout URL from the project’s e-commerce base URL, applies the platform-specific `couponUrlPattern` (e.g. Shopify `/discount/{{code}}`) or falls back to `?discount=CODE`, then appends UTM parameters.
+3. Shared links drive checkouts; Shopify `orders/create|paid` webhooks and order sync publish an `OrderSynced` domain event for each fetched order.
+4. `attribution` module subscribes to `OrderSynced`, matches the order’s `couponCode` to a `Coupon` and `AttributionLink`, increments the link’s conversion/revenue totals and the coupon’s `usageCount`/`revenueAttributed`, then forwards the order to `MetaService.sendPurchaseEvent`.
+5. `MetaService.sendPurchaseEvent` sends a server-side Purchase event to the Meta Conversions API with SHA-256 hashed `em` and `external_id`, a stable `event_id` built from `purchase_${externalId}_${createdAt.getTime()}`, and `custom_data` containing currency, value, and line-item IDs. No-ops when `metaPixelId` or the access token is missing.
+6. The `/stores/[projectId]/analytics/attribution` dashboard lists every link with short code, full URL, UTM source, clicks, conversions, and revenue; groupings by source/medium/campaign and coupon can be derived from the link rows.
+
 ---
 
 ## 9. External Integrations
@@ -212,6 +222,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 ### Meta
 - Webhook verification: HMAC-SHA256, constant-time compare, payload dedup via the shared `ProcessedWebhookEvent` ledger.
 - Graph API: page/account media, per-media insights, audience demographics, outbound messaging.
+- Conversions API: server-side `Purchase` events via `MetaService.sendPurchaseEvent`, with SHA-256 hashed user data, stable `event_id` dedup, and `custom_data` for currency/value/line items. Requires a `metaPixelId` on the project.
 - Permissions: `instagram_business_basic`, `instagram_business_manage_insights`, `pages_read_engagement`; optional `ads_management`/`ads_read` for ad insights.
 - Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure.
 

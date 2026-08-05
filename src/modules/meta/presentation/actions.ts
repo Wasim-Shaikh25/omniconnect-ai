@@ -41,6 +41,7 @@ export async function connectMetaAction(
     projectId: formData.get("projectId"),
     channel: formData.get("channel") || undefined,
     accountId: formData.get("accountId"),
+    pixelId: formData.get("pixelId") || undefined,
     accessToken: formData.get("accessToken") || undefined,
   });
   if (!parsed.success) {

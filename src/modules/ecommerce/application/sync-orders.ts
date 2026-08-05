@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { logger } from "@/shared/observability";
 import { Result, ok, err } from "@/shared/kernel";
+import type { EventBus } from "@/shared/events";
 import { ConnectorError, StoreNotConnectedError } from "../domain/errors";
+import { OrderSynced } from "../domain/events";
 import type { ConnectorFactory, OrderRepository } from "./ports";
 
 export const syncOrdersSchema = z.object({
@@ -11,6 +13,7 @@ export const syncOrdersSchema = z.object({
 export function makeSyncOrders(deps: {
   connectors: ConnectorFactory;
   orders: OrderRepository;
+  eventBus?: EventBus;
 }) {
   return async function syncOrders(
     projectId: string,
@@ -30,6 +33,16 @@ export function makeSyncOrders(deps: {
     }
 
     const { upserted, removed } = await deps.orders.sync(projectId, fetched);
+
+    if (deps.eventBus) {
+      await Promise.all(
+        fetched.map((order) =>
+          deps.eventBus?.publish(
+            new OrderSynced(projectId, { projectId, order }),
+          ),
+        ),
+      );
+    }
 
     logger.info("ecommerce.ordersSynced", {
       projectId,

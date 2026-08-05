@@ -1,12 +1,13 @@
 # TASK-0084: Attribution & Checkout Links
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0084-attribution-checkout-links.md`
 - **Tracker:** `docs/trackers/TRACKER-0084-attribution-checkout-links.md`
 - **Module(s):** attribution (new), meta, coupons, ecommerce
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Dual attribution: coupon + UTM, checkout links, CAPI.
 - **Last updated:** 2026-08-05
+- **Branch:** `devin/attribution-checkout-links-1785956172`
 
 ## 1. Summary
 
@@ -38,16 +39,16 @@ Revenue per campaign, per coupon, per channel. Conversion funnel visualization.
 
 ## 4. Subtasks
 
-- [ ] T-006: Create AttributionLink Prisma model
-- [ ] T-035: Attribution link generator
-- [ ] T-036: Order webhook → attribution matching
-- [ ] T-026: Meta Conversions API
+- [x] T-006: Create AttributionLink Prisma model
+- [x] T-035: Attribution link generator
+- [x] T-036: Order webhook → attribution matching
+- [x] T-026: Meta Conversions API
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0084 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0084 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

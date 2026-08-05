@@ -34,6 +34,7 @@ export {
   CommerceInsightGenerated,
   CommerceRecommendationGenerated,
   AbandonedCartDetected,
+  OrderSynced,
 } from "./domain/events";
 export type {
   StoreConnectedPayload,
@@ -46,6 +47,7 @@ export type {
   CommerceInsightGeneratedPayload,
   CommerceRecommendationGeneratedPayload,
   AbandonedCartDetectedPayload,
+  OrderSyncedPayload,
 } from "./domain/events";
 
 // Application — schemas + record types

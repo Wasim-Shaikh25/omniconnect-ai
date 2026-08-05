@@ -7,6 +7,7 @@ export const connectMetaSchema = z.object({
   projectId: z.string().min(1),
   channel: z.enum(META_CHANNELS),
   accountId: z.string().min(1).max(255),
+  pixelId: z.string().max(255).optional().nullable(),
   accessToken: z.string().max(512).optional(),
 });
 
@@ -28,6 +29,7 @@ export function makeConnectMeta(deps: {
       projectId: input.projectId,
       channel: input.channel,
       accountId: input.accountId,
+      pixelId: input.pixelId,
       accessToken: input.accessToken ?? null,
     });
     logger.info("meta.connected", {

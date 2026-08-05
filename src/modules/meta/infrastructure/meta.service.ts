@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import { env } from "@/shared/config";
 import { logger, withSpan } from "@/shared/observability";
+import type { ConnectorOrder } from "@/modules/ecommerce";
 import type {
   MetaIntegrationRepository,
   MetaMediaItem,
@@ -428,6 +430,66 @@ export class GraphApiMetaService implements MetaService {
   async getAccountId(projectId: string): Promise<string | null> {
     const integration = await this.integrations.findByStore(projectId);
     return integration?.accountId ?? null;
+  }
+
+  async getPixelId(projectId: string): Promise<string | null> {
+    const integration = await this.integrations.findByStore(projectId);
+    return integration?.pixelId ?? null;
+  }
+
+  async sendPurchaseEvent(projectId: string, order: ConnectorOrder): Promise<void> {
+    const token = await this.integrations.findAccessToken(projectId);
+    const pixelId = await this.getPixelId(projectId);
+    if (!token || !pixelId) {
+      logger.info("meta.sendPurchaseEvent.skipped", { projectId, reason: "not-configured" });
+      return;
+    }
+
+    const hash = (value: string | null | undefined): string | null =>
+      value ? crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex") : null;
+
+    const eventId = `purchase_${order.externalId}_${order.createdAt.getTime()}`;
+    const em = hash(order.customerEmail);
+    const externalId = hash(order.customerRef);
+    const payload = {
+      data: [
+        {
+          event_name: "Purchase",
+          event_time: Math.floor(order.createdAt.getTime() / 1000),
+          event_id: eventId,
+          action_source: "website",
+          user_data: {
+            ...(em ? { em: [em] } : {}),
+            ...(externalId ? { external_id: [externalId] } : {}),
+          },
+          custom_data: {
+            currency: order.currency ?? "USD",
+            value: order.total,
+            content_ids: order.lineItems?.map((i) => i.externalId) ?? [],
+            content_type: "product",
+          },
+        },
+      ],
+      access_token: token,
+    };
+
+    try {
+      const res = await fetch(`${GRAPH_API_BASE}/${pixelId}/events`, withTimeout({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      }));
+      if (!res.ok) {
+        logger.warn("meta.sendPurchaseEvent.failed", { projectId, status: res.status });
+      } else {
+        logger.info("meta.sendPurchaseEvent.ok", { projectId, eventId });
+      }
+    } catch (error) {
+      logger.error("meta.sendPurchaseEvent.error", {
+        projectId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
 }
 
