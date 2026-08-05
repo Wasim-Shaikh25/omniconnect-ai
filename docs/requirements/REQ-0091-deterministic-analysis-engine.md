@@ -106,8 +106,10 @@ answered with an invented figure.
       `bestTimeToPost` sourced from deterministic engines, not invented by the LLM (see §9).
 - [x] `compare_period`, `anomaly_check`, and `correlation` deterministic operations implemented and
       unit-tested.
-- [ ] Remaining operation library (`cohort_trend`, `attribution_breakdown`, `profile_quality`)
-      to be implemented in later batches.
+- [x] `cohort_trend` and `attribution_breakdown` deterministic operations implemented and
+      unit-tested.
+- [ ] Remaining operation (`profile_quality`) plus `EmbeddingProvider` / `OperationResolver` / golden
+      tests to be implemented in later batches.
 - [ ] Golden tests: each operation produces identical output for a fixed fixture dataset.
 - [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 

@@ -1,4 +1,4 @@
-# TASK-0091: Deterministic Analysis Engine (Batch 3 — compare_period, anomaly_check, correlation)
+# TASK-0091: Deterministic Analysis Engine (Batch 4 — cohort_trend, attribution_breakdown)
 
 - **Status:** Completed
 - **Owner:** wasim
@@ -10,7 +10,7 @@
 
 ## 1. Summary
 
-Third batch of REQ-0091. Implement the next set of pure deterministic operations for the `AnalysisEngine`: `compare_period` (period-over-period deltas), `anomaly_check` (z-score / IQR flagging), and `correlation` (pairwise metric correlation). These are fully deterministic, unit-testable, and do not require any AI or external dependencies. MiniLM `EmbeddingProvider` / `OperationResolver` are deferred to Batch 4.
+Fourth batch of REQ-0091. Implement pure deterministic operations for `cohort_trend` (linear trend + slope over a time series) and `attribution_breakdown` (revenue/orders attributed by media, coupon, or channel). These are fully deterministic, unit-testable, and do not require AI or external dependencies. `profile_quality`, `EmbeddingProvider`, `OperationResolver`, and golden tests are deferred to Batch 5.
 
 ## 2. References
 
@@ -18,49 +18,43 @@ Third batch of REQ-0091. Implement the next set of pure deterministic operations
 - Requirement: `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - Tracker: `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
 - Related files:
-  - `src/modules/analytics/application/operations/compare-period.ts`
-  - `src/modules/analytics/application/operations/anomaly-check.ts`
-  - `src/modules/analytics/application/operations/correlation.ts`
+  - `src/modules/analytics/application/operations/cohort-trend.ts`
+  - `src/modules/analytics/application/operations/attribution-breakdown.ts`
   - `src/modules/analytics/application/analysis-engine.ts`
   - `src/modules/analytics/pure.ts`
   - `src/modules/analytics/index.ts`
 
 ## 3. Implementation Plan
 
-### Step 1 — compare_period
-Create `compare-period.ts` that accepts a dataset with `current: number[]` and `previous: number[]` (or keyed records) and computes delta, percent change, mean of each period, and trend direction. Returns `AnalysisResult` with values like `currentMean`, `previousMean`, `delta`, `percentChange`, `direction` encoded as a number.
+### Step 1 — cohort_trend
+Create `cohort-trend.ts` that accepts a dataset of `{ label: string; value: number }[]` (ordered by time) and computes a simple linear regression (least squares) to produce `slope`, `intercept`, `r2`, `predictedNext`, and `trendDirection` (`-1`/`0`/`1`). Use `series` to return the original values and the fitted trend line.
 
-### Step 2 — anomaly_check
-Create `anomaly-check.ts` that accepts a series of values and flags anomalies using z-score and IQR methods. Returns `AnalysisResult` with `anomalyCount`, `mean`, `stdDev`, `maxZScore`, `threshold`, and `anomalyIndices`/`anomalyValues` in `series`.
+### Step 2 — attribution_breakdown
+Create `attribution-breakdown.ts` that accepts a dataset of attribution records (`{ key: string; revenue: number; orders: number }[]`) and computes totals, averages, and the top contributor by revenue. Grouping key (media/coupon/channel) is implicit in the dataset; the operation is pure aggregation.
 
-### Step 3 — correlation
-Create `correlation.ts` that accepts two numeric arrays and returns Pearson correlation coefficient, p-value approximation, and sample count. This will reuse the existing `correlation` helper in `stats.ts`.
+### Step 3 — Register and export
+Export `cohortTrend` and `attributionBreakdown` from `src/modules/analytics/pure.ts` and `src/modules/analytics/index.ts`.
 
-### Step 4 — Register operations
-Export the new operations from `src/modules/analytics/pure.ts` and `src/modules/analytics/index.ts`. Update `analysis-engine.ts` if needed (the partial `AnalysisEngineOperations` already allows registering subsets).
-
-### Step 5 — Tests
-Add unit tests for each operation covering positive, negative, empty, and edge cases.
+### Step 4 — Tests
+Add unit tests for both operations covering positive/negative/flat trends, empty data, and attribution ranking.
 
 ## 4. Subtasks
 
-- [x] T-080c: Implement `compare_period` deterministic operation.
-- [x] T-080d: Implement `anomaly_check` deterministic operation.
-- [x] T-080e: Implement `correlation` deterministic operation.
+- [x] T-080f: Implement `cohort_trend` deterministic operation.
+- [x] T-080g: Implement `attribution_breakdown` deterministic operation.
 - [x] Export new operations from `analytics/pure.ts` and `analytics/index.ts`.
-- [x] Add unit tests for all three operations.
+- [x] Add unit tests for both operations.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
 
 ## 5. Acceptance Criteria
 
-- `compare_period` computes absolute and percentage deltas between two numeric datasets deterministically.
-- `anomaly_check` flags outliers using z-score and/or IQR methods and reports confidence/dataQuality based on sample size.
-- `correlation` returns Pearson r, sample count, and significance approximation for two numeric series.
-- All three operations are pure (no I/O, no LLM, no framework imports) and unit-tested.
+- `cohort_trend` computes slope, intercept, R², next predicted value, and trend direction from an ordered time series.
+- `attribution_breakdown` totals revenue and orders per key, computes averages, and identifies the top revenue contributor.
+- Both operations are pure (no I/O, no LLM, no framework imports) and unit-tested.
 - All quality gates pass.
 
 ## 6. Notes / Blockers
 
-- `cohort_trend`, `attribution_breakdown`, `profile_quality`, `EmbeddingProvider` (T-081), and `OperationResolver` (T-082) are deferred to Batch 4.
+- `profile_quality`, `EmbeddingProvider` (T-081), `OperationResolver` (T-082), `queryAnalytics`/`generateDashboard` wiring (T-084), Profile Inspector (T-087), and golden tests (T-088) are deferred to Batch 5.

@@ -38,6 +38,8 @@ export { topNPosts } from "./application/operations/top-n";
 export { comparePeriod } from "./application/operations/compare-period";
 export { anomalyCheck } from "./application/operations/anomaly-check";
 export { correlation as correlationOp } from "./application/operations/correlation";
+export { cohortTrend } from "./application/operations/cohort-trend";
+export { attributionBreakdown } from "./application/operations/attribution-breakdown";
 export { engagementScore, percentileRank, zScore, topN, correlation, mean, stdDev, median } from "./application/operations/stats";
 export type { ScoredPost } from "./application/operations/stats";
 export type { GetMarketingPerformance } from "./application/marketing-analytics";
