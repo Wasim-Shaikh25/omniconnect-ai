@@ -52,7 +52,12 @@ Schema generates (`prisma generate` passes). `tsc --noEmit` still has many code-
 - [x] T-019: Delete organizations module
 - [x] T-037: Delete hardcoded connectors
 - [ ] T-038: Delete overscoped features
+  - [ ] T-038a: Delete obsolete verification/maintenance scripts (`scripts/verify-*.ts`, `backfill-past-due.ts`, `check-http-status.ts`, `reencrypt-credentials.ts`)
+  - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants
 - [ ] T-018: Update all queries (org/store → user/workspace/project)
+  - [ ] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId` in record types / queries
+  - [ ] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration` with new model names
+  - [ ] T-018c: Update session/auth context and `next-auth.d.ts` to carry `userId`/`projectId`
 
 ## 5. Acceptance Criteria
 
