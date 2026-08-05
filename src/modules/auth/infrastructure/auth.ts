@@ -248,6 +248,10 @@ export const authConfig: NextAuthConfig = {
     },
     authorized({ request, auth }) {
       const { pathname } = request.nextUrl;
+      // Admin routes require a super admin session; otherwise redirect to the dashboard.
+      if (pathname.startsWith("/admin") && auth?.user && !auth.user.isSuperAdmin) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
       const decision = authorizeRoute(pathname, !!auth?.user);
       if (decision.kind === "allow") return true;
       return NextResponse.redirect(new URL(decision.location, request.url));

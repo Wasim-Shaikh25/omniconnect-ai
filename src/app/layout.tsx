@@ -3,8 +3,6 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppShell } from "@/components/app-shell";
-import { getCurrentUser } from "@/modules/auth";
-import { getUnreadNotificationCountAction } from "@/modules/notifications";
 import { ensureSubscribers } from "@/server/subscribers";
 
 ensureSubscribers();
@@ -31,8 +29,6 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const nonce = (await headers()).get("x-nonce") ?? "";
-  const user = await getCurrentUser();
-  const unreadCount = user ? await getUnreadNotificationCountAction() : 0;
 
   return (
     <html lang="en" nonce={nonce} suppressHydrationWarning>
@@ -44,9 +40,7 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <Providers nonce={nonce}>
-          <AppShell user={user} unreadCount={unreadCount}>
-            {children}
-          </AppShell>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

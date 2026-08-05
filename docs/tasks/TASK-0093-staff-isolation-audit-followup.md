@@ -52,6 +52,12 @@ In `src/modules/users/infrastructure/user.repository.ts`:
 
 Run `npm audit fix` and verify the CI `npm audit --audit-level=moderate` step passes. If `postcss` requires a breaking `next` upgrade, evaluate whether to apply it or escalate.
 
+### Step 5 — M7 smoke-test restoration
+
+- Add an admin-route guard in `src/modules/auth/infrastructure/auth.ts` `authorized` callback so authenticated non-super-admins hitting `/admin*` are redirected to `/dashboard` before the page streams.
+- Recreate `scripts/check-http-status.ts` using the V2 `createTenant` fixture and `actingAs` session helper; assert `404` for cross-tenant/missing stores and `307` for non-admin `/admin/organizations`.
+- Stop loading `getCurrentUser` in `src/app/layout.tsx` and instead wrap the app with `next-auth/react` `SessionProvider`; have `AppShell` call `useSession` and fetch `unreadCount` client-side. This ensures 404/error-page HTML does not serialize the authenticated user's PII/store names.
+
 ## 4. Subtasks
 
 - [x] `/stores` page passes `user` to `getOrganizationOverview` and hides Add store for staff.
@@ -60,6 +66,9 @@ Run `npm audit fix` and verify the CI `npm audit --audit-level=moderate` step pa
 - [x] `npm audit --audit-level=moderate` passes.
 - [x] Lint + typecheck + tests + build pass.
 - [x] `CHANGELOG.md` updated.
+- [x] Admin route middleware guard redirects non-super-admins to `/dashboard` (`307`).
+- [x] `scripts/check-http-status.ts` restored and adapted to V2 schema; smoke test passes.
+- [x] `RootLayout` no longer loads `getCurrentUser` server-side; `AppShell` fetches session client-side to prevent user data leaking into 404 bodies.
 - [ ] PR opened and green.
 
 ## 5. Acceptance Criteria

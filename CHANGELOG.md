@@ -23,8 +23,10 @@ All notable changes to **OmniConnect AI** are documented here.
 
 - `REQ-0076`–`0090` **Platform V2 Rewrite** — Staff isolation and audit follow-up on
   `devin/fix-staff-isolation-audit-1785912057`: `/stores` and `/dashboard` scope staff by
-  `projectId`, `/settings` lists all workspace members, and `npm audit` findings fixed. Lint,
-  typecheck, tests, and build pass.
+  `projectId`, `/settings` lists all workspace members, `npm audit` findings fixed, M7 smoke-test
+  `scripts/check-http-status.ts` restored and green, and `RootLayout`/`AppShell` now fetch the
+  session client-side so 404 bodies do not leak user/tenant data. Lint, typecheck, tests, build,
+  audit, and smoke test pass locally.
 
 ### ⏭️ Next
 

@@ -23,6 +23,9 @@ Track the post-merge follow-up for PR #127: staff tenant-isolation gaps and `npm
 - [x] `/dashboard` redirects staff without `projectId` and staff with `projectId` correctly.
 - [x] `UserRepository.listByOrganization` / `countByOrganization` list workspace members.
 - [x] `npm audit` findings addressed.
+- [x] Admin route middleware guard redirects non-super-admins to `/dashboard`.
+- [x] `scripts/check-http-status.ts` restored and adapted to V2 schema.
+- [x] `RootLayout` / `AppShell` switched to client-side session to stop leaking user data in 404 bodies.
 
 ### Verification
 - [x] `npm run lint` passes.
