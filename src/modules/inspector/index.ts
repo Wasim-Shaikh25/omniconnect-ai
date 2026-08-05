@@ -19,3 +19,5 @@ export { makeOpenRouterProfileNarrator } from "./infrastructure/open-router-prof
 export type { OpenRouterProfileNarratorConfig } from "./infrastructure/open-router-profile-narrator";
 export { makeMetaProfileFetcher, NoMetaAccessError, ProfileNotFoundError, MetaApiError } from "./infrastructure/meta-profile-fetcher";
 export type { MetaProfileFetcherConfig } from "./infrastructure/meta-profile-fetcher";
+export { inspectProfileAction } from "./presentation/actions";
+export type { InspectProfileState } from "./presentation/actions";

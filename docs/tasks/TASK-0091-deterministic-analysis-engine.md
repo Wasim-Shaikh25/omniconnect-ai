@@ -79,3 +79,55 @@ Ninth and final batch of REQ-0091. Added a `TransformersEmbeddingProvider` adapt
 
 - The local MiniLM model files are not bundled; `modelPath` must point to an existing local ONNX / transformers model directory (e.g. downloaded with `git lfs` or cached offline).
 - The next step for the inspector is wiring these adapters into server actions / route handlers and building the UI.
+
+---
+
+# TASK-0091-B: Profile Inspector server action + UI
+
+- **Status:** In Progress
+- **Owner:** wasim
+- **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
+- **Related:** `docs/requirements/REQ-0085-profile-reel-inspector.md`
+- **Tracker:** `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
+- **Module(s):** inspector, meta, ai, app (analytics)
+
+## 1. Summary
+
+Wire the `inspector` adapters (`makeMetaProfileFetcher`, `makeOpenRouterProfileNarrator`) into a server action and expose a Profile Inspector UI at `/stores/[projectId]/analytics/audience/inspector`.
+
+## 2. Implementation Plan
+
+### Step 1 — Expose Meta tokens through public server contract
+- Add `getAccessToken(projectId)` and `getAccountId(projectId)` to `MetaService` (`src/modules/meta/application/ports.ts`).
+- Implement them in `GraphApiMetaService` (`src/modules/meta/infrastructure/meta.service.ts`) using the existing `MetaIntegrationRepository`.
+- Export the wired `aiProvider` from `src/modules/ai/server.ts` (server-only barrel) so the narrator adapter can consume it.
+
+### Step 2 — Correct `makeMetaProfileFetcher` endpoint
+- Add `getAccountId` to `MetaProfileFetcherConfig`.
+- Use `${baseUrl}/${version}/${accountId}?fields=business_discovery.username(${username}){...}` so the Graph API call is made from the connected IG Business Account context.
+
+### Step 3 — Server action
+- Create `src/modules/inspector/presentation/actions.ts` with `inspectProfileAction(prev, formData)`.
+- Validate input with Zod; assert store membership via `organizationQueries.getOrganizationOverview`.
+- Compose `makeMetaProfileFetcher` + `inspectProfile` + `makeOpenRouterProfileNarrator` (fallback to deterministic narrator when `OPENROUTER_API_KEY` is not set).
+- Export `InspectProfileState` and the action from `src/modules/inspector/index.ts`.
+
+### Step 4 — UI page and form
+- Create client form `src/app/stores/[projectId]/analytics/audience/inspector/ProfileInspectorForm.tsx` using `useActionState`.
+- Display deterministic result: username, followers, engagement rate, growth trend, audience-quality score/confidence, narration, top content, and demographics with confidence labels.
+- Create `src/app/stores/[projectId]/analytics/audience/inspector/page.tsx` (server page) with store access check.
+- Add a "Profile inspector" link from `src/app/stores/[projectId]/analytics/audience/page.tsx`.
+
+## 3. Acceptance Criteria
+- `/stores/[projectId]/analytics/audience/inspector` loads for authenticated workspace users.
+- Submitting a username returns the deterministic `ProfileInspectionResult`.
+- When Meta is not connected, the action returns a friendly error instead of a 500.
+- `MetaService` token/account methods do not log secrets.
+- Quality gates pass.
+
+## 4. References
+- `src/modules/inspector/application/inspect-profile.ts`
+- `src/modules/inspector/infrastructure/meta-profile-fetcher.ts`
+- `src/modules/inspector/infrastructure/open-router-profile-narrator.ts`
+- `src/modules/meta/server.ts`
+- `src/modules/ai/server.ts`

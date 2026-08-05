@@ -23,6 +23,7 @@ export interface MetaProfileFetcherConfig {
   baseUrl?: string;
   apiVersion?: string;
   getAccessToken(projectId: string): Promise<string | null>;
+  getAccountId(projectId: string): Promise<string | null>;
   fetch?: typeof fetch;
   mediaLimit?: number;
   commentLimit?: number;
@@ -104,12 +105,13 @@ export function makeMetaProfileFetcher(config: MetaProfileFetcherConfig): Profil
   return {
     async fetch(username: string, projectId: string): Promise<PublicProfile | null> {
       const accessToken = await config.getAccessToken(projectId);
-      if (!accessToken) {
+      const accountId = await config.getAccountId(projectId);
+      if (!accessToken || !accountId) {
         throw new NoMetaAccessError();
       }
 
       const fields = `business_discovery.username(${username}){followers_count,media_count,biography,media.limit(${mediaLimit}){id,media_type,caption,timestamp,like_count,comments_count,permalink}}`;
-      const url = `${baseUrl}/${version}/me?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(accessToken)}`;
+      const url = `${baseUrl}/${version}/${accountId}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(accessToken)}`;
 
       const body = (await fetchJson(url, fetchImpl)) as BusinessDiscoveryResponse;
       const discovery = body.business_discovery;

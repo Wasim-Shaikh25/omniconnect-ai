@@ -29,9 +29,14 @@ export default async function AudienceAnalyticsPage({
           <h1 className="text-2xl font-semibold">Audience</h1>
           <p className="text-sm text-muted-foreground">Who is growing, buying, and talking for {store.name}.</p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${projectId}/analytics/audience/inspector`}>Profile inspector</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
+          </Button>
+        </div>
       </header>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

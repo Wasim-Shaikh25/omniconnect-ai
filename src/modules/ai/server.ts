@@ -6,6 +6,7 @@
  */
 export {
   aiQueries,
+  aiProvider,
   generateCaptions,
   generateTrends,
   generatePostIdeas,

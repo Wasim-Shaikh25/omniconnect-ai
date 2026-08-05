@@ -114,10 +114,23 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
-- [ ] PR created and merged.
+- [x] PR #140 created and merged.
+- [x] PR #141 (acceptance-criteria cleanup) created and merged.
+
+### Batch 10 — Inspector server action + Profile Inspector UI (In Progress)
+- [x] T-089a: Add `getAccessToken` / `getAccountId` to `MetaService` public contract.
+- [x] T-089b: Update `makeMetaProfileFetcher` to use the connected IG account id endpoint.
+- [x] T-089c: Create `inspectProfileAction` server action that wires `makeMetaProfileFetcher` + `makeOpenRouterProfileNarrator`.
+- [x] T-089d: Build `/stores/[projectId]/analytics/audience/inspector` page with username form and results dashboard.
+- [x] T-089e: Add link from Audience page to Profile Inspector.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
+- [x] PR created and merged.
 
 ### Next
-- [ ] Wire inspector adapters into server actions / route handlers.
+- [ ] Plan-limit gating for AI-powered profile narration.
+- [ ] REQ-0070 Packages E–G.
 - [ ] Build Profile Inspector UI and plan-limit gating.
 
 ## 3. Acceptance Criteria
