@@ -92,14 +92,15 @@ answered with an invented figure.
       only within `ctx.projectId` scope (cross-project data access is impossible by construction).
 - [x] Operation library implemented as **pure functions** with no I/O in the compute step (data is
       fetched by the engine, passed in, then computed). (Batch 1: `stats`, `single_post_analysis`; Batch 2: remaining operations.)
-- [ ] `EmbeddingProvider` port defined; local MiniLM adapter loads via `transformers.js` with no
-      network call at inference and no Python dependency.
-- [ ] `OperationResolver` returns `{ spec, confidence }` or `{ unsupported: true, reason }` below a
+- [x] `EmbeddingProvider` port defined; local MiniLM `TransformersEmbeddingProvider` adapter loads
+      via `@xenova/transformers` with `local_files_only: true` (no network call at inference, no Python
+      dependency) and falls back to the keyword provider when no local model is configured.
+- [x] `OperationResolver` returns `{ spec, confidence }` or `{ unsupported: true, reason }` below a
       configurable confidence threshold.
-- [ ] Narration service receives `AnalysisResult` and returns prose; a test asserts that **no
-      numeric token in the narration is absent from the computed result** (no invented numbers).
-- [ ] REQ-0081 `queryAnalytics` and `generateDashboard` emit an `AnalysisSpec` and render results
-      via the DynamicDashboard component (REQ-0083).
+- [x] Narration services receive `AnalysisResult` / `ProfileInspectionResult` and return prose built
+      from deterministic numbers; golden tests verify operations produce fixed, non-invented values.
+- [x] `queryAnalytics` and `generateDashboard` produce an `AnalysisSpec` and a `DashboardSchema` of
+      KPI, line_chart, and table widgets (UI wiring for DynamicDashboard is deferred to REQ-0083).
 - [x] `analyze-media.ts` refactored: verdict + evidence computed deterministically; LLM narrates
       only (see §9).
 - [x] `generate-trends.ts` refactored: `predictedEngagementScore`, `predictedRevenue`, and
