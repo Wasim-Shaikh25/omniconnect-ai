@@ -49,9 +49,6 @@ export {
   createOrganization,
   createStore,
   updateStore,
-  archiveStore,
-  restoreStore,
-  deleteStore,
   tenantGuard,
   billingService,
   createSaaSCoupon,
@@ -81,12 +78,7 @@ export {
   createSaaSCouponAction,
   listSaaSCouponsAction,
 } from "./presentation/saas-coupon.actions";
-export {
-  updateStoreAction,
-  archiveStoreAction,
-  restoreStoreAction,
-  deleteStoreAction,
-} from "./presentation/store-lifecycle.actions";
+export { updateStoreAction } from "./presentation/store-lifecycle.actions";
 export type { StoreLifecycleActionState } from "./presentation/store-lifecycle.actions";
 export type { CouponActionState } from "./presentation/saas-coupon.actions";
 export {

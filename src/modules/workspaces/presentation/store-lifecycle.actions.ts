@@ -1,14 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireRole } from "@/modules/auth";
 import { auditCommands } from "@/modules/users";
 import {
   updateStore,
-  archiveStore,
-  restoreStore,
-  deleteStore,
   tenantGuard,
 } from "../infrastructure/container";
 import { updateStoreSchema } from "../application/store-lifecycle";
@@ -68,106 +64,3 @@ export async function updateStoreAction(
   return { ok: true };
 }
 
-export async function archiveStoreAction(
-  _prev: StoreLifecycleActionState,
-  formData: FormData,
-): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("USER");
-  const projectId = formData.get("projectId");
-  if (typeof projectId !== "string" || !projectId) {
-    return { error: "Store ID is required" };
-  }
-
-  try {
-    await tenantGuard.assertStoreAccess(admin, projectId);
-  } catch {
-    return { error: "Store not found in your organization." };
-  }
-
-  const result = await archiveStore(projectId);
-  if (!result.ok) return { error: result.error.message };
-
-  if (admin.userId) {
-    await auditCommands.create({
-      userId: admin.userId,
-      actorId: admin.id,
-      actorEmail: admin.email ?? undefined,
-      action: "STORE_ARCHIVED",
-      resource: "Store",
-      resourceId: projectId,
-    });
-  }
-
-  revalidatePath("/stores");
-  revalidatePath(`/stores/${projectId}`);
-  return { ok: true };
-}
-
-export async function restoreStoreAction(
-  _prev: StoreLifecycleActionState,
-  formData: FormData,
-): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("USER");
-  const projectId = formData.get("projectId");
-  if (typeof projectId !== "string" || !projectId) {
-    return { error: "Store ID is required" };
-  }
-
-  try {
-    await tenantGuard.assertStoreAccess(admin, projectId);
-  } catch {
-    return { error: "Store not found in your organization." };
-  }
-
-  const result = await restoreStore(projectId);
-  if (!result.ok) return { error: result.error.message };
-
-  if (admin.userId) {
-    await auditCommands.create({
-      userId: admin.userId,
-      actorId: admin.id,
-      actorEmail: admin.email ?? undefined,
-      action: "STORE_RESTORED",
-      resource: "Store",
-      resourceId: projectId,
-    });
-  }
-
-  revalidatePath("/stores");
-  revalidatePath(`/stores/${projectId}`);
-  return { ok: true };
-}
-
-export async function deleteStoreAction(
-  _prev: StoreLifecycleActionState,
-  formData: FormData,
-): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("USER");
-  const projectId = formData.get("projectId");
-  if (typeof projectId !== "string" || !projectId) {
-    return { error: "Store ID is required" };
-  }
-
-  try {
-    await tenantGuard.assertStoreAccess(admin, projectId);
-  } catch {
-    return { error: "Store not found in your organization." };
-  }
-
-  const result = await deleteStore(projectId);
-  if (!result.ok) return { error: result.error.message };
-
-  if (admin.userId) {
-    await auditCommands.create({
-      userId: admin.userId,
-      actorId: admin.id,
-      actorEmail: admin.email ?? undefined,
-      action: "STORE_DELETED",
-      resource: "Store",
-      resourceId: projectId,
-    });
-  }
-
-  revalidatePath("/stores");
-  redirect("/stores");
-}

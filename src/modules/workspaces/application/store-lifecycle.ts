@@ -44,33 +44,3 @@ export function makeUpdateStore(deps: StoreLifecycleDependencies) {
     return ok(store);
   };
 }
-
-export function makeArchiveStore(deps: StoreLifecycleDependencies) {
-  return async function archiveStore(
-    projectId: string,
-  ): Promise<Result<import("./ports").StoreRecord, Error>> {
-    const store = await deps.stores.archive(projectId);
-    if (!store) return err(new Error("Store not found"));
-    return ok(store);
-  };
-}
-
-export function makeRestoreStore(deps: StoreLifecycleDependencies) {
-  return async function restoreStore(
-    projectId: string,
-  ): Promise<Result<import("./ports").StoreRecord, Error>> {
-    const store = await deps.stores.restore(projectId);
-    if (!store) return err(new Error("Store not found"));
-    return ok(store);
-  };
-}
-
-export function makeDeleteStore(deps: StoreLifecycleDependencies) {
-  return async function deleteStore(
-    projectId: string,
-  ): Promise<Result<import("./ports").StoreRecord, Error>> {
-    const store = await deps.stores.delete(projectId);
-    if (!store) return err(new Error("Store not found"));
-    return ok(store);
-  };
-}

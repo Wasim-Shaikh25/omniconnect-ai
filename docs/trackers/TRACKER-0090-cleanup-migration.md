@@ -22,15 +22,15 @@ Progress tracker for REQ-0090: Cleanup & Migration.
 - [x] T-007: Prisma `generate` passes; migration `20260805064000_v2_phase1_workspace_project` generated and applied to a local PostgreSQL instance.
 - [x] T-019: Delete organizations module entirely.
 - [x] T-037: Delete hardcoded connectors.
-- [~] T-038: Delete overscoped features (product CRUD, standalone views, obsolete scripts).
+- [x] T-038: Delete overscoped features (product CRUD, standalone views, obsolete scripts).
   - [x] T-038a: Delete obsolete verification/maintenance scripts.
-  - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants (moved to follow-up).
+  - [x] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants.
 - [x] T-018: Update all queries (org/store → user/workspace/project).
   - [x] T-018a: Mechanical rename completed for `organizationId→userId` / `storeId→projectId`.
   - [x] T-018b: Prisma model accessors replaced; schema fields aligned (`User.projectId`, `Customer.tags` added) to fix repository mappings.
   - [x] T-018c: Session/auth context carries `userId`/`projectId` from JWT.
 - [x] T-039: `src/modules/workspaces` module created from old `organizations` module; internal Prisma refs and public contract adapted to the V2 schema.
-- [~] Replace OpenAI with OpenRouter (client + model router done; remaining wiring tracked in T-017).
+- [x] Replace OpenAI with OpenRouter (`OpenRouterProvider` wired into the AI module composition root).
 
 ### Verification
 - [x] `npm run lint` passes.
@@ -42,9 +42,8 @@ Progress tracker for REQ-0090: Cleanup & Migration.
 
 ## 3. Acceptance Criteria
 
-- [x] Phase 1 acceptance criteria met (schema migration, query migration, OpenRouter foundation, quality gates).
+- [x] Phase 1 acceptance criteria met (schema migration, query migration, OpenRouter wiring, quality gates).
 - [x] All verification steps above pass.
-- [ ] T-038b and T-017 remaining for a follow-up session.
 
 ## 4. Notes / Blockers
 

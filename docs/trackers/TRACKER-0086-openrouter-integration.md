@@ -1,6 +1,6 @@
 # TRACKER-0086: OpenRouter Integration
 
-- **Status:** In Progress
+- **Status:** In Progress (T-062 remaining)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0086-openrouter-integration.md`
 - **Task:** `docs/tasks/TASK-0086-openrouter-integration.md`
@@ -19,7 +19,7 @@ Progress tracker for REQ-0086: OpenRouter Integration.
 
 ### Implementation
 - [x] T-016: OpenRouter client (API wrapper, streaming, tools).
-- [~] T-017: Replace all OpenAI imports with OpenRouter (mechanical wiring done; remaining direct imports tracked in TASK-0090 T-017).
+- [x] T-017: Replace all OpenAI imports with OpenRouter (`OpenRouterProvider` replaces `OpenAIProvider`; `env.ts` production list updated).
 - [x] T-061: Per-feature model routing + plan validation.
 - [~] T-062: AI usage tracking (tokens/model/feature/day) (partial via `TokenUsage` model; full wiring in Phase 2).
 
@@ -33,10 +33,10 @@ Progress tracker for REQ-0086: OpenRouter Integration.
 
 ## 3. Acceptance Criteria
 
-- [x] Phase 1 OpenRouter client, model router, and per-feature model validation meet acceptance criteria and quality gates.
+- [x] Phase 1 OpenRouter client, model router, provider wiring, and per-feature model validation meet acceptance criteria and quality gates.
 - [x] All verification steps above pass.
-- [ ] T-017 and T-062 remaining for follow-up.
+- [ ] T-062 (persist `TokenUsage` rows and dashboard) remains for a follow-up.
 
 ## 4. Notes / Blockers
 
-- Status: Phase 1 OpenRouter foundation complete; remaining wiring tracked in TASK-0090/T-017.
+- Status: T-016/T-017/T-061 complete; T-062 (AI usage tracking) is the remaining follow-up.

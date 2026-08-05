@@ -22,19 +22,25 @@ All notable changes to **OmniConnect AI** are documented here.
   `/stores` and `/dashboard` scope staff by `projectId`, `/settings` lists all workspace members,
   `npm audit` findings fixed, M7 smoke-test `scripts/check-http-status.ts` restored, and
   `RootLayout`/`AppShell` fetch the session client-side so 404 bodies do not leak user/tenant data.
+- `REQ-0077` **Invite member email resilience** merged via PR #129: `/settings` invite form no longer
+  500s when the configured email provider cannot deliver. `sendInviteEmail` catches and logs
+  provider errors, and `inviteOrganizationMemberAction` returns a friendly form error.
+- `REQ-0090` **Phase 1 cleanup batch** on `devin/batch-2-cleanup-openrouter-1785936345`:
+  deleted product CRUD actions/use-cases (`updateProduct`, `deleteProduct`, `bulkDeleteProductsAction`)
+  and unused store lifecycle actions (`archiveStore`, `restoreStore`, `deleteStore`); replaced
+  `OpenAIProvider` with `OpenRouterProvider` backed by `OpenRouterClient`; updated `env.ts`
+  production-required secrets from `OPENAI_API_KEY` to `OPENROUTER_API_KEY`; help page now refers to
+  OpenRouter model ids.
 
 ### 🚧 In Progress
 
-- `REQ-0077` **Invite member email resilience** on `devin/fix-invite-email-robustness-1785932057`:
-  `/settings` invite form no longer 500s when the configured email provider (e.g. unreachable SMTP)
-  cannot deliver the message. `sendInviteEmail` catches and logs provider errors, and
-  `inviteOrganizationMemberAction` returns a friendly form error for any unexpected failure. Lint,
-  typecheck, tests, integration tests, build, and the M7 smoke test pass.
+- `REQ-0086` **OpenRouter Integration** — T-062 AI usage tracking (persist `TokenUsage` rows,
+  super-admin dashboard) remains before REQ-0086 is complete.
 
 ### ⏭️ Next
 
-- Continue Phase 1 leftovers (T-038 delete overscoped features, T-017 finish OpenRouter wiring,
-  T-013 collapse RBAC remnants) after the owner-mapping hotfix merges.
+- `REQ-0086` **T-062 AI usage tracking** — persist `TokenUsage` rows per model/feature/day and add
+  a super-admin usage dashboard.
 - `REQ-0091` **Deterministic Analysis Engine** — AnalysisSpec vocabulary + safe engine so numbers
   are computed by code and the LLM narrates only; modifies `analyze-media.ts` and
   `generate-trends.ts` to stop the LLM inventing metrics.
@@ -42,11 +48,6 @@ All notable changes to **OmniConnect AI** are documented here.
   and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
-
-### ⏭️ Next
-
-- Phase 1 implementation: start with `T-001` (delete old models) and `T-016` (OpenRouter client)
-  in parallel — they have no dependencies. Then `T-002`–`T-020` for foundation.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

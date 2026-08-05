@@ -71,20 +71,6 @@ export interface ProductRepository {
     products: ConnectorProduct[],
   ): Promise<{ upserted: number; removed: number }>;
 
-  update(
-    id: string,
-    input: {
-      title?: string;
-      description?: string | null;
-      price?: number | null;
-      currency?: string | null;
-      inventory?: number | null;
-      imageUrl?: string | null;
-    },
-  ): Promise<ProductRecord | null>;
-
-  findById(id: string): Promise<ProductRecord | null>;
-
   findByExternalId(projectId: string, externalId: string): Promise<ProductRecord | null>;
 
   listByStore(
@@ -98,17 +84,10 @@ export interface ProductRepository {
   ): Promise<ProductRecord[]>;
   countByStore(projectId: string, search?: string): Promise<number>;
 
-  delete(id: string): Promise<ProductRecord | null>;
-
   /**
-   * Soft-delete products for a store whose `externalId` is not in the provided set.
-   * Typically called after a sync to remove products no longer returned by the provider.
+   * Soft-delete a product by id. Used by Shopify webhooks; not exposed as an end-user action.
    */
-  markDeletedNotInBatch(
-    projectId: string,
-    externalIds: string[],
-    deletedAt: Date,
-  ): Promise<number>;
+  delete(id: string): Promise<ProductRecord | null>;
 }
 
 export interface CouponRecord {

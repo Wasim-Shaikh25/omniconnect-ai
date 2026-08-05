@@ -78,7 +78,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | Database | PostgreSQL (Prisma ORM) |
 | Cache / Queue / Pub-Sub | Redis (BullMQ, ioredis) |
 | Auth | NextAuth.js v5 (Auth.js), JWT sessions, bcrypt, token version invalidation |
-| AI | OpenRouter gateway via `AIProvider` interface (OpenAI adapter retained; model routing centralized) |
+| AI | OpenRouter gateway via `AIProvider` interface (`OpenRouterProvider`; model routing centralized) |
 | Payments | Stripe subscriptions + promotion codes |
 | E-commerce | Shopify Admin REST API (live) + webhooks for catalog/orders/abandoned cart + Mock connector (dev) |
 | Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified) |
@@ -96,7 +96,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits, team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons. |
 | `meta` | Meta Graph API client, inbound webhook verification, outbound messaging. |
-| `ai` | `AIProvider` interface, OpenAI adapter, content/trend/competitor generation, `AIUsageGuard`. |
+| `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`. |
 | `coupons` | First-follower and DM campaign coupon orchestration. |
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume. |
@@ -205,17 +205,21 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Permissions: `instagram_business_basic`, `instagram_business_manage_insights`, `pages_read_engagement`; optional `ads_management`/`ads_read` for ad insights.
 - Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure.
 
-### OpenAI
-- `OpenAIProvider` implements `AIProvider` and `ContentModerator`.
-- All AI calls route through `AIUsageGuard` which enforces plan quota.
-- Model allowlist, user-message delimiters, output PII redaction.
+### OpenRouter
+- `OpenRouterProvider` implements `AIProvider` and `ContentModerator`.
+- All AI chat completions route through `OpenRouterClient` (`POST /api/v1/chat/completions`)
+  with normalized model aliases, user-message delimiters, output PII redaction, and a
+  configurable default model.
+- `OpenRouterClient` supports non-streaming chat, streaming, tool calling, and response formats.
+- Per-feature model routing (`selectModel` / `getModelForFeature`) chooses a model from the
+  AI configuration override, environment variable, or `AI_DEFAULT_MODEL`.
 - Prompt-injection defences: `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` /
   `wrapExternalData` live in `src/modules/ai/domain/prompt-safety.ts` (pure, no IO). The reply
   system prompt instructs the model that `<<<USER_MESSAGE>>>` and every `<<<DATA>>>` region are
   untrusted data, not instructions, and that discounts must come from `<<<COUPONS>>>`.
-- Output moderation: `OpenAIProvider.moderate` calls the OpenAI moderations endpoint; `generateReply`
-  withholds flagged output, logs the categories (not the text), writes an audit log without PII,
-  and escalates to a human before any Meta send.
+- Output moderation: `OpenRouterProvider.moderate` uses a JSON classification prompt via
+  OpenRouter; `generateReply` withholds flagged output, logs the categories (not the text),
+  writes an audit log without PII, and escalates to a human before any Meta send.
 
 ### Stripe
 - Checkout sessions for plan upgrades; webhook fulfillment updates `Organization` subscription.
@@ -258,8 +262,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Login throttling (`REQ-0068` M10) applies a per-IP (5/15min) and per-account (20/hour) fixed-window counter in `authorize`; `RateLimitError` surfaces "Too many attempts. Try again in N minutes." without revealing account existence.
 - AI prompt safety (`REQ-0068` M15) uses `<<<USER_MESSAGE>>>` and `<<<DATA>>>` delimiter regions,
   escapes `&`/`<`/`>` in user-editable fragments and external data, adds a system instruction that
-  only delimited user input is untrusted, and runs generated replies through OpenAI moderation
-  before sending to Meta; flagged content is withheld and escalated.
+  only delimited user input is untrusted, and runs generated replies through an OpenRouter-hosted
+  JSON classification prompt before sending to Meta; flagged content is withheld and escalated.
 - Identity self-service (`REQ-0070`) Package A/B/C is complete. Registration now requires a
   matching confirm password, enforces an optional E.164 phone number, verifies Cloudflare Turnstile
   on the server (no-op when unconfigured), and is enumeration-safe (existing emails receive a

@@ -33,8 +33,11 @@ Removed `src/modules/organizations/` entirely.
 ### Step 3 — Delete Hardcoded Connectors ✅
 Removed shopify, woocommerce, bigcommerce connector files.
 
-### Step 4 — Delete Overscoped Features
-Remove product CRUD actions, standalone orders view, store lifecycle management.
+### Step 4 — Delete Overscoped Features ✅
+Removed product CRUD actions (`updateProduct`, `deleteProduct`, `bulkDeleteProductsAction`), the
+standalone orders view (already removed), and unused store lifecycle management
+(`archiveStore`, `restoreStore`, `deleteStore` use-cases/actions and repository methods).
+Kept read-only product catalog, product sync, store creation, and store update.
 
 ### Step 5 — Update All Queries ✅
 Mechanical and manual org/store → user/workspace/project migration applied across all modules.
@@ -42,9 +45,11 @@ Mechanical and manual org/store → user/workspace/project migration applied acr
 references updated, unique constraint names aligned, and session/auth context now carries
 `userId`/`projectId` from the JWT.
 
-### Step 6 — Replace OpenAI 🚧
-OpenRouter client and model router are in place; remaining direct OpenAI imports will be
-rewired in T-017 (Phase 1 follow-up).
+### Step 6 — Replace OpenAI ✅
+Replaced `OpenAIProvider` with `OpenRouterProvider` in the AI module composition root.
+`OpenRouterProvider` uses `OpenRouterClient` for chat completions and routes content
+moderation through an OpenRouter JSON classification prompt. `env.ts` production-required
+secrets now list `OPENROUTER_API_KEY` instead of `OPENAI_API_KEY`.
 
 ### Step 7 — Fix Compilation ✅
 `npx prisma generate` passes, `npx tsc --noEmit` passes, `npm run lint`, `npm run test`, and
@@ -57,9 +62,9 @@ match the V2 schema.
 - [x] T-007: Run Prisma migration — generated and applied to a local PostgreSQL instance (`20260805064000_v2_phase1_workspace_project`)
 - [x] T-019: Delete organizations module
 - [x] T-037: Delete hardcoded connectors
-- [~] T-038: Delete overscoped features
+- [x] T-038: Delete overscoped features
   - [x] T-038a: Delete obsolete verification/maintenance scripts (`scripts/verify-*.ts`, `backfill-past-due.ts`, `check-http-status.ts`, `reencrypt-credentials.ts`)
-  - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants
+  - [x] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants
 - [x] T-018: Update all queries (org/store → user/workspace/project)
   - [x] T-018a: Rename `organizationId` → `userId` and `storeId` → `projectId` in record types / queries
   - [x] T-018b: Replace `prisma.organization`/`prisma.store`/`prisma.integration` with new model names
@@ -69,9 +74,8 @@ match the V2 schema.
 
 ## 5. Acceptance Criteria
 
-- [x] Phase 1 schema migration, query migration, and OpenRouter foundation pass lint, typecheck, tests, and build.
+- [x] Phase 1 schema migration, query migration, and OpenRouter wiring pass lint, typecheck, tests, and build.
 - [x] `CHANGELOG.md` updated.
-- [ ] Remaining Phase 1 cleanup (T-038b, T-017) to be completed in a follow-up session.
 
 ## 6. Notes / Blockers
 

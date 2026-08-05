@@ -3,8 +3,6 @@ import { makeSyncProducts } from "../application/sync-products";
 import { makeSyncOrders } from "../application/sync-orders";
 import { makeApplyShopifyWebhook } from "../application/apply-shopify-webhook";
 import { makeGenerateCoupon } from "../application/generate-coupon";
-import { makeUpdateProduct } from "../application/update-product";
-import { makeDeleteProduct } from "../application/delete-product";
 import { makeUpdateCoupon } from "../application/update-coupon";
 import { makeDeleteCoupon } from "../application/delete-coupon";
 import { makeEcommerceQueries } from "../application/queries";
@@ -44,8 +42,6 @@ export const applyShopifyWebhook = makeApplyShopifyWebhook({
   auditLog: auditCommands,
 });
 export const generateCoupon = makeGenerateCoupon({ connectors, coupons });
-export const updateProduct = makeUpdateProduct({ products });
-export const deleteProduct = makeDeleteProduct({ products });
 export const updateCoupon = makeUpdateCoupon({ coupons });
 export const deleteCoupon = makeDeleteCoupon({ coupons });
 export const ecommerceQueries = makeEcommerceQueries({

@@ -145,36 +145,4 @@ export class PrismaStoreRepository implements StoreRepository {
     return toRecord(store);
   }
 
-  async archive(id: string): Promise<StoreRecord | null> {
-    const existing = await this.findById(id);
-    if (!existing) return null;
-
-    const store = await prisma.project.update({
-      where: { id },
-      data: { archivedAt: new Date() },
-    });
-    return toRecord(store);
-  }
-
-  async restore(id: string): Promise<StoreRecord | null> {
-    const existing = await this.findById(id);
-    if (!existing) return null;
-
-    const store = await prisma.project.update({
-      where: { id },
-      data: { archivedAt: null },
-    });
-    return toRecord(store);
-  }
-
-  async delete(id: string): Promise<StoreRecord | null> {
-    const existing = await this.findById(id);
-    if (!existing) return null;
-
-    const store = await prisma.project.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
-    return toRecord(store);
-  }
 }
