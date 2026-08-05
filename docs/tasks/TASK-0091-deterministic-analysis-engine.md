@@ -131,3 +131,35 @@ Wire the `inspector` adapters (`makeMetaProfileFetcher`, `makeOpenRouterProfileN
 - `src/modules/inspector/infrastructure/open-router-profile-narrator.ts`
 - `src/modules/meta/server.ts`
 - `src/modules/ai/server.ts`
+
+---
+
+# TASK-0091-C: Plan-limit gating for AI-powered profile narration
+
+- **Status:** In Progress
+- **Owner:** wasim
+- **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
+- **Related:** `docs/requirements/REQ-0085-profile-reel-inspector.md`
+- **Tracker:** `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md`
+- **Module(s):** inspector, ai
+
+## 1. Summary
+
+Gate the AI-powered `OpenRouterProfileNarrator` behind the existing `AIUsageGuard` so each profile-inspection narration consumes one AI-reply entitlement and the deterministic narrator is used when no OpenRouter key is configured or the quota is exhausted.
+
+## 2. Implementation Plan
+
+### Step 1 — Wire `AIUsageGuard` into `inspectProfileAction`
+- Import `aiUsageGuard` from the `ai` public barrel.
+- `makeNarrator(userId)` becomes async and calls `aiUsageGuard.assertAvailable(userId)` before constructing the OpenRouter narrator.
+- Return a friendly error when the assertion throws.
+
+### Step 2 — Keep deterministic fallback
+- If `env.OPENROUTER_API_KEY` is unset, still return `deterministicProfileNarrator`.
+- If the guard throws, surface the quota message to the UI.
+
+## 3. Acceptance Criteria
+- `inspectProfileAction` consumes one `monthlyAiReplies` credit when OpenRouter narration is used.
+- Missing/insufficient plan returns a user-visible error, not a 500.
+- No AI usage is recorded when the deterministic narrator is used.
+- Quality gates pass.

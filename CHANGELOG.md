@@ -15,6 +15,10 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0091` **Deterministic Analysis Engine (Batch 11)** on `devin/cleanup-task-status-1785946663`:
+  wired `AIUsageGuard` into `inspectProfileAction` so AI-powered profile narration consumes one
+  `monthlyAiReplies` entitlement; deterministic narrator remains the fallback when `OPENROUTER_API_KEY`
+  is unset or the quota is exhausted.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 1)** on `devin/deterministic-analysis-1785938129`:
   closed `AnalysisSpec` vocabulary, `validateSpec`, `UnsupportedOperationError`, and a safe
   `AnalysisEngine` dispatcher (`makeAnalysisEngine`); pure deterministic `single_post_analysis`
@@ -92,14 +96,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine** — plan-limit gating for AI-powered profile narration.
+- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
+  and settings dead links.
 
 ### ⏭️ Next
 
-- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
-  and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
+- `REQ-0083` Business Intelligence — read-only `DynamicDashboard` component and `/analytics/dashboard`
+  page wired to `queryAnalytics` / `generateDashboard`.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

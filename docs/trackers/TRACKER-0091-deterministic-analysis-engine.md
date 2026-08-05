@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Review (Batch 9)
+- **Status:** In Progress (Batch 11)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -128,10 +128,17 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `docs/specs/current-state.md` updated.
 - [x] PR created and merged.
 
+### Batch 11 — Plan-limit gating for AI-powered profile narration (In Progress)
+- [x] `inspectProfileAction` imports `aiUsageGuard` from the `ai` public barrel.
+- [x] `makeNarrator(userId)` is async and asserts AI-reply quota before using OpenRouter.
+- [x] Deterministic narrator remains the fallback when `OPENROUTER_API_KEY` is unset.
+- [x] Quota errors are returned to the UI instead of throwing an unhandled 500.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/tasks/TASK-0091-deterministic-analysis-engine.md` updated.
+
 ### Next
-- [ ] Plan-limit gating for AI-powered profile narration.
-- [ ] REQ-0070 Packages E–G.
-- [ ] Build Profile Inspector UI and plan-limit gating.
+- [ ] REQ-0070 Packages E–G (phone verification, session management, super-admin reconciliation, dead settings links).
 
 ## 3. Acceptance Criteria
 

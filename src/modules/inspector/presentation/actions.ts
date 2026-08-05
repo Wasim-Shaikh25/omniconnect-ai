@@ -13,6 +13,7 @@ import {
   deterministicProfileNarrator,
   type ProfileInspectionResult,
 } from "@/modules/inspector";
+import { aiUsageGuard } from "@/modules/ai";
 
 export interface InspectProfileState {
   error?: string;
@@ -31,10 +32,11 @@ async function assertStoreInOrg(userId: string | null, projectId: string): Promi
   return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
-function makeNarrator() {
+async function makeNarrator(userId: string) {
   if (!env.OPENROUTER_API_KEY) {
     return deterministicProfileNarrator;
   }
+  await aiUsageGuard.assertAvailable(userId);
   const model = env.AI_DEFAULT_MODEL ?? "openai/gpt-4o-mini";
   return makeOpenRouterProfileNarrator({ aiProvider, model });
 }
@@ -44,6 +46,9 @@ export async function inspectProfileAction(
   formData: FormData,
 ): Promise<InspectProfileState> {
   const user = await requireRole("USER");
+  if (!user.userId) {
+    return { error: "User is not associated with an organization." };
+  }
   const parsed = inspectProfileSchema.safeParse({
     projectId: formData.get("projectId"),
     username: formData.get("username"),
@@ -68,7 +73,7 @@ export async function inspectProfileAction(
     });
 
     const result = await inspectProfile(
-      { fetcher, narrator: makeNarrator() },
+      { fetcher, narrator: await makeNarrator(user.userId) },
       parsed.data.username,
       parsed.data.projectId,
     );
