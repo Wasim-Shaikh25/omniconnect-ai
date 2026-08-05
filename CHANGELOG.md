@@ -15,6 +15,10 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
+- `REQ-0076`–`0090` **Platform V2 Rewrite** — Two-pillar architecture (Meta Growth Engine +
+  Business Intelligence), Workspace/Project hierarchy, dynamic e-commerce adapters, unified
+  messaging, OpenRouter AI gateway, AI assistant with tools, and full cleanup of old
+  Organization/Store/Staff models. See requirements docs for full details.
 - `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
   and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
@@ -22,7 +26,33 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ⏭️ Next
 
-- `REQ-0071`–`0075`.
+- Phase 1 implementation: start with `T-001` (delete old models) and `T-016` (OpenRouter client)
+  in parallel — they have no dependencies. Then `T-002`–`T-020` for foundation.
+
+### 📋 Platform V2 Requirements (REQ-0076 through REQ-0090)
+
+15 new requirements covering the complete product rewrite:
+
+| REQ | Title | Phase | Status |
+|-----|-------|-------|--------|
+| REQ-0076 | Auth & Registration Overhaul | 1 | Draft |
+| REQ-0077 | Workspace & Project System | 1 | Draft |
+| REQ-0078 | Dynamic E-Commerce Adapters | 2 | Draft |
+| REQ-0079 | Meta Growth Engine | 2 | Draft |
+| REQ-0080 | Unified Messaging Board | 2 | Draft |
+| REQ-0081 | AI Assistant & Tools | 3 | Draft |
+| REQ-0082 | AI Setup & Configuration | 3 | Draft |
+| REQ-0083 | Business Intelligence | 3 | Draft |
+| REQ-0084 | Attribution & Checkout Links | 2 | Draft |
+| REQ-0085 | Profile & Reel Inspector | 3 | Draft |
+| REQ-0086 | OpenRouter Integration | 1 | Draft |
+| REQ-0087 | Super Admin Panel | 4 | Draft |
+| REQ-0088 | Billing & Plans | 4 | Draft |
+| REQ-0089 | Intelligence Layer | 4 | Draft |
+| REQ-0090 | Cleanup & Migration | 1 | Draft |
+
+77 implementation tasks (T-001 through T-077) across 4 phases. Full task list in each
+TASK file. Trackers in `docs/trackers/TRACKER-0076` through `TRACKER-0090`.
 
 ### ✅ Done
 

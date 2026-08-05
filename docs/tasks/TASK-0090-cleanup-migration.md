@@ -1,0 +1,65 @@
+# TASK-0090: Cleanup & Migration
+
+- **Status:** Todo
+- **Owner:** wasim
+- **Requirement:** `docs/requirements/REQ-0090-cleanup-migration.md`
+- **Tracker:** `docs/trackers/TRACKER-0090-cleanup-migration.md`
+- **Module(s):** all (cross-cutting)
+- **Changelog entry:** `CHANGELOG.md [Unreleased]` — Delete old Org/Store/Staff models, hardcoded connectors, overscoped features.
+- **Last updated:** 2026-08-05
+
+## 1. Summary
+
+Full cleanup: delete Organization/Store/Staff/StoreIntegration models, delete organizations module, delete hardcoded connectors, delete product CRUD, delete standalone orders/coupon views, replace OpenAI with OpenRouter, update all queries to user/workspace/project scope.
+
+## 2. References
+
+- Requirement: `docs/requirements/REQ-0090-cleanup-migration.md`
+- Related files:
+  - `prisma/schema.prisma`
+  - `src/modules/organizations/` (delete entire)
+  - `src/modules/ecommerce/infrastructure/shopify.connector.ts` (delete)
+  - `src/modules/ecommerce/infrastructure/woocommerce.connector.ts` (delete)
+  - `src/modules/ecommerce/infrastructure/bigcommerce.connector.ts` (delete)
+
+## 3. Implementation Plan
+
+### Step 1 — Delete Prisma Models
+Remove Organization, Store, Staff, StoreIntegration and all relations from schema.
+
+### Step 2 — Delete Organizations Module
+Remove `src/modules/organizations/` entirely.
+
+### Step 3 — Delete Hardcoded Connectors
+Remove shopify, woocommerce, bigcommerce connector files.
+
+### Step 4 — Delete Overscoped Features
+Remove product CRUD actions, standalone orders view, store lifecycle management.
+
+### Step 5 — Update All Queries
+Change every org/store scoped query to user/workspace/project scope. Touch every module.
+
+### Step 6 — Replace OpenAI
+Remove direct OpenAI imports, wire everything through OpenRouter client.
+
+### Step 7 — Fix Compilation
+Ensure `tsc --noEmit` passes. Update or remove broken tests.
+
+## 4. Subtasks
+
+- [ ] T-001: Delete Organization/Store/Staff/StoreIntegration models
+- [ ] T-019: Delete organizations module
+- [ ] T-037: Delete hardcoded connectors
+- [ ] T-038: Delete overscoped features
+- [ ] T-018: Update all queries (org/store → user/workspace/project)
+
+## 5. Acceptance Criteria
+
+- [ ] Matches REQ-0090 acceptance criteria.
+- [ ] Lint + typecheck + tests pass.
+- [ ] `CHANGELOG.md` updated.
+
+## 6. Notes / Blockers
+
+- Phase 1 — must be done first. Blocks everything else.
+- Large scope — touches every module.
