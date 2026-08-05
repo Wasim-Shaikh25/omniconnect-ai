@@ -23,11 +23,63 @@ export interface AIMessage {
   content: string;
 }
 
+export interface AICompletionConfig {
+  model: string;
+  fallback?: string;
+  operation?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface AIProvider {
-  complete(
-    messages: AIMessage[],
-    config: { model: string; fallback?: string },
-  ): Promise<string>;
+  complete(messages: AIMessage[], config: AICompletionConfig): Promise<string>;
+}
+
+export interface TokenUsageRecord {
+  id: string;
+  userId: string;
+  projectId: string | null;
+  feature: string;
+  model: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  cost: number | null;
+  createdAt: Date;
+  user?: { email: string; name: string | null } | null;
+  project?: { name: string } | null;
+}
+
+export interface TokenUsageRepository {
+  create(input: {
+    userId: string;
+    projectId?: string | null;
+    feature: string;
+    model: string;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    cost?: number | null;
+  }): Promise<TokenUsageRecord>;
+
+  listRecent(limit?: number): Promise<TokenUsageRecord[]>;
+
+  summarizeByDay(options?: {
+    start?: Date;
+    end?: Date;
+    userId?: string;
+    projectId?: string;
+  }): Promise<
+    Array<{
+      date: string;
+      feature: string;
+      model: string;
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+      requests: number;
+      cost: number | null;
+    }>
+  >;
 }
 
 export interface AssistantService {

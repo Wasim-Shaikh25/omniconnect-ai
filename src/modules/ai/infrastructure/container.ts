@@ -31,21 +31,33 @@ import { env } from "@/shared/config";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { PrismaBrainMemoryRepository } from "./brain-memory.repository";
 import { OpenRouterProvider } from "./openrouter.provider";
+import { PrismaTokenUsageRepository } from "./token-usage.repository";
 import { makeWorkspaceContext } from "./workspace-context";
 
 const aiConfigurationRepository = new PrismaAIConfigurationRepository();
 const brainMemoryRepository = new PrismaBrainMemoryRepository();
-const aiProvider = new OpenRouterProvider({
-  apiKey: env.OPENROUTER_API_KEY ?? "",
-  siteUrl: env.OPENROUTER_SITE_URL,
-  siteName: env.OPENROUTER_SITE_NAME,
-  defaultModel: env.AI_DEFAULT_MODEL,
-});
+const tokenUsageRepository = new PrismaTokenUsageRepository();
+const aiProvider = new OpenRouterProvider(
+  {
+    apiKey: env.OPENROUTER_API_KEY ?? "",
+    siteUrl: env.OPENROUTER_SITE_URL,
+    siteName: env.OPENROUTER_SITE_NAME,
+    defaultModel: env.AI_DEFAULT_MODEL,
+  },
+  {
+    tokenUsageRepository,
+    resolveUserId: organizationQueries.getOrganizationIdByStoreId,
+  },
+);
 
 /** Composition root for the ai module. */
 export const aiQueries = {
   getConfiguration: (projectId: string) =>
     aiConfigurationRepository.getByStore(projectId),
+  listTokenUsage: (limit?: number) => tokenUsageRepository.listRecent(limit),
+  summarizeTokenUsageByDay: (options?: Parameters<
+    typeof tokenUsageRepository.summarizeByDay
+  >[0]) => tokenUsageRepository.summarizeByDay(options),
 };
 
 export const generateWelcome = makeGenerateWelcome({

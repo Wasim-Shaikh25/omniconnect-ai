@@ -35,19 +35,22 @@ API wrapper: `chat()` with streaming, tool calling, response_format. Usage track
 Find and replace all `openai-provider` imports with `openrouter-client`. Update all AI callers.
 
 ### Step 5 — Usage Tracking
-Record per request: model, promptTokens, completionTokens, cost. Dashboard for super admin.
+- Add `TokenUsageRepository` port and `PrismaTokenUsageRepository` implementation (`src/modules/ai/infrastructure/token-usage.repository.ts`).
+- Extend `AICompletionConfig` with `operation` and `metadata` (`src/modules/ai/application/ports.ts`).
+- Wire `OpenRouterProvider` to call `tokenUsageRepository.create()` after each `client.chat()` response with `userId`, `projectId`, `feature`, model, tokens, and cost.
+- Pass `operation`/`metadata` from every `AIContext` caller in `src/modules/ai/application/*`.
+- Add super-admin usage dashboard at `src/app/admin/ai-usage/page.tsx` and link it in `src/app/admin/layout.tsx`.
 
 ## 4. Subtasks
 
 - [x] T-016: OpenRouter client (API wrapper, streaming, tools)
 - [x] T-017: Replace all OpenAI imports with OpenRouter
 - [x] T-061: Per-feature model routing + plan validation
-- [ ] T-062: AI usage tracking (tokens/model/feature/day)
+- [x] T-062: AI usage tracking (tokens/model/feature/day)
 
 ## 5. Acceptance Criteria
 
-- [x] T-016/T-017/T-061 acceptance criteria met.
-- [ ] T-062: AI usage tracking (persist `TokenUsage` rows, dashboard) remains for a follow-up.
+- [x] T-016/T-017/T-061/T-062 acceptance criteria met.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 

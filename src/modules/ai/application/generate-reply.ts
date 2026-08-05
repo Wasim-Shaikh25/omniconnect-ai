@@ -321,7 +321,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
       )
       .withModel(selectModel("reply", config.model).model)
       .withOperation("reply")
-      .withMetadata({ conversationId, projectId, externalUserId, hasProfile: Boolean(profile) })
+      .withMetadata({ conversationId, userId, projectId, externalUserId, hasProfile: Boolean(profile) })
       .build();
     const aiMessages = context.messages;
 
@@ -353,6 +353,8 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
     try {
       rawReply = await deps.aiProvider.complete(aiMessages, {
         model: context.model,
+        operation: context.operation,
+        metadata: context.metadata,
       });
     } catch (error) {
       logger.error("ai.generateReply.providerFailed", {

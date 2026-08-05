@@ -1,5 +1,5 @@
 import { logger, redactValue, withSpan } from "@/shared/observability";
-import type { AIMessage, AIProvider } from "../application/ports";
+import type { AIMessage, AICompletionConfig, AIProvider, TokenUsageRepository } from "../application/ports";
 import { wrapUserMessage, escapePromptDelimiters } from "../domain/prompt-safety";
 import type { ContentModerator, ModerationResult } from "../application/content-moderation";
 import { OpenRouterClient, type OpenRouterConfig, type OpenRouterMessage } from "./openrouter-client";
@@ -100,16 +100,23 @@ function parseModerationResponse(raw: string): ModerationResult {
 export class OpenRouterProvider implements AIProvider, ContentModerator {
   private readonly client: OpenRouterClient;
   private readonly config: OpenRouterConfig;
+  private readonly tokenUsageRepository?: TokenUsageRepository;
+  private readonly resolveUserId?: (projectId: string) => Promise<string | null>;
 
-  constructor(config: OpenRouterConfig) {
+  constructor(
+    config: OpenRouterConfig,
+    options?: {
+      tokenUsageRepository?: TokenUsageRepository;
+      resolveUserId?: (projectId: string) => Promise<string | null>;
+    },
+  ) {
     this.config = config;
+    this.tokenUsageRepository = options?.tokenUsageRepository;
+    this.resolveUserId = options?.resolveUserId;
     this.client = new OpenRouterClient(config);
   }
 
-  async complete(
-    messages: AIMessage[],
-    config: { model: string; fallback?: string },
-  ): Promise<string> {
+  async complete(messages: AIMessage[], config: AICompletionConfig): Promise<string> {
     return withSpan(
       "ai.openrouter.complete",
       async (span) => {
@@ -132,6 +139,8 @@ export class OpenRouterProvider implements AIProvider, ContentModerator {
             max_tokens: 500,
           });
 
+          await this.recordUsage(response, model, config);
+
           const content = response.choices[0]?.message.content?.trim();
           if (!content) {
             return config.fallback ?? DEFAULT_REPLY;
@@ -146,6 +155,46 @@ export class OpenRouterProvider implements AIProvider, ContentModerator {
       },
       { attributes: { model: config.model } },
     );
+  }
+
+  private async recordUsage(
+    response: { usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; total_cost?: number }; model?: string },
+    requestedModel: string,
+    config: AICompletionConfig,
+  ): Promise<void> {
+    if (!this.tokenUsageRepository || !response.usage || !config.operation) {
+      return;
+    }
+
+    let userId = typeof config.metadata?.userId === "string" ? config.metadata.userId : undefined;
+    const projectId = typeof config.metadata?.projectId === "string" ? config.metadata.projectId : undefined;
+
+    if (!userId && projectId && this.resolveUserId) {
+      userId = (await this.resolveUserId(projectId)) ?? undefined;
+    }
+
+    if (!userId) {
+      logger.info("ai.openrouter.usageSkipped", { reason: "no-user-id", operation: config.operation });
+      return;
+    }
+
+    try {
+      await this.tokenUsageRepository.create({
+        userId,
+        projectId: projectId ?? null,
+        feature: config.operation,
+        model: response.model ?? requestedModel,
+        promptTokens: response.usage.prompt_tokens,
+        completionTokens: response.usage.completion_tokens,
+        totalTokens: response.usage.total_tokens,
+        cost: response.usage.total_cost ?? null,
+      });
+    } catch (error) {
+      logger.warn("ai.openrouter.recordUsageFailed", {
+        error: error instanceof Error ? error.message : "unknown",
+        operation: config.operation,
+      });
+    }
   }
 
   async moderate(text: string): Promise<ModerationResult> {

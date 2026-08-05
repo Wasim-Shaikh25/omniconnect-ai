@@ -213,6 +213,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `OpenRouterClient` supports non-streaming chat, streaming, tool calling, and response formats.
 - Per-feature model routing (`selectModel` / `getModelForFeature`) chooses a model from the
   AI configuration override, environment variable, or `AI_DEFAULT_MODEL`.
+- Token usage is persisted per completion (user, project, feature, model, prompt/completion/total
+  tokens, cost) via `PrismaTokenUsageRepository` wired into `OpenRouterProvider`; super admins can
+  view the last 30 days of usage and recent calls on `/admin/ai-usage`.
 - Prompt-injection defences: `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` /
   `wrapExternalData` live in `src/modules/ai/domain/prompt-safety.ts` (pure, no IO). The reply
   system prompt instructs the model that `<<<USER_MESSAGE>>>` and every `<<<DATA>>>` region are

@@ -246,6 +246,8 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
     const answer = await deps.aiProvider.complete(context.messages, {
       model: context.model,
       fallback: context.fallback,
+      operation: context.operation,
+      metadata: context.metadata,
     });
 
     let memoryId: string | undefined;

@@ -65,6 +65,8 @@ Generate a new ${type} idea.`;
     const raw = await deps.aiProvider.complete(context.messages, {
       model: context.model,
       fallback: context.fallback,
+      operation: context.operation,
+      metadata: context.metadata,
     });
 
     try {
