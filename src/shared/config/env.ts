@@ -33,8 +33,6 @@ const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
-  OPENAI_API_KEY: z.string().optional(),
-
   // OpenRouter unified AI gateway
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_SITE_URL: z.string().url().optional(),
@@ -136,7 +134,7 @@ const PRODUCTION_REQUIRED: Array<keyof Env> = [
   "META_APP_ID",
   "META_APP_SECRET",
   "META_WEBHOOK_VERIFY_TOKEN",
-  "OPENAI_API_KEY",
+  "OPENROUTER_API_KEY",
   "STRIPE_SECRET_KEY",
   "STRIPE_PUBLISHABLE_KEY",
   "STRIPE_WEBHOOK_SECRET",

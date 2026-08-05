@@ -95,7 +95,7 @@ const helpSections: HelpSection[] = [
           page:
         </p>
         <ul className="ml-5 list-disc space-y-1">
-          <li><strong>Model:</strong> OpenAI model name (e.g. gpt-4o-mini).</li>
+          <li><strong>Model:</strong> OpenRouter model id (e.g. openai/gpt-4o-mini).</li>
           <li><strong>Tone:</strong> desired personality for replies.</li>
           <li><strong>System prompt:</strong> global instructions for the assistant.</li>
           <li><strong>Strategy fields:</strong> welcome, coupon, sales, and escalation rules.</li>
@@ -247,7 +247,7 @@ const helpSections: HelpSection[] = [
       <>
         <p className="mb-2">
           Third-party access tokens are encrypted at rest using AES-256-GCM. The AI assistant respects
-          customer consent settings before sending profile data to OpenAI.
+          customer consent settings before sending profile data to the configured OpenRouter model.
         </p>
         <p>
           Webhook endpoints verify Meta HMAC signatures and Stripe webhook signatures. All mutating

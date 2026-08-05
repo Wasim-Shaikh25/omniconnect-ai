@@ -27,14 +27,20 @@ import { makeAnalyzeMedia } from "../application/analyze-media";
 import { makeCreateContentIdea } from "../application/create-content-idea";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
 import { makeBrainMemoryService } from "../application/brain-memory";
+import { env } from "@/shared/config";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { PrismaBrainMemoryRepository } from "./brain-memory.repository";
-import { OpenAIProvider } from "./openai.provider";
+import { OpenRouterProvider } from "./openrouter.provider";
 import { makeWorkspaceContext } from "./workspace-context";
 
 const aiConfigurationRepository = new PrismaAIConfigurationRepository();
 const brainMemoryRepository = new PrismaBrainMemoryRepository();
-const aiProvider = new OpenAIProvider();
+const aiProvider = new OpenRouterProvider({
+  apiKey: env.OPENROUTER_API_KEY ?? "",
+  siteUrl: env.OPENROUTER_SITE_URL,
+  siteName: env.OPENROUTER_SITE_NAME,
+  defaultModel: env.AI_DEFAULT_MODEL,
+});
 
 /** Composition root for the ai module. */
 export const aiQueries = {

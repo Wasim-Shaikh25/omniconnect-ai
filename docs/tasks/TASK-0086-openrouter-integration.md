@@ -1,6 +1,6 @@
 # TASK-0086: OpenRouter Integration
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0086-openrouter-integration.md`
 - **Tracker:** `docs/trackers/TRACKER-0086-openrouter-integration.md`
@@ -40,15 +40,16 @@ Record per request: model, promptTokens, completionTokens, cost. Dashboard for s
 ## 4. Subtasks
 
 - [x] T-016: OpenRouter client (API wrapper, streaming, tools)
-- [ ] T-017: Replace all OpenAI imports with OpenRouter
+- [x] T-017: Replace all OpenAI imports with OpenRouter
 - [x] T-061: Per-feature model routing + plan validation
 - [ ] T-062: AI usage tracking (tokens/model/feature/day)
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0086 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] T-016/T-017/T-061 acceptance criteria met.
+- [ ] T-062: AI usage tracking (persist `TokenUsage` rows, dashboard) remains for a follow-up.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

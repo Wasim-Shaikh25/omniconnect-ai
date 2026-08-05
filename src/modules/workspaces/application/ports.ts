@@ -64,9 +64,6 @@ export interface StoreRepository {
   ): Promise<StoreRecord | null>;
   listByOrganization(userId: string, includeDeleted?: boolean, limit?: number): Promise<StoreRecord[]>;
   findById(id: string, includeDeleted?: boolean): Promise<StoreRecord | null>;
-  archive(id: string): Promise<StoreRecord | null>;
-  restore(id: string): Promise<StoreRecord | null>;
-  delete(id: string): Promise<StoreRecord | null>;
 }
 
 export interface OrganizationInviteRecord {

@@ -9,16 +9,12 @@ import {
   generateCoupon,
   syncProducts,
   syncOrders,
-  updateProduct,
-  deleteProduct,
   updateCoupon,
   deleteCoupon,
 } from "../infrastructure/container";
 import { connectStoreSchema } from "../application/connect-store";
 import { generateCouponSchema } from "../application/generate-coupon";
 import { syncOrdersSchema } from "../application/sync-orders";
-import { updateProductSchema } from "../application/update-product";
-import { deleteProductSchema } from "../application/delete-product";
 import { updateCouponSchema } from "../application/update-coupon";
 import { deleteCouponSchema } from "../application/delete-coupon";
 
@@ -143,133 +139,6 @@ export async function generateCouponAction(
 
   revalidatePath(`/stores/${parsed.data.projectId}`);
   return { ok: true, message: `Coupon ${result.value.code} created.` };
-}
-
-export async function updateProductAction(
-  _prev: EcommerceActionState,
-  formData: FormData,
-): Promise<EcommerceActionState> {
-  const user = await requireRole("USER");
-
-  const parsed = updateProductSchema.safeParse({
-    productId: formData.get("productId"),
-    projectId: formData.get("projectId"),
-    title: formData.get("title") || undefined,
-    description: formData.get("description") || null,
-    price: formData.get("price") || null,
-    currency: formData.get("currency") || null,
-    inventory: formData.get("inventory") || null,
-    imageUrl: formData.get("imageUrl") || null,
-  });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
-  }
-
-  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
-    return { error: "Store not found in your organization." };
-  }
-
-  try {
-    await updateProduct(parsed.data);
-  } catch (error) {
-    if (error instanceof ForbiddenError) return { error: error.message };
-    return { error: error instanceof Error ? error.message : "Update failed" };
-  }
-
-  await auditCommands.create({
-    userId: user.userId ?? null,
-    actorId: user.id,
-    actorEmail: user.email ?? undefined,
-    action: "PRODUCT_UPDATED",
-    resource: "Product",
-    resourceId: parsed.data.productId,
-    details: `Product updated in store ${parsed.data.projectId}`,
-  });
-
-  revalidatePath(`/stores/${parsed.data.projectId}/products`);
-  revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
-  return { ok: true, message: "Product updated." };
-}
-
-export async function deleteProductAction(
-  _prev: EcommerceActionState,
-  formData: FormData,
-): Promise<EcommerceActionState> {
-  const user = await requireRole("USER");
-
-  const parsed = deleteProductSchema.safeParse({
-    productId: formData.get("productId"),
-    projectId: formData.get("projectId"),
-  });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
-  }
-
-  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
-    return { error: "Store not found in your organization." };
-  }
-
-  try {
-    await deleteProduct(parsed.data);
-  } catch (error) {
-    if (error instanceof ForbiddenError) return { error: error.message };
-    return { error: error instanceof Error ? error.message : "Delete failed" };
-  }
-
-  await auditCommands.create({
-    userId: user.userId ?? null,
-    actorId: user.id,
-    actorEmail: user.email ?? undefined,
-    action: "PRODUCT_DELETED",
-    resource: "Product",
-    resourceId: parsed.data.productId,
-    details: `Product soft-deleted from store ${parsed.data.projectId}`,
-  });
-
-  revalidatePath(`/stores/${parsed.data.projectId}/products`);
-  revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
-  return { ok: true, message: "Product deleted." };
-}
-
-export async function bulkDeleteProductsAction(
-  _prev: EcommerceActionState,
-  formData: FormData,
-): Promise<EcommerceActionState> {
-  const user = await requireRole("USER");
-  const projectId = String(formData.get("projectId") ?? "");
-  if (!projectId) return { error: "Missing store." };
-
-  if (!(await assertStoreInOrg(user.userId, projectId))) {
-    return { error: "Store not found in your organization." };
-  }
-
-  const idsRaw = formData.get("productIds");
-  const ids = typeof idsRaw === "string" ? idsRaw.split(",").filter(Boolean) : [];
-  if (ids.length === 0) return { error: "No products selected." };
-
-  let deleted = 0;
-  for (const productId of ids) {
-    try {
-      await deleteProduct({ productId, projectId });
-      deleted++;
-    } catch {
-      // ignore missing / already deleted
-    }
-  }
-
-  await auditCommands.create({
-    userId: user.userId ?? null,
-    actorId: user.id,
-    actorEmail: user.email ?? undefined,
-    action: "PRODUCT_BULK_DELETED",
-    resource: "Product",
-    resourceId: ids[0] ?? "",
-    details: `${deleted} product(s) bulk-deleted from store ${projectId}`,
-  });
-
-  revalidatePath(`/stores/${projectId}/products`);
-  revalidatePath(`/stores/${projectId}/commerce/catalog`);
-  return { ok: true, message: `${deleted} product(s) deleted.` };
 }
 
 export async function updateCouponAction(

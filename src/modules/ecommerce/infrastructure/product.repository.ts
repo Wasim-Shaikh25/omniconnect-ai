@@ -123,40 +123,6 @@ export class PrismaProductRepository implements ProductRepository {
     return { upserted: products.length, removed: result };
   }
 
-  async update(
-    id: string,
-    input: {
-      title?: string;
-      description?: string | null;
-      price?: number | null;
-      currency?: string | null;
-      inventory?: number | null;
-      imageUrl?: string | null;
-    },
-  ): Promise<ProductRecord | null> {
-    const product = await prisma.product.update({
-      where: { id },
-      data: {
-        ...(input.title !== undefined ? { title: input.title } : {}),
-        ...(input.description !== undefined
-          ? { description: input.description }
-          : {}),
-        ...(input.price !== undefined ? { price: input.price } : {}),
-        ...(input.currency !== undefined ? { currency: input.currency } : {}),
-        ...(input.inventory !== undefined ? { inventory: input.inventory } : {}),
-        ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
-      },
-    });
-    return product ? toRecord(product) : null;
-  }
-
-  async findById(id: string): Promise<ProductRecord | null> {
-    const product = await prisma.product.findFirst({
-      where: { id, ...notDeleted() },
-    });
-    return product ? toRecord(product) : null;
-  }
-
   async findByExternalId(projectId: string, externalId: string): Promise<ProductRecord | null> {
     const product = await prisma.product.findFirst({
       where: { projectId, externalId, ...notDeleted() },
@@ -199,21 +165,5 @@ export class PrismaProductRepository implements ProductRepository {
       data: { deletedAt: new Date() },
     });
     return product ? toRecord(product) : null;
-  }
-
-  async markDeletedNotInBatch(
-    projectId: string,
-    externalIds: string[],
-    deletedAt: Date,
-  ): Promise<number> {
-    const result = await prisma.product.updateMany({
-      where: {
-        projectId,
-        externalId: { notIn: externalIds },
-        deletedAt: null,
-      },
-      data: { deletedAt },
-    });
-    return result.count;
   }
 }

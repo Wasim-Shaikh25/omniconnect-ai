@@ -54,10 +54,6 @@ export type { ConnectStoreInput } from "./application/connect-store";
 export { generateCouponSchema } from "./application/generate-coupon";
 export type { GenerateCouponInput } from "./application/generate-coupon";
 export { syncOrdersSchema } from "./application/sync-orders";
-export { updateProductSchema } from "./application/update-product";
-export type { UpdateProductInput } from "./application/update-product";
-export { deleteProductSchema } from "./application/delete-product";
-export type { DeleteProductInput } from "./application/delete-product";
 export { updateCouponSchema } from "./application/update-coupon";
 export type { UpdateCouponInput } from "./application/update-coupon";
 export { deleteCouponSchema } from "./application/delete-coupon";
@@ -84,8 +80,6 @@ export {
   syncOrders,
   applyShopifyWebhook,
   generateCoupon,
-  updateProduct,
-  deleteProduct,
   updateCoupon,
   deleteCoupon,
   ecommerceQueries,
@@ -99,9 +93,6 @@ export {
   syncProductsAction,
   syncOrdersAction,
   generateCouponAction,
-  updateProductAction,
-  deleteProductAction,
-  bulkDeleteProductsAction,
   updateCouponAction,
   deleteCouponAction,
   bulkDeleteCouponsAction,

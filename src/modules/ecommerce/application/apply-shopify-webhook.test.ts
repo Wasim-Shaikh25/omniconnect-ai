@@ -27,13 +27,10 @@ function makeDeps() {
   const products: ProductRepository = {
     upsertMany: vi.fn().mockResolvedValue(1),
     sync: vi.fn(),
-    update: vi.fn(),
-    findById: vi.fn(),
     findByExternalId: vi.fn(),
     listByStore: vi.fn(),
     countByStore: vi.fn(),
     delete: vi.fn(),
-    markDeletedNotInBatch: vi.fn(),
   };
   const orders: OrderRepository = {
     sync: vi.fn(),
