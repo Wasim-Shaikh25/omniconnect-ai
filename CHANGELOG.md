@@ -30,6 +30,11 @@ All notable changes to **OmniConnect AI** are documented here.
   `cross-tenant-action-census.test.ts` to scan all `*.actions.ts` files under `presentation/`;
   added a Zod schema validation to `createDashboardShareAction` so malformed dashboard snapshots
   are rejected before persistence.
+- `REQ-0083` **Dashboard share follow-up fixes** on `devin/fix-dashboard-share-followup-1785965485`:
+  fixed the cross-tenant action census filter so it still covers `presentation/actions.ts` and `actions.tsx`
+  alongside `*.actions.ts` split files; moved the `DashboardSchema` Zod validator into
+  `src/modules/ai/application/generate-dashboard.ts` as a discriminated union by widget `type`
+  and re-exported it; `createDashboardShareAction` now uses the typed schema without a forced cast.
 - `REQ-0070` **Phone verification (Package E)** on `devin/cleanup-task-status-1785946663`:
   added the `SmsSender` port with `ConsoleSmsSender` and `TwilioSmsSender` (Twilio REST API) adapters;
   `PhoneVerificationService` issues 6-digit OTPs with 10-minute expiry, 5-attempt cap, and 3-sends/hour

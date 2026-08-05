@@ -41,8 +41,16 @@ function actionFiles(dir: string): string[] {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
       result.push(...actionFiles(full));
-    } else if (full.includes("/presentation/") && (full.endsWith(".actions.ts") || full.endsWith(".actions.tsx"))) {
-      result.push(full);
+    } else if (full.includes("/presentation/")) {
+      const base = full.split("/").pop() ?? "";
+      if (
+        base === "actions.ts" ||
+        base === "actions.tsx" ||
+        base.endsWith(".actions.ts") ||
+        base.endsWith(".actions.tsx")
+      ) {
+        result.push(full);
+      }
     }
   }
   return result;
