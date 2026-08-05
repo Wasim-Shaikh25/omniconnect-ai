@@ -38,7 +38,7 @@ export async function createTenant(label: string, password = "password"): Promis
     },
   });
 
-  await prisma.user.update({
+  const updatedOwner = await prisma.user.update({
     where: { id: owner.id },
     data: { userId: owner.id },
   });
@@ -65,9 +65,9 @@ export async function createTenant(label: string, password = "password"): Promis
   });
 
   return {
-    organization: { id: owner.id, name: owner.name, plan: owner.plan },
+    organization: { id: updatedOwner.id, name: updatedOwner.name, plan: updatedOwner.plan },
     store,
-    owner,
+    owner: updatedOwner,
     staff,
   };
 }
