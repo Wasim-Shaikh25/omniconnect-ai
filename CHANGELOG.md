@@ -84,10 +84,15 @@ All notable changes to **OmniConnect AI** are documented here.
   keyword fallback when no local MiniLM model is configured; added `makeMetaProfileFetcher` and
   `makeOpenRouterProfileNarrator` adapters behind the `inspector` ports.
 
+- `REQ-0091` **Deterministic Analysis Engine (Batch 10 — ready for review)** on `devin/inspector-ui-1785944504`:
+  wired `makeMetaProfileFetcher` and `makeOpenRouterProfileNarrator` into `inspectProfileAction`; exposed
+  `MetaService.getAccessToken` and `getAccountId` (server-only) and `aiProvider` from the `ai` server barrel;
+  added `/stores/[projectId]/analytics/audience/inspector` page with a username form and deterministic
+  results dashboard.
+
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 9)** — wire the new adapters into server actions
-  / route handlers and add a Profile Inspector UI.
+- `REQ-0091` **Deterministic Analysis Engine** — plan-limit gating for AI-powered profile narration.
 
 ### ⏭️ Next
 

@@ -41,7 +41,7 @@ import { makeWorkspaceContext } from "./workspace-context";
 const aiConfigurationRepository = new PrismaAIConfigurationRepository();
 const brainMemoryRepository = new PrismaBrainMemoryRepository();
 const tokenUsageRepository = new PrismaTokenUsageRepository();
-const aiProvider = new OpenRouterProvider(
+export const aiProvider = new OpenRouterProvider(
   {
     apiKey: env.OPENROUTER_API_KEY ?? "",
     siteUrl: env.OPENROUTER_SITE_URL,

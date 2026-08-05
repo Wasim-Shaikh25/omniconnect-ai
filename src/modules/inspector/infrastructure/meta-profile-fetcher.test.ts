@@ -3,7 +3,7 @@ import { makeMetaProfileFetcher, NoMetaAccessError, ProfileNotFoundError, MetaAp
 
 describe("makeMetaProfileFetcher", () => {
   it("throws NoMetaAccessError when no token is available", async () => {
-    const fetcher = makeMetaProfileFetcher({ getAccessToken: vi.fn().mockResolvedValue(null) });
+    const fetcher = makeMetaProfileFetcher({ getAccessToken: vi.fn().mockResolvedValue(null), getAccountId: vi.fn().mockResolvedValue(null) });
     await expect(fetcher.fetch("testuser", "project-1")).rejects.toBeInstanceOf(NoMetaAccessError);
   });
 
@@ -50,6 +50,7 @@ describe("makeMetaProfileFetcher", () => {
       baseUrl: "https://graph.test",
       apiVersion: "v1",
       getAccessToken: vi.fn().mockResolvedValue("token-123"),
+      getAccountId: vi.fn().mockResolvedValue("account-123"),
       fetch: combinedFetch as typeof fetch,
     });
 
@@ -72,6 +73,7 @@ describe("makeMetaProfileFetcher", () => {
 
     const fetcher = makeMetaProfileFetcher({
       getAccessToken: vi.fn().mockResolvedValue("token-123"),
+      getAccountId: vi.fn().mockResolvedValue("account-123"),
       fetch: mockFetch as typeof fetch,
     });
 
@@ -87,6 +89,7 @@ describe("makeMetaProfileFetcher", () => {
 
     const fetcher = makeMetaProfileFetcher({
       getAccessToken: vi.fn().mockResolvedValue("token-123"),
+      getAccountId: vi.fn().mockResolvedValue("account-123"),
       fetch: mockFetch as typeof fetch,
     });
 

@@ -420,6 +420,15 @@ export class GraphApiMetaService implements MetaService {
       { attributes: { projectId, handle, limit: options.limit } },
     );
   }
+
+  async getAccessToken(projectId: string): Promise<string | null> {
+    return this.integrations.findAccessToken(projectId);
+  }
+
+  async getAccountId(projectId: string): Promise<string | null> {
+    const integration = await this.integrations.findByStore(projectId);
+    return integration?.accountId ?? null;
+  }
 }
 
 function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaMediaItem | null {

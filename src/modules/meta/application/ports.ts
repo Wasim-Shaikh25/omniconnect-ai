@@ -132,4 +132,10 @@ export interface MetaService {
     handle: string,
     options?: CompetitorMediaOptions,
   ): Promise<MetaMediaItem[]>;
+
+  /** Return the stored Meta access token for this project, or null if not connected. */
+  getAccessToken(projectId: string): Promise<string | null>;
+
+  /** Return the connected Instagram Business Account ID for this project, or null. */
+  getAccountId(projectId: string): Promise<string | null>;
 }
