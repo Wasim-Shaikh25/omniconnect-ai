@@ -61,6 +61,10 @@ export { changeEmailService } from "./infrastructure/container";
 export type { ChangePasswordService } from "./application/change-password";
 export type { ChangeEmailService } from "./application/change-email";
 
+// Phone verification use-case
+export { phoneVerificationService } from "./infrastructure/container";
+export type { PhoneVerificationService } from "./application/phone-verification";
+
 // Presentation wiring for the app composition root (route handlers + server actions + middleware)
 export { handlers, signIn, signOut, unstable_update, auth } from "./infrastructure/auth";
 export { oauthProviders, type OAuthProvider } from "./infrastructure/auth";
@@ -74,5 +78,9 @@ export {
   resendVerificationEmailAction,
   changePasswordAction,
   requestEmailChangeAction,
+  requestPhoneVerificationAction,
+  verifyPhoneAction,
+  removePhoneAction,
+  signOutEverywhereAction,
 } from "./presentation/actions";
 export type { ActionState } from "./presentation/actions";

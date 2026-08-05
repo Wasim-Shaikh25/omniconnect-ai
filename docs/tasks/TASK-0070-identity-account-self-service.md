@@ -1,16 +1,16 @@
 # TASK-0070: Implement Identity and Account Self-Service
 
-- **Status:** Superseded — see REQ-0076
+- **Status:** Implemented
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Tracker:** `docs/trackers/TRACKER-0070-identity-account-self-service.md`
 - **Module(s):** `auth`, `users`, `organizations`, `notifications`, `shared/security`
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Email verification, confirm password, in-app password/email change, phone verification, session management, super-admin reconciliation, registration bot protection.
-- **Last updated:** 2026-08-01
+- **Last updated:** 2026-08-05
 
-> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
-> - `docs/tasks/TASK-0076-auth-registration-overhaul.md`
-> Retained for historical reference only. Do not use for new implementation.
+> **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2 and are
+> now retained as the implementation guide. Package E/F/G are being completed on top of the V2
+> `User`/`Workspace`/`Project` model.
 
 ## 1. Summary
 
@@ -50,6 +50,7 @@ model VerificationRequest {
   purpose    String    // "signup" | "email_change" | "phone_verify" | "mfa"
   target     String    // the address or E.164 number being proven
   tokenHash  String    @unique // never store the plaintext token
+  salt       String?   // per-request random salt for short code (phone) verification
   attempts   Int       @default(0)
   expiresAt  DateTime
   consumedAt DateTime?
@@ -201,7 +202,10 @@ Both flows live behind `getCurrentUser()`.
 **Files:** `src/modules/notifications/domain/sms-sender.ts` (port),
 `src/modules/notifications/infrastructure/console-sms.ts`,
 `src/modules/notifications/infrastructure/twilio-sms.ts`,
-`src/modules/users/application/verify-phone.ts`, `src/app/settings/account/page.tsx`
+`src/modules/auth/application/phone-verification.ts`,
+`src/modules/auth/presentation/actions.ts` (`requestPhoneVerificationAction`, `verifyPhoneAction`, `removePhoneAction`),
+`src/components/phone-verification-form.tsx`,
+`src/app/settings/account/page.tsx`
 
 ```typescript
 // port — infrastructure implements it, application depends only on this
@@ -310,25 +314,25 @@ it("every settings link resolves to an existing route", async () => {
 - [x] **D.7** Make "address already in use" non-revealing.
 - [x] **D.8** Build the settings UI for both flows.
 - [x] **D.9** Tests: wrong current password, session invalidation, old-address notice, token reuse.
-- [ ] **E.1** Define the `SmsSender` port.
-- [ ] **E.2** Implement the console sender.
-- [ ] **E.3** Implement the Twilio sender behind the port.
-- [ ] **E.4** Implement OTP issue/verify with expiry, attempt caps, and send-rate limits.
-- [ ] **E.5** Build add/verify/replace/remove phone UI; hide when no provider is configured.
-- [ ] **E.6** Test: OTP body and phone number never appear in logs.
-- [ ] **E.7** Tests: expiry, attempt cap, replay, rate limit.
-- [ ] **F.1** Implement "Sign out everywhere" with confirmation.
-- [ ] **F.2** Decide minimal vs full session list; record the decision.
+- [x] **E.1** Define the `SmsSender` port.
+- [x] **E.2** Implement the console sender.
+- [x] **E.3** Implement the Twilio sender behind the port.
+- [x] **E.4** Implement OTP issue/verify with expiry, attempt caps, and send-rate limits.
+- [x] **E.5** Build add/verify/replace/remove phone UI; hide when no provider is configured.
+- [x] **E.6** Test: OTP body and phone number never appear in logs.
+- [x] **E.7** Tests: expiry, attempt cap, replay, rate limit.
+- [x] **F.1** Implement "Sign out everywhere" with confirmation.
+- [x] **F.2** Decide minimal vs full session list; record the decision.
 - [ ] **F.3** (If full) add `UserSession` and populate it on sign-in.
-- [ ] **G.1** Add gated `ensureSuperAdmin` reconciliation with audit logging.
-- [ ] **G.2** Add SMS as an alternative super-admin MFA channel.
-- [ ] **G.3** Document the break-glass procedure in `docs/operations.md`.
-- [ ] **G.4** Remove the four dead settings links.
-- [ ] **G.5** Add the settings-link resolution test.
+- [x] **G.1** Add gated `ensureSuperAdmin` reconciliation with audit logging.
+- [x] **G.2** Add SMS as an alternative super-admin MFA channel.
+- [x] **G.3** Document the break-glass procedure in `docs/operations.md`.
+- [x] **G.4** Remove the four dead settings links.
+- [x] **G.5** Add the settings-link resolution test.
 
 ## 5. Acceptance Criteria
 
-- [ ] All `REQ-0070` acceptance criteria are met (Packages B–C complete; D–G remain).
+- [x] All `REQ-0070` acceptance criteria are met (Packages B–G complete; review fixes applied).
 - [x] No new server action uses `auth()` — all use `getCurrentUser()`.
 - [ ] All new mutations write `AuditLog` entries (tracked for Package D).
 - [x] Domain policy (password, phone normalisation) is pure and unit-tested.
@@ -351,3 +355,17 @@ it("every settings link resolves to an existing route", async () => {
   - The final password policy if it changed (B.3).
 - **Privacy note:** DOB and phone are personal data. Both must appear in the GDPR export
   (`dataExportService`) and be erased by account deletion. Add them to the export test.
+
+## 7. Post-implementation review fixes
+
+Addressed in `devin/cleanup-task-status-1785946663` after Devin Review findings on PR #143:
+
+- [x] Fix `phone-verification-form.tsx` JSX `pattern` attributes (`\+…` → `\+…` and `\d{6}` → `\d{6}`).
+- [x] Salt phone OTPs with a per-request random value; store `hash(salt:code)`; verify by looking up the user's pending `phone_verify` request, not by global `tokenHash`.
+- [x] Enforce the 5-attempt cap by incrementing `attempts` on every wrong guess and checking the cap before comparing the code.
+- [x] Add `rateLimit` to `verifyPhoneAction`.
+- [x] Preserve the original email during account soft-delete so the 30-day restore path works.
+- [x] Only send super-admin MFA SMS to `env.SUPER_ADMIN_PHONE` or an `account.phone` whose `phoneVerified` is set.
+- [x] Rename `.env.example` `TWILIO_PHONE_NUMBER` to `TWILIO_FROM_NUMBER` to match `env.ts`.
+- [x] Refuse to start when `SMS_PROVIDER=twilio` and Twilio credentials are incomplete, instead of silently falling back to the console sender.
+- [x] Add Prisma migration `20260805165952_add_verification_request_salt` for the optional `VerificationRequest.salt` column.

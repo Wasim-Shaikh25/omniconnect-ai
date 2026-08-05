@@ -1,8 +1,19 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, changePasswordAction, requestEmailChangeAction } from "@/modules/auth";
+import {
+  getCurrentUser,
+  changePasswordAction,
+  requestEmailChangeAction,
+  requestPhoneVerificationAction,
+  verifyPhoneAction,
+  removePhoneAction,
+  signOutEverywhereAction,
+} from "@/modules/auth";
+import { env } from "@/shared/config";
 import { listDataExportsAction } from "@/modules/users";
 import { AccountActions } from "@/components/account-actions";
 import { AccountSecurityForms } from "@/components/account-security-forms";
+import { PhoneVerificationForm } from "@/components/phone-verification-form";
+import { SignOutEverywhereButton } from "@/components/sign-out-everywhere-button";
 import {
   Card,
   CardContent,
@@ -48,6 +59,38 @@ export default async function AccountPage({
             />
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sessions</CardTitle>
+            <CardDescription>
+              Manage your active sessions. Signing out everywhere invalidates all devices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SignOutEverywhereButton action={signOutEverywhereAction} />
+          </CardContent>
+        </Card>
+
+        {env.SMS_PROVIDER !== "disabled" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Phone number</CardTitle>
+              <CardDescription>
+                Add and verify a phone number for account recovery and notifications.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PhoneVerificationForm
+                phone={user.phone}
+                phoneVerified={user.phoneVerified}
+                requestAction={requestPhoneVerificationAction}
+                verifyAction={verifyPhoneAction}
+                removeAction={removePhoneAction}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

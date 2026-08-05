@@ -15,6 +15,39 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0070` **Phone verification (Package E)** on `devin/cleanup-task-status-1785946663`:
+  added the `SmsSender` port with `ConsoleSmsSender` and `TwilioSmsSender` (Twilio REST API) adapters;
+  `PhoneVerificationService` issues 6-digit OTPs with 10-minute expiry, 5-attempt cap, and 3-sends/hour
+  rate limit; `/settings/account` renders a phone card when `SMS_PROVIDER` is not `disabled`; users can
+  add, verify, and remove a phone number. Unit tests assert expiry, attempt cap, replay, rate-limit,
+  and that the OTP body never reaches the logs.
+- `REQ-0070` **Session management (Package F)** on `devin/cleanup-task-status-1785946663`:
+  minimal "sign out everywhere" implemented by bumping `User.tokenVersion`, writing an `AuditLog`
+  entry, and calling `next-auth` `signOut` from the client to clear the current session and redirect
+  to `/login`.
+- `REQ-0070` **Super-admin reconciliation and settings cleanup (Package G)** on
+  `devin/cleanup-task-status-1785946663`: `ensureSuperAdmin` now reconciles an existing super admin
+  when `SUPER_ADMIN_RECONCILE=true`, updating the password hash, role, and phone and writing an
+  `AuditLog` entry; super-admin MFA sends the code via SMS when `SUPER_ADMIN_PHONE` and an SMS
+  provider are configured; the break-glass procedure is documented in `docs/operations.md`;
+  `/settings` removes the four dead links (`/settings/quality`, `/settings/rollout`,
+  `/settings/operating-model`, `/settings/unified-context`) and adds a test that every link resolves
+  to an existing route.
+- `REQ-0070` **Privacy / GDPR export** on `devin/cleanup-task-status-1785946663`: `phone` is included
+  in the `UserDataExport`; account deletion erases `name`, `phone`, `phoneVerified`, `mobile`,
+  `mobileVerified`, and `image` while preserving the original `email` for the 30-day recovery window
+  and bumping `tokenVersion` to invalidate sessions; integration tests cover both behaviors.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 11)** on `devin/cleanup-task-status-1785946663`:
+  wired `AIUsageGuard` into `inspectProfileAction` so AI-powered profile narration consumes one
+  `monthlyAiReplies` entitlement; deterministic narrator remains the fallback when `OPENROUTER_API_KEY`
+  is unset or the quota is exhausted.
+- `REQ-0070` **Devin Review security fixes** on `devin/cleanup-task-status-1785946663`:
+  phone OTPs now use a per-request random salt and user-scoped lookup, `verifyPhoneAction` is
+  rate-limited, the 5-attempt cap is enforced on wrong guesses, and `phone-verification-form.tsx`
+  JSX `pattern` attributes are fixed; account soft-delete preserves the original email so the 30-day
+  recovery window works; super-admin MFA SMS only uses `SUPER_ADMIN_PHONE` or a verified
+  `account.phone`; `.env.example` uses `TWILIO_FROM_NUMBER`; `SMS_PROVIDER=twilio` fails loudly at
+  startup when credentials are missing. Adds migration `20260805165952_add_verification_request_salt`.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 1)** on `devin/deterministic-analysis-1785938129`:
   closed `AnalysisSpec` vocabulary, `validateSpec`, `UnsupportedOperationError`, and a safe
   `AnalysisEngine` dispatcher (`makeAnalysisEngine`); pure deterministic `single_post_analysis`
@@ -92,14 +125,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine** — plan-limit gating for AI-powered profile narration.
+- `REQ-0083` Business Intelligence — read-only `DynamicDashboard` component and `/analytics/dashboard`
+  page wired to `queryAnalytics` / `generateDashboard`.
 
 ### ⏭️ Next
 
-- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
-  and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
+- `REQ-0083` Business Intelligence — read-only `DynamicDashboard` component and `/analytics/dashboard`
+  page wired to `queryAnalytics` / `generateDashboard`.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

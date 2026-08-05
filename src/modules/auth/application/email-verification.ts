@@ -50,6 +50,7 @@ export function makeEmailVerificationService(deps: EmailVerificationDeps): Email
         purpose,
         target: email.toLowerCase().trim(),
         tokenHash,
+        salt: null,
         attempts: 0,
         expiresAt,
         consumedAt: null,

@@ -158,6 +158,7 @@ model VerificationRequest {
   purpose    String    // "signup" | "email_change" | "phone_verify" | "mfa"
   target     String    // the address or E.164 number being proven
   tokenHash  String    @unique
+  salt       String?   // per-request random salt for short code verification
   attempts   Int       @default(0)
   expiresAt  DateTime
   consumedAt DateTime?

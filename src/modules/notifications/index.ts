@@ -19,12 +19,14 @@ export type {
   NotificationPreferenceRecord,
 } from "./application/ports";
 export type { NotificationServiceImpl } from "./application/service";
+export type { SmsSender } from "./domain/sms-sender";
 
 // Composed service + queries
 export {
   notificationService,
   notificationQueries,
   notificationPreferences,
+  smsSender,
 } from "./infrastructure/container";
 
 // Presentation

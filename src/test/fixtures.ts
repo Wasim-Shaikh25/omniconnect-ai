@@ -5,8 +5,8 @@ import { prisma } from "@/shared/database";
 export interface TenantFixture {
   organization: { id: string; name: string | null; plan: string };
   store: { id: string; name: string; userId: string };
-  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
-  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
+  owner: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; phone: string | null; phoneVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
+  staff: { id: string; email: string; name: string | null; role: string; isSuperAdmin: boolean; emailVerified: Date | null; phone: string | null; phoneVerified: Date | null; userId: string | null; projectId: string | null; tokenVersion: number };
 }
 
 export interface SuperAdminFixture {

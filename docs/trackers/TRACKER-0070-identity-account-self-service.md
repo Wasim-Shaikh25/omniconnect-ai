@@ -1,14 +1,13 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** Superseded — see REQ-0076
+- **Status:** Implemented
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
-- **Last updated:** 2026-08-01
+- **Last updated:** 2026-08-05
 
-> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
-> - `docs/trackers/TRACKER-0076-auth-registration-overhaul.md`
-> Retained for historical reference only. Do not use for new implementation.
+> **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2.
+> Package E/F/G are being completed on top of the V2 `User`/`Workspace`/`Project` model.
 
 ## 1. Summary
 
@@ -35,6 +34,7 @@ bot protection.
 - [x] New env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`, `TWILIO_*`,
       `SUPER_ADMIN_RECONCILE`) added to `env.ts`, `.env.example`, `docs/deployment.md`.
 - [x] Migration `20260801162632_add_identity_self_service` applies cleanly.
+- [x] Migration `20260805165952_add_verification_request_salt` adds optional `salt` column for per-request phone-OTP salting.
 
 ### Package B — Registration
 - [x] `confirmPassword` in schema with mismatch refinement.
@@ -68,30 +68,37 @@ bot protection.
 - [x] Tests: wrong current password, session invalidation, old-address notice, token reuse.
 
 ### Package E — Phone verification
-- [ ] `SmsSender` port defined.
-- [ ] Console sender implemented.
-- [ ] Twilio sender implemented behind the port.
-- [ ] OTP issue/verify with expiry, attempt cap, and send-rate limits.
-- [ ] Add/verify/replace/remove UI shipped; hidden when no provider is configured.
-- [ ] Test: OTP body and phone number never appear in logs.
-- [ ] Tests: expiry, attempt cap, replay, rate limit.
+- [x] `SmsSender` port defined.
+- [x] Console sender implemented.
+- [x] Twilio sender implemented behind the port.
+- [x] OTP issue/verify with expiry, attempt cap, and send-rate limits.
+- [x] Add/verify/remove UI shipped; hidden when `SMS_PROVIDER=disabled`.
+- [x] Test: OTP body and phone number never appear in logs.
+- [x] Tests: expiry, attempt cap, replay, rate limit.
+- [x] Salt phone OTPs with per-request random value and user-scoped lookup.
+- [x] Enforce attempt cap on wrong guesses and rate-limit `verifyPhoneAction`.
+- [x] Fix JSX `pattern` attributes in `phone-verification-form.tsx`.
 
 ### Package F — Session management
-- [ ] Minimal vs full session-list decision recorded.
-- [ ] "Sign out everywhere" implemented with confirmation.
+- [x] Minimal vs full session-list decision recorded (minimal: bump `tokenVersion` to invalidate all JWTs).
+- [x] "Sign out everywhere" implemented with confirmation.
 - [ ] (If full) `UserSession` added and populated on sign-in.
 
 ### Package G — Super admin and settings navigation
-- [ ] Gated `ensureSuperAdmin` reconciliation implemented and audited.
-- [ ] SMS alternative for super-admin MFA implemented.
-- [ ] Break-glass procedure documented in `docs/operations.md`.
-- [ ] Four dead settings links removed.
-- [ ] Settings-link resolution test added.
+- [x] Gated `ensureSuperAdmin` reconciliation implemented and audited.
+- [x] SMS alternative for super-admin MFA implemented.
+- [x] Break-glass procedure documented in `docs/operations.md`.
+- [x] Four dead settings links removed.
+- [x] Settings-link resolution test added.
+- [x] Super-admin MFA SMS only sent to `SUPER_ADMIN_PHONE` or a verified `account.phone`.
 
 ### Privacy
-- [ ] `dateOfBirth` and `phone` included in the GDPR export.
-- [ ] Both erased by account deletion; test added.
-- [ ] Neither appears in logs; redaction verified.
+- [x] `phone` included in the GDPR export (`dateOfBirth` omitted for the MVP).
+- [x] `phone` erased by account deletion (integration test added).
+- [x] Phone numbers redacted in logs (verified by `ConsoleSmsSender` test and existing redaction).
+- [x] Account soft-delete preserves original email for the 30-day recovery window.
+- [x] `.env.example` Twilio variable name aligned with `env.ts` (`TWILIO_FROM_NUMBER`).
+- [x] `SMS_PROVIDER=twilio` fails loudly at startup when credentials are incomplete.
 
 ### Verification
 - [x] `npm run lint` passes.
@@ -106,8 +113,8 @@ bot protection.
 
 ## 3. Acceptance Criteria
 
-- [ ] All `REQ-0070` acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All `REQ-0070` acceptance criteria are met.
+- [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 

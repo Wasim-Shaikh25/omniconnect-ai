@@ -15,14 +15,17 @@ import {
   emailVerificationService,
   changePasswordService,
   changeEmailService,
+  phoneVerificationService,
 } from "../infrastructure/container";
 import { signIn, signOut, RateLimitAuthError, unstable_update } from "../infrastructure/auth";
 import { requireUser } from "../infrastructure/session";
 import { registerUserSchema } from "../application/register-user";
 import { changePasswordSchema } from "../application/change-password";
 import { requestEmailChangeSchema } from "../application/change-email";
+import { isE164Phone } from "../domain/phone";
 import { verifyTurnstileToken } from "../infrastructure/turnstile";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
+import { smsSender } from "@/modules/notifications";
 
 const emailSender = createEmailSender();
 
@@ -138,8 +141,15 @@ export async function loginAction(
   }
 
   if (account.isSuperAdmin && !parsed.data.mfaCode) {
-    await verificationCodeService.sendCode(email, "mfa");
-    return { mfaRequired: true, message: "A verification code was sent to your email." };
+    const code = await verificationCodeService.sendCode(email, "mfa");
+    const trustedPhone = env.SUPER_ADMIN_PHONE || (account.phoneVerified ? account.phone : null);
+    if (smsSender && trustedPhone && isE164Phone(trustedPhone)) {
+      await smsSender.send({
+        to: trustedPhone,
+        body: `Your OmniConnect verification code is: ${code}\n\nThis code expires in 10 minutes.`,
+      });
+    }
+    return { mfaRequired: true, message: "A verification code was sent to your email and phone (if configured)." };
   }
 
   if (env.REQUIRE_EMAIL_VERIFICATION && !account.emailVerified) {
@@ -381,4 +391,90 @@ export async function requestEmailChangeAction(
   return { ok: true, message: "Check your new email address to confirm the change." };
 }
 
+const requestPhoneVerificationSchema = z.object({
+  phone: z.string().min(1),
+});
 
+export async function requestPhoneVerificationAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const parsed = requestPhoneVerificationSchema.safeParse({
+    phone: formData.get("phone"),
+  });
+  if (!parsed.success) return { error: "Enter a valid phone number." };
+
+  const result = await phoneVerificationService.request(user.id, parsed.data.phone);
+  return result.success
+    ? { ok: true, message: "A verification code has been sent to your phone." }
+    : { error: result.error };
+}
+
+const verifyPhoneSchema = z.object({
+  code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code."),
+});
+
+export async function verifyPhoneAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const parsed = verifyPhoneSchema.safeParse({ code: formData.get("code") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid code." };
+
+  const ip = clientIp(await headers());
+  const limit = await rateLimit({
+    key: `phone-verify:${user.id}:${ip}`,
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { error: "Too many attempts. Try again later." };
+  }
+
+  const result = await phoneVerificationService.verify(user.id, parsed.data.code);
+  if (!result.success) return { error: result.error };
+
+  try {
+    await unstable_update({});
+  } catch {
+    // Session refresh is best-effort; the phone number is already persisted.
+  }
+
+  return { ok: true, message: "Your phone number has been verified." };
+}
+
+export async function removePhoneAction(
+  _prev: ActionState,
+  _formData: FormData,
+): Promise<ActionState> {
+  void _prev;
+  void _formData;
+  const user = await requireUser();
+  const result = await phoneVerificationService.remove(user.id);
+  if (!result.success) return { error: result.error };
+
+  try {
+    await unstable_update({});
+  } catch {
+    // Session refresh is best-effort.
+  }
+
+  return { ok: true, message: "Your phone number has been removed." };
+}
+
+export async function signOutEverywhereAction(): Promise<ActionState> {
+  const user = await requireUser();
+  const updated = await accounts.bumpTokenVersion(user.id);
+  if (!updated) return { error: "Could not sign out everywhere. Please try again." };
+
+  await auditCommands.create({
+    userId: user.id,
+    actorId: user.id,
+    actorEmail: user.email,
+    action: "USER_SIGN_OUT_EVERYWHERE",
+    resource: "User",
+    resourceId: user.id,
+    details: JSON.stringify({ tokenVersion: updated.tokenVersion }),
+  });
+
+  return { ok: true, message: "All other sessions have been signed out." };
+}

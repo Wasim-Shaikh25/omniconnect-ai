@@ -189,62 +189,6 @@ export default async function SettingsPage() {
                   </Button>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quality & risk</CardTitle>
-                  <CardDescription>
-                    Run UIL quality checks and review risk mitigations.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/settings/quality">Open quality</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rollout</CardTitle>
-                  <CardDescription>
-                    Manage feature gates and rollback controls.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/settings/rollout">Open rollout</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Operating model</CardTitle>
-                  <CardDescription>
-                    UIL governance, plan, risk matrix, and success criteria.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/settings/operating-model">View operating model</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Unified context</CardTitle>
-                  <CardDescription>
-                    Knowledge graph, feature profiles, and validation-driven context.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/settings/unified-context">Open unified context</Link>
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </>
         )}

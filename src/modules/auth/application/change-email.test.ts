@@ -38,6 +38,7 @@ describe("change-email service", () => {
       ),
       findByEmailIncludingDeleted: vi.fn(async () => null),
       restoreAccount: vi.fn(async () => null),
+      reconcileSuperAdmin: vi.fn(async () => null),
       updatePassword: vi.fn(async () => null),
       updateEmail: vi.fn(async (id, email) => {
         account = { ...account, email: email.toLowerCase().trim(), emailVerified: new Date(), tokenVersion: account.tokenVersion + 1 };
@@ -45,6 +46,8 @@ describe("change-email service", () => {
       }),
       bumpTokenVersion: vi.fn(async () => null),
       setEmailVerified: vi.fn(async () => null),
+      updatePhone: vi.fn(async () => null),
+      setPhoneVerified: vi.fn(async () => null),
       create: vi.fn(),
     };
     const hasher: PasswordHasher = {

@@ -136,7 +136,10 @@ Core tables (see `prisma/schema.prisma` for full model):
 - The global `src/app/loading.tsx` was removed so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.
 - The `authorized` middleware callback redirects authenticated non-super-admins away from `/admin*` to `/dashboard` (`307`) before any admin page streams.
 - `RootLayout` does not call `getCurrentUser()`; the app is wrapped in `next-auth/react` `SessionProvider` and `AppShell` fetches the session client-side. This keeps the server-rendered 404/error HTML from embedding the authenticated user's name/email/store data, satisfying the M7 smoke-test assertions in `scripts/check-http-status.ts`.
-- Super admin requires email-based OTP in addition to login.
+- Super admin requires email-based OTP in addition to login; if `SUPER_ADMIN_PHONE` is set, an SMS is also sent, otherwise an unverified `account.phone` is never used as an SMS destination.
+- Phone verification issues a 6-digit OTP with a per-request random salt and stores `hash(salt:code)`; verification is performed by looking up the user's pending `phone_verify` request and comparing the salted hash, with a 5-attempt cap and a `verifyPhoneAction` rate limit. Expired/invalid requests are consumed before issuing a new code to avoid collisions.
+- Account soft-delete (`deleteAccount`) preserves the original email so the 30-day grace-period restore path in `authorize()` works; it erases `name`, `phone`, `phoneVerified`, `mobile`, `mobileVerified`, and `image` and bumps `tokenVersion`.
+- `SMS_PROVIDER=twilio` now fails loudly at startup if any Twilio credential is missing instead of silently falling back to the console sender.
 
 ### 7.5 Tenancy and Workspace Model
 
@@ -193,7 +196,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 7. A reusable `AnalysisEngine` (`makeAnalysisEngine`) interprets a closed `AnalysisSpec` vocabulary (`single_post_analysis`, `top_n`, `compare_period`, `anomaly_check`, `cohort_trend`, `attribution_breakdown`, `best_time`, `correlation`, `profile_quality`) with pure deterministic operations. Implemented operations include `single_post_analysis`, `top_n`, `best_time`, `compare_period`, `anomaly_check`, `correlation`, `cohort_trend`, `attribution_breakdown`, and `profile_quality`. `OperationResolver` maps natural-language analytics questions to an `AnalysisSpec` with a confidence score and an `unsupported` fallback; it uses the `EmbeddingProvider` port with a dependency-free `KeywordEmbeddingProvider` adapter. `queryAnalytics` and `generateDashboard` wire the resolver to the engine and transform the deterministic `AnalysisResult` into a `DashboardSchema` of KPI, line_chart, and table widgets.
 8. The new `inspector` module exposes `inspectProfile` for deterministic profile/reel inspection. It reuses `profileQuality` from `analytics` to compute an audience-quality score, estimates demographics from public signals, classifies a growth trend from follower snapshots, and emits a deterministic narration via a `ProfileNarrator` port. The `ProfileFetcher` and `ProfileNarrator` ports keep the core testable and allow Meta/OpenRouter integrations later.
 9. `analytics` exports a `TransformersEmbeddingProvider` (`@xenova/transformers`) that loads a local MiniLM model with `local_files_only: true` and falls back to the keyword provider if no model is configured or loading fails. `inspector` exports `makeMetaProfileFetcher` (Meta Business Discovery API) and `makeOpenRouterProfileNarrator` (LLM narration) as infrastructure adapters behind the existing ports. `MetaService` exposes `getAccessToken` and `getAccountId` (server-only) so the fetcher can call Graph API without exposing internals.
-10. `inspectProfileAction` composes `makeMetaProfileFetcher` + `inspectProfile` + `makeOpenRouterProfileNarrator` (falling back to `deterministicProfileNarrator` when OpenRouter is not configured). The `/stores/[projectId]/analytics/audience/inspector` page renders a username form and a results dashboard with confidence labels for metrics and demographics. Unknown operations are rejected (`UnsupportedOperationError`).
+10. `inspectProfileAction` composes `makeMetaProfileFetcher` + `inspectProfile` + `makeOpenRouterProfileNarrator` (falling back to `deterministicProfileNarrator` when OpenRouter is not configured). AI-powered narration is gated by `AIUsageGuard` and consumes one `monthlyAiReplies` entitlement; quota errors are returned to the UI. The `/stores/[projectId]/analytics/audience/inspector` page renders a username form and a results dashboard with confidence labels for metrics and demographics. Unknown operations are rejected (`UnsupportedOperationError`).
 
 ---
 
@@ -285,6 +288,24 @@ Core tables (see `prisma/schema.prisma` for full model):
   rate-limited; it bumps `tokenVersion` and re-issues the current session's JWT. Email change sends
   a confirmation link to the new address and a notice to the old; it only takes effect after the
   new address is confirmed, bumps `tokenVersion`, and writes an `AuditLog` entry.
+- Phone verification (`REQ-0070` Package E): `auth` exposes a `PhoneVerificationService`
+  behind the `SmsSender` port. `ConsoleSmsSender` logs only a redacted destination; `TwilioSmsSender`
+  sends via the Twilio REST API. OTPs are 6 digits, expire in 10 minutes, allow 5 attempts, and are
+  rate-limited to 3 sends/hour/number. `/settings/account` shows a phone-verification card when
+  `SMS_PROVIDER` is not `disabled`; users can add, verify, and remove a phone number. `User.phone`
+  and `User.phoneVerified` are updated only on successful verification; the plaintext OTP is never
+  stored or logged.
+- Session management (`REQ-0070` Package F): the minimal "sign out everywhere" flow bumps
+  `User.tokenVersion`, writes an `AuditLog` entry, and calls `next-auth` `signOut` on the client to
+  clear the current session cookie and redirect to `/login`.
+- Super-admin reconciliation (`REQ-0070` Package G): `ensureSuperAdmin` is gated by
+  `SUPER_ADMIN_RECONCILE` and can update an existing super admin's password hash, role, and phone
+  on bootstrap. The super-admin MFA flow sends the code via email and, when `SUPER_ADMIN_PHONE`
+  is set and an SMS provider is configured, by SMS as well. The break-glass procedure is documented
+  in `docs/operations.md`. The `/settings` page no longer links to dead routes.
+- Privacy / GDPR (`REQ-0070`): `phone` is included in the `UserDataExport`; account deletion erases
+  `email` (to a unique anonymous placeholder), `name`, `phone`, `phoneVerified`, `mobile`,
+  `mobileVerified`, and `image`, and bumps `tokenVersion` so existing sessions are invalidated.
 - `User.phoneVerified` and the `VerificationRequest` table are in place; `dateOfBirth` remains
   omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
   `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.

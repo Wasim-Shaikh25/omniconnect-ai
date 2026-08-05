@@ -20,6 +20,10 @@ class InMemoryVerificationRequestRepository implements VerificationRequestReposi
     return this.records.find((r) => r.tokenHash === tokenHash && !r.consumedAt && r.expiresAt.getTime() > Date.now()) ?? null;
   }
 
+  async findPendingByUser(userId: string, purpose: string): Promise<VerificationRequestRecord | null> {
+    return this.records.find((r) => r.userId === userId && r.purpose === purpose && !r.consumedAt && r.expiresAt.getTime() > Date.now()) ?? null;
+  }
+
   async consume(id: string): Promise<void> {
     const record = this.records.find((r) => r.id === id);
     if (record) record.consumedAt = new Date();
@@ -50,6 +54,7 @@ describe("email-verification service", () => {
       findByEmail: vi.fn(async (email) => (account?.email === email ? account : null)),
       findByEmailIncludingDeleted: vi.fn(async () => null),
       restoreAccount: vi.fn(async () => null),
+      reconcileSuperAdmin: vi.fn(async () => null),
       updatePassword: vi.fn(async () => null),
       updateEmail: vi.fn(async () => null),
       bumpTokenVersion: vi.fn(async () => null),
@@ -57,6 +62,8 @@ describe("email-verification service", () => {
         if (account) account = { ...account, emailVerified };
         return account;
       }),
+      updatePhone: vi.fn(async () => null),
+      setPhoneVerified: vi.fn(async () => null),
       create: vi.fn(),
     };
     const sent: { to: string; subject: string }[] = [];
