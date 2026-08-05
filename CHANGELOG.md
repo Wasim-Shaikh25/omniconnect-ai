@@ -60,11 +60,16 @@ All notable changes to **OmniConnect AI** are documented here.
   added pure deterministic `cohort_trend` (linear regression over time series) and
   `attribution_breakdown` (revenue/order aggregation by key) operations, with unit tests and
   public exports via `@/modules/analytics/pure`.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 5)** on `devin/deterministic-profile-quality-1785941725`:
+  added pure deterministic `profile_quality` operation (audience authenticity, spam risk,
+  engagement consistency, geo/content diversity) with unit tests and public exports via
+  `@/modules/analytics/pure`.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 5)** — final operation (`profile_quality`),
-  local MiniLM `EmbeddingProvider`, `OperationResolver` NL → `AnalysisSpec`, and golden tests.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 6)** — local MiniLM `EmbeddingProvider`,
+  `OperationResolver` NL → `AnalysisSpec`, golden/snapshot tests, and `queryAnalytics` /
+  `generateDashboard` wiring.
 
 ### ⏭️ Next
 
