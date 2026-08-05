@@ -56,6 +56,8 @@ model User {
   maxWorkspaces           Int        @default(1)  // cached plan limit
   maxProjects             Int        @default(1)  // cached plan limit
   maxAiCallsPerDay        Int        @default(20) // cached plan limit
+  profileInspectionsToday   Int        @default(0)
+  profileInspectionsResetAt DateTime?
   tokenVersion            Int        @default(0)
   deletedAt               DateTime?
   deletedReason           String?

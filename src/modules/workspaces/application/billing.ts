@@ -289,8 +289,8 @@ export function makeBillingService(deps: {
 
 function planFromPriceId(priceId: string | undefined): Plan | null {
   if (!priceId) return null;
-  if (priceId === env.STRIPE_PRICE_PRO) return Plan.PRO;
-  if (priceId === env.STRIPE_PRICE_STARTER) return Plan.STARTER;
+  if (priceId === env.STRIPE_PRICE_PRO) return Plan.BUSINESS;
+  if (priceId === env.STRIPE_PRICE_STARTER) return Plan.PRO;
   return null;
 }
 

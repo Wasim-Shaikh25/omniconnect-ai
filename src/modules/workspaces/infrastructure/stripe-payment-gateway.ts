@@ -9,8 +9,8 @@ import {
 
 const planToPriceId: Record<Plan, string | undefined> = {
   [Plan.FREE]: undefined,
-  [Plan.STARTER]: env.STRIPE_PRICE_STARTER,
-  [Plan.PRO]: env.STRIPE_PRICE_PRO,
+  [Plan.PRO]: env.STRIPE_PRICE_STARTER,
+  [Plan.BUSINESS]: env.STRIPE_PRICE_PRO,
 };
 
 export class StripePaymentGateway implements PaymentGateway {

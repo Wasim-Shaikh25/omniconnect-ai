@@ -1,11 +1,11 @@
 export enum Plan {
   FREE = "FREE",
-  STARTER = "STARTER",
   PRO = "PRO",
+  BUSINESS = "BUSINESS",
 }
 
 export function isPlan(value: string | null | undefined): value is Plan {
-  return value === Plan.FREE || value === Plan.STARTER || value === Plan.PRO;
+  return value === Plan.FREE || value === Plan.PRO || value === Plan.BUSINESS;
 }
 
 export function parsePlan(value: string | null | undefined): Plan {
@@ -20,12 +20,13 @@ export interface PlanLimits {
   maxStores: number | null;
   monthlyAiReplies: number | null;
   teamSeats: number | null;
+  maxProfileInspectionsPerDay: number | null;
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  [Plan.FREE]: { maxStores: 1, monthlyAiReplies: 50, teamSeats: 1 },
-  [Plan.STARTER]: { maxStores: 3, monthlyAiReplies: 500, teamSeats: 3 },
-  [Plan.PRO]: { maxStores: null, monthlyAiReplies: null, teamSeats: null },
+  [Plan.FREE]: { maxStores: 1, monthlyAiReplies: 50, teamSeats: 1, maxProfileInspectionsPerDay: 3 },
+  [Plan.PRO]: { maxStores: 3, monthlyAiReplies: 500, teamSeats: 3, maxProfileInspectionsPerDay: 50 },
+  [Plan.BUSINESS]: { maxStores: null, monthlyAiReplies: null, teamSeats: null, maxProfileInspectionsPerDay: null },
 };
 
 /** Returns true when `current` usage is still within the plan's limit. */
@@ -50,13 +51,14 @@ export const PLAN_FEATURES: Record<
       "1 store",
       "1 Meta page/account",
       "50 AI replies / month",
+      "3 profile inspections / day",
       "Basic analytics",
       "Manual DM & comment replies",
       "First-time-follower welcome",
     ],
   },
-  [Plan.STARTER]: {
-    label: "Starter",
+  [Plan.PRO]: {
+    label: "Pro",
     price: "$4.99/mo",
     monthlyPrice: 499,
     description: "Grow with content ideas, campaigns, and deeper analytics.",
@@ -64,20 +66,22 @@ export const PLAN_FEATURES: Record<
       "Up to 3 stores",
       "Unlimited Meta accounts",
       "500 AI replies / month",
+      "50 profile inspections / day",
       "Advanced analytics + trends",
       "DM automation",
       "Competitor tracking",
       "AI content ideas",
     ],
   },
-  [Plan.PRO]: {
-    label: "Pro",
+  [Plan.BUSINESS]: {
+    label: "Business",
     price: "$9.99/mo",
     monthlyPrice: 999,
     description: "Full marketing and commerce intelligence for scaling brands.",
     features: [
       "Unlimited stores",
       "Unlimited AI replies",
+      "Unlimited profile inspections",
       "Competitor benchmarking",
       "Brand-deal pipeline",
       "Team seats",

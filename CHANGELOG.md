@@ -181,6 +181,13 @@ All notable changes to **OmniConnect AI** are documented here.
   `DashboardExportToolbar` on `/analytics/dashboard` for PNG image and PDF download using `html-to-image`
   and `jspdf`; public `/share/d/[token]` page rendering a read-only `DynamicDashboard` from the stored
   snapshot. Expired or missing tokens return 404.
+- `REQ-0085` **Profile & Reel Inspector (plan gating + AI demographics)** on `devin/profile-inspector-plan-gating-1785969034`:
+  aligned `Plan` enum and `PLAN_LIMITS` to `FREE`/`PRO`/`BUSINESS` (matching the Prisma `User.plan` enum);
+  added `User.profileInspectionsToday`/`profileInspectionsResetAt` and atomic `incrementProfileInspections`;
+  `inspectProfileAction` consumes one daily profile-inspection entitlement before running.
+  Added a `DemographicEstimator` port, `makeOpenRouterDemographicEstimator` (LLM estimation from comments,
+  posting times, hashtags, locations with deterministic fallback), and wired it into `inspectProfile`.
+  Updated `pricing-cards.tsx` to render `PRO` and `BUSINESS` tiers. All quality gates pass.
 
 ### 🚧 In Progress
 
@@ -188,7 +195,9 @@ None.
 
 ### ⏭️ Next
 
-- `REQ-0085` **Profile/reel inspector plan gating** — AI demographic estimation and plan-limit enforcement.
+- `REQ-0088` **Billing & Plans** — Stripe checkout lifecycle, plan entitlement enforcement, billing settings UI.
+- `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
+- `REQ-0082` **AI Setup & Configuration** — onboarding AI config, model overrides, brand voice settings.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 
@@ -257,7 +266,7 @@ no gaps.
 | REQ-0082 | AI Setup & Configuration | 3 | Draft |
 | REQ-0083 | Business Intelligence | 3 | Draft |
 | REQ-0084 | Attribution & Checkout Links | 2 | Implemented |
-| REQ-0085 | Profile & Reel Inspector | 3 | Draft |
+| REQ-0085 | Profile & Reel Inspector | 3 | Implemented |
 | REQ-0086 | OpenRouter Integration | 1 | Draft |
 | REQ-0087 | Super Admin Panel | 4 | Draft |
 | REQ-0088 | Billing & Plans | 4 | Draft |

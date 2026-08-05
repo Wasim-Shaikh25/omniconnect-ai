@@ -16,5 +16,17 @@ export function makeOrganizationUsageService(deps: {
       const { monthlyAiReplies } = planLimits(org.plan as Plan);
       return deps.organizations.incrementAIReplies(userId, monthlyAiReplies);
     },
+
+    /**
+     * Attempt to consume one profile inspection for the organization.
+     * Returns `true` when the request is within the plan's daily limit and
+     * the atomic counter was incremented, `false` otherwise.
+     */
+    async consumeProfileInspection(userId: string): Promise<boolean> {
+      const org = await deps.organizations.findById(userId);
+      if (!org) return false;
+      const { maxProfileInspectionsPerDay } = planLimits(org.plan as Plan);
+      return deps.organizations.incrementProfileInspections(userId, maxProfileInspectionsPerDay);
+    },
   };
 }

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { requireRole } from "@/modules/auth";
-import { organizationQueries } from "@/modules/workspaces";
+import { organizationQueries, organizationUsage } from "@/modules/workspaces";
 import { aiProvider } from "@/modules/ai/server";
 import { metaService } from "@/modules/meta/server";
 import { env } from "@/shared/config";
@@ -11,6 +11,8 @@ import {
   makeMetaProfileFetcher,
   makeOpenRouterProfileNarrator,
   deterministicProfileNarrator,
+  deterministicDemographicEstimator,
+  makeOpenRouterDemographicEstimator,
   type ProfileInspectionResult,
 } from "@/modules/inspector";
 import { aiUsageGuard } from "@/modules/ai";
@@ -32,13 +34,32 @@ async function assertStoreInOrg(userId: string | null, projectId: string): Promi
   return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
-async function makeNarrator(userId: string) {
+async function makeNarrator(userId: string, projectId: string) {
   if (!env.OPENROUTER_API_KEY) {
     return deterministicProfileNarrator;
   }
   await aiUsageGuard.assertAvailable(userId);
   const model = env.AI_DEFAULT_MODEL ?? "openai/gpt-4o-mini";
-  return makeOpenRouterProfileNarrator({ aiProvider, model });
+  return makeOpenRouterProfileNarrator({
+    aiProvider,
+    model,
+    metadata: { userId, projectId },
+  });
+}
+
+function makeDemographicEstimator(projectId: string) {
+  if (!env.OPENROUTER_API_KEY) {
+    return deterministicDemographicEstimator;
+  }
+  const model = env.AI_DEFAULT_MODEL ?? "openai/gpt-4o-mini";
+  return makeOpenRouterDemographicEstimator(
+    {
+      aiProvider,
+      model,
+      metadata: { projectId },
+    },
+    deterministicDemographicEstimator,
+  );
 }
 
 export async function inspectProfileAction(
@@ -62,6 +83,14 @@ export async function inspectProfileAction(
     return { error: "Store not found in your organization." };
   }
 
+  const consumed = await organizationUsage.consumeProfileInspection(user.userId);
+  if (!consumed) {
+    return {
+      error:
+        "Profile inspection limit reached for today. Upgrade your plan to inspect more profiles.",
+    };
+  }
+
   try {
     const fetcher = makeMetaProfileFetcher({
       baseUrl: "https://graph.facebook.com",
@@ -73,7 +102,11 @@ export async function inspectProfileAction(
     });
 
     const result = await inspectProfile(
-      { fetcher, narrator: await makeNarrator(user.userId) },
+      {
+        fetcher,
+        narrator: await makeNarrator(user.userId, parsed.data.projectId),
+        demographicEstimator: makeDemographicEstimator(parsed.data.projectId),
+      },
       parsed.data.username,
       parsed.data.projectId,
     );

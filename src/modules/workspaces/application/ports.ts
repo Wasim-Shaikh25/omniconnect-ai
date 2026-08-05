@@ -46,6 +46,13 @@ export interface OrganizationRepository {
    * already reached. A `null` limit means unlimited.
    */
   incrementAIReplies(id: string, limit: number | null): Promise<boolean>;
+  /**
+   * Atomically increments the organization's daily profile-inspection counter when it is
+   * still below the supplied limit. Resets the counter when crossing into a new day.
+   * Returns true when the increment succeeded, false when the limit is already reached.
+   * A `null` limit means unlimited.
+   */
+  incrementProfileInspections(id: string, limit: number | null): Promise<boolean>;
 }
 
 export interface StoreRepository {

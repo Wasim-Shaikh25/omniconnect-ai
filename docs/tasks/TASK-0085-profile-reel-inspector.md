@@ -1,6 +1,6 @@
 # TASK-0085: Profile & Reel Inspector
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0085-profile-reel-inspector.md`
 - **Tracker:** `docs/trackers/TRACKER-0085-profile-reel-inspector.md`
@@ -40,15 +40,17 @@ Username input, results dashboard with confidence labels, top content grid, grow
 
 ## 4. Subtasks
 
-- [ ] T-055: Business Discovery API fetch + AI estimation
-- [ ] T-056: Confidence tier system
-- [ ] T-057: Inspector UI
-- [ ] T-060: Audience quality scoring
+- [x] T-055: Business Discovery API fetch (existing from REQ-0091).
+- [x] T-056: Confidence tier system (existing).
+- [x] T-057: Inspector UI (existing).
+- [x] T-060: Audience quality scoring (existing).
+- [x] T-087: AI demographic estimation adapter.
+- [x] T-088: Plan-limit gating for profile inspections (Free 3/day, Pro 50/day, Business unlimited).
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0085 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
+- [x] Matches REQ-0085 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
 - [ ] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers

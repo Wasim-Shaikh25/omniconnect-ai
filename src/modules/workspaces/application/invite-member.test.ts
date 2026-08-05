@@ -55,6 +55,10 @@ class InMemoryOrganizations implements OrganizationRepository {
   incrementAIReplies(): Promise<boolean> {
     throw new Error("not implemented");
   }
+
+  incrementProfileInspections(): Promise<boolean> {
+    throw new Error("not implemented");
+  }
 }
 
 class InMemoryInvites implements OrganizationInviteRepository {

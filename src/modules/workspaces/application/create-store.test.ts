@@ -15,6 +15,8 @@ function makeOrgRepo(plan: Plan): OrganizationRepository {
       subscriptionStatus: null,
     }),
     updatePlan: async () => null,
+    incrementAIReplies: async () => true,
+    incrementProfileInspections: async () => true,
   } as unknown as OrganizationRepository;
 }
 
@@ -45,9 +47,9 @@ describe("createStore billing enforcement", () => {
     if (!result.ok) expect(result.error).toBeInstanceOf(StoreLimitError);
   });
 
-  it("allows unlimited stores on the PRO plan", async () => {
+  it("allows unlimited stores on the BUSINESS plan", async () => {
     const createStore = makeCreateStore({
-      organizations: makeOrgRepo(Plan.PRO),
+      organizations: makeOrgRepo(Plan.BUSINESS),
       stores: makeStoreRepo(25),
     });
     const result = await createStore({ userId: "org-1", name: "Another", provider: "SHOPIFY" });
