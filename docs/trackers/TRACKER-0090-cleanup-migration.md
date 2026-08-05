@@ -19,6 +19,7 @@ Progress tracker for REQ-0090: Cleanup & Migration.
 
 ### Implementation
 - [ ] T-001: Delete Organization/Store/Staff/StoreIntegration models.
+- [ ] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018).
 - [ ] T-019: Delete organizations module entirely.
 - [ ] T-037: Delete hardcoded connectors.
 - [ ] T-038: Delete overscoped features (product CRUD, standalone views).

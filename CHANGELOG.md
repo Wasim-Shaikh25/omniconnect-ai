@@ -29,6 +29,56 @@ All notable changes to **OmniConnect AI** are documented here.
 - Phase 1 implementation: start with `T-001` (delete old models) and `T-016` (OpenRouter client)
   in parallel — they have no dependencies. Then `T-002`–`T-020` for foundation.
 
+### 🧹 Legacy Docs Cleanup (2026-08-05)
+
+Audited every pre-V2 requirement (`REQ-0001`–`REQ-0075`) against the new V2 scope so the backlog
+reflects what is actually being built next. No historical content was deleted — old REQ/TASK/TRACKER
+files are kept for reference with a `⚠️ SUPERSEDED` banner and status pointing to their V2 replacement.
+
+**18 requirement trios marked Superseded** (REQ + TASK + TRACKER, 54 files total):
+
+| Old REQ | Superseded by |
+|---------|---------------|
+| REQ-0001 Auth | REQ-0076 |
+| REQ-0002 E-Commerce Connector | REQ-0078 |
+| REQ-0003 Meta Integration | REQ-0079 |
+| REQ-0004 AI Assistant | REQ-0081 |
+| REQ-0008 Human Takeover | REQ-0080 |
+| REQ-0011 Users/Organizations/Stores | REQ-0077, REQ-0090 |
+| REQ-0014 Executive Dashboard | REQ-0083 |
+| REQ-0016 Unified Inbox | REQ-0080 |
+| REQ-0018 Content Studio MVP | REQ-0079 |
+| REQ-0020 Store Analytics | REQ-0083 |
+| REQ-0033 Unified Intelligence Layer | REQ-0089 |
+| REQ-0052 Super Admin (workspace/project auth) | REQ-0087 |
+| REQ-0060 Meta-First Product Reframing | REQ-0090 |
+| REQ-0065 Remaining Intelligence Completion | REQ-0089 |
+| REQ-0070 Identity Self-Service | REQ-0076 |
+| REQ-0071 Billing & Monetization | REQ-0088 |
+| REQ-0072 Platform Admin & Discoverability | REQ-0087 |
+| REQ-0073 Projects/Workspace Lifecycle | REQ-0077 |
+
+**5 requirements kept active, unrelated to the architecture rewrite** (security hardening, test
+coverage, release engineering) — flagged with a note that any finding referencing
+`Organization`/`Store`/`Project` must be re-verified once `REQ-0090` lands:
+`REQ-0067`, `REQ-0068`, `REQ-0069`, `REQ-0074`, `REQ-0075`.
+
+**Backlog gap check:** cross-referenced all 77 planned tasks (`T-001`–`T-077`) against the 15 new
+TASK files. 6 tasks from the original plan were missing from every TASK/TRACKER file and have been
+added:
+
+| Task | Description | Added to |
+|------|-------------|----------|
+| T-007 | Run Prisma migration (generate + apply new schema) | TASK/TRACKER-0090 |
+| T-069 | Content calendar UI (visual grid, drag-to-reschedule) | TASK/TRACKER-0079 |
+| T-070 | Brand mention monitoring (Mentions API + AI sentiment) | TASK/TRACKER-0083 |
+| T-071 | Trending reels/audio analysis (AI niche pattern detection) | TASK/TRACKER-0079 |
+| T-072 | Competitor tracking UI (comparison dashboard) | TASK/TRACKER-0083 |
+| T-075 | Mobile PWA optimization (responsive messaging, offline) | TASK/TRACKER-0080 |
+
+All 77 tasks are now covered by exactly one TASK/TRACKER pair — verified by script, no duplicates,
+no gaps.
+
 ### 📋 Platform V2 Requirements (REQ-0076 through REQ-0090)
 
 15 new requirements covering the complete product rewrite:

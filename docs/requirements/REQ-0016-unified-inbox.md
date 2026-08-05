@@ -4,13 +4,17 @@ description: Unified Inbox (Global Conversation Triage)
 
 # REQ-0016: Unified Inbox (Global Conversation Triage)
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0080
 - **Owner:** wasim
 - **Module(s):** conversations, crm, organizations
 - **Original spec path:** `docs/specs/0016-unified-inbox.md` (restructured)
 - **Task:** `docs/tasks/TASK-0016-unified-inbox.md`
 - **Tracker:** `docs/trackers/TRACKER-0016-unified-inbox.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0080-unified-messaging-board.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0016-unified-inbox.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

@@ -48,6 +48,7 @@ Ensure `tsc --noEmit` passes. Update or remove broken tests.
 ## 4. Subtasks
 
 - [ ] T-001: Delete Organization/Store/Staff/StoreIntegration models
+- [ ] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018; depends on T-002..T-006 across REQ-0076/0077/0080/0082/0084/0086/0088)
 - [ ] T-019: Delete organizations module
 - [ ] T-037: Delete hardcoded connectors
 - [ ] T-038: Delete overscoped features

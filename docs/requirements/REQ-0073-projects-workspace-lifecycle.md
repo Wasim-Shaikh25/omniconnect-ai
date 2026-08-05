@@ -1,6 +1,6 @@
 # REQ-0073: Projects and Workspace Lifecycle — Decision and Implementation
 
-- **Status:** In Progress — Q1 resolved: Option B (remove the Projects feature), 2026-08-01
+- **Status:** Superseded — see REQ-0077
 - **Owner:** Product / Backend / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0073-projects-workspace-lifecycle.md`
@@ -8,6 +8,10 @@
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §3.5 #1, §3.6 Q1 and Q2, §4 M3, §4 H5, §8.4
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0077-workspace-project-system.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

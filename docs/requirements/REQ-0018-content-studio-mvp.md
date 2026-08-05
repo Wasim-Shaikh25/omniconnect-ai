@@ -4,13 +4,17 @@ description: Content Studio — MVP (ideas + captions)
 
 # REQ-0018: Content Studio — MVP (ideas + captions)
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0079
 - **Owner:** wasim
 - **Module(s):** content (client of `ai` and `ecommerce`)
 - **Original spec path:** `docs/specs/0018-content-studio-mvp.md` (restructured)
 - **Task:** `docs/tasks/TASK-0018-content-studio-mvp.md`
 - **Tracker:** `docs/trackers/TRACKER-0018-content-studio-mvp.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0079-meta-growth-engine.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0018-content-studio-mvp.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

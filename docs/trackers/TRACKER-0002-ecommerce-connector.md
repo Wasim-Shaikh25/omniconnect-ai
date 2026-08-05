@@ -1,10 +1,14 @@
 # TRACKER-0002: eCommerce Connector Framework
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0078
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0002-ecommerce-connector.md`
 - **Task:** `docs/tasks/TASK-0002-ecommerce-connector.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0078-dynamic-ecommerce-adapters.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

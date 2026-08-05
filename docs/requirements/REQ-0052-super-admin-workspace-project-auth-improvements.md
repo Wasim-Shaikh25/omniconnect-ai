@@ -4,13 +4,17 @@ description: Super-Admin Login, Workspace/Project Model, and Auth Improvements
 
 # REQ-0052: Super-Admin Login, Workspace/Project Model, and Auth Improvements
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0087
 - **Owner:** Devin
 - **Module(s):** `auth`, `users`, `organizations`, `meta`, `support`, `shared`
 - **Original spec path:** `docs/specs/0052-super-admin-workspace-project-auth-improvements.md` (restructured)
 - **Task:** `docs/tasks/TASK-0052-super-admin-workspace-project-auth-improvements.md`
 - **Tracker:** `docs/trackers/TRACKER-0052-super-admin-workspace-project-auth-improvements.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0087-super-admin-panel.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0052-super-admin-workspace-project-auth-improvements.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

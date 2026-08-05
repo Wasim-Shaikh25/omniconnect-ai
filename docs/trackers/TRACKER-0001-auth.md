@@ -1,10 +1,14 @@
 # TRACKER-0001: Authentication
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0076
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0001-auth.md`
 - **Task:** `docs/tasks/TASK-0001-auth.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0076-auth-registration-overhaul.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

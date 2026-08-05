@@ -1,10 +1,14 @@
 # TRACKER-0003: Meta Integration
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0079
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0003-meta-integration.md`
 - **Task:** `docs/tasks/TASK-0003-meta-integration.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0079-meta-growth-engine.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

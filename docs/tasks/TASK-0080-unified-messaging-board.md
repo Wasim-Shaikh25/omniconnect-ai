@@ -47,6 +47,7 @@ Toggle flag on conversation → stops AI auto-reply → notifies owner.
 - [ ] T-034: Unified inbox UI
 - [ ] T-076: Human takeover toggle
 - [ ] T-077: AI reply in conversations
+- [ ] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2)
 
 ## 5. Acceptance Criteria
 

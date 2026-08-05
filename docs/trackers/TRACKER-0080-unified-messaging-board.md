@@ -24,6 +24,7 @@ Progress tracker for REQ-0080: Unified Messaging Board.
 - [ ] T-034: Unified inbox UI.
 - [ ] T-076: Human takeover toggle.
 - [ ] T-077: AI reply in conversations.
+- [ ] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
 
 ### Verification
 - [ ] `npm run lint` passes.

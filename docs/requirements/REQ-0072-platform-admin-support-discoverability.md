@@ -1,6 +1,6 @@
 # REQ-0072: Platform Admin, Support and Discoverability Completeness
 
-- **Status:** Approved
+- **Status:** Superseded — see REQ-0087
 - **Owner:** Platform / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0072-platform-admin-support-discoverability.md`
@@ -8,6 +8,10 @@
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §3.4 (webhook/integration health), §3.5 #7 (global search), §8.6, §8.7
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0087-super-admin-panel.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

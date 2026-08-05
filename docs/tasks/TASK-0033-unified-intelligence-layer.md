@@ -1,12 +1,16 @@
 # TASK-0033: Unified Intelligence Layer (OmniConnect 2.0)
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0089
 - **Owner:** wasim
 - **Module(s):** `intelligence` (new horizontal module) + `analytics`, `crm`, `conversations`, `ecommerce`, `campaigns`, `content`, `branddeals`, `affiliates`, `reports`, `notifications`
 - **Requirement:** `docs/requirements/REQ-0033-unified-intelligence-layer.md`
 - **Tracker:** `docs/trackers/TRACKER-0033-unified-intelligence-layer.md`
 - **Changelog entry:** See `CHANGELOG.md` for TASK-0033.
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0089-intelligence-layer.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

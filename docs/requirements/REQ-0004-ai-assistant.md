@@ -4,13 +4,17 @@ description: AI Customer Assistant
 
 # REQ-0004: AI Customer Assistant
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0081
 - **Owner:** wasim
 - **Module(s):** ai
 - **Original spec path:** `docs/specs/0004-ai-assistant.md` (restructured)
 - **Task:** `docs/tasks/TASK-0004-ai-assistant.md`
 - **Tracker:** `docs/trackers/TRACKER-0004-ai-assistant.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0081-ai-assistant-tools.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0004-ai-assistant.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

@@ -4,13 +4,17 @@ description: Human Takeover
 
 # REQ-0008: Human Takeover
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0080
 - **Owner:** wasim
 - **Module(s):** conversations, ai
 - **Original spec path:** `docs/specs/0008-human-takeover.md` (restructured)
 - **Task:** `docs/tasks/TASK-0008-human-takeover.md`
 - **Tracker:** `docs/trackers/TRACKER-0008-human-takeover.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0080-unified-messaging-board.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0008-human-takeover.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

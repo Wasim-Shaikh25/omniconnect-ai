@@ -1,10 +1,14 @@
 # TRACKER-0052: Super-Admin Login, Workspace/Project Model, and Auth Improvements
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0087
 - **Owner:** Devin
 - **Requirement:** `docs/requirements/REQ-0052-super-admin-workspace-project-auth-improvements.md`
 - **Task:** `docs/tasks/TASK-0052-super-admin-workspace-project-auth-improvements.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0087-super-admin-panel.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

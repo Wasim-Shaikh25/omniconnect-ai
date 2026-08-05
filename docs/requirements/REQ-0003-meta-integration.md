@@ -4,13 +4,17 @@ description: Meta Integration
 
 # REQ-0003: Meta Integration
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0079
 - **Owner:** wasim
 - **Module(s):** meta (+ event consumers: crm, conversations)
 - **Original spec path:** `docs/specs/0003-meta-integration.md` (restructured)
 - **Task:** `docs/tasks/TASK-0003-meta-integration.md`
 - **Tracker:** `docs/trackers/TRACKER-0003-meta-integration.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0079-meta-growth-engine.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0003-meta-integration.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

@@ -1,10 +1,14 @@
 # TRACKER-0004: AI Customer Assistant
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0081
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0004-ai-assistant.md`
 - **Task:** `docs/tasks/TASK-0004-ai-assistant.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0081-ai-assistant-tools.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

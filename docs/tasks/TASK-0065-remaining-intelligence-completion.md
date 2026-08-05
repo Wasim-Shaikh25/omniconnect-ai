@@ -1,6 +1,6 @@
 # TASK-0065 — Remaining Intelligence Layer Completion
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0089
 - **Linked Requirement:** `docs/requirements/REQ-0065-remaining-intelligence-completion.md`
 - **Created:** 2026-07-29
 - **Owner:** Devin

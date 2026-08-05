@@ -1,12 +1,17 @@
 # TASK-0011: Users, Organizations & Stores (multi-tenant foundation)
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0077, REQ-0090
 - **Owner:** wasim
 - **Module(s):** users, organizations
 - **Requirement:** `docs/requirements/REQ-0011-users-organizations-stores.md`
 - **Tracker:** `docs/trackers/TRACKER-0011-users-organizations-stores.md`
 - **Changelog entry:** See `CHANGELOG.md` for TASK-0011.
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0077-workspace-project-system.md`
+> - `docs/tasks/TASK-0090-cleanup-migration.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

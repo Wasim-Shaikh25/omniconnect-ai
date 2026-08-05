@@ -48,6 +48,8 @@ Insights API `online_followers` + historical post performance → AI correlation
 - [ ] T-025: Content Studio UI
 - [ ] T-058: Hashtag intelligence
 - [ ] T-059: Best time to post
+- [ ] T-069: Content calendar UI — visual grid preview, drag-to-reschedule (P1)
+- [ ] T-071: Trending reels/audio analysis — AI-powered niche pattern detection (P2)
 
 ## 5. Acceptance Criteria
 

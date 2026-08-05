@@ -1,10 +1,14 @@
 # TRACKER-0073: Projects and Workspace Lifecycle
 
-- **Status:** In Progress — Path B (remove) + Package C
+- **Status:** Superseded — see REQ-0077
 - **Owner:** Product / Backend / Frontend
 - **Requirement:** `docs/requirements/REQ-0073-projects-workspace-lifecycle.md`
 - **Task:** `docs/tasks/TASK-0073-projects-workspace-lifecycle.md`
 - **Last updated:** 2026-08-01
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0077-workspace-project-system.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 
