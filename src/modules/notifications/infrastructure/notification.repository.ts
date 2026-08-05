@@ -11,7 +11,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
     const created = await prisma.notification.create({
       data: {
         userId: input.userId,
-        projectId: input.projectId ?? null,
+        storeId: input.storeId ?? null,
         type: input.type,
         channel: input.channel ?? "IN_APP",
         tier: input.tier ?? "TODAY_FEED",
@@ -91,7 +91,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
 function toRecord(row: {
   id: string;
   userId: string;
-  projectId: string | null;
+  storeId: string | null;
   type: string;
   channel: string;
   tier: string;
@@ -105,7 +105,7 @@ function toRecord(row: {
   return {
     id: row.id,
     userId: row.userId,
-    projectId: row.projectId,
+    storeId: row.storeId,
     type: row.type as NotificationRecord["type"],
     channel: row.channel as NotificationRecord["channel"],
     tier: row.tier as NotificationRecord["tier"],

@@ -9,7 +9,7 @@ import { StoreConnected } from "../domain/events";
 import type { IntegrationRecord, IntegrationRepository } from "./ports";
 
 export const connectStoreSchema = z.object({
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
   provider: z.enum(ECOMMERCE_PROVIDERS).default("SHOPIFY"),
   shopDomain: z.string().max(255).optional(),
   accessToken: z.string().max(1024).optional(),
@@ -56,7 +56,7 @@ export function makeConnectStore(deps: {
     }
 
     const integration = await deps.integrations.upsertEcommerce({
-      projectId: input.projectId,
+      storeId: input.storeId,
       provider: input.provider,
       shopDomain: input.shopDomain ?? info.domain ?? null,
       accessToken: input.accessToken ?? null,
@@ -65,15 +65,15 @@ export function makeConnectStore(deps: {
     });
 
     await eventBus.publish(
-      new StoreConnected(input.projectId, {
-        projectId: input.projectId,
+      new StoreConnected(input.storeId, {
+        storeId: input.storeId,
         provider: input.provider,
         shopDomain: integration.shopDomain,
       }),
     );
 
     logger.info("ecommerce.storeConnected", {
-      projectId: input.projectId,
+      storeId: input.storeId,
       provider: input.provider,
     });
 

@@ -41,7 +41,7 @@ export function makeSocialAutomationService(deps: SocialServiceDeps): SocialAuto
     async handleComment(input) {
       const { intent, sentiment, autoReply } = classifyComment(input.text);
       const comment = await deps.comments.create({
-        projectId: input.projectId,
+        storeId: input.storeId,
         externalMediaId: input.externalMediaId,
         externalCommentId: input.externalCommentId,
         externalUserId: input.externalUserId,
@@ -54,7 +54,7 @@ export function makeSocialAutomationService(deps: SocialServiceDeps): SocialAuto
 
       logger.info("social.comment.handled", {
         commentId: comment.id,
-        projectId: input.projectId,
+        storeId: input.storeId,
         intent,
         sentiment,
       });
@@ -62,18 +62,18 @@ export function makeSocialAutomationService(deps: SocialServiceDeps): SocialAuto
       return comment;
     },
 
-    async replyToComment(id, projectId, replyText) {
+    async replyToComment(id, storeId, replyText) {
       const comment = await deps.comments.markReplied(id, replyText);
       await eventBus.publish(
-        new CommentReplied(projectId, { projectId, commentId: id, replyText }),
+        new CommentReplied(storeId, { storeId, commentId: id, replyText }),
       );
       return comment;
     },
 
-    async toggleHidden(id, projectId, hidden) {
+    async toggleHidden(id, storeId, hidden) {
       const comment = await deps.comments.markHidden(id, hidden);
       if (hidden) {
-        await eventBus.publish(new CommentHidden(projectId, { projectId, commentId: id }));
+        await eventBus.publish(new CommentHidden(storeId, { storeId, commentId: id }));
       }
       return comment;
     },

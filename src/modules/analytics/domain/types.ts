@@ -77,8 +77,8 @@ export interface CampaignSection {
 }
 
 export interface MarketingPerformanceView {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   generatedAt: Date;
   dataQuality: "live" | "partial" | "simulated";
   content: ContentPerformanceSection;
@@ -91,7 +91,7 @@ export interface MarketingPerformanceView {
 
 export interface MediaPost {
   id: string;
-  projectId: string;
+  storeId: string;
   trackedAccountId: string | null;
   externalId: string;
   platform: string;
@@ -125,7 +125,7 @@ export interface MediaInsight {
 
 export interface AccountInsight {
   id: string;
-  projectId: string;
+  storeId: string;
   date: Date;
   followers: number | null;
   profileViews: number | null;
@@ -138,7 +138,7 @@ export interface AccountInsight {
 
 export interface TrendSnapshot {
   id: string;
-  projectId: string;
+  storeId: string;
   type: "HASHTAG" | "AUDIO" | "NICHE";
   query: string;
   data: Record<string, unknown>;
@@ -147,7 +147,7 @@ export interface TrendSnapshot {
 
 export interface ContentRecommendation {
   id: string;
-  projectId: string;
+  storeId: string;
   type: string;
   title: string;
   outline: string;
@@ -159,7 +159,7 @@ export interface ContentRecommendation {
 
 export interface Report {
   id: string;
-  projectId: string;
+  storeId: string;
   period: "WEEKLY" | "MONTHLY";
   content: Record<string, unknown>;
   generatedAt: Date;

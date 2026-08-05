@@ -24,24 +24,24 @@ function makeFakeDailyActions(): DailyActionRepository & { store: DailyActionRec
       store.push(record);
       return record;
     },
-    async listPending(userId, projectId) {
+    async listPending(organizationId, storeId) {
       return store.filter(
         (a) =>
-          a.userId === userId &&
+          a.organizationId === organizationId &&
           a.status === "PENDING" &&
-          (projectId ? a.projectId === projectId : true),
+          (storeId ? a.storeId === storeId : true),
       );
     },
-    async listForDate(userId, _since, projectId) {
+    async listForDate(organizationId, _since, storeId) {
       return store.filter(
-        (a) => a.userId === userId && (projectId ? a.projectId === projectId : true),
+        (a) => a.organizationId === organizationId && (storeId ? a.storeId === storeId : true),
       );
     },
-    async findById(id, userId) {
-      return store.find((a) => a.id === id && (userId ? a.userId === userId : true)) ?? null;
+    async findById(id, organizationId) {
+      return store.find((a) => a.id === id && (organizationId ? a.organizationId === organizationId : true)) ?? null;
     },
-    async complete(id, userId, feedback, outcomeId) {
-      void userId;
+    async complete(id, organizationId, feedback, outcomeId) {
+      void organizationId;
       const a = store.find((x) => x.id === id)!;
       a.status = "DONE";
       a.feedback = feedback;
@@ -49,16 +49,16 @@ function makeFakeDailyActions(): DailyActionRepository & { store: DailyActionRec
       a.completedAt = new Date();
       return a;
     },
-    async skip(id, userId, reason) {
-      void userId;
+    async skip(id, organizationId, reason) {
+      void organizationId;
       const a = store.find((x) => x.id === id)!;
       a.status = "SKIPPED";
       a.feedback = reason;
       a.skippedAt = new Date();
       return a;
     },
-    async setOutcome(id, userId, outcomeId) {
-      void userId;
+    async setOutcome(id, organizationId, outcomeId) {
+      void organizationId;
       const a = store.find((x) => x.id === id)!;
       a.outcomeId = outcomeId;
       return a;
@@ -80,14 +80,14 @@ function makeFakeOutcomes(): ActionOutcomeRepository & { store: ActionOutcomeRec
       store.push(record);
       return record;
     },
-    async findByAction(actionId, userId) {
-      return store.find((o) => o.actionId === actionId && o.userId === userId) ?? null;
+    async findByAction(actionId, organizationId) {
+      return store.find((o) => o.actionId === actionId && o.organizationId === organizationId) ?? null;
     },
-    async findById(id, userId) {
-      return store.find((o) => o.id === id && o.userId === userId) ?? null;
+    async findById(id, organizationId) {
+      return store.find((o) => o.id === id && o.organizationId === organizationId) ?? null;
     },
-    async updateMeasured(id, userId, metricAfter, status, measuredAt) {
-      const o = store.find((x) => x.id === id && x.userId === userId)!;
+    async updateMeasured(id, organizationId, metricAfter, status, measuredAt) {
+      const o = store.find((x) => x.id === id && x.organizationId === organizationId)!;
       o.metricAfter = metricAfter;
       o.status = status;
       o.measuredAt = measuredAt;
@@ -113,8 +113,8 @@ const recommendationRepoStub: RecommendationRepository = {
 function rankedRec(overrides: Partial<RankedRecommendationLike>): RankedRecommendationLike {
   const base: RecommendationRecord = {
     id: nextId("rec"),
-    userId: "org-1",
-    projectId: "store-1",
+    organizationId: "org-1",
+    storeId: "store-1",
     insightId: null,
     title: "Recommendation",
     description: "Do the thing",
@@ -189,7 +189,7 @@ describe("dailyActionService.complete/skip", () => {
       recommendations: recommendationRepoStub,
       prioritize: async () => [rankedRec({ title: "Sell", businessObjective: "REVENUE" })],
       metrics: { getMetric: async () => ({ value: 250 }) },
-      enqueueMeasurement: async (id, userId) => { enqueued.push(id); void userId; },
+      enqueueMeasurement: async (id, organizationId) => { enqueued.push(id); void organizationId; },
     });
 
     const [action] = await svc.generate("org-1", "store-1");

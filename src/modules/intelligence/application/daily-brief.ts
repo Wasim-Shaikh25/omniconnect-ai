@@ -4,8 +4,8 @@ import type { DailyBriefRecord, MarketingMemoryRecord } from "../domain/types";
 
 interface DailyBriefDeps {
   updateMarketingMemory: (
-    userId: string,
-    projectId: string,
+    organizationId: string,
+    storeId: string,
   ) => Promise<MarketingMemoryRecord>;
   eventBus: EventBus;
 }
@@ -40,7 +40,7 @@ function buildSections(
       detail: topDm
         ? `Customers are asking about ${topDm.category.replace(/_/g, " ").toLowerCase()} (${topDm.frequency} times).`
         : "No strong DM pattern detected.",
-      cta: { label: "Generate content", href: `/stores/${memory.projectId}/content` },
+      cta: { label: "Generate content", href: `/stores/${memory.storeId}/content` },
     },
     {
       title: "Competitor alert",
@@ -56,7 +56,7 @@ function buildSections(
       detail: topProduct
         ? `Composite score ${Math.round(topProduct.compositeScore * 100)}. ${topProduct.evidence}`
         : "No products scored yet.",
-      cta: { label: "View products", href: `/stores/${memory.projectId}/commerce/catalog` },
+      cta: { label: "View products", href: `/stores/${memory.storeId}/commerce/catalog` },
     },
     {
       title: "DM insights",
@@ -64,7 +64,7 @@ function buildSections(
       detail: topDm
         ? `Top pattern: ${topDm.category.replace(/_/g, " ")}`
         : "No DM patterns yet.",
-      cta: { label: "Open inbox", href: `/stores/${memory.projectId}/conversations` },
+      cta: { label: "Open inbox", href: `/stores/${memory.storeId}/conversations` },
     },
     {
       title: "Comment insights",
@@ -72,13 +72,13 @@ function buildSections(
       detail: memory.commentPatterns[0]
         ? `Top comment theme: ${memory.commentPatterns[0].category.replace(/_/g, " ").toLowerCase()} (${memory.commentPatterns[0].frequency})`
         : "No comment patterns yet.",
-      cta: { label: "View comments", href: `/stores/${memory.projectId}/commerce/comments` },
+      cta: { label: "View comments", href: `/stores/${memory.storeId}/commerce/comments` },
     },
     {
       title: "Campaign performance",
       value: memory.campaignHistory.length,
       detail: `${memory.campaignHistory.length} coupon/automation tracked.`,
-      cta: { label: "Campaigns", href: `/stores/${memory.projectId}/campaigns` },
+      cta: { label: "Campaigns", href: `/stores/${memory.storeId}/campaigns` },
     },
     {
       title: "Best time to post",
@@ -91,12 +91,12 @@ function buildSections(
 
 export function makeGenerateDailyBrief(deps: DailyBriefDeps) {
   return async function generateDailyBrief(
-    userId: string,
-    projectId: string,
+    organizationId: string,
+    storeId: string,
     seedMemory?: MarketingMemoryRecord,
   ): Promise<DailyBriefRecord> {
     const memory =
-      seedMemory ?? (await deps.updateMarketingMemory(userId, projectId));
+      seedMemory ?? (await deps.updateMarketingMemory(organizationId, storeId));
 
     const topProduct = memory.productScores[0] ?? null;
     const topDm = memory.dmPatterns[0] ?? null;
@@ -113,8 +113,8 @@ export function makeGenerateDailyBrief(deps: DailyBriefDeps) {
     if (memory.competitorChanges.length > 0) priorities.push("Review competitor changes");
 
     const brief: DailyBriefRecord = {
-      userId,
-      projectId,
+      organizationId,
+      storeId,
       generatedAt: new Date(),
       sections: buildSections(memory),
       contentIdea,
@@ -129,9 +129,9 @@ export function makeGenerateDailyBrief(deps: DailyBriefDeps) {
     };
 
     await deps.eventBus.publish(
-      new DailyMarketingBriefGenerated(projectId, {
-        userId,
-        projectId,
+      new DailyMarketingBriefGenerated(storeId, {
+        organizationId,
+        storeId,
         generatedAt: brief.generatedAt,
       }),
     );

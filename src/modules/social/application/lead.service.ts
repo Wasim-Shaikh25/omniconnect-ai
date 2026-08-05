@@ -24,16 +24,16 @@ export function makeLeadService(deps: { leads: LeadRepository }): LeadService & 
       });
     },
 
-    async scoreLead(id, projectId) {
-      const lead = await deps.leads.listByStore(projectId).then((list) => list.find((l) => l.id === id));
+    async scoreLead(id, storeId) {
+      const lead = await deps.leads.listByStore(storeId).then((list) => list.find((l) => l.id === id));
       if (!lead) throw new Error("Lead not found");
       const score = scoreFromPayload(lead.source, lead.payload);
       const status = score >= 60 ? "SCORED" : lead.status;
       return deps.leads.updateScore(id, score, status);
     },
 
-    async listLeads(projectId, limit = 50) {
-      return deps.leads.listByStore(projectId, limit);
+    async listLeads(storeId, limit = 50) {
+      return deps.leads.listByStore(storeId, limit);
     },
   };
 }

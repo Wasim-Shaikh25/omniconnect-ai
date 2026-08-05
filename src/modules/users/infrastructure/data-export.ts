@@ -49,12 +49,12 @@ export const prismaDataExportBuilder: DataExportBuilder = {
       integrations,
       brainMemory,
     ] = await Promise.all([
-      prisma.product.findMany({ where: { projectId: { in: storeIds } } }),
-      prisma.coupon.findMany({ where: { projectId: { in: storeIds } }, include: { usages: true } }),
-      prisma.customer.findMany({ where: { projectId: { in: storeIds } } }),
-      prisma.follower.findMany({ where: { projectId: { in: storeIds } } }),
+      prisma.product.findMany({ where: { storeId: { in: storeIds } } }),
+      prisma.coupon.findMany({ where: { storeId: { in: storeIds } }, include: { usages: true } }),
+      prisma.customer.findMany({ where: { storeId: { in: storeIds } } }),
+      prisma.follower.findMany({ where: { storeId: { in: storeIds } } }),
       prisma.conversation.findMany({
-        where: { projectId: { in: storeIds } },
+        where: { storeId: { in: storeIds } },
         include: { messages: true },
       }),
       prisma.notification.findMany({ where: { userId } }),
@@ -63,19 +63,19 @@ export const prismaDataExportBuilder: DataExportBuilder = {
         include: { comments: true },
       }),
       prisma.auditLog.findMany({
-        where: { OR: [{ actorId: userId }, { userId: organization?.id }] },
+        where: { OR: [{ actorId: userId }, { organizationId: organization?.id }] },
         take: 1000,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.ecommerceConnection.findMany({
-        where: { projectId: { in: storeIds } },
+      prisma.integration.findMany({
+        where: { storeId: { in: storeIds } },
         select: {
           id: true,
           type: true,
           provider: true,
           externalId: true,
           scopes: true,
-          projectId: true,
+          storeId: true,
           createdAt: true,
           updatedAt: true,
         },

@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface CommentRepliedPayload {
-  projectId: string;
+  storeId: string;
   commentId: string;
   replyText: string;
 }
@@ -11,7 +11,7 @@ export class CommentReplied extends BaseDomainEvent<CommentRepliedPayload> {
 }
 
 export interface CommentHiddenPayload {
-  projectId: string;
+  storeId: string;
   commentId: string;
 }
 

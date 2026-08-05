@@ -1,8 +1,8 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface ContentIdeasGeneratedPayload {
-  projectId: string;
-  userId?: string;
+  storeId: string;
+  organizationId?: string;
   ideas: string[];
   evidence: string;
   generatedAt: string;

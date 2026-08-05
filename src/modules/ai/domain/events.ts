@@ -2,7 +2,7 @@ import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface ReplyGeneratedPayload {
   conversationId: string;
-  projectId: string;
+  storeId: string;
   externalUserId: string | null;
   text: string;
 }
@@ -17,7 +17,7 @@ export class ReplyGenerated extends BaseDomainEvent<ReplyGeneratedPayload> {
 
 export interface EscalationRequestedPayload {
   conversationId: string;
-  projectId: string;
+  storeId: string;
   externalUserId: string | null;
   reason: string;
 }

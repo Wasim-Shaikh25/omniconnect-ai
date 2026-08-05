@@ -10,8 +10,8 @@ export interface SessionUser {
   role: Role;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
-  userId: string | null;
-  projectId: string | null;
+  organizationId: string | null;
+  storeId: string | null;
 }
 
 function toSessionUser(row: {
@@ -21,8 +21,8 @@ function toSessionUser(row: {
   role: string;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
-  userId: string | null;
-  projectId: string | null;
+  organizationId: string | null;
+  storeId: string | null;
 }): SessionUser {
   const role = isRole(row.role) ? (row.role as Role) : "STORE_OWNER";
   return {
@@ -32,8 +32,8 @@ function toSessionUser(row: {
     role,
     isSuperAdmin: row.isSuperAdmin,
     emailVerified: row.emailVerified,
-    userId: row.userId,
-    projectId: row.projectId,
+    organizationId: row.organizationId,
+    storeId: row.storeId,
   };
 }
 
@@ -57,8 +57,8 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     role: fresh.role,
     isSuperAdmin: fresh.isSuperAdmin,
     emailVerified: fresh.emailVerified,
-    userId: fresh.userId,
-    projectId: fresh.projectId,
+    organizationId: fresh.organizationId,
+    storeId: fresh.storeId,
   };
 }
 
@@ -74,8 +74,8 @@ async function loadFreshUser(
       role: true,
       isSuperAdmin: true,
       emailVerified: true,
-      userId: true,
-      projectId: true,
+      organizationId: true,
+      storeId: true,
       tokenVersion: true,
     },
   });

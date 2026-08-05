@@ -11,13 +11,13 @@ export interface PortfolioServiceInput {
   snapshots: PortfolioSnapshotRepository;
   predictions: PredictionRepository;
   recommendations: RecommendationRepository;
-  getStores: (userId: string) => Promise<{ id: string; name: string }[]>;
+  getStores: (organizationId: string) => Promise<{ id: string; name: string }[]>;
 }
 
 export function makePortfolioService(input: PortfolioServiceInput) {
   return {
-    async generateSnapshot(userId: string): Promise<PortfolioSnapshotRecord> {
-      const stores = await input.getStores(userId);
+    async generateSnapshot(organizationId: string): Promise<PortfolioSnapshotRecord> {
+      const stores = await input.getStores(organizationId);
       let totalRevenueEstimate = 0;
       let totalChurnRisk = 0;
       let topRiskStoreId: string | null = null;
@@ -27,12 +27,12 @@ export function makePortfolioService(input: PortfolioServiceInput) {
       for (const store of stores) {
         const [revenuePrediction, churnPrediction, openRecommendations] = await Promise.all([
           input.predictions
-            .listActive(userId, store.id, 20)
+            .listActive(organizationId, store.id, 20)
             .then((p) => p.find((x) => x.predictionType === "REVENUE_FORECAST")),
           input.predictions
-            .listActive(userId, store.id, 20)
+            .listActive(organizationId, store.id, 20)
             .then((p) => p.find((x) => x.predictionType === "CHURN")),
-          input.recommendations.listOpen(userId, store.id, 50),
+          input.recommendations.listOpen(organizationId, store.id, 50),
         ]);
 
         if (typeof revenuePrediction?.estimate === "number") {
@@ -54,7 +54,7 @@ export function makePortfolioService(input: PortfolioServiceInput) {
         .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
       const draft: Omit<PortfolioSnapshotRecord, "id" | "createdAt" | "updatedAt"> = {
-        userId,
+        organizationId,
         storeCount: stores.length,
         totalRevenueEstimate: totalRevenueEstimate || null,
         totalChurnRisk: totalChurnRisk || null,
@@ -69,8 +69,8 @@ export function makePortfolioService(input: PortfolioServiceInput) {
       return saved;
     },
 
-    async getLatest(userId: string): Promise<PortfolioSnapshotRecord | null> {
-      return input.snapshots.findLatest(userId);
+    async getLatest(organizationId: string): Promise<PortfolioSnapshotRecord | null> {
+      return input.snapshots.findLatest(organizationId);
     },
   };
 }

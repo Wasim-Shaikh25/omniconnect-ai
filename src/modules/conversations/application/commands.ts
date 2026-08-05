@@ -13,7 +13,7 @@ export function makeConversationCommands(deps: {
 }) {
   return {
     async createConversation(input: {
-      projectId: string;
+      storeId: string;
       channel: "INSTAGRAM" | "FACEBOOK";
       externalId: string;
       customerId?: string;
@@ -23,38 +23,38 @@ export function makeConversationCommands(deps: {
 
     async appendMessage(
       conversationId: string,
-      projectId: string,
+      storeId: string,
       sender: MessageSender,
       content: string,
       inReplyToMessageId?: string | null,
     ): Promise<MessageRecord> {
       return deps.messages.append({
         conversationId,
-        projectId,
+        storeId,
         sender,
         content,
         inReplyToMessageId,
       });
     },
 
-    async setHumanActive(conversationId: string, projectId: string): Promise<void> {
-      await deps.conversations.updateStatus(conversationId, projectId, "HUMAN_ACTIVE");
+    async setHumanActive(conversationId: string, storeId: string): Promise<void> {
+      await deps.conversations.updateStatus(conversationId, storeId, "HUMAN_ACTIVE");
     },
 
     async takeOver(input: {
       conversationId: string;
-      projectId: string;
+      storeId: string;
       humanUserId: string;
     }): Promise<void> {
       const conversation = await deps.conversations.takeOver({
         id: input.conversationId,
-        projectId: input.projectId,
+        storeId: input.storeId,
         humanUserId: input.humanUserId,
       });
 
       await deps.messages.append({
         conversationId: input.conversationId,
-        projectId: input.projectId,
+        storeId: input.storeId,
         sender: "HUMAN",
         content: "Agent took over the conversation.",
       });
@@ -62,7 +62,7 @@ export function makeConversationCommands(deps: {
       await eventBus.publish(
         new ConversationTakenOver(conversation.id, {
           conversationId: conversation.id,
-          projectId: conversation.projectId,
+          storeId: conversation.storeId,
           humanUserId: input.humanUserId,
           customerId: conversation.customerId,
         }),
@@ -71,16 +71,16 @@ export function makeConversationCommands(deps: {
 
     async resumeAI(input: {
       conversationId: string;
-      projectId: string;
+      storeId: string;
     }): Promise<void> {
       const conversation = await deps.conversations.resumeAI(
         input.conversationId,
-        input.projectId,
+        input.storeId,
       );
 
       await deps.messages.append({
         conversationId: input.conversationId,
-        projectId: input.projectId,
+        storeId: input.storeId,
         sender: "HUMAN",
         content: "AI resumed.",
       });
@@ -88,7 +88,7 @@ export function makeConversationCommands(deps: {
       await eventBus.publish(
         new AIResumed(conversation.id, {
           conversationId: conversation.id,
-          projectId: conversation.projectId,
+          storeId: conversation.storeId,
           customerId: conversation.customerId,
         }),
       );

@@ -41,10 +41,10 @@ function LearningRow({ record }: { record: BusinessLearningRecord }) {
   );
 }
 
-export async function LearningPanel({ projectId }: { projectId?: string }) {
+export async function LearningPanel({ storeId }: { storeId?: string }) {
   const [{ hypotheses }, { learning }] = await Promise.all([
-    getHypothesesAction(projectId),
-    getBusinessLearningAction(projectId),
+    getHypothesesAction(storeId),
+    getBusinessLearningAction(storeId),
   ]);
 
   return (

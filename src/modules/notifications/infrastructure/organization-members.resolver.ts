@@ -4,15 +4,15 @@ import type { OrganizationMembersResolver } from "../application/ports";
 export class PrismaOrganizationMembersResolver
   implements OrganizationMembersResolver
 {
-  async getUserIdsForStore(projectId: string): Promise<string[]> {
-    const store = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { userId: true },
+  async getUserIdsForStore(storeId: string): Promise<string[]> {
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      select: { organizationId: true },
     });
-    if (!store?.userId) return [];
+    if (!store?.organizationId) return [];
 
     const users = await prisma.user.findMany({
-      where: { userId: store.userId },
+      where: { organizationId: store.organizationId },
       select: { id: true },
       take: 1000,
     });

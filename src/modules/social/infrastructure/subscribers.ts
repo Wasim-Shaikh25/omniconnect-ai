@@ -10,7 +10,7 @@ import { socialAutomationService, leadService } from "./container";
 const onMetaCommentReceived: EventHandler = async (event) => {
   const p = event.payload as MetaCommentReceivedPayload;
   const comment = await socialAutomationService.handleComment({
-    projectId: p.projectId,
+    storeId: p.storeId,
     externalUserId: p.externalUserId,
     username: p.username,
     text: p.text,
@@ -19,7 +19,7 @@ const onMetaCommentReceived: EventHandler = async (event) => {
 
   if (comment.intent === "PURCHASE_INTENT" || comment.intent === "QUESTION") {
     await leadService.captureLead({
-      projectId: p.projectId,
+      storeId: p.storeId,
       source: "COMMENT",
       payload: {
         username: p.username,
@@ -34,7 +34,7 @@ const onMetaCommentReceived: EventHandler = async (event) => {
 const onMetaMessageReceived: EventHandler = async (event) => {
   const p = event.payload as MetaMessageReceivedPayload;
   await leadService.captureLead({
-    projectId: p.projectId,
+    storeId: p.storeId,
     source: "DM",
     payload: {
       externalUserId: p.externalUserId,
@@ -47,7 +47,7 @@ const onMetaMessageReceived: EventHandler = async (event) => {
 const onMetaFollowReceived: EventHandler = async (event) => {
   const p = event.payload as MetaFollowReceivedPayload;
   await leadService.captureLead({
-    projectId: p.projectId,
+    storeId: p.storeId,
     source: "FOLLOW",
     payload: {
       externalUserId: p.externalUserId,

@@ -31,7 +31,7 @@ export function StoreSelectForm({
     <form action={formAction} className="flex items-center gap-2">
       <input type="hidden" name="userId" value={userId} />
       <select
-        name="projectId"
+        name="storeId"
         defaultValue={currentStoreId ?? ""}
         className="rounded-md border bg-background px-2 py-1 text-sm"
       >

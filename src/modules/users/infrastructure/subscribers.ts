@@ -8,10 +8,10 @@ const users = new PrismaUserProfileRepository();
 
 // Subscribes by event name; only the payload *type* is imported (erased at build).
 const onOrganizationCreated: EventHandler = async (event) => {
-  const { userId, ownerUserId } =
+  const { organizationId, ownerUserId } =
     event.payload as OrganizationCreatedPayload;
-  await users.setOrganization(ownerUserId, userId);
-  logger.info("users.linkedToOrganization", { ownerUserId, userId });
+  await users.setOrganization(ownerUserId, organizationId);
+  logger.info("users.linkedToOrganization", { ownerUserId, organizationId });
 };
 
 /** Wires the users module's event subscribers. Call once at startup. */

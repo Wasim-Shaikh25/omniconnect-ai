@@ -6,7 +6,7 @@ import type { TrackedAccountRecord } from "@/modules/analytics";
 
 export interface CompetitorIntelligenceServiceInput {
   insights: CompetitorInsightRepository;
-  getStoreFollowerCount: (userId: string, projectId: string) => Promise<number>;
+  getStoreFollowerCount: (organizationId: string, storeId: string) => Promise<number>;
 }
 
 function competitorScore(analysis: unknown): number {
@@ -26,11 +26,11 @@ function postVolume(media: unknown): number {
 export function makeCompetitorIntelligenceService(input: CompetitorIntelligenceServiceInput) {
   return {
     async generateForStore(
-      userId: string,
-      projectId: string,
+      organizationId: string,
+      storeId: string,
       accounts: TrackedAccountRecord[],
     ): Promise<CompetitorInsightRecord[]> {
-      const storeFollowerCount = await input.getStoreFollowerCount(userId, projectId);
+      const storeFollowerCount = await input.getStoreFollowerCount(organizationId, storeId);
       const generated: CompetitorInsightRecord[] = [];
 
       for (const account of accounts) {
@@ -39,8 +39,8 @@ export function makeCompetitorIntelligenceService(input: CompetitorIntelligenceS
 
         generated.push(
           await input.insights.save({
-            userId,
-            projectId,
+            organizationId,
+            storeId,
             competitorHandle: account.handle,
             metricName: "post_volume",
             value: pv,
@@ -53,8 +53,8 @@ export function makeCompetitorIntelligenceService(input: CompetitorIntelligenceS
 
         generated.push(
           await input.insights.save({
-            userId,
-            projectId,
+            organizationId,
+            storeId,
             competitorHandle: account.handle,
             metricName: "content_diversity",
             value: score,
@@ -73,8 +73,8 @@ export function makeCompetitorIntelligenceService(input: CompetitorIntelligenceS
       return generated;
     },
 
-    async list(userId: string, projectId?: string, limit = 20): Promise<CompetitorInsightRecord[]> {
-      return input.insights.list(userId, projectId, limit);
+    async list(organizationId: string, storeId?: string, limit = 20): Promise<CompetitorInsightRecord[]> {
+      return input.insights.list(organizationId, storeId, limit);
     },
   };
 }

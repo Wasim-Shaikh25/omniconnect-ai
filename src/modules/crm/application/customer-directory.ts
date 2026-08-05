@@ -105,7 +105,7 @@ function matchesFilter(
 export function makeCustomerDirectory(deps: {
   organizations: {
     getOrganizationOverview(
-      userId: string,
+      organizationId: string,
     ): Promise<{ id: string; name: string; stores: { id: string; name: string }[] } | null>;
   };
   customers: CustomerRepository;
@@ -113,16 +113,16 @@ export function makeCustomerDirectory(deps: {
 }) {
   function filterStoresByScope(
     stores: { id: string; name: string }[],
-    projectId?: string | null,
+    storeId?: string | null,
   ) {
-    if (!projectId) return stores;
-    return stores.filter((s) => s.id === projectId);
+    if (!storeId) return stores;
+    return stores.filter((s) => s.id === storeId);
   }
   async function enrich(
     customer: CustomerRecord,
     storeNameById: Map<string, string>,
   ): Promise<CustomerListView> {
-    const activity = await deps.customers.getActivity(customer.id, customer.projectId);
+    const activity = await deps.customers.getActivity(customer.id, customer.storeId);
 
     const { engagementScore, leadScore } = computeScores(
       activity,
@@ -137,7 +137,7 @@ export function makeCustomerDirectory(deps: {
 
     return {
       ...customer,
-      storeName: storeNameById.get(customer.projectId) ?? "Unknown",
+      storeName: storeNameById.get(customer.storeId) ?? "Unknown",
       engagementScore,
       leadScore,
       segment,
@@ -146,14 +146,14 @@ export function makeCustomerDirectory(deps: {
   }
 
   async function fetchFiltered(
-    userId: string,
+    organizationId: string,
     filter?: CustomerDirectoryFilter,
-    projectId?: string | null,
+    storeId?: string | null,
   ): Promise<CustomerListView[]> {
-    const overview = await deps.organizations.getOrganizationOverview(userId);
+    const overview = await deps.organizations.getOrganizationOverview(organizationId);
     if (!overview) return [];
 
-    const stores = filterStoresByScope(overview.stores, projectId);
+    const stores = filterStoresByScope(overview.stores, storeId);
     const storeIds = stores.map((s) => s.id);
     const storeNameById = new Map(stores.map((s) => [s.id, s.name]));
 
@@ -166,31 +166,31 @@ export function makeCustomerDirectory(deps: {
 
   return {
     async listCustomersByOrganization(
-      userId: string,
+      organizationId: string,
       filter?: CustomerDirectoryFilter,
-      projectId?: string | null,
+      storeId?: string | null,
     ): Promise<CustomerListView[]> {
-      return fetchFiltered(userId, filter, projectId);
+      return fetchFiltered(organizationId, filter, storeId);
     },
 
     async listCustomersByOrganizationPaginated(
-      userId: string,
+      organizationId: string,
       pagination: PaginationInput,
       filter?: CustomerDirectoryFilter,
-      projectId?: string | null,
+      storeId?: string | null,
     ): Promise<PaginatedResult<CustomerListView>> {
-      const all = await fetchFiltered(userId, filter, projectId);
+      const all = await fetchFiltered(organizationId, filter, storeId);
       const skip = toSkip(pagination);
       const items = all.slice(skip, skip + pagination.limit);
       return paginatedResult(items, all.length, pagination);
     },
 
     async getCustomerDetail(
-      userId: string,
+      organizationId: string,
       customerId: string,
     ): Promise<CustomerDetailView | null> {
       const overview = await deps.organizations.getOrganizationOverview(
-        userId,
+        organizationId,
       );
       if (!overview) return null;
 
@@ -198,24 +198,24 @@ export function makeCustomerDirectory(deps: {
       const storeNameById = new Map(overview.stores.map((s) => [s.id, s.name]));
 
       let customer: CustomerRecord | null = null;
-      for (const projectId of storeIds) {
-        customer = await deps.customers.findById(customerId, projectId);
+      for (const storeId of storeIds) {
+        customer = await deps.customers.findById(customerId, storeId);
         if (customer) break;
       }
       if (!customer) return null;
 
       const profile = await deps.customers.getProfile({
-        projectId: customer.projectId,
+        storeId: customer.storeId,
         channel: customer.igUserId ? "INSTAGRAM" : "FACEBOOK",
         externalUserId: customer.igUserId ?? customer.fbUserId ?? "",
       });
 
       const base = await enrich(customer, storeNameById);
-      const followers = await deps.followers.listByStore(customer.projectId, { limit: 50 });
+      const followers = await deps.followers.listByStore(customer.storeId, { limit: 50 });
 
       return {
         ...base,
-        storeName: storeNameById.get(customer.projectId) ?? "Unknown",
+        storeName: storeNameById.get(customer.storeId) ?? "Unknown",
         coupons: profile?.coupons ?? [],
         usages: profile?.usages ?? [],
         followers: followers.filter((f) => f.customerId === customer.id),

@@ -29,11 +29,11 @@ export default async function CustomerDetailPage({
   params: Promise<{ customerId: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !user.userId) redirect("/login");
+  if (!user || !user.organizationId) redirect("/login");
 
   const { customerId } = await params;
   const customer = await customerDirectory.getCustomerDetail(
-    user.userId,
+    user.organizationId,
     customerId,
   );
   if (!customer) notFound();

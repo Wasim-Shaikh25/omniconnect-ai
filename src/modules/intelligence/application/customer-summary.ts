@@ -2,7 +2,7 @@ import type { EntityLinkRecord, CustomerIntelligenceSummary, ConfidenceLevel, Jo
 
 type CustomerDetail = {
   id: string;
-  projectId: string;
+  storeId: string;
   username: string | null;
   igUserId: string | null;
   fbUserId: string | null;
@@ -26,8 +26,8 @@ type CustomerDetail = {
   followers: { id: string; igUserId: string | null; username: string | null }[];
 };
 
-type GetCustomerDetail = (userId: string, customerId: string) => Promise<CustomerDetail | null>;
-type GetLinkedEntities = (userId: string, entityType: string, entityId: string) => Promise<EntityLinkRecord[]>;
+type GetCustomerDetail = (organizationId: string, customerId: string) => Promise<CustomerDetail | null>;
+type GetLinkedEntities = (organizationId: string, entityType: string, entityId: string) => Promise<EntityLinkRecord[]>;
 
 function linkConfidence(links: EntityLinkRecord[]): ConfidenceLevel {
   if (links.length === 0) return "POSSIBLE";
@@ -83,7 +83,7 @@ function preferredChannel(customer: CustomerDetail): string | null {
 
 export interface CustomerSummaryInput {
   customerId: string;
-  userId: string;
+  organizationId: string;
   getCustomerDetail: GetCustomerDetail;
   getLinkedEntities: GetLinkedEntities;
 }
@@ -91,14 +91,14 @@ export interface CustomerSummaryInput {
 export function makeCustomerSummaryService() {
   return {
     async buildSummary(input: CustomerSummaryInput): Promise<CustomerIntelligenceSummary | null> {
-      const customer = await input.getCustomerDetail(input.userId, input.customerId);
+      const customer = await input.getCustomerDetail(input.organizationId, input.customerId);
       if (!customer) return null;
 
-      const links = await input.getLinkedEntities(input.userId, "customer", customer.id);
+      const links = await input.getLinkedEntities(input.organizationId, "customer", customer.id);
 
       return {
         customerId: customer.id,
-        projectId: customer.projectId,
+        storeId: customer.storeId,
         displayName: customer.username ?? customer.igUserId ?? customer.fbUserId ?? "Unknown",
         lifecycleStage: customer.lifecycleStage,
         consent: customer.consent,

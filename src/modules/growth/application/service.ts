@@ -46,7 +46,7 @@ export interface GrowthServiceDeps {
   commentUnlocks: CommentUnlockRepository;
   meta: MetaService;
   getCustomerConsent: (input: {
-    projectId: string;
+    storeId: string;
     externalUserId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
   }) => Promise<CustomerConsent | null>;
@@ -56,7 +56,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
   return {
     async collectUgc(input) {
       const asset = await deps.ugc.create({
-        projectId: input.projectId,
+        storeId: input.storeId,
         creatorHandle: input.creatorHandle,
         mediaUrl: input.mediaUrl,
         mediaType: input.mediaType,
@@ -64,8 +64,8 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
         caption: input.caption,
       });
       await eventBus.publish(
-        new UgcAssetCollected(input.projectId, {
-          projectId: input.projectId,
+        new UgcAssetCollected(input.storeId, {
+          storeId: input.storeId,
           assetId: asset.id,
           creatorHandle: asset.creatorHandle,
           source: asset.source,
@@ -75,11 +75,11 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       return asset;
     },
 
-    async requestRights(id, projectId) {
-      const asset = await deps.ugc.updateRights(id, projectId, "REQUESTED", null);
+    async requestRights(id, storeId) {
+      const asset = await deps.ugc.updateRights(id, storeId, "REQUESTED", null);
       await eventBus.publish(
-        new UgcRightsRequested(projectId, {
-          projectId,
+        new UgcRightsRequested(storeId, {
+          storeId,
           assetId: asset.id,
           creatorHandle: asset.creatorHandle,
         }),
@@ -87,11 +87,11 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       return asset;
     },
 
-    async approveRights(id, projectId, approvedBy) {
-      const asset = await deps.ugc.updateRights(id, projectId, "APPROVED", approvedBy);
+    async approveRights(id, storeId, approvedBy) {
+      const asset = await deps.ugc.updateRights(id, storeId, "APPROVED", approvedBy);
       await eventBus.publish(
-        new UgcRightsApproved(projectId, {
-          projectId,
+        new UgcRightsApproved(storeId, {
+          storeId,
           assetId: asset.id,
           approvedBy,
         }),
@@ -102,7 +102,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     async enrollAmbassador(input) {
       const code = generateCode(input.handle ?? null);
       const ambassador = await deps.ambassadors.create({
-        projectId: input.projectId,
+        storeId: input.storeId,
         customerId: input.customerId ?? null,
         code,
         discountPct: input.discountPct ?? 10,
@@ -110,8 +110,8 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
         status: "ACTIVE",
       });
       await eventBus.publish(
-        new AmbassadorEnrolled(input.projectId, {
-          projectId: input.projectId,
+        new AmbassadorEnrolled(input.storeId, {
+          storeId: input.storeId,
           ambassadorId: ambassador.id,
           code: ambassador.code,
           discountPct: ambassador.discountPct,
@@ -122,13 +122,13 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
     },
 
     async recordReferral(input) {
-      const ambassador = await deps.ambassadors.findById(input.ambassadorId, input.projectId);
+      const ambassador = await deps.ambassadors.findById(input.ambassadorId, input.storeId);
       if (!ambassador) throw new Error("Ambassador not found");
-      if (ambassador.projectId !== input.projectId) throw new Error("Ambassador does not belong to this store");
+      if (ambassador.storeId !== input.storeId) throw new Error("Ambassador does not belong to this store");
       const commissionAmount =
         (Number(input.orderAmount) * ambassador.commissionPct) / 100;
       const order = await deps.referrals.create({
-        projectId: input.projectId,
+        storeId: input.storeId,
         ambassadorId: input.ambassadorId,
         orderId: input.orderId,
         orderAmount: Number(input.orderAmount),
@@ -136,13 +136,13 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       });
       await deps.ambassadors.incrementEarnings(
         input.ambassadorId,
-        input.projectId,
+        input.storeId,
         commissionAmount,
         1,
       );
       await eventBus.publish(
-        new ReferralConverted(input.projectId, {
-          projectId: input.projectId,
+        new ReferralConverted(input.storeId, {
+          storeId: input.storeId,
           ambassadorId: input.ambassadorId,
           referralOrderId: order.id,
           orderId: input.orderId,
@@ -155,14 +155,14 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
 
     async createDmCampaign(input) {
       const campaign = await deps.campaigns.create({
-        projectId: input.projectId,
+        storeId: input.storeId,
         campaignType: input.campaignType,
         audienceCriteria: input.audienceCriteria,
         scheduledAt: input.scheduledAt,
       });
       await eventBus.publish(
-        new DmCampaignCreated(input.projectId, {
-          projectId: input.projectId,
+        new DmCampaignCreated(input.storeId, {
+          storeId: input.storeId,
           campaignId: campaign.id,
           campaignType: campaign.campaignType,
           status: campaign.status,
@@ -171,11 +171,11 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       return campaign;
     },
 
-    async sendDmCampaign(id, projectId) {
-      const campaign = await deps.campaigns.markSent(id, projectId, { sentCount: 1 });
+    async sendDmCampaign(id, storeId) {
+      const campaign = await deps.campaigns.markSent(id, storeId, { sentCount: 1 });
       await eventBus.publish(
-        new DmCampaignSent(projectId, {
-          projectId,
+        new DmCampaignSent(storeId, {
+          storeId,
           campaignId: id,
           sentAt: new Date().toISOString(),
         }),
@@ -185,14 +185,14 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
 
     async subscribeBackInStock(input) {
       const subscription = await deps.backInStock.create({
-        projectId: input.projectId,
+        storeId: input.storeId,
         productId: input.productId,
         externalUserId: input.externalUserId,
         customerId: input.customerId,
       });
       await eventBus.publish(
-        new BackInStockSubscribed(input.projectId, {
-          projectId: input.projectId,
+        new BackInStockSubscribed(input.storeId, {
+          storeId: input.storeId,
           subscriptionId: subscription.id,
           productId: subscription.productId,
           externalUserId: subscription.externalUserId,
@@ -201,11 +201,11 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       return subscription;
     },
 
-    async notifyBackInStock(id, projectId) {
-      const subscription = await deps.backInStock.markNotified(id, projectId);
+    async notifyBackInStock(id, storeId) {
+      const subscription = await deps.backInStock.markNotified(id, storeId);
       await eventBus.publish(
-        new BackInStockAlertSent(projectId, {
-          projectId,
+        new BackInStockAlertSent(storeId, {
+          storeId,
           subscriptionId: subscription.id,
           productId: subscription.productId,
           externalUserId: subscription.externalUserId,
@@ -216,7 +216,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
 
     async createCommentUnlockCampaign(input) {
       return deps.commentUnlocks.createCampaign({
-        projectId: input.projectId,
+        storeId: input.storeId,
         keyword: input.keyword,
         rewardType: input.rewardType,
         rewardValue: input.rewardValue,
@@ -227,7 +227,7 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
 
     async processCommentUnlock(input) {
       const lowerText = input.text.toLowerCase();
-      const campaigns = await deps.commentUnlocks.listCampaignsByStore(input.projectId);
+      const campaigns = await deps.commentUnlocks.listCampaignsByStore(input.storeId);
       const campaign = campaigns.find((c) => {
         if (!c.active) return false;
         const keyword = c.keyword.toLowerCase().trim();
@@ -243,13 +243,13 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
       if (existing) return { sent: false, campaignId: campaign.id };
 
       const consent = await deps.getCustomerConsent({
-        projectId: input.projectId,
+        storeId: input.storeId,
         externalUserId: input.externalUserId,
         channel: input.channel,
       });
       if (consent === "DECLINED") {
         logger.info("growth.processCommentUnlock.consentDeclined", {
-          projectId: input.projectId,
+          storeId: input.storeId,
           externalUserId: input.externalUserId,
           campaignId: campaign.id,
         });
@@ -258,15 +258,15 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
 
       const redemption = await deps.commentUnlocks.createRedemption({
         campaignId: campaign.id,
-        projectId: input.projectId,
+        storeId: input.storeId,
         externalUserId: input.externalUserId,
         username: input.username,
         commentId: input.commentId,
       });
 
       await eventBus.publish(
-        new CommentUnlockTriggered(input.projectId, {
-          projectId: input.projectId,
+        new CommentUnlockTriggered(input.storeId, {
+          storeId: input.storeId,
           campaignId: campaign.id,
           redemptionId: redemption.id,
           externalUserId: input.externalUserId,
@@ -284,14 +284,14 @@ export function makeGrowthService(deps: GrowthServiceDeps): GrowthService {
 
       try {
         await deps.meta.sendMessage({
-          projectId: input.projectId,
+          storeId: input.storeId,
           recipientId: input.externalUserId,
           text: dm,
         });
-        await deps.commentUnlocks.markSent(redemption.id, input.projectId);
+        await deps.commentUnlocks.markSent(redemption.id, input.storeId);
         await eventBus.publish(
-          new CommentUnlockSent(input.projectId, {
-            projectId: input.projectId,
+          new CommentUnlockSent(input.storeId, {
+            storeId: input.storeId,
             campaignId: campaign.id,
             redemptionId: redemption.id,
             externalUserId: input.externalUserId,

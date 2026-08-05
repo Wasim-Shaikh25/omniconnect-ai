@@ -3,7 +3,7 @@ import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
 
 export interface GenerateTrendsInput {
-  projectId: string;
+  storeId: string;
   niche: string;
   format?: "REEL" | "POST" | "CAROUSEL" | "STORY" | "ANY" | null;
   count?: number;
@@ -36,7 +36,7 @@ export function makeGenerateTrends(deps: {
   aiConfigurationRepository: AIConfigurationRepository;
 }): GenerateTrends {
   return async function generateTrends(input): Promise<TrendIdea[]> {
-    const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
+    const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const niche = input.niche || "eCommerce";
     const format = input.format ?? "ANY";
@@ -65,7 +65,7 @@ Return only a JSON array. Do not wrap in markdown.`;
       .withModel(selectModel("trends", config?.model).model)
       .withFallback(DEFAULT_DEV_OUTPUT)
       .withOperation("trends")
-      .withMetadata({ projectId: input.projectId, niche, format })
+      .withMetadata({ storeId: input.storeId, niche, format })
       .build();
 
     const raw = await deps.aiProvider.complete(context.messages, {

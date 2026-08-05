@@ -53,11 +53,11 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
   const repo = deps.repository;
 
   return {
-    async syncMediaCatalog(projectId: string): Promise<{ upserted: number }> {
-      const items = await metaService.getAccountMedia(projectId, 25);
+    async syncMediaCatalog(storeId: string): Promise<{ upserted: number }> {
+      const items = await metaService.getAccountMedia(storeId, 25);
       let upserted = 0;
       for (const item of items) {
-        const post = await repo.upsertMediaPost(projectId, {
+        const post = await repo.upsertMediaPost(storeId, {
           trackedAccountId: null,
           externalId: item.externalId,
           platform: item.platform,
@@ -77,24 +77,24 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
         await repo.upsertMediaInsight(post.id, insightInput);
 
         await eventBus.publish(
-          new MediaAnalyticsSynced(projectId, { mediaPostId: post.id, externalId: post.externalId, fetchedAt: new Date() }),
+          new MediaAnalyticsSynced(storeId, { mediaPostId: post.id, externalId: post.externalId, fetchedAt: new Date() }),
         );
         upserted += 1;
       }
       return { upserted };
     },
 
-    async syncAccountAnalytics(projectId: string): Promise<AccountInsight | null> {
+    async syncAccountAnalytics(storeId: string): Promise<AccountInsight | null> {
       const [page, audience] = await Promise.all([
-        metaService.getPageInsights(projectId, 1).catch(() => null),
-        metaService.getAudienceInsights(projectId).catch(() => null),
+        metaService.getPageInsights(storeId, 1).catch(() => null),
+        metaService.getAudienceInsights(storeId).catch(() => null),
       ]);
       if (!page && !audience) return null;
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const insight = await repo.upsertAccountInsight(projectId, {
+      const insight = await repo.upsertAccountInsight(storeId, {
         date: today,
         followers: page?.followers ?? null,
         profileViews: page?.profileViews ?? null,
@@ -104,15 +104,15 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
         audienceJson: audience ? { demographics: audience.demographics } : null,
       });
 
-      await eventBus.publish(new AccountAnalyticsSynced(projectId, { date: today, fetchedAt: new Date() }));
+      await eventBus.publish(new AccountAnalyticsSynced(storeId, { date: today, fetchedAt: new Date() }));
       return insight;
     },
 
-    async searchTrendingHashtags(projectId: string, query: string): Promise<AccountInsight["id"]> {
-      const { hashtagId, userId } = await metaService.searchHashtag(projectId, query);
-      const items = hashtagId ? await metaService.getHashtagMedia(projectId, hashtagId, { top: true, limit: 10 }) : [];
+    async searchTrendingHashtags(storeId: string, query: string): Promise<AccountInsight["id"]> {
+      const { hashtagId, userId } = await metaService.searchHashtag(storeId, query);
+      const items = hashtagId ? await metaService.getHashtagMedia(storeId, hashtagId, { top: true, limit: 10 }) : [];
 
-      const snapshot = await repo.createTrendSnapshot(projectId, {
+      const snapshot = await repo.createTrendSnapshot(storeId, {
         type: "HASHTAG",
         query,
         data: {
@@ -128,21 +128,21 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
         },
       });
 
-      await eventBus.publish(new TrendingHashtagDiscovered(projectId, { query, fetchedAt: new Date() }));
+      await eventBus.publish(new TrendingHashtagDiscovered(storeId, { query, fetchedAt: new Date() }));
       return snapshot.id;
     },
 
-    async analyzeMediaPost(projectId: string, mediaPostId: string): Promise<MediaAnalysis> {
+    async analyzeMediaPost(storeId: string, mediaPostId: string): Promise<MediaAnalysis> {
       const post = await repo.getMediaPostById(mediaPostId);
-      if (!post || post.projectId !== projectId) {
+      if (!post || post.storeId !== storeId) {
         throw new Error("Media post not found.");
       }
       const insight = post.latestInsight;
-      const userId = await organizationQueries.getOrganizationIdByStoreId(projectId);
-      if (!userId) throw new Error("Organization not found.");
+      const organizationId = await organizationQueries.getOrganizationIdByStoreId(storeId);
+      if (!organizationId) throw new Error("Organization not found.");
 
       return analyzeMedia({
-        projectId,
+        storeId,
         mediaPostId,
         media: {
           mediaType: post.mediaType,
@@ -161,11 +161,11 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
       });
     },
 
-    async generateReport(projectId: string, period: "WEEKLY" | "MONTHLY"): Promise<AccountInsight["id"]> {
+    async generateReport(storeId: string, period: "WEEKLY" | "MONTHLY"): Promise<AccountInsight["id"]> {
       const [posts, latestAccountInsight, recommendations] = await Promise.all([
-        repo.listMediaPosts(projectId, { limit: 25 }),
-        repo.getLatestAccountInsight(projectId),
-        repo.listContentRecommendations(projectId, 10),
+        repo.listMediaPosts(storeId, { limit: 25 }),
+        repo.getLatestAccountInsight(storeId),
+        repo.listContentRecommendations(storeId, 10),
       ]);
 
       const topPosts = posts
@@ -179,7 +179,7 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
           engagementRate: p.latestInsight?.engagementRate ?? null,
         }));
 
-      const report = await repo.createReport(projectId, {
+      const report = await repo.createReport(storeId, {
         period,
         content: {
           generatedAt: new Date().toISOString(),
@@ -190,20 +190,20 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
         },
       });
 
-      await eventBus.publish(new ReportGenerated(projectId, { reportId: report.id, type: period, generatedAt: new Date() }));
+      await eventBus.publish(new ReportGenerated(storeId, { reportId: report.id, type: period, generatedAt: new Date() }));
       return report.id;
     },
 
-    async createContentRecommendation(projectId: string, input: { type?: string; topic?: string }): Promise<MediaPost["id"]> {
-      const posts = await repo.listMediaPosts(projectId, { limit: 10 });
+    async createContentRecommendation(storeId: string, input: { type?: string; topic?: string }): Promise<MediaPost["id"]> {
+      const posts = await repo.listMediaPosts(storeId, { limit: 10 });
       const idea = await createContentIdea({
-        projectId,
+        storeId,
         type: input.type,
         topic: input.topic,
         basedOnMedia: posts.map((p) => ({ id: p.id, caption: p.caption, mediaType: p.mediaType })),
       });
 
-      const recommendation = await repo.createContentRecommendation(projectId, {
+      const recommendation = await repo.createContentRecommendation(storeId, {
         type: input.type ?? "REEL",
         title: idea.title,
         outline: idea.outline,
@@ -213,7 +213,7 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
       });
 
       await eventBus.publish(
-        new ContentRecommendationCreated(projectId, { recommendationId: recommendation.id, generatedAt: new Date() }),
+        new ContentRecommendationCreated(storeId, { recommendationId: recommendation.id, generatedAt: new Date() }),
       );
       return recommendation.id;
     },

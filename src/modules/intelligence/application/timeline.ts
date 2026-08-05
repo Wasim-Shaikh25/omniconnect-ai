@@ -2,7 +2,7 @@ import type { SignalRepository, EntityLinkRepository } from "./ports";
 import type { JourneyStage, TimelineEvent, SignalRecord, ConfidenceLevel } from "../domain/types";
 
 export interface TimelineQuery {
-  userId: string;
+  organizationId: string;
   subjectType: string;
   subjectId: string;
   includeLinked?: boolean;
@@ -67,11 +67,11 @@ function describeSignal(signal: SignalRecord): { title: string; description: str
 function deepLinkFor(signal: SignalRecord): string | null {
   switch (signal.subjectType) {
     case "conversation":
-      return `/stores/${signal.projectId}/conversations/${signal.subjectId}`;
+      return `/stores/${signal.storeId}/conversations/${signal.subjectId}`;
     case "customer":
       return `/customers/${signal.subjectId}`;
     case "order":
-      return `/stores/${signal.projectId}/orders`;
+      return `/stores/${signal.storeId}/orders`;
     default:
       return null;
   }
@@ -112,13 +112,13 @@ export function makeTimelineService(
       const allSignals: SignalRecord[] = [];
 
       const subjectSignals = await signals.listBySubject(
-        query.userId,
+        query.organizationId,
         query.subjectType,
         query.subjectId,
         query.limit ?? 100,
       );
       const relatedSignals = await signals.listByRelatedEntity(
-        query.userId,
+        query.organizationId,
         query.subjectType,
         query.subjectId,
         query.limit ?? 100,
@@ -127,7 +127,7 @@ export function makeTimelineService(
 
       if (query.includeLinked !== false) {
         const related = await links.findByEntity(
-          query.userId,
+          query.organizationId,
           query.subjectType,
           query.subjectId,
           true,
@@ -138,7 +138,7 @@ export function makeTimelineService(
             link.sourceType === query.subjectType && link.sourceId === query.subjectId
               ? [link.targetType, link.targetId]
               : [link.sourceType, link.sourceId];
-          const linked = await signals.listBySubject(query.userId, type, id, 20);
+          const linked = await signals.listBySubject(query.organizationId, type, id, 20);
           allSignals.push(...linked);
         }
       }

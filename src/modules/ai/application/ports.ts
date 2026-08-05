@@ -1,5 +1,5 @@
 export interface AIConfigurationRecord {
-  projectId: string;
+  storeId: string;
   systemPrompt: string;
   tone: string | null;
   welcomeStrategy: string | null;
@@ -10,11 +10,11 @@ export interface AIConfigurationRecord {
 }
 
 export interface AIConfigurationRepository {
-  getByStore(projectId: string): Promise<AIConfigurationRecord | null>;
-  getOrCreateDefault(projectId: string): Promise<AIConfigurationRecord>;
+  getByStore(storeId: string): Promise<AIConfigurationRecord | null>;
+  getOrCreateDefault(storeId: string): Promise<AIConfigurationRecord>;
   update(
-    projectId: string,
-    input: Partial<Omit<AIConfigurationRecord, "projectId">>,
+    storeId: string,
+    input: Partial<Omit<AIConfigurationRecord, "storeId">>,
   ): Promise<AIConfigurationRecord>;
 }
 
@@ -43,8 +43,8 @@ export interface AssistantService {
 export interface BrainConversationMemoryRecord {
   id: string;
   userId: string;
-  userId: string;
-  projectId: string | null;
+  organizationId: string;
+  storeId: string | null;
   question: string;
   answer: string;
   acceptedAdviceIds: string[];
@@ -57,7 +57,7 @@ export interface BrainConversationMemoryRecord {
 
 export interface BrainMemoryRepository {
   save(entry: Omit<BrainConversationMemoryRecord, "id" | "createdAt" | "updatedAt">): Promise<BrainConversationMemoryRecord>;
-  listRecent(userId: string, userId: string, projectId?: string, limit?: number): Promise<BrainConversationMemoryRecord[]>;
+  listRecent(userId: string, organizationId: string, storeId?: string, limit?: number): Promise<BrainConversationMemoryRecord[]>;
   updateFeedback(id: string, acceptedAdviceIds: string[], rejectedAdviceIds: string[], goals: string[]): Promise<BrainConversationMemoryRecord>;
   purgeExpiredBefore(before: Date): Promise<number>;
 }

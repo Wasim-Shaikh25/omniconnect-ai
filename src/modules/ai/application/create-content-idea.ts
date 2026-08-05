@@ -3,7 +3,7 @@ import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
 
 export interface CreateContentIdeaInput {
-  projectId: string;
+  storeId: string;
   type?: string;
   topic?: string;
   niche?: string | null;
@@ -29,7 +29,7 @@ export function makeCreateContentIdea(deps: {
   aiConfigurationRepository: AIConfigurationRepository;
 }): CreateContentIdea {
   return async function createContentIdea(input): Promise<ContentIdeaOutput> {
-    const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
+    const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const type = input.type ?? "REEL";
     const topic = input.topic ?? input.niche ?? "our niche";
@@ -59,7 +59,7 @@ Generate a new ${type} idea.`;
       .withModel(selectModel("post-ideas", config?.model).model)
       .withFallback(DEFAULT_DEV_OUTPUT)
       .withOperation("create-content-idea")
-      .withMetadata({ projectId: input.projectId, type, topic: input.topic })
+      .withMetadata({ storeId: input.storeId, type, topic: input.topic })
       .build();
 
     const raw = await deps.aiProvider.complete(context.messages, {

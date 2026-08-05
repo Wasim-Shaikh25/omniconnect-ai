@@ -6,7 +6,7 @@ import { welcomeFirstFollower } from "./container";
 const onFirstTimeFollowerDetected: EventHandler = async (event) => {
   const p = event.payload as FirstTimeFollowerDetectedPayload;
   await welcomeFirstFollower({
-    projectId: p.projectId,
+    storeId: p.storeId,
     followerId: p.followerId,
     customerId: p.customerId,
     externalUserId: p.externalUserId,

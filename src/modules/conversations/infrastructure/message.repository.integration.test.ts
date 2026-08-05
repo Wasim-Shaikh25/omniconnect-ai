@@ -5,28 +5,28 @@ import { PrismaMessageRepository } from "./message.repository";
 const repository = new PrismaMessageRepository();
 
 describe("PrismaMessageRepository.listLatestByConversationIds (M4)", () => {
-  let userId: string;
-  let projectId: string;
+  let organizationId: string;
+  let storeId: string;
   const conversationIds: string[] = [];
 
   beforeAll(async () => {
-    const org = await prisma.user.create({
+    const org = await prisma.organization.create({
       data: { name: "Message Query Test Org" },
     });
-    userId = org.id;
+    organizationId = org.id;
 
-    const store = await prisma.project.create({
+    const store = await prisma.store.create({
       data: {
         name: "Test Store",
         domain: "message-query-test.example.com",
-        userId,
+        organizationId,
       },
     });
-    projectId = store.id;
+    storeId = store.id;
 
     for (let i = 0; i < 3; i += 1) {
       const conversation = await prisma.conversation.create({
-        data: { projectId, channel: "INSTAGRAM" },
+        data: { storeId, channel: "INSTAGRAM" },
       });
       conversationIds.push(conversation.id);
 
@@ -50,8 +50,8 @@ describe("PrismaMessageRepository.listLatestByConversationIds (M4)", () => {
     await prisma.conversation.deleteMany({
       where: { id: { in: conversationIds } },
     });
-    await prisma.project.deleteMany({ where: { id: projectId } });
-    await prisma.user.deleteMany({ where: { id: userId } });
+    await prisma.store.deleteMany({ where: { id: storeId } });
+    await prisma.organization.deleteMany({ where: { id: organizationId } });
   });
 
   it("returns exactly one latest message per conversation (3 rows for 3 conversations)", async () => {

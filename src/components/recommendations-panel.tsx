@@ -76,8 +76,8 @@ function RecommendationRow({ rec }: { rec: RecommendationRecord }) {
   );
 }
 
-export async function RecommendationsPanel({ projectId }: { projectId?: string }) {
-  const { recommendations } = await getRecommendationsAction(projectId);
+export async function RecommendationsPanel({ storeId }: { storeId?: string }) {
+  const { recommendations } = await getRecommendationsAction(storeId);
 
   return (
     <Card>

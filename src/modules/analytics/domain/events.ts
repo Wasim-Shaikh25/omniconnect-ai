@@ -1,8 +1,8 @@
 import { BaseDomainEvent } from "@/shared/kernel/domain-event";
 
 export interface MarketingPerformanceUpdatedPayload {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   generatedAt: Date;
 }
 
@@ -11,8 +11,8 @@ export class MarketingPerformanceUpdated extends BaseDomainEvent<MarketingPerfor
 }
 
 export interface CompetitorChangeDetectedPayload {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   accountId: string;
   handle: string;
   previousPostCount: number;
@@ -25,8 +25,8 @@ export class CompetitorChangeDetected extends BaseDomainEvent<CompetitorChangeDe
 }
 
 export interface CompetitorBenchmarkReadyPayload {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   accountId: string;
   handle: string;
   generatedAt: Date;
@@ -65,7 +65,7 @@ export class TrendingHashtagDiscovered extends BaseDomainEvent<TrendingHashtagDi
 }
 
 export interface CompetitorContentSyncedPayload {
-  projectId: string;
+  storeId: string;
   trackedAccountId: string;
   handle: string;
   fetchedAt: Date;

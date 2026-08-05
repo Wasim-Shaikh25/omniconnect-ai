@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface FirstTimeFollowerDetectedPayload {
-  projectId: string;
+  storeId: string;
   customerId: string;
   followerId: string;
   channel: string;
@@ -18,7 +18,7 @@ export class FirstTimeFollowerDetected extends BaseDomainEvent<FirstTimeFollower
 }
 
 export interface CustomerProfileUpdatedPayload {
-  projectId: string;
+  storeId: string;
   customerId: string;
   tags: string[];
   interests: string[];
@@ -33,8 +33,8 @@ export class CustomerProfileUpdated extends BaseDomainEvent<CustomerProfileUpdat
 }
 
 export interface CrmInsight {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   type: "RISK" | "OPPORTUNITY" | "ANOMALY";
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   status: "OPEN" | "DISMISSED" | "SNOOZED";
@@ -45,8 +45,8 @@ export interface CrmInsight {
 }
 
 export interface CrmRecommendation {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   type: "ACTION" | "INVESTIGATE" | "WAIT";
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   title: string;
@@ -56,8 +56,8 @@ export interface CrmRecommendation {
 }
 
 export interface CrmInsightGeneratedPayload {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   insight: CrmInsight;
 }
 
@@ -66,8 +66,8 @@ export class CrmInsightGenerated extends BaseDomainEvent<CrmInsightGeneratedPayl
 }
 
 export interface CrmRecommendationGeneratedPayload {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   recommendation: CrmRecommendation;
 }
 

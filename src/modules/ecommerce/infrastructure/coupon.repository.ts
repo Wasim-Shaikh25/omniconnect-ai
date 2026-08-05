@@ -6,7 +6,7 @@ import type { CouponRecord, CouponRepository } from "../application/ports";
 type PrismaCoupon = {
   id: string;
   code: string;
-  projectId: string;
+  storeId: string;
   discountPct: number;
   status: string;
   expiresAt: Date | null;
@@ -20,7 +20,7 @@ function toRecord(c: PrismaCoupon): CouponRecord {
   return {
     id: c.id,
     code: c.code,
-    projectId: c.projectId,
+    storeId: c.storeId,
     discountPct: c.discountPct,
     status: c.status,
     expiresAt: c.expiresAt,
@@ -37,7 +37,7 @@ function notDeleted() {
 
 export class PrismaCouponRepository implements CouponRepository {
   async create(input: {
-    projectId: string;
+    storeId: string;
     code: string;
     discountPct: number;
     expiresAt: Date | null;
@@ -45,7 +45,7 @@ export class PrismaCouponRepository implements CouponRepository {
   }): Promise<CouponRecord> {
     const coupon = await prisma.coupon.create({
       data: {
-        projectId: input.projectId,
+        storeId: input.storeId,
         code: input.code,
         discountPct: input.discountPct,
         expiresAt: input.expiresAt,
@@ -91,9 +91,9 @@ export class PrismaCouponRepository implements CouponRepository {
     return coupon ? toRecord(coupon) : null;
   }
 
-  async disable(projectId: string, code: string): Promise<void> {
+  async disable(storeId: string, code: string): Promise<void> {
     await prisma.coupon.updateMany({
-      where: { projectId, code, ...notDeleted() },
+      where: { storeId, code, ...notDeleted() },
       data: { status: "DISABLED" },
     });
   }
@@ -107,12 +107,12 @@ export class PrismaCouponRepository implements CouponRepository {
   }
 
   async listByStore(
-    projectId: string,
+    storeId: string,
     options: { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = {},
   ): Promise<CouponRecord[]> {
     const rows = await prisma.coupon.findMany({
       where: {
-        projectId,
+        storeId,
         ...(options.includeDeleted ? {} : notDeleted()),
         ...(options.search
           ? { code: { contains: options.search, mode: "insensitive" } }
@@ -125,10 +125,10 @@ export class PrismaCouponRepository implements CouponRepository {
     return rows.map(toRecord);
   }
 
-  async countByStore(projectId: string, search?: string): Promise<number> {
+  async countByStore(storeId: string, search?: string): Promise<number> {
     return prisma.coupon.count({
       where: {
-        projectId,
+        storeId,
         ...notDeleted(),
         ...(search ? { code: { contains: search, mode: "insensitive" } } : {}),
       },

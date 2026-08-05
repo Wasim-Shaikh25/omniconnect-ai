@@ -10,13 +10,13 @@ export async function executeGrowthAction(actionType: string, params: unknown): 
 
   switch (actionType) {
     case "CREATE_DM_CAMPAIGN": {
-      const projectId = String(typed.projectId ?? "");
+      const storeId = String(typed.storeId ?? "");
       const campaignType = String(typed.campaignType ?? "FOLLOWER_REENGAGE");
-      if (!projectId) return { ok: false, message: "Missing projectId" };
+      if (!storeId) return { ok: false, message: "Missing storeId" };
 
       try {
         await growthService.createDmCampaign({
-          projectId,
+          storeId,
           campaignType,
           audienceCriteria: typed.audienceCriteria,
         });
@@ -28,16 +28,16 @@ export async function executeGrowthAction(actionType: string, params: unknown): 
     }
 
     case "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN": {
-      const projectId = String(typed.projectId ?? "");
+      const storeId = String(typed.storeId ?? "");
       const outOfStockProductTitle = String(typed.outOfStockProductTitle ?? "");
       const alternativeProductTitle = String(typed.alternativeProductTitle ?? "");
-      if (!projectId || !outOfStockProductTitle || !alternativeProductTitle) {
+      if (!storeId || !outOfStockProductTitle || !alternativeProductTitle) {
         return { ok: false, message: "Missing store or product titles" };
       }
 
       try {
         await growthService.createDmCampaign({
-          projectId,
+          storeId,
           campaignType: "ALTERNATIVE_PRODUCT",
           audienceCriteria: {
             outOfStockProductTitle,

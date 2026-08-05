@@ -13,8 +13,8 @@ function mapCommerceInsight(insight: CommerceInsight): Omit<BusinessInsightRecor
   };
 
   return {
-    userId: insight.userId,
-    projectId: insight.projectId,
+    organizationId: insight.organizationId,
+    storeId: insight.storeId,
     type: insight.type as InsightType,
     severity: insight.severity as InsightSeverity,
     status: insight.status as BusinessInsightRecord["status"],
@@ -30,10 +30,10 @@ function mapCommerceInsight(insight: CommerceInsight): Omit<BusinessInsightRecor
 
 export function makeDiagnosisService(input: DiagnosisServiceInput) {
   async function diagnoseRevenue(
-    userId: string,
-    projectId: string,
+    organizationId: string,
+    storeId: string,
   ): Promise<Omit<BusinessInsightRecord, "id" | "createdAt" | "updatedAt"> | null> {
-    const { insights } = await input.detectCommerceInsights(userId, projectId);
+    const { insights } = await input.detectCommerceInsights(organizationId, storeId);
     const revenue = insights.find((i) => i.title.toLowerCase().includes("revenue"));
     if (!revenue) return null;
     return mapCommerceInsight(revenue);

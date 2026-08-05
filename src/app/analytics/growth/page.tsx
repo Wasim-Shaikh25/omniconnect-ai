@@ -25,9 +25,9 @@ function formatNumber(value: number | null): string {
 
 export default async function GrowthAnalyticsPage() {
   const user = await getCurrentUser();
-  if (!user || !user.userId) redirect("/login");
+  if (!user || !user.organizationId) redirect("/login");
 
-  const overview = await organizationQueries.getOrganizationOverview(user.userId);
+  const overview = await organizationQueries.getOrganizationOverview(user.organizationId);
   const stores = overview?.stores ?? [];
 
   let bestWindows: Awaited<ReturnType<typeof getBestTimeToPostForStore>> = [];
@@ -47,7 +47,7 @@ export default async function GrowthAnalyticsPage() {
   const views: (MarketingPerformanceView & { storeName: string })[] = [];
   for (const store of stores) {
     try {
-      const view = await getMarketingPerformance({ userId: user.userId, projectId: store.id });
+      const view = await getMarketingPerformance({ organizationId: user.organizationId, storeId: store.id });
       views.push({ ...view, storeName: store.name });
     } catch {
       // Skip stores that cannot load analytics.
@@ -68,7 +68,7 @@ export default async function GrowthAnalyticsPage() {
   );
 
   const allTopContent = views
-    .flatMap((v) => v.content.topPosts.map((p) => ({ ...p, storeName: v.storeName, projectId: v.projectId })))
+    .flatMap((v) => v.content.topPosts.map((p) => ({ ...p, storeName: v.storeName, storeId: v.storeId })))
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10);
 
@@ -144,7 +144,7 @@ export default async function GrowthAnalyticsPage() {
             <CardContent>
               <ul className="divide-y text-sm">
                 {views.map((v) => (
-                  <li key={v.projectId} className="flex items-center justify-between py-3">
+                  <li key={v.storeId} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <DataQualityBadge quality={v.dataQuality} />
                       <span className="font-medium">{v.storeName}</span>
@@ -172,7 +172,7 @@ export default async function GrowthAnalyticsPage() {
               ) : (
                 <ul className="divide-y text-sm">
                   {allTopContent.map((post) => (
-                    <li key={`${post.projectId}-${post.id}`} className="flex items-center justify-between py-3">
+                    <li key={`${post.storeId}-${post.id}`} className="flex items-center justify-between py-3">
                       <div className="min-w-0">
                         <p className="truncate font-medium">{post.caption || post.mediaType}</p>
                         <p className="text-xs text-muted-foreground">

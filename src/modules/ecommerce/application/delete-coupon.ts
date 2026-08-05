@@ -3,7 +3,7 @@ import type { CouponRepository } from "./ports";
 
 export const deleteCouponSchema = z.object({
   couponId: z.string().min(1),
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
 });
 
 export type DeleteCouponInput = z.infer<typeof deleteCouponSchema>;
@@ -14,7 +14,7 @@ export function makeDeleteCoupon(deps: { coupons: CouponRepository }) {
     if (!coupon) {
       throw new Error("Coupon not found.");
     }
-    if (coupon.projectId !== input.projectId) {
+    if (coupon.storeId !== input.storeId) {
       throw new Error("Coupon does not belong to this store.");
     }
 

@@ -24,12 +24,12 @@ function formatExpiresAt(date: Date | null): string {
 
 function CouponRow({
   coupon,
-  projectId,
+  storeId,
   selected,
   onToggle,
 }: {
   coupon: CouponRecord;
-  projectId: string;
+  storeId: string;
   selected: boolean;
   onToggle: (id: string) => void;
 }) {
@@ -70,7 +70,7 @@ function CouponRow({
           </div>
           <form action={updateAction} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="couponId" value={coupon.id} />
-            <input type="hidden" name="projectId" value={projectId} />
+            <input type="hidden" name="storeId" value={storeId} />
             <div>
               <Label htmlFor={`discount-${coupon.id}`} className="text-xs">
                 Discount %
@@ -136,7 +136,7 @@ function CouponRow({
             className="flex items-center gap-2"
           >
             <input type="hidden" name="couponId" value={coupon.id} />
-            <input type="hidden" name="projectId" value={projectId} />
+            <input type="hidden" name="storeId" value={storeId} />
             <Button type="submit" size="sm" variant="destructive" disabled={deletePending}>
               {deletePending ? "Deleting…" : "Delete"}
             </Button>
@@ -151,12 +151,12 @@ function CouponRow({
 }
 
 function BulkDeleteToolbar({
-  projectId,
+  storeId,
   selected,
   onClear,
   onSuccess,
 }: {
-  projectId: string;
+  storeId: string;
   selected: string[];
   onClear: () => void;
   onSuccess?: (message: string) => void;
@@ -180,7 +180,7 @@ function BulkDeleteToolbar({
 
   return (
     <form action={action} className="flex items-center gap-3 rounded-md border bg-muted/30 p-3">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <input type="hidden" name="couponIds" value={selected.join(",")} />
       <span className="text-sm">{selected.length} selected</span>
       <Button
@@ -206,10 +206,10 @@ function BulkDeleteToolbar({
 
 export function CouponList({
   coupons,
-  projectId,
+  storeId,
 }: {
   coupons: CouponRecord[];
-  projectId: string;
+  storeId: string;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkMessage, setBulkMessage] = useState<string | null>(null);
@@ -256,7 +256,7 @@ export function CouponList({
       )}
       {coupons.length > 0 && (
         <BulkDeleteToolbar
-          projectId={projectId}
+          storeId={storeId}
           selected={Array.from(selected)}
           onClear={clear}
           onSuccess={setBulkMessage}
@@ -270,7 +270,7 @@ export function CouponList({
             <CouponRow
               key={coupon.id}
               coupon={coupon}
-              projectId={projectId}
+              storeId={storeId}
               selected={selected.has(coupon.id)}
               onToggle={toggle}
             />

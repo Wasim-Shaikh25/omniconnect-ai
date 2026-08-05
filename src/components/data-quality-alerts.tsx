@@ -16,8 +16,8 @@ function severityClass(severity: string): string {
   }
 }
 
-export async function DataQualityAlerts({ projectId }: { projectId?: string }) {
-  const { issues } = await getDataQualityIssuesAction(projectId);
+export async function DataQualityAlerts({ storeId }: { storeId?: string }) {
+  const { issues } = await getDataQualityIssuesAction(storeId);
 
   if (issues.length === 0) {
     return (
@@ -51,9 +51,9 @@ export async function DataQualityAlerts({ projectId }: { projectId?: string }) {
                 <p className="mt-1 font-medium">{issue.source}</p>
                 <p className="text-muted-foreground">{issue.impact}</p>
               </div>
-              {issue.projectId && (
+              {issue.storeId && (
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/stores/${issue.projectId}`}>View store</Link>
+                  <Link href={`/stores/${issue.storeId}`}>View store</Link>
                 </Button>
               )}
             </li>

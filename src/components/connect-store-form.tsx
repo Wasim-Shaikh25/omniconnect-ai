@@ -13,13 +13,13 @@ type Action = (
 
 interface ConnectStoreFormProps {
   action: Action;
-  projectId: string;
+  storeId: string;
   provider: string;
 }
 
 export function ConnectStoreForm({
   action,
-  projectId,
+  storeId,
   provider,
 }: ConnectStoreFormProps) {
   const [state, formAction, pending] = useActionState<
@@ -33,7 +33,7 @@ export function ConnectStoreForm({
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <input type="hidden" name="provider" value={provider} />
       {isShopify && (
         <div className="space-y-2">

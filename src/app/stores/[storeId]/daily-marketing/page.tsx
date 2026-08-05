@@ -55,29 +55,29 @@ function sectionIcon(title: string): LucideIcon {
 export default async function DailyMarketingPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
-  const access = await checkStoreAccess(projectId);
+  const { storeId } = await params;
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
 
-  if (!user.userId) {
+  if (!user.organizationId) {
     redirect("/login");
   }
 
-  const memory = await updateMarketingMemory(user.userId, projectId);
-  const brief = await generateDailyBrief(user.userId, projectId, memory);
+  const memory = await updateMarketingMemory(user.organizationId, storeId);
+  const brief = await generateDailyBrief(user.organizationId, storeId, memory);
 
   return (
     <main className="container mx-auto max-w-6xl px-4 py-8">
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Button asChild variant="ghost" size="sm" className="mb-2 -ml-3">
-            <Link href={`/stores/${projectId}`}>
+            <Link href={`/stores/${storeId}`}>
               <ArrowLeft className="mr-1 h-4 w-4" />
               Back to store
             </Link>
@@ -109,7 +109,7 @@ export default async function DailyMarketingPage({
                 Recommended product: <span className="font-medium">{brief.recommendedProductTitle}</span>
               </p>
               <Button asChild variant="outline" size="sm" className="mt-3">
-                <Link href={`/stores/${projectId}/content`}>Create content</Link>
+                <Link href={`/stores/${storeId}/content`}>Create content</Link>
               </Button>
             </CardContent>
           )}
@@ -132,8 +132,8 @@ export default async function DailyMarketingPage({
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-medium">Actions</h2>
         <div className="grid gap-6 md:grid-cols-2">
-          <TodayFeed projectId={projectId} />
-          <RecommendationsPanel projectId={projectId} />
+          <TodayFeed storeId={storeId} />
+          <RecommendationsPanel storeId={storeId} />
         </div>
       </section>
 
@@ -142,12 +142,12 @@ export default async function DailyMarketingPage({
         <div className="grid gap-6 md:grid-cols-3">
           <ProductPromotionCard
             productScores={memory.productScores}
-            projectId={projectId}
+            storeId={storeId}
           />
-          <DmOpportunityCard patterns={memory.dmPatterns} projectId={projectId} />
+          <DmOpportunityCard patterns={memory.dmPatterns} storeId={storeId} />
           <CommentInsightCard
             patterns={memory.commentPatterns}
-            projectId={projectId}
+            storeId={storeId}
           />
         </div>
       </section>
@@ -157,7 +157,7 @@ export default async function DailyMarketingPage({
         <div className="grid gap-6 md:grid-cols-3">
           <CompetitorAlertCard
             changes={memory.competitorChanges}
-            projectId={projectId}
+            storeId={storeId}
           />
           <TrendingHashtagCard hashtags={memory.trendingHashtags} />
           <BestTimeCard time={brief.bestPostingTime} />

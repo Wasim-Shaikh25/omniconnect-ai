@@ -10,7 +10,7 @@ import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
 
 export interface GeneratePostIdeasInput {
-  projectId: string;
+  storeId: string;
   caption: string | null;
   hashtags: string[];
   mediaType: string;
@@ -24,7 +24,7 @@ export interface GeneratePostIdeasInput {
   };
   ownerUsername?: string | null;
   count?: number;
-  userId?: string;
+  organizationId?: string;
 }
 
 export interface GeneratePostIdeasResult {
@@ -37,16 +37,16 @@ export interface GeneratePostIdeas {
 }
 
 export interface MarketingMemoryPort {
-  getMemory(userId: string, projectId: string): Promise<MarketingMemoryRecord>;
-  getBrief(userId: string, projectId: string): Promise<DailyBriefRecord>;
+  getMemory(organizationId: string, storeId: string): Promise<MarketingMemoryRecord>;
+  getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
 }
 
 export interface DailyActionContextPort {
-  listPending(userId: string, projectId: string): Promise<DailyActionRecord[]>;
+  listPending(organizationId: string, storeId: string): Promise<DailyActionRecord[]>;
 }
 
 export interface JourneyContextPort {
-  listRecent(userId: string, projectId: string, limit?: number): Promise<JourneyRecord[]>;
+  listRecent(organizationId: string, storeId: string, limit?: number): Promise<JourneyRecord[]>;
 }
 
 const DEFAULT_TONE = "trendy, authentic, and platform-native";
@@ -59,16 +59,16 @@ export function makeGeneratePostIdeas(deps: {
   journeys?: JourneyContextPort;
 }): GeneratePostIdeas {
   return async function generatePostIdeas(input): Promise<GeneratePostIdeasResult> {
-    const config = await deps.aiConfigurationRepository.getByStore(input.projectId);
+    const config = await deps.aiConfigurationRepository.getByStore(input.storeId);
     const tone = config?.tone ?? DEFAULT_TONE;
     const count = Math.min(Math.max(input.count ?? 3, 1), 10);
 
     let memory: MarketingMemoryRecord | undefined;
     let brief: DailyBriefRecord | undefined;
-    if (deps.marketingMemory && input.userId) {
+    if (deps.marketingMemory && input.organizationId) {
       try {
-        memory = await deps.marketingMemory.getMemory(input.userId, input.projectId);
-        brief = await deps.marketingMemory.getBrief(input.userId, input.projectId);
+        memory = await deps.marketingMemory.getMemory(input.organizationId, input.storeId);
+        brief = await deps.marketingMemory.getBrief(input.organizationId, input.storeId);
       } catch {
         // Marketing context is optional; fall back to provided post data.
       }
@@ -76,11 +76,11 @@ export function makeGeneratePostIdeas(deps: {
 
     let todayActions: DailyActionRecord[] = [];
     let recentJourneys: JourneyRecord[] = [];
-    if (deps.dailyActions && deps.journeys && input.userId) {
+    if (deps.dailyActions && deps.journeys && input.organizationId) {
       try {
         [todayActions, recentJourneys] = await Promise.all([
-          deps.dailyActions.listPending(input.userId, input.projectId),
-          deps.journeys.listRecent(input.userId, input.projectId, 5),
+          deps.dailyActions.listPending(input.organizationId, input.storeId),
+          deps.journeys.listRecent(input.organizationId, input.storeId, 5),
         ]);
       } catch {
         // Daily action and journey context is optional; fall back to memory-only grounding.
@@ -168,7 +168,7 @@ Generate content ideas that follow the same vibe, tie to the brand's current mar
       .withModel(selectModel("post-ideas", config?.model).model)
       .withFallback(DEFAULT_DEV_OUTPUT)
       .withOperation("post-ideas")
-      .withMetadata({ projectId: input.projectId, mediaType: input.mediaType, grounded: Boolean(memory) })
+      .withMetadata({ storeId: input.storeId, mediaType: input.mediaType, grounded: Boolean(memory) })
       .build();
 
     const raw = await deps.aiProvider.complete(context.messages, {

@@ -4,8 +4,8 @@ import type { BrainConversationMemoryRecord, BrainMemoryRepository } from "../ap
 function toRecord(row: {
   id: string;
   userId: string;
-  userId: string;
-  projectId: string | null;
+  organizationId: string;
+  storeId: string | null;
   question: string;
   answer: string;
   acceptedAdviceIds: string[];
@@ -18,8 +18,8 @@ function toRecord(row: {
   return {
     id: row.id,
     userId: row.userId,
-    userId: row.userId,
-    projectId: row.projectId,
+    organizationId: row.organizationId,
+    storeId: row.storeId,
     question: row.question,
     answer: row.answer,
     acceptedAdviceIds: row.acceptedAdviceIds,
@@ -39,15 +39,15 @@ export class PrismaBrainMemoryRepository implements BrainMemoryRepository {
 
   async listRecent(
     userId: string,
-    userId: string,
-    projectId?: string,
+    organizationId: string,
+    storeId?: string,
     limit = 10,
   ): Promise<BrainConversationMemoryRecord[]> {
     const rows = await prisma.brainConversationMemory.findMany({
       where: {
         userId,
-        userId,
-        ...(projectId ? { projectId } : {}),
+        organizationId,
+        ...(storeId ? { storeId } : {}),
         expiresAt: { gt: new Date() },
       },
       orderBy: { createdAt: "desc" },

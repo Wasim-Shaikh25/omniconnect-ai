@@ -6,17 +6,17 @@ import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/organizations";
 import { brandDealCommands } from "../infrastructure/container";
 
-async function requireStoreAccess(projectId: string) {
+async function requireStoreAccess(storeId: string) {
   const user = await getCurrentUser();
   if (!user) return false;
-  const overview = user.userId
-    ? await organizationQueries.getOrganizationOverview(user.userId)
+  const overview = user.organizationId
+    ? await organizationQueries.getOrganizationOverview(user.organizationId)
     : null;
-  return overview?.stores.some((s) => s.id === projectId) ?? false;
+  return overview?.stores.some((s) => s.id === storeId) ?? false;
 }
 
 const createSchema = z.object({
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
   brandName: z.string().min(1).max(200),
   contactEmail: z.string().email().optional().or(z.literal("")),
   value: z.coerce.number().nonnegative().optional(),
@@ -37,14 +37,14 @@ export async function createBrandDealAction(formData: FormData): Promise<void> {
     throw new Error(parsed.error.errors[0]?.message ?? "Validation failed");
   }
 
-  const { projectId, ...input } = parsed.data;
+  const { storeId, ...input } = parsed.data;
 
-  if (!(await requireStoreAccess(projectId))) {
+  if (!(await requireStoreAccess(storeId))) {
     throw new Error("Unauthorized");
   }
 
   await brandDealCommands.createBrandDeal({
-    projectId,
+    storeId,
     brandName: input.brandName,
     contactEmail: input.contactEmail || undefined,
     value: input.value,
@@ -52,5 +52,5 @@ export async function createBrandDealAction(formData: FormData): Promise<void> {
     notes: input.notes,
   });
 
-  revalidatePath(`/stores/${projectId}/brand-deals`);
+  revalidatePath(`/stores/${storeId}/brand-deals`);
 }

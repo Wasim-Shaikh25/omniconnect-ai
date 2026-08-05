@@ -15,19 +15,19 @@ function formatNumber(value: number | null | undefined): string {
 export default async function ContentAnalyticsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.userId) notFound();
+  if (!user.organizationId) notFound();
 
-  const { posts, error } = await listMediaPostsAction(projectId);
+  const { posts, error } = await listMediaPostsAction(storeId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -37,9 +37,9 @@ export default async function ContentAnalyticsPage({
           <p className="text-sm text-muted-foreground">Own posts for {store.name}.</p>
         </div>
         <div className="flex items-center gap-2">
-          <SyncMediaForm action={syncMediaCatalogAction} projectId={projectId} />
+          <SyncMediaForm action={syncMediaCatalogAction} storeId={storeId} />
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
+            <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
           </Button>
         </div>
       </header>
@@ -114,7 +114,7 @@ export default async function ContentAnalyticsPage({
                   <p className="mb-3 text-sm text-muted-foreground">No insights captured yet.</p>
                 )}
                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/stores/${projectId}/analytics/content/${post.id}`}>Analyze why it worked</Link>
+                  <Link href={`/stores/${storeId}/analytics/content/${post.id}`}>Analyze why it worked</Link>
                 </Button>
               </CardContent>
             </Card>

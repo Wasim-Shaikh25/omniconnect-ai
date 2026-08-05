@@ -26,8 +26,8 @@ describe("register-user use-case", () => {
           phoneVerified: null,
           role: input.role,
           isSuperAdmin: input.isSuperAdmin ?? false,
-          userId: input.userId ?? null,
-          projectId: input.projectId ?? null,
+          organizationId: input.organizationId ?? null,
+          storeId: input.storeId ?? null,
           tokenVersion: 0,
           deletedAt: null,
         };

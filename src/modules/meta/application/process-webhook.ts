@@ -24,17 +24,17 @@ export function makeProcessMetaWebhook(deps: {
 
     let published = 0;
     for (const event of events) {
-      const projectId = await deps.integrations.findStoreByAccountId(
+      const storeId = await deps.integrations.findStoreByAccountId(
         event.accountId,
       );
-      if (!projectId) {
+      if (!storeId) {
         logger.warn("meta.webhook.unknownAccount", {
           accountId: event.accountId,
           kind: event.kind,
         });
         continue;
       }
-      await publishMetaEvent(projectId, event);
+      await publishMetaEvent(storeId, event);
       published += 1;
     }
 

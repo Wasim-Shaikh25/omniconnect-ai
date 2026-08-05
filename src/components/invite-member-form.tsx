@@ -65,7 +65,7 @@ export function InviteMemberForm({
         <Label htmlFor="invite-store">Store</Label>
         <select
           id="invite-store"
-          name="projectId"
+          name="storeId"
           required={role === "STAFF"}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
         >

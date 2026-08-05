@@ -47,7 +47,7 @@ export default async function VerifyEmailPage({
         description = "Your email address has been updated.";
         redirectPath = "/settings/account";
         await auditCommands.create({
-          userId: null,
+          organizationId: null,
           actorId: changeResult.value.id,
           actorEmail: changeResult.value.email,
           action: "USER_EMAIL_CHANGED",

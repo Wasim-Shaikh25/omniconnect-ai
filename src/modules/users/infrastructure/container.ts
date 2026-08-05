@@ -35,18 +35,18 @@ export async function getUserProfile(id: string): Promise<UserProfile | null> {
 }
 
 export async function listOrganizationUsers(
-  userId: string,
+  organizationId: string,
   pagination?: PaginationInput,
 ) {
-  return users.listByOrganization(userId, pagination);
+  return users.listByOrganization(organizationId, pagination);
 }
 
 export async function listAllUsers(pagination?: PaginationInput) {
   return users.listAll(pagination);
 }
 
-export async function countOrganizationUsers(userId: string) {
-  return users.countByOrganization(userId);
+export async function countOrganizationUsers(organizationId: string) {
+  return users.countByOrganization(organizationId);
 }
 
 export async function setUserSuperAdmin(
@@ -58,16 +58,16 @@ export async function setUserSuperAdmin(
 
 export async function setUserOrganization(
   id: string,
-  userId: string,
+  organizationId: string,
 ): Promise<void> {
-  return users.setOrganization(id, userId);
+  return users.setOrganization(id, organizationId);
 }
 
 export async function setUserStore(
   id: string,
-  projectId: string | null,
+  storeId: string | null,
 ): Promise<UserProfile> {
-  return users.setStore(id, projectId);
+  return users.setStore(id, storeId);
 }
 
 export async function removeUserFromOrganization(id: string): Promise<UserProfile> {

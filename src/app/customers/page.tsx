@@ -48,8 +48,8 @@ export default async function CustomersPage({
   }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !user.userId) redirect("/login");
-  if (user.role === "STAFF" && !user.projectId) redirect("/dashboard");
+  if (!user || !user.organizationId) redirect("/login");
+  if (user.role === "STAFF" && !user.storeId) redirect("/dashboard");
 
   const params = (await searchParams) ?? {};
   const pagination = parsePagination(params.page, params.limit);
@@ -76,12 +76,12 @@ export default async function CustomersPage({
     ...(segment ? { segment } : {}),
   };
 
-  const projectId = user.role === "STAFF" ? user.projectId : undefined;
+  const storeId = user.role === "STAFF" ? user.storeId : undefined;
   const { items: customers, total, totalPages } = await customerDirectory.listCustomersByOrganizationPaginated(
-    user.userId,
+    user.organizationId,
     pagination,
     Object.keys(filter).length > 0 ? filter : undefined,
-    projectId,
+    storeId,
   );
 
   return (

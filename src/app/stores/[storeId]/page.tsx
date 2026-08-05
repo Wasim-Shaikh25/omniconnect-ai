@@ -43,11 +43,11 @@ import { formatCurrency } from "@/lib/currency";
 export default async function StoreDetailPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -65,13 +65,13 @@ export default async function StoreDetailPage({
     followers,
     aiConfig,
   ] = await Promise.all([
-    ecommerceQueries.getStoreConnection(projectId),
-    ecommerceQueries.listProducts(projectId),
-    ecommerceQueries.listCoupons(projectId),
-    metaQueries.getMetaConnection(projectId),
-    conversationQueries.listConversations(projectId, 10),
-    crmQueries.listFollowers(projectId, 10),
-    aiQueries.getConfiguration(projectId),
+    ecommerceQueries.getStoreConnection(storeId),
+    ecommerceQueries.listProducts(storeId),
+    ecommerceQueries.listCoupons(storeId),
+    metaQueries.getMetaConnection(storeId),
+    conversationQueries.listConversations(storeId, 10),
+    crmQueries.listFollowers(storeId, 10),
+    aiQueries.getConfiguration(storeId),
   ]);
 
   return (
@@ -86,13 +86,13 @@ export default async function StoreDetailPage({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/products`}>Products</Link>
+            <Link href={`/stores/${storeId}/products`}>Products</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/coupons`}>Coupons</Link>
+            <Link href={`/stores/${storeId}/coupons`}>Coupons</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/settings`}>Settings</Link>
+            <Link href={`/stores/${storeId}/settings`}>Settings</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link href="/stores">Back to stores</Link>
@@ -101,21 +101,21 @@ export default async function StoreDetailPage({
       </header>
 
       <section className="mt-8">
-        <IntelligencePanel projectId={projectId} />
+        <IntelligencePanel storeId={storeId} />
       </section>
 
       <section className="mt-8 grid gap-6 md:grid-cols-2">
-        <RecommendationsPanel projectId={projectId} />
-        <GoalsPanel projectId={projectId} />
+        <RecommendationsPanel storeId={storeId} />
+        <GoalsPanel storeId={storeId} />
       </section>
 
       <section className="mt-8 grid gap-6 md:grid-cols-2">
-        <PredictionsPanel projectId={projectId} />
-        <LearningPanel projectId={projectId} />
+        <PredictionsPanel storeId={storeId} />
+        <LearningPanel storeId={storeId} />
       </section>
 
       <section className="mt-8 grid gap-6 md:grid-cols-2">
-        <CompetitorIntelligencePanel projectId={projectId} />
+        <CompetitorIntelligencePanel storeId={storeId} />
       </section>
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -136,7 +136,7 @@ export default async function StoreDetailPage({
             {canManage ? (
               <ConnectStoreForm
                 action={connectStoreAction}
-                projectId={projectId}
+                storeId={storeId}
                 provider={store.provider}
               />
             ) : (
@@ -175,7 +175,7 @@ export default async function StoreDetailPage({
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="w-fit">
-              <Link href={`/stores/${projectId}/coupons`}>View all coupons</Link>
+              <Link href={`/stores/${storeId}/coupons`}>View all coupons</Link>
             </Button>
           </CardContent>
         </Card>
@@ -190,7 +190,7 @@ export default async function StoreDetailPage({
             </CardDescription>
           </div>
           {canManage && connection.connected && (
-            <SyncProductsButton action={syncProductsAction} projectId={projectId} />
+            <SyncProductsButton action={syncProductsAction} storeId={storeId} />
           )}
         </CardHeader>
         <CardContent>
@@ -239,7 +239,7 @@ export default async function StoreDetailPage({
           </CardHeader>
           <CardContent>
             {canManage ? (
-              <MetaConnectForm action={connectMetaAction} projectId={projectId} />
+              <MetaConnectForm action={connectMetaAction} storeId={storeId} />
             ) : (
               <p className="text-sm text-muted-foreground">
                 Only owners/admins can manage connections.
@@ -257,7 +257,7 @@ export default async function StoreDetailPage({
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${projectId}/campaigns/first-follower`}>
+              <Link href={`/stores/${storeId}/campaigns/first-follower`}>
                 Configure campaign
               </Link>
             </Button>
@@ -276,7 +276,7 @@ export default async function StoreDetailPage({
             <CardContent>
               <MetaSimulateForm
                 action={simulateInboundAction}
-                projectId={projectId}
+                storeId={storeId}
               />
             </CardContent>
           </Card>
@@ -301,7 +301,7 @@ export default async function StoreDetailPage({
             {canManage ? (
               <AISettingsForm
                 action={updateAIConfigurationAction}
-                projectId={projectId}
+                storeId={storeId}
                 defaultValues={{
                   systemPrompt:
                     aiConfig?.systemPrompt ??
@@ -332,28 +332,28 @@ export default async function StoreDetailPage({
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/analytics`}>Analytics</Link>
+            <Link href={`/stores/${storeId}/analytics`}>Analytics</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/campaigns`}>Campaigns</Link>
+            <Link href={`/stores/${storeId}/campaigns`}>Campaigns</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/conversations`}>Conversations</Link>
+            <Link href={`/stores/${storeId}/conversations`}>Conversations</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/content`}>Content Studio</Link>
+            <Link href={`/stores/${storeId}/content`}>Content Studio</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/commerce/catalog`}>Meta Catalog</Link>
+            <Link href={`/stores/${storeId}/commerce/catalog`}>Meta Catalog</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/commerce/trends`}>Trends</Link>
+            <Link href={`/stores/${storeId}/commerce/trends`}>Trends</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/commerce/competitors`}>Competitors</Link>
+            <Link href={`/stores/${storeId}/commerce/competitors`}>Competitors</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/integrations`}>Integrations</Link>
+            <Link href={`/stores/${storeId}/integrations`}>Integrations</Link>
           </Button>
         </CardContent>
       </Card>
@@ -419,7 +419,7 @@ export default async function StoreDetailPage({
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-4 w-fit">
-              <Link href={`/stores/${projectId}/followers`}>View all followers</Link>
+              <Link href={`/stores/${storeId}/followers`}>View all followers</Link>
             </Button>
           </CardContent>
         </Card>

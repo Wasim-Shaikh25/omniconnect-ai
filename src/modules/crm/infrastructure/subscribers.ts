@@ -18,7 +18,7 @@ const followers = new PrismaFollowerRepository();
 const onMetaMessageReceived: EventHandler = async (event) => {
   const p = event.payload as MetaMessageReceivedPayload;
   await customers.upsertByExternalId({
-    projectId: p.projectId,
+    storeId: p.storeId,
     channel: p.channel,
     externalUserId: p.externalUserId,
     username: p.username,
@@ -28,14 +28,14 @@ const onMetaMessageReceived: EventHandler = async (event) => {
 const onMetaFollowReceived: EventHandler = async (event) => {
   const p = event.payload as MetaFollowReceivedPayload;
   const customer = await customers.upsertByExternalId({
-    projectId: p.projectId,
+    storeId: p.storeId,
     channel: p.channel,
     externalUserId: p.externalUserId,
     username: p.username,
   });
 
   const { record, isNew } = await followers.record({
-    projectId: p.projectId,
+    storeId: p.storeId,
     customerId: customer.id,
     externalUserId: p.externalUserId,
     username: p.username,
@@ -44,7 +44,7 @@ const onMetaFollowReceived: EventHandler = async (event) => {
   if (isNew) {
     await eventBus.publish(
       new FirstTimeFollowerDetected(customer.id, {
-        projectId: p.projectId,
+        storeId: p.storeId,
         customerId: customer.id,
         followerId: record.id,
         channel: p.channel,
@@ -52,7 +52,7 @@ const onMetaFollowReceived: EventHandler = async (event) => {
         username: p.username,
       }),
     );
-    logger.info("crm.firstTimeFollower", { projectId: p.projectId });
+    logger.info("crm.firstTimeFollower", { storeId: p.storeId });
   }
 };
 
@@ -62,11 +62,11 @@ const onCouponGenerated: EventHandler = async (event) => {
 
   await customers.recordCouponSent({
     customerId: p.customerId,
-    projectId: p.projectId,
+    storeId: p.storeId,
     couponId: p.couponId,
   });
   logger.info("crm.couponSentRecorded", {
-    projectId: p.projectId,
+    storeId: p.storeId,
     customerId: p.customerId,
     couponId: p.couponId,
   });

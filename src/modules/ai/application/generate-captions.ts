@@ -3,7 +3,7 @@ import { AIContextBuilder } from "./ai-context";
 import { selectModel } from "./model-router";
 
 export interface GenerateCaptionsInput {
-  projectId: string;
+  storeId: string;
   mediaType: "POST" | "REEL" | "STORY";
   productNames: string[];
   niche?: string | null;
@@ -30,7 +30,7 @@ export function makeGenerateCaptions(deps: {
 }): GenerateCaptions {
   return async function generateCaptions(input): Promise<GeneratedCaption[]> {
     const config = await deps.aiConfigurationRepository.getByStore(
-      input.projectId,
+      input.storeId,
     );
     const tone = config?.tone ?? DEFAULT_TONE;
     const niche = input.niche ?? "eCommerce";
@@ -59,7 +59,7 @@ Return only a JSON array of 3 objects. Do not wrap in markdown.`;
       .withModel(selectModel("captions", config?.model).model)
       .withFallback(DEFAULT_DEV_OUTPUT)
       .withOperation("captions")
-      .withMetadata({ projectId: input.projectId, mediaType: input.mediaType, productCount: input.productNames.length })
+      .withMetadata({ storeId: input.storeId, mediaType: input.mediaType, productCount: input.productNames.length })
       .build();
 
     const raw = await deps.aiProvider.complete(context.messages, {

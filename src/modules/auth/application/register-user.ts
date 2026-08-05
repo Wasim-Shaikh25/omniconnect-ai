@@ -44,9 +44,9 @@ export interface RegisteredUser {
 }
 
 export interface RegisterUserOptions {
-  userId?: string | null;
+  organizationId?: string | null;
   role?: Role;
-  projectId?: string | null;
+  storeId?: string | null;
   emailVerified?: Date | null;
 }
 
@@ -81,8 +81,8 @@ export function makeRegisterUser(deps: {
       role,
       phone: input.phone ?? null,
       emailVerified,
-      userId: options?.userId ?? null,
-      projectId: options?.projectId ?? null,
+      organizationId: options?.organizationId ?? null,
+      storeId: options?.storeId ?? null,
     });
 
     await deps.eventBus.publish(

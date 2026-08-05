@@ -27,11 +27,11 @@ export default async function StoreProductsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
   searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
-  const { projectId } = await params;
-  const access = await checkStoreAccess(projectId);
+  const { storeId } = await params;
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -42,7 +42,7 @@ export default async function StoreProductsPage({
   const search = paramsResolved.q?.trim();
 
   const { items: products, total, totalPages } = await ecommerceQueries.listProductsPaginated(
-    projectId,
+    storeId,
     pagination,
     search,
   );
@@ -58,7 +58,7 @@ export default async function StoreProductsPage({
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}`}>Back to store</Link>
+            <Link href={`/stores/${storeId}`}>Back to store</Link>
           </Button>
         </div>
       </header>
@@ -74,7 +74,7 @@ export default async function StoreProductsPage({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <ProductList products={products} projectId={projectId} />
+          <ProductList products={products} storeId={storeId} />
           <PaginationControls
             page={pagination.page}
             totalPages={totalPages}

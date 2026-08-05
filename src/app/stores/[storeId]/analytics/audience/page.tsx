@@ -8,19 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default async function AudienceAnalyticsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.userId) notFound();
+  if (!user.organizationId) notFound();
 
-  const view = await getMarketingPerformance({ userId: user.userId, projectId });
+  const view = await getMarketingPerformance({ organizationId: user.organizationId, storeId });
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -30,7 +30,7 @@ export default async function AudienceAnalyticsPage({
           <p className="text-sm text-muted-foreground">Who is growing, buying, and talking for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
+          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
         </Button>
       </header>
 

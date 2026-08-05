@@ -17,18 +17,18 @@ const onMetaMessageReceived: EventHandler = async (event) => {
   // stable across messages. The message id (externalConversationId) is not
   // a stable thread key for live Meta messages.
   const conversation = await conversations.upsert({
-    projectId: p.projectId,
+    storeId: p.storeId,
     channel: p.channel,
     externalId: p.externalUserId,
   });
   const message = await messages.append({
     conversationId: conversation.id,
-    projectId: p.projectId,
+    storeId: p.storeId,
     sender: "CUSTOMER",
     content: p.text,
   });
   logger.info("conversations.messageAppended", {
-    projectId: p.projectId,
+    storeId: p.storeId,
     conversationId: conversation.id,
   });
 
@@ -37,7 +37,7 @@ const onMetaMessageReceived: EventHandler = async (event) => {
       conversation.id,
       {
         conversationId: conversation.id,
-        projectId: p.projectId,
+        storeId: p.storeId,
         channel: p.channel,
         externalUserId: p.externalUserId,
         customerId: conversation.customerId,

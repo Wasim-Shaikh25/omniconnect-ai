@@ -22,7 +22,7 @@ export async function updateCampaignAction(
   let user;
   try {
     user = await requireRole("STORE_OWNER");
-    await tenantGuard.assertStoreAccess(user, String(formData.get("projectId") ?? ""));
+    await tenantGuard.assertStoreAccess(user, String(formData.get("storeId") ?? ""));
   } catch {
     return { status: "error", message: "Unauthorized" };
   }
@@ -41,14 +41,14 @@ export async function updateCampaignAction(
     };
   }
 
-  const { projectId, ...update } = parsed.data;
-  await updateCampaign({ projectId, ...update });
-  revalidatePath(`/stores/${projectId}/campaigns/first-follower`);
+  const { storeId, ...update } = parsed.data;
+  await updateCampaign({ storeId, ...update });
+  revalidatePath(`/stores/${storeId}/campaigns/first-follower`);
   return { status: "success", message: "Campaign settings saved" };
 }
 
 const simulateSchema = z.object({
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
   externalUserId: z.string().min(1),
   username: z.string().min(1),
   channel: z.enum(["INSTAGRAM", "FACEBOOK"]),
@@ -77,21 +77,21 @@ export async function simulateFirstTimeFollower(
     };
   }
 
-  const { projectId, externalUserId, username, channel } = parsed.data;
+  const { storeId, externalUserId, username, channel } = parsed.data;
   try {
-    await tenantGuard.assertStoreAccess(user, projectId);
+    await tenantGuard.assertStoreAccess(user, storeId);
   } catch {
     return { status: "error", message: "Unauthorized" };
   }
 
   await eventBus.publish(
-    new MetaFollowReceived(projectId, {
-      projectId,
+    new MetaFollowReceived(storeId, {
+      storeId,
       externalUserId,
       username,
       channel,
     }),
   );
-  revalidatePath(`/stores/${projectId}/campaigns/first-follower`);
+  revalidatePath(`/stores/${storeId}/campaigns/first-follower`);
   return { status: "success", message: `Simulated new ${channel.toLowerCase()} follower` };
 }

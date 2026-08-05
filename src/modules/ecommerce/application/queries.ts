@@ -27,77 +27,77 @@ export function makeEcommerceQueries(deps: {
   connectors: ConnectorFactory;
 }) {
   return {
-    async getStoreConnection(projectId: string): Promise<StoreConnectionView> {
+    async getStoreConnection(storeId: string): Promise<StoreConnectionView> {
       const [integration, productCount, orderCount] = await Promise.all([
-        deps.integrations.findEcommerceByStore(projectId),
-        deps.products.countByStore(projectId),
-        deps.orders.countByStore(projectId),
+        deps.integrations.findEcommerceByStore(storeId),
+        deps.products.countByStore(storeId),
+        deps.orders.countByStore(storeId),
       ]);
       return { connected: !!integration, integration, productCount, orderCount };
     },
 
     async listProducts(
-      projectId: string,
+      storeId: string,
       limitOrOptions: number | { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = 50,
     ): Promise<ProductRecord[]> {
       const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
-      return deps.products.listByStore(projectId, options);
+      return deps.products.listByStore(storeId, options);
     },
 
     async listProductsPaginated(
-      projectId: string,
+      storeId: string,
       pagination: PaginationInput,
       search?: string,
     ): Promise<PaginatedResult<ProductRecord>> {
       const [items, total] = await Promise.all([
-        deps.products.listByStore(projectId, { ...pagination, offset: toSkip(pagination), search }),
-        deps.products.countByStore(projectId, search),
+        deps.products.listByStore(storeId, { ...pagination, offset: toSkip(pagination), search }),
+        deps.products.countByStore(storeId, search),
       ]);
       return paginatedResult(items, total, pagination);
     },
 
-    countProducts(projectId: string, search?: string): Promise<number> {
-      return deps.products.countByStore(projectId, search);
+    countProducts(storeId: string, search?: string): Promise<number> {
+      return deps.products.countByStore(storeId, search);
     },
 
     async listCoupons(
-      projectId: string,
+      storeId: string,
       limitOrOptions: number | { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = 50,
     ): Promise<CouponRecord[]> {
       const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
-      return deps.coupons.listByStore(projectId, options);
+      return deps.coupons.listByStore(storeId, options);
     },
 
     async listCouponsPaginated(
-      projectId: string,
+      storeId: string,
       pagination: PaginationInput,
       search?: string,
     ): Promise<PaginatedResult<CouponRecord>> {
       const [items, total] = await Promise.all([
-        deps.coupons.listByStore(projectId, { ...pagination, offset: toSkip(pagination), search }),
-        deps.coupons.countByStore(projectId, search),
+        deps.coupons.listByStore(storeId, { ...pagination, offset: toSkip(pagination), search }),
+        deps.coupons.countByStore(storeId, search),
       ]);
       return paginatedResult(items, total, pagination);
     },
 
-    countCoupons(projectId: string, search?: string): Promise<number> {
-      return deps.coupons.countByStore(projectId, search);
+    countCoupons(storeId: string, search?: string): Promise<number> {
+      return deps.coupons.countByStore(storeId, search);
     },
 
     async listOrders(
-      projectId: string,
+      storeId: string,
       limit = 50,
       since?: Date,
     ): Promise<OrderRecord[]> {
-      return deps.orders.listByStore(projectId, { limit, since });
+      return deps.orders.listByStore(storeId, { limit, since });
     },
 
     async listOrdersPaginated(
-      projectId: string,
+      storeId: string,
       pagination: PaginationInput,
       search?: string,
     ): Promise<PaginatedResult<OrderRecord>> {
-      const all = await deps.orders.listByStore(projectId, { since: new Date(0) });
+      const all = await deps.orders.listByStore(storeId, { since: new Date(0) });
       const q = search?.toLowerCase() ?? "";
       const filtered = q
         ? all.filter((o) =>

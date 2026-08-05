@@ -14,8 +14,8 @@ type PrismaUser = {
   image: string | null;
   role: string;
   isSuperAdmin: boolean;
-  userId: string | null;
-  projectId: string | null;
+  organizationId: string | null;
+  storeId: string | null;
   deletedAt: Date | null;
 };
 
@@ -29,8 +29,8 @@ function toProfile(user: PrismaUser): UserProfile {
     image: user.image,
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
-    userId: user.userId,
-    projectId: user.projectId,
+    organizationId: user.organizationId,
+    storeId: user.storeId,
   };
 }
 
@@ -51,10 +51,10 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     return toProfile(user);
   }
 
-  async setOrganization(id: string, userId: string): Promise<void> {
+  async setOrganization(id: string, organizationId: string): Promise<void> {
     await prisma.user.update({
       where: { id, ...notDeleted },
-      data: { userId, tokenVersion: { increment: 1 } },
+      data: { organizationId, tokenVersion: { increment: 1 } },
     });
   }
 
@@ -66,19 +66,19 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     return toProfile(user);
   }
 
-  async setStore(id: string, projectId: string | null): Promise<UserProfile> {
+  async setStore(id: string, storeId: string | null): Promise<UserProfile> {
     const user = await prisma.user.update({
       where: { id, ...notDeleted },
-      data: { projectId, tokenVersion: { increment: 1 } },
+      data: { storeId, tokenVersion: { increment: 1 } },
     });
     return toProfile(user);
   }
 
   async listByOrganization(
-    userId: string,
+    organizationId: string,
     pagination?: PaginationInput,
   ) {
-    const where = { userId, ...notDeleted };
+    const where = { organizationId, ...notDeleted };
     const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -126,24 +126,24 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
   async removeFromOrganization(id: string): Promise<UserProfile> {
     const user = await prisma.user.update({
       where: { id, ...notDeleted },
-      data: { userId: null, projectId: null, tokenVersion: { increment: 1 } },
+      data: { organizationId: null, storeId: null, tokenVersion: { increment: 1 } },
     });
     return toProfile(user);
   }
 
-  async countByOrganization(userId: string): Promise<number> {
-    return prisma.user.count({ where: { userId, ...notDeleted } });
+  async countByOrganization(organizationId: string): Promise<number> {
+    return prisma.user.count({ where: { organizationId, ...notDeleted } });
   }
 
   async requestDataExport(
     userId: string,
-    userId?: string | null,
+    organizationId?: string | null,
   ): Promise<ExportRequestRecord> {
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
     const record = await prisma.exportRequest.create({
       data: {
         userId,
-        userId: userId ?? null,
+        organizationId: organizationId ?? null,
         status: "PENDING",
         expiresAt: new Date(Date.now() + SEVEN_DAYS_MS),
       },
@@ -207,7 +207,7 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
 function toExportRecord(record: {
   id: string;
   userId: string;
-  userId: string | null;
+  organizationId: string | null;
   status: string;
   downloadUrl: string | null;
   expiresAt: Date | null;
@@ -217,7 +217,7 @@ function toExportRecord(record: {
   return {
     id: record.id,
     userId: record.userId,
-    userId: record.userId,
+    organizationId: record.organizationId,
     status: record.status as ExportRequestRecord["status"],
     downloadUrl: record.downloadUrl,
     expiresAt: record.expiresAt,

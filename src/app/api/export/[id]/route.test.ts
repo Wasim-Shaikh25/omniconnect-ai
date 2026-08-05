@@ -27,8 +27,8 @@ function makeSessionUser(user: { id: string; email: string }) {
     name: null,
     role: "STORE_OWNER",
     isSuperAdmin: false,
-    userId: null,
-    projectId: null,
+    organizationId: null,
+    storeId: null,
   };
 }
 

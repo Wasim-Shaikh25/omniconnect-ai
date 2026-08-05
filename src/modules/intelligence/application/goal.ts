@@ -11,20 +11,20 @@ export interface GoalServiceInput {
 
 export function makeGoalService(input: GoalServiceInput) {
   return {
-    async list(userId: string, projectId?: string, limit = 20): Promise<GoalRecord[]> {
-      return input.goals.list(userId, projectId, limit);
+    async list(organizationId: string, storeId?: string, limit = 20): Promise<GoalRecord[]> {
+      return input.goals.list(organizationId, storeId, limit);
     },
 
     async create(
-      userId: string,
-      projectId: string | undefined,
+      organizationId: string,
+      storeId: string | undefined,
       name: string,
       targetMetric: string,
       target: number | null,
       endDate: Date | null,
       ownerUserId?: string,
     ): Promise<GoalRecord> {
-      const baselineSnapshot = await input.metrics.getMetric(targetMetric, userId, projectId ?? null);
+      const baselineSnapshot = await input.metrics.getMetric(targetMetric, organizationId, storeId ?? null);
       const baseline = baselineSnapshot?.value ?? null;
 
       const pacing: GoalPacing = {
@@ -34,8 +34,8 @@ export function makeGoalService(input: GoalServiceInput) {
       };
 
       return input.goals.save({
-        userId,
-        projectId: projectId ?? null,
+        organizationId,
+        storeId: storeId ?? null,
         name,
         targetMetric,
         baseline,
@@ -48,11 +48,11 @@ export function makeGoalService(input: GoalServiceInput) {
       });
     },
 
-    async updatePacing(id: string, userId: string): Promise<GoalRecord> {
-      const goal = await input.goals.findById(id, userId);
+    async updatePacing(id: string, organizationId: string): Promise<GoalRecord> {
+      const goal = await input.goals.findById(id, organizationId);
       if (!goal) throw new Error("Goal not found");
 
-      const snapshot = await input.metrics.getMetric(goal.targetMetric, goal.userId, goal.projectId);
+      const snapshot = await input.metrics.getMetric(goal.targetMetric, goal.organizationId, goal.storeId);
       const current = snapshot?.value ?? 0;
       const projected = current;
       const onTrack = goal.target !== null && goal.target > 0 ? current >= goal.target * 0.5 : true;
@@ -62,7 +62,7 @@ export function makeGoalService(input: GoalServiceInput) {
       else if (goal.endDate && new Date() > goal.endDate && current < (goal.target ?? 0)) status = "MISSED";
 
       const pacing: GoalPacing = { current, projected, onTrack };
-      const updated = await input.goals.updatePacing(goal.id, userId, pacing, status);
+      const updated = await input.goals.updatePacing(goal.id, organizationId, pacing, status);
 
       await eventBus.publish(new GoalPacingChanged(goal.id, { goal: updated }));
       return updated;

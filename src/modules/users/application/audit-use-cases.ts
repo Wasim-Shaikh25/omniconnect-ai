@@ -9,8 +9,8 @@ import type {
 export function makeListAuditLogs(deps: {
   auditLogs: AuditLogRepository;
 }): AuditLogQueries["listByOrganization"] {
-  return (userId, limit) =>
-    deps.auditLogs.listByOrganization(userId, limit);
+  return (organizationId, limit) =>
+    deps.auditLogs.listByOrganization(organizationId, limit);
 }
 
 export function makeCreateAuditLog(deps: {

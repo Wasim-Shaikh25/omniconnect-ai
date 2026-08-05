@@ -15,15 +15,15 @@ export function makeBrainMemoryService(input: BrainMemoryServiceInput) {
   return {
     async rememberQuestion(
       userId: string,
-      userId: string,
+      organizationId: string,
       question: string,
       answer: string,
-      projectId?: string,
+      storeId?: string,
     ): Promise<BrainConversationMemoryRecord> {
       return input.repository.save({
         userId,
-        userId,
-        projectId: projectId ?? null,
+        organizationId,
+        storeId: storeId ?? null,
         question,
         answer,
         acceptedAdviceIds: [],
@@ -35,11 +35,11 @@ export function makeBrainMemoryService(input: BrainMemoryServiceInput) {
 
     async getRecentContext(
       userId: string,
-      userId: string,
-      projectId?: string,
+      organizationId: string,
+      storeId?: string,
       limit = 5,
     ): Promise<BrainConversationMemoryRecord[]> {
-      return input.repository.listRecent(userId, userId, projectId, limit);
+      return input.repository.listRecent(userId, organizationId, storeId, limit);
     },
 
     async recordFeedback(

@@ -16,18 +16,18 @@ import {
 export default async function CampaignsHubPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { store } = access;
 
-  const campaign = await couponsQueries.getCampaign(projectId);
+  const campaign = await couponsQueries.getCampaign(storeId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -39,11 +39,11 @@ export default async function CampaignsHubPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
+          <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
 
-      <CampaignsNextBestAction projectId={projectId} />
+      <CampaignsNextBestAction storeId={storeId} />
 
       <div className="space-y-4">
         <Card>
@@ -78,7 +78,7 @@ export default async function CampaignsHubPage({
               </p>
             </div>
             <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${projectId}/campaigns/first-follower`}>
+              <Link href={`/stores/${storeId}/campaigns/first-follower`}>
                 Configure campaign
               </Link>
             </Button>

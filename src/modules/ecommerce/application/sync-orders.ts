@@ -5,7 +5,7 @@ import { ConnectorError, StoreNotConnectedError } from "../domain/errors";
 import type { ConnectorFactory, OrderRepository } from "./ports";
 
 export const syncOrdersSchema = z.object({
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
 });
 
 export function makeSyncOrders(deps: {
@@ -13,13 +13,13 @@ export function makeSyncOrders(deps: {
   orders: OrderRepository;
 }) {
   return async function syncOrders(
-    projectId: string,
+    storeId: string,
   ): Promise<Result<{ count: number; removed: number }, StoreNotConnectedError | ConnectorError>> {
     let connector;
     try {
-      connector = await deps.connectors.forStore(projectId);
+      connector = await deps.connectors.forStore(storeId);
     } catch {
-      return err(new StoreNotConnectedError(projectId));
+      return err(new StoreNotConnectedError(storeId));
     }
 
     let fetched;
@@ -29,10 +29,10 @@ export function makeSyncOrders(deps: {
       return err(new ConnectorError(connector.provider, "getOrders"));
     }
 
-    const { upserted, removed } = await deps.orders.sync(projectId, fetched);
+    const { upserted, removed } = await deps.orders.sync(storeId, fetched);
 
     logger.info("ecommerce.ordersSynced", {
-      projectId,
+      storeId,
       provider: connector.provider,
       count: upserted,
       removed,

@@ -18,34 +18,34 @@ export function makeConversationQueries(deps: {
 }) {
   return {
     listConversations(
-      projectId: string,
+      storeId: string,
       limitOrOptions: number | { limit?: number; offset?: number; search?: string } = 50,
     ): Promise<ConversationRecord[]> {
       const options = typeof limitOrOptions === "number" ? { limit: limitOrOptions } : limitOrOptions;
-      return deps.conversations.listByStore(projectId, options);
+      return deps.conversations.listByStore(storeId, options);
     },
 
     async listConversationsPaginated(
-      projectId: string,
+      storeId: string,
       pagination: PaginationInput,
       search?: string,
     ): Promise<PaginatedResult<ConversationRecord>> {
       const [items, total] = await Promise.all([
-        deps.conversations.listByStore(projectId, {
+        deps.conversations.listByStore(storeId, {
           ...pagination,
           offset: toSkip(pagination),
           search,
         }),
-        deps.conversations.countByStore(projectId, { search }),
+        deps.conversations.countByStore(storeId, { search }),
       ]);
       return paginatedResult(items, total, pagination);
     },
 
     countConversations(
-      projectId: string,
+      storeId: string,
       options?: { search?: string },
     ): Promise<number> {
-      return deps.conversations.countByStore(projectId, options);
+      return deps.conversations.countByStore(storeId, options);
     },
 
     async getConversation(id: string): Promise<ConversationDetail | null> {

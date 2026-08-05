@@ -13,12 +13,12 @@ type Action = (
 
 interface FirstTimeFollowerSimulatorProps {
   action: Action;
-  projectId: string;
+  storeId: string;
 }
 
 export function FirstTimeFollowerSimulator({
   action,
-  projectId,
+  storeId,
 }: FirstTimeFollowerSimulatorProps) {
   const [state, formAction, pending] = useActionState(action, {
     status: "idle",
@@ -27,7 +27,7 @@ export function FirstTimeFollowerSimulator({
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <input type="hidden" name="channel" value="INSTAGRAM" />
       <div className="space-y-2">
         <Label htmlFor="username">Instagram username</Label>

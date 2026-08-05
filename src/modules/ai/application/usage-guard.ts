@@ -1,24 +1,24 @@
 import { organizationUsage } from "@/modules/organizations";
 
 export interface AIUsageGuard {
-  assertAvailable(userId: string | null): Promise<void>;
-  consume(userId: string | null): Promise<boolean>;
+  assertAvailable(organizationId: string | null): Promise<void>;
+  consume(organizationId: string | null): Promise<boolean>;
 }
 
 export class OrganizationAIUsageGuard implements AIUsageGuard {
-  async assertAvailable(userId: string | null): Promise<void> {
-    if (!userId) {
+  async assertAvailable(organizationId: string | null): Promise<void> {
+    if (!organizationId) {
       throw new Error("Organization is required to use AI features.");
     }
-    const allowed = await organizationUsage.consumeAIReply(userId);
+    const allowed = await organizationUsage.consumeAIReply(organizationId);
     if (!allowed) {
       throw new Error("AI reply quota exceeded. Upgrade your plan or try again next month.");
     }
   }
 
-  async consume(userId: string | null): Promise<boolean> {
-    if (!userId) return false;
-    return organizationUsage.consumeAIReply(userId);
+  async consume(organizationId: string | null): Promise<boolean> {
+    if (!organizationId) return false;
+    return organizationUsage.consumeAIReply(organizationId);
   }
 }
 

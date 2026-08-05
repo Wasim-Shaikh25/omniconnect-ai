@@ -60,7 +60,7 @@ export default async function InboxPage({
   }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !user.userId) redirect("/login");
+  if (!user || !user.organizationId) redirect("/login");
 
   const params = (await searchParams) ?? {};
   const pagination = parsePagination(params.page, params.limit);
@@ -227,7 +227,7 @@ export default async function InboxPage({
                     <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
                       <Button asChild variant="outline" size="sm">
                         <Link
-                          href={`/stores/${item.projectId}/conversations/${item.conversationId}`}
+                          href={`/stores/${item.storeId}/conversations/${item.conversationId}`}
                         >
                           View
                         </Link>
@@ -243,7 +243,7 @@ export default async function InboxPage({
                             ? resumeAIConversationAction
                             : takeOverConversationAction
                         }
-                        projectId={item.projectId}
+                        storeId={item.storeId}
                         conversationId={item.conversationId}
                         isHuman={item.status === "HUMAN_ACTIVE"}
                       />

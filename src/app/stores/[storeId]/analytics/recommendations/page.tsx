@@ -11,19 +11,19 @@ import type { ContentRecommendation } from "@/modules/analytics";
 export default async function RecommendationsAnalyticsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.userId) notFound();
+  if (!user.organizationId) notFound();
 
-  const { recommendations, error } = await listContentRecommendationsAction(projectId);
+  const { recommendations, error } = await listContentRecommendationsAction(storeId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -33,7 +33,7 @@ export default async function RecommendationsAnalyticsPage({
           <p className="text-sm text-muted-foreground">AI content ideas for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
+          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
         </Button>
       </header>
 
@@ -43,7 +43,7 @@ export default async function RecommendationsAnalyticsPage({
           <CardDescription>Ask the AI for a post or reel idea.</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateRecommendationForm action={createContentRecommendationAction} projectId={projectId} />
+          <CreateRecommendationForm action={createContentRecommendationAction} storeId={storeId} />
         </CardContent>
       </Card>
 

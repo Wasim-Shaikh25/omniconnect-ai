@@ -11,14 +11,14 @@ export function makeCommerceQueries(deps: {
   media: ShoppableMediaRepository;
 }): CommerceQueries {
   return {
-    async getLatestCatalogSync(projectId: string) {
-      return deps.catalogSyncs.findLatest(projectId);
+    async getLatestCatalogSync(storeId: string) {
+      return deps.catalogSyncs.findLatest(storeId);
     },
-    async listProductMappings(projectId: string) {
-      return deps.mappings.listByStore(projectId);
+    async listProductMappings(storeId: string) {
+      return deps.mappings.listByStore(storeId);
     },
-    async listShoppableMedia(projectId: string) {
-      return deps.media.listByStore(projectId);
+    async listShoppableMedia(storeId: string) {
+      return deps.media.listByStore(storeId);
     },
   };
 }

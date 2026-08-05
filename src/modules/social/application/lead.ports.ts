@@ -1,6 +1,6 @@
 export interface SocialLeadRecord {
   id: string;
-  projectId: string;
+  storeId: string;
   source: string;
   externalFormId: string | null;
   externalLeadId: string | null;
@@ -17,7 +17,7 @@ export interface SocialLeadRecord {
 
 export interface LeadRepository {
   create(input: {
-    projectId: string;
+    storeId: string;
     source: string;
     externalFormId?: string | null;
     externalLeadId?: string | null;
@@ -27,21 +27,21 @@ export interface LeadRepository {
     score?: number;
     customerId?: string | null;
   }): Promise<SocialLeadRecord>;
-  listByStore(projectId: string, limit?: number): Promise<SocialLeadRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<SocialLeadRecord[]>;
   updateScore(id: string, score: number, status: string): Promise<SocialLeadRecord>;
 }
 
 export interface LeadService {
   captureLead(input: {
-    projectId: string;
+    storeId: string;
     source: string;
     externalFormId?: string | null;
     externalLeadId?: string | null;
     payload?: unknown;
   }): Promise<SocialLeadRecord>;
-  scoreLead(id: string, projectId: string): Promise<SocialLeadRecord>;
+  scoreLead(id: string, storeId: string): Promise<SocialLeadRecord>;
 }
 
 export interface LeadQueries {
-  listLeads(projectId: string, limit?: number): Promise<SocialLeadRecord[]>;
+  listLeads(storeId: string, limit?: number): Promise<SocialLeadRecord[]>;
 }

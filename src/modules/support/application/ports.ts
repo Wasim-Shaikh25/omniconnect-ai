@@ -16,7 +16,7 @@ export interface TicketCommentRecord {
 
 export interface SupportTicketRecord {
   id: string;
-  userId: string;
+  organizationId: string;
   userId: string;
   userEmail: string;
   title: string;
@@ -32,16 +32,16 @@ export interface SupportTicketRecord {
 
 export interface SupportTicketRepository {
   create(input: {
-    userId: string;
+    organizationId: string;
     userId: string;
     title: string;
     description: string;
     category: TicketCategory;
   }): Promise<SupportTicketRecord>;
-  findById(id: string, userId?: string): Promise<SupportTicketRecord | null>;
-  listByUser(userId: string, userId?: string, limit?: number): Promise<SupportTicketRecord[]>;
+  findById(id: string, organizationId?: string): Promise<SupportTicketRecord | null>;
+  listByUser(userId: string, organizationId?: string, limit?: number): Promise<SupportTicketRecord[]>;
   listAll(
-    userId?: string | null,
+    organizationId?: string | null,
     filters?: {
       status?: TicketStatus;
       priority?: TicketPriority;
@@ -51,7 +51,7 @@ export interface SupportTicketRepository {
   ): Promise<PaginatedResult<SupportTicketRecord>>;
   update(
     id: string,
-    userId: string,
+    organizationId: string,
     input: Partial<{
       status: TicketStatus;
       priority: TicketPriority;
@@ -60,7 +60,7 @@ export interface SupportTicketRepository {
   ): Promise<SupportTicketRecord | null>;
   addComment(input: {
     ticketId: string;
-    userId: string;
+    organizationId: string;
     userId: string;
     message: string;
     isInternal: boolean;

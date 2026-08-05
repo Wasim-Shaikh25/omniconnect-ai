@@ -9,8 +9,8 @@ export function makeMetaQueries(deps: {
   integrations: MetaIntegrationRepository;
 }) {
   return {
-    async getMetaConnection(projectId: string): Promise<MetaConnectionView> {
-      const integration = await deps.integrations.findByStore(projectId);
+    async getMetaConnection(storeId: string): Promise<MetaConnectionView> {
+      const integration = await deps.integrations.findByStore(storeId);
       return { connected: !!integration, integration };
     },
   };

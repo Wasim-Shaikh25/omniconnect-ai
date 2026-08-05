@@ -23,11 +23,11 @@ import {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ inviteToken?: string; projectId?: string }>;
+  searchParams: Promise<{ inviteToken?: string; storeId?: string }>;
 }) {
-  const { inviteToken, projectId } = await searchParams;
+  const { inviteToken, storeId } = await searchParams;
   const user = await getCurrentUser();
-  if (user) redirect(user.userId ? "/dashboard" : "/onboarding");
+  if (user) redirect(user.organizationId ? "/dashboard" : "/onboarding");
 
   let inviteEmail: string | undefined;
   if (inviteToken) {
@@ -56,7 +56,7 @@ export default async function RegisterPage({
             mode="register"
             action={inviteToken ? registerWithInviteAction : registerAction}
             inviteToken={inviteToken}
-            inviteStoreId={projectId}
+            inviteStoreId={storeId}
             oauthProviders={oauthProviders}
             oauthAction={oauthSignInAction}
             turnstileSiteKey={env.TURNSTILE_SITE_KEY}

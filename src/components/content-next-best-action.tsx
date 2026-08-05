@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getContentNextBestActionAction } from "@/modules/intelligence";
 
-export async function ContentNextBestAction({ projectId }: { projectId: string }) {
-  const { action } = await getContentNextBestActionAction(projectId);
+export async function ContentNextBestAction({ storeId }: { storeId: string }) {
+  const { action } = await getContentNextBestActionAction(storeId);
   if (!action) return null;
 
   return (

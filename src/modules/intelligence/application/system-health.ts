@@ -10,7 +10,7 @@ export interface CostLatencyMonitorInput {
 export function makeCostLatencyMonitor(input: CostLatencyMonitorInput) {
   return {
     async record(
-      userId: string,
+      organizationId: string,
       operation: string,
       module: string,
       latencyMs: number,
@@ -20,7 +20,7 @@ export function makeCostLatencyMonitor(input: CostLatencyMonitorInput) {
       metadata?: unknown,
     ): Promise<SystemMetricRecord> {
       const saved = await input.metrics.save({
-        userId,
+        organizationId,
         operation,
         module,
         latencyMs,
@@ -34,12 +34,12 @@ export function makeCostLatencyMonitor(input: CostLatencyMonitorInput) {
       return saved;
     },
 
-    async summary(userId: string) {
-      return input.metrics.summary(userId);
+    async summary(organizationId: string) {
+      return input.metrics.summary(organizationId);
     },
 
-    async list(userId: string, limit = 20): Promise<SystemMetricRecord[]> {
-      return input.metrics.list(userId, undefined, limit);
+    async list(organizationId: string, limit = 20): Promise<SystemMetricRecord[]> {
+      return input.metrics.list(organizationId, undefined, limit);
     },
   };
 }

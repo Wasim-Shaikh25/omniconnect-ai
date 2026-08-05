@@ -16,7 +16,7 @@ interface MarketingMemoryDeps {
   conversationQueries: ConversationQueries;
   crmQueries: CrmQueries;
   analyticsQueries: AnalyticsQueries;
-  getAccountMedia: (projectId: string, limit?: number) => Promise<MetaMediaItem[]>;
+  getAccountMedia: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
   socialQueries: SocialQueries;
   eventBus: EventBus;
 }
@@ -254,25 +254,25 @@ function extractTrendingHashtags(mentions: SocialMentionRecord[]) {
 
 export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
   return async function updateMarketingMemory(
-    userId: string,
-    projectId: string,
+    organizationId: string,
+    storeId: string,
   ): Promise<MarketingMemoryRecord> {
     const [products, coupons, conversations, followers, comments, mentions, accounts] =
       await Promise.all([
-        deps.ecommerceQueries.listProducts(projectId, 100),
-        deps.ecommerceQueries.listCoupons(projectId, 100),
-        deps.conversationQueries.listConversations(projectId, 50),
-        deps.crmQueries.listFollowers(projectId, 100),
-        deps.socialQueries.listComments(projectId, 100),
-        deps.socialQueries.listMentions(projectId, 100),
-        deps.analyticsQueries.listTrackedAccounts(projectId),
+        deps.ecommerceQueries.listProducts(storeId, 100),
+        deps.ecommerceQueries.listCoupons(storeId, 100),
+        deps.conversationQueries.listConversations(storeId, 50),
+        deps.crmQueries.listFollowers(storeId, 100),
+        deps.socialQueries.listComments(storeId, 100),
+        deps.socialQueries.listMentions(storeId, 100),
+        deps.analyticsQueries.listTrackedAccounts(storeId),
       ]);
 
-    const ownMedia = await deps.getAccountMedia(projectId, 25).catch(() => []);
+    const ownMedia = await deps.getAccountMedia(storeId, 25).catch(() => []);
 
     let orders: { total: number | null }[] = [];
     try {
-      orders = await deps.ecommerceQueries.listOrders(projectId, 100);
+      orders = await deps.ecommerceQueries.listOrders(storeId, 100);
     } catch {
       // Connector may be unavailable; revenue scores fall back to null.
     }
@@ -311,8 +311,8 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
       }));
 
     const record: MarketingMemoryRecord = {
-      userId,
-      projectId,
+      organizationId,
+      storeId,
       generatedAt: new Date(),
       followerCount: followers.length,
       productScores,
@@ -333,7 +333,7 @@ export function makeUpdateMarketingMemory(deps: MarketingMemoryDeps) {
     };
 
     await deps.eventBus.publish(
-      new MarketingMemoryUpdated(projectId, { userId, projectId, generatedAt: record.generatedAt }),
+      new MarketingMemoryUpdated(storeId, { organizationId, storeId, generatedAt: record.generatedAt }),
     );
 
     return record;

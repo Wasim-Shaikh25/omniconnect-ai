@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface CatalogSyncedPayload {
-  projectId: string;
+  storeId: string;
   syncId: string;
   externalCatalogId: string | null;
   productCount: number;
@@ -13,7 +13,7 @@ export class CatalogSynced extends BaseDomainEvent<CatalogSyncedPayload> {
 }
 
 export interface ShoppableMediaCreatedPayload {
-  projectId: string;
+  storeId: string;
   mediaId: string;
   externalMediaId: string | null;
   productTags: Array<{ productId: string; name: string }>;

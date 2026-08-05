@@ -3,21 +3,21 @@ import type { MetricDefinitionRecord, MetricSnapshotRecord, MetricSnapshotStatus
 
 export interface MetricSourceProvider {
   getWorkspaceOverview(
-    userId: string,
+    organizationId: string,
   ): Promise<{ id: string; name: string; stores: { id: string; name: string }[] } | null>;
-  getConversationCount(projectId: string): Promise<number>;
-  getFollowerCount(projectId: string): Promise<number>;
-  getCouponCount(projectId: string): Promise<number>;
-  getProductCount(projectId: string): Promise<number>;
-  getLastMessageAt(projectId: string): Promise<Date | null>;
-  getRevenue(projectId: string, days: number): Promise<number>;
-  getOrderCount(projectId: string, days: number): Promise<number>;
-  getAverageOrderValue(projectId: string, days: number): Promise<number>;
+  getConversationCount(storeId: string): Promise<number>;
+  getFollowerCount(storeId: string): Promise<number>;
+  getCouponCount(storeId: string): Promise<number>;
+  getProductCount(storeId: string): Promise<number>;
+  getLastMessageAt(storeId: string): Promise<Date | null>;
+  getRevenue(storeId: string, days: number): Promise<number>;
+  getOrderCount(storeId: string, days: number): Promise<number>;
+  getAverageOrderValue(storeId: string, days: number): Promise<number>;
 }
 
 const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt" | "updatedAt">> = [
   {
-    userId: null,
+    organizationId: null,
     name: "conversation_count",
     displayName: "Conversations",
     description: "Total conversations across the workspace or store.",
@@ -30,7 +30,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "follower_count",
     displayName: "Followers",
     description: "Total Meta followers.",
@@ -43,7 +43,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "coupon_count",
     displayName: "Coupons",
     description: "Total coupons generated.",
@@ -56,7 +56,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "product_count",
     displayName: "Products",
     description: "Products synced from the connected catalog.",
@@ -69,7 +69,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "response_time_minutes",
     displayName: "Response time",
     description: "Median time from customer message to first reply (minutes).",
@@ -82,7 +82,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "revenue_7d",
     displayName: "Revenue (7d)",
     description: "Trailing 7-day revenue from completed orders.",
@@ -95,7 +95,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "order_count_7d",
     displayName: "Orders (7d)",
     description: "Trailing 7-day order count.",
@@ -108,7 +108,7 @@ const DEFAULT_DEFINITIONS: Array<Omit<MetricDefinitionRecord, "id" | "createdAt"
     version: 1,
   },
   {
-    userId: null,
+    organizationId: null,
     name: "aov_7d",
     displayName: "AOV (7d)",
     description: "Trailing 7-day average order value.",
@@ -141,14 +141,14 @@ function snapshotStatus(computedAt: Date, slaMs: number): MetricSnapshotStatus {
 async function computeValue(
   name: string,
   provider: MetricSourceProvider,
-  userId: string,
-  projectId: string | null,
+  organizationId: string,
+  storeId: string | null,
 ): Promise<{ value: number; sourceIds: string[]; periodStart: Date; periodEnd: Date }> {
-  const overview = await provider.getWorkspaceOverview(userId);
+  const overview = await provider.getWorkspaceOverview(organizationId);
   if (!overview) {
     return { value: 0, sourceIds: [], periodStart: new Date(), periodEnd: new Date() };
   }
-  const stores = projectId ? overview.stores.filter((s) => s.id === projectId) : overview.stores;
+  const stores = storeId ? overview.stores.filter((s) => s.id === storeId) : overview.stores;
 
   if (name === "conversation_count") {
     const counts = await Promise.all(stores.map((s) => provider.getConversationCount(s.id)));
@@ -258,27 +258,27 @@ export function makeMetricService(repo: MetricRepository, provider: MetricSource
 
     async getMetric(
       name: string,
-      userId: string,
-      projectId: string | null = null,
+      organizationId: string,
+      storeId: string | null = null,
     ): Promise<MetricSnapshotRecord | null> {
       const definitions = await ensureDefinitions(repo);
       const definition = definitions.find((d) => d.name === name);
       if (!definition) return null;
 
-      const latest = await repo.getLatestSnapshot(definition.id, userId, projectId);
+      const latest = await repo.getLatestSnapshot(definition.id, organizationId, storeId);
       if (latest && latest.status !== "STALE") {
         const status = snapshotStatus(latest.computedAt, definition.freshnessSlaMs);
         if (status === "FRESH") return latest;
       }
 
-      const computed = await computeValue(name, provider, userId, projectId);
+      const computed = await computeValue(name, provider, organizationId, storeId);
       const status = snapshotStatus(new Date(), definition.freshnessSlaMs);
       return repo.saveSnapshot({
         definitionId: definition.id,
-        userId,
-        projectId,
+        organizationId,
+        storeId,
         value: computed.value,
-        dimensions: projectId ? { projectId } : null,
+        dimensions: storeId ? { storeId } : null,
         periodStart: computed.periodStart,
         periodEnd: computed.periodEnd,
         status,
@@ -286,26 +286,26 @@ export function makeMetricService(repo: MetricRepository, provider: MetricSource
       });
     },
 
-    async getMetricsForWorkspace(userId: string): Promise<MetricSnapshotRecord[]> {
+    async getMetricsForWorkspace(organizationId: string): Promise<MetricSnapshotRecord[]> {
       const definitions = await ensureDefinitions(repo);
       return Promise.all(
-        definitions.map((d) => this.getMetric(d.name, userId, null)),
+        definitions.map((d) => this.getMetric(d.name, organizationId, null)),
       ).then((results) => results.filter((s): s is MetricSnapshotRecord => s !== null));
     },
 
-    async refreshMetric(name: string, userId: string, projectId: string | null = null): Promise<MetricSnapshotRecord | null> {
+    async refreshMetric(name: string, organizationId: string, storeId: string | null = null): Promise<MetricSnapshotRecord | null> {
       const definitions = await ensureDefinitions(repo);
       const definition = definitions.find((d) => d.name === name);
       if (!definition) return null;
 
-      const computed = await computeValue(name, provider, userId, projectId);
+      const computed = await computeValue(name, provider, organizationId, storeId);
       const status = snapshotStatus(new Date(), definition.freshnessSlaMs);
       return repo.saveSnapshot({
         definitionId: definition.id,
-        userId,
-        projectId,
+        organizationId,
+        storeId,
         value: computed.value,
-        dimensions: projectId ? { projectId } : null,
+        dimensions: storeId ? { storeId } : null,
         periodStart: computed.periodStart,
         periodEnd: computed.periodEnd,
         status,

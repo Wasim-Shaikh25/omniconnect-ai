@@ -7,7 +7,7 @@ export function registerGrowthSubscribers(bus: EventBus): void {
     if (!(event instanceof MetaCommentReceived)) return;
     const p = event.payload;
     await growthService.processCommentUnlock({
-      projectId: p.projectId,
+      storeId: p.storeId,
       externalUserId: p.externalUserId,
       username: p.username ?? null,
       commentId: p.postId ?? null,

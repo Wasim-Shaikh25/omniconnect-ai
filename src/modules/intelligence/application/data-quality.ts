@@ -4,8 +4,8 @@ import { DataQualityIssueDetected } from "../domain/events";
 import type { DataQualityIssueRecord, DataQualitySeverity, DataQualityStatus } from "../domain/types";
 
 export interface DataQualityCheckInput {
-  userId: string;
-  projectId?: string | null;
+  organizationId: string;
+  storeId?: string | null;
   source: string;
   entityType?: string | null;
   entityId?: string | null;
@@ -20,19 +20,19 @@ export function makeDataQualityService(
 ) {
   return {
     async recordIssue(input: DataQualityCheckInput): Promise<DataQualityIssueRecord> {
-      const existing = await issues.listOpen(input.userId);
+      const existing = await issues.listOpen(input.organizationId);
       const same = existing.find(
         (i) =>
           i.source === input.source &&
-          i.projectId === input.projectId &&
+          i.storeId === input.storeId &&
           i.metricName === input.metricName &&
           i.entityId === input.entityId,
       );
       if (same) return same;
 
       const issue = await issues.save({
-        userId: input.userId,
-        projectId: input.projectId ?? null,
+        organizationId: input.organizationId,
+        storeId: input.storeId ?? null,
         source: input.source,
         entityType: input.entityType ?? null,
         entityId: input.entityId ?? null,
@@ -46,27 +46,27 @@ export function makeDataQualityService(
       return issue;
     },
 
-    async resolveIssue(id: string, userId: string): Promise<DataQualityIssueRecord> {
-      return issues.updateStatus(id, userId, "RESOLVED");
+    async resolveIssue(id: string, organizationId: string): Promise<DataQualityIssueRecord> {
+      return issues.updateStatus(id, organizationId, "RESOLVED");
     },
 
-    async ignoreIssue(id: string, userId: string): Promise<DataQualityIssueRecord> {
-      return issues.updateStatus(id, userId, "IGNORED");
+    async ignoreIssue(id: string, organizationId: string): Promise<DataQualityIssueRecord> {
+      return issues.updateStatus(id, organizationId, "IGNORED");
     },
 
-    async getOpenIssues(userId: string, projectId?: string): Promise<DataQualityIssueRecord[]> {
-      return issues.listOpen(userId, projectId);
+    async getOpenIssues(organizationId: string, storeId?: string): Promise<DataQualityIssueRecord[]> {
+      return issues.listOpen(organizationId, storeId);
     },
 
-    async inspectMetric(metricName: string, userId: string, projectId?: string | null): Promise<DataQualityIssueRecord | null> {
-      const definition = await metrics.findDefinition(userId, metricName);
+    async inspectMetric(metricName: string, organizationId: string, storeId?: string | null): Promise<DataQualityIssueRecord | null> {
+      const definition = await metrics.findDefinition(organizationId, metricName);
       if (!definition) return null;
-      const latest = await metrics.getLatestSnapshot(definition.id, userId, projectId ?? null);
+      const latest = await metrics.getLatestSnapshot(definition.id, organizationId, storeId ?? null);
       if (!latest || latest.status === "MISSING" || latest.status === "STALE") {
         const severity: DataQualitySeverity = latest?.status === "MISSING" ? "HIGH" : "MEDIUM";
         return this.recordIssue({
-          userId,
-          projectId,
+          organizationId,
+          storeId,
           source: definition.source,
           metricName: definition.name,
           severity,

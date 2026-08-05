@@ -38,8 +38,8 @@ const aiProvider = new OpenAIProvider();
 
 /** Composition root for the ai module. */
 export const aiQueries = {
-  getConfiguration: (projectId: string) =>
-    aiConfigurationRepository.getByStore(projectId),
+  getConfiguration: (storeId: string) =>
+    aiConfigurationRepository.getByStore(storeId),
 };
 
 export const generateWelcome = makeGenerateWelcome({
@@ -96,10 +96,10 @@ export const generatePostIdeas = makeGeneratePostIdeas({
   aiConfigurationRepository,
   marketingMemory,
   dailyActions: {
-    listPending: (userId, projectId) => dailyActionService.listPending(userId, projectId),
+    listPending: (organizationId, storeId) => dailyActionService.listPending(organizationId, storeId),
   },
   journeys: {
-    listRecent: (userId, projectId, limit) => journeyService.listJourneys(userId, projectId, limit),
+    listRecent: (organizationId, storeId, limit) => journeyService.listJourneys(organizationId, storeId, limit),
   },
 });
 

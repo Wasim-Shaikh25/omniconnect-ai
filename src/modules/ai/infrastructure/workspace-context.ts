@@ -8,7 +8,7 @@ import type { WorkspaceContextPort } from "../application/ask-business-brain";
 export function makeWorkspaceContext(deps: {
   organizations: {
     getOrganizationOverview(
-      userId: string,
+      organizationId: string,
     ): Promise<OrganizationOverview | null>;
   };
   ecommerce: EcommerceQueries;
@@ -19,7 +19,7 @@ export function makeWorkspaceContext(deps: {
   return {
     async getContext(input) {
       const overview = await deps.organizations.getOrganizationOverview(
-        input.userId,
+        input.organizationId,
       );
       if (!overview) {
         return {
@@ -35,8 +35,8 @@ export function makeWorkspaceContext(deps: {
         };
       }
 
-      const stores = input.projectId
-        ? overview.stores.filter((s) => s.id === input.projectId)
+      const stores = input.storeId
+        ? overview.stores.filter((s) => s.id === input.storeId)
         : overview.stores;
 
       const totals = {

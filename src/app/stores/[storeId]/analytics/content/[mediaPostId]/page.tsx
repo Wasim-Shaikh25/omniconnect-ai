@@ -14,17 +14,17 @@ function formatNumber(value: number | null | undefined): string {
 export default async function MediaPostDetailPage({
   params,
 }: {
-  params: Promise<{ projectId: string; mediaPostId: string }>;
+  params: Promise<{ storeId: string; mediaPostId: string }>;
 }) {
-  const { projectId, mediaPostId } = await params;
+  const { storeId, mediaPostId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.userId) notFound();
+  if (!user.organizationId) notFound();
 
   const { post, error } = await getMediaPostAction(mediaPostId);
   if (error || !post) notFound();
@@ -37,7 +37,7 @@ export default async function MediaPostDetailPage({
           <p className="text-sm text-muted-foreground">{store.name} · {post.mediaType}</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics/content`}>Back to content</Link>
+          <Link href={`/stores/${storeId}/analytics/content`}>Back to content</Link>
         </Button>
       </header>
 
@@ -85,7 +85,7 @@ export default async function MediaPostDetailPage({
         </CardContent>
       </Card>
 
-      <AnalyzeMediaForm action={analyzeMediaAction} projectId={projectId} mediaPostId={mediaPostId} />
+      <AnalyzeMediaForm action={analyzeMediaAction} storeId={storeId} mediaPostId={mediaPostId} />
     </main>
   );
 }

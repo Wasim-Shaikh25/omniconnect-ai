@@ -58,13 +58,13 @@ export async function changeUserRoleAction(
   const result = await changeUserRole(parsed.data, {
     id: admin.id,
     role: admin.role,
-    userId: admin.userId,
+    organizationId: admin.organizationId,
   });
   if (!result.ok) return { error: result.error.message };
 
-  if (admin.userId) {
+  if (admin.organizationId) {
     await auditCommands.create({
-      userId: admin.userId,
+      organizationId: admin.organizationId,
       actorId: admin.id,
       actorEmail: admin.email ?? undefined,
       action: "USER_ROLE_CHANGED",
@@ -85,17 +85,17 @@ export async function changeUserStoreAction(
 ): Promise<ProfileActionState> {
   const admin = await requireRole("STORE_OWNER");
   const userId = formData.get("userId");
-  const projectId = formData.get("projectId");
+  const storeId = formData.get("storeId");
   if (typeof userId !== "string" || !userId) {
     return { error: "User ID is required" };
   }
 
   const target = await userRepository.findById(userId);
-  if (!target || target.userId !== admin.userId) {
+  if (!target || target.organizationId !== admin.organizationId) {
     return { error: "User not found in your organization." };
   }
 
-  const assignedStoreId = typeof projectId === "string" && projectId.trim() ? projectId.trim() : null;
+  const assignedStoreId = typeof storeId === "string" && storeId.trim() ? storeId.trim() : null;
   if (assignedStoreId) {
     try {
       await tenantGuard.assertStoreAccess(admin, assignedStoreId);
@@ -106,9 +106,9 @@ export async function changeUserStoreAction(
 
   await setUserStore(userId, assignedStoreId);
 
-  if (admin.userId) {
+  if (admin.organizationId) {
     await auditCommands.create({
-      userId: admin.userId,
+      organizationId: admin.organizationId,
       actorId: admin.id,
       actorEmail: admin.email ?? undefined,
       action: "USER_STORE_CHANGED",
@@ -168,7 +168,7 @@ export async function toggleUserSuperAdminAction(
   const user = await setUserSuperAdmin(userId, isSuperAdmin);
 
   await auditCommands.create({
-    userId: admin.userId ?? null,
+    organizationId: admin.organizationId ?? null,
     actorId: admin.id,
     actorEmail: admin.email,
     action: isSuperAdmin ? "USER_PROMOTED_SUPER_ADMIN" : "USER_DEMOTED_SUPER_ADMIN",
@@ -184,7 +184,7 @@ export async function toggleUserSuperAdminAction(
 export async function requestDataExportAction(): Promise<{ downloadUrl?: string; error?: string; ok?: boolean }> {
   const user = await requireUser();
   try {
-    const exportRequest = await dataExportService.requestExport(user.id, user.userId);
+    const exportRequest = await dataExportService.requestExport(user.id, user.organizationId);
     return { downloadUrl: exportRequest.downloadUrl ?? undefined, ok: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not create export" };

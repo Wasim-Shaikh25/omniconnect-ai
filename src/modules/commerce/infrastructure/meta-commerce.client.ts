@@ -3,7 +3,7 @@ import type { MetaCommerceClient } from "../application/ports";
 
 export class StubMetaCommerceClient implements MetaCommerceClient {
   async pushCatalog(
-    projectId: string,
+    storeId: string,
     products: Array<{
       productId: string;
       title: string;
@@ -16,8 +16,8 @@ export class StubMetaCommerceClient implements MetaCommerceClient {
     externalCatalogId: string;
     mappings: Array<{ productId: string; externalProductId: string }>;
   }> {
-    logger.info("commerce.meta.pushCatalog.stub", { projectId, count: products.length });
-    const externalCatalogId = `catalog-${projectId}-${Date.now()}`;
+    logger.info("commerce.meta.pushCatalog.stub", { storeId, count: products.length });
+    const externalCatalogId = `catalog-${storeId}-${Date.now()}`;
     const mappings = products.map((p) => ({
       productId: p.productId,
       externalProductId: `ext-${p.productId}`,
@@ -26,7 +26,7 @@ export class StubMetaCommerceClient implements MetaCommerceClient {
   }
 
   async publishShoppableMedia(
-    projectId: string,
+    storeId: string,
     input: {
       mediaType: string;
       caption?: string;
@@ -34,11 +34,11 @@ export class StubMetaCommerceClient implements MetaCommerceClient {
     },
   ): Promise<{ externalMediaId: string; permalink: string }> {
     logger.info("commerce.meta.publishShoppableMedia.stub", {
-      projectId,
+      storeId,
       mediaType: input.mediaType,
       tagCount: input.productTags.length,
     });
-    const externalMediaId = `media-${projectId}-${Date.now()}`;
+    const externalMediaId = `media-${storeId}-${Date.now()}`;
     return {
       externalMediaId,
       permalink: `https://instagram.com/p/${externalMediaId}`,

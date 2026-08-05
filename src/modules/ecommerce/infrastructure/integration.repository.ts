@@ -9,7 +9,7 @@ import type {
 
 type PrismaIntegration = {
   id: string;
-  projectId: string;
+  storeId: string;
   provider: string;
   externalId: string | null;
   scopes: string | null;
@@ -20,7 +20,7 @@ type PrismaIntegration = {
 function toRecord(i: PrismaIntegration): IntegrationRecord {
   return {
     id: i.id,
-    projectId: i.projectId,
+    storeId: i.storeId,
     provider: i.provider,
     shopDomain: i.externalId,
     scopes: i.scopes,
@@ -31,7 +31,7 @@ function toRecord(i: PrismaIntegration): IntegrationRecord {
 
 export class PrismaIntegrationRepository implements IntegrationRepository {
   async upsertEcommerce(input: {
-    projectId: string;
+    storeId: string;
     provider: EcommerceProvider;
     shopDomain: string | null;
     accessToken: string | null;
@@ -39,8 +39,8 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
     scopes: string | null;
     metadata?: Record<string, unknown> | null;
   }): Promise<IntegrationRecord> {
-    const existing = await prisma.ecommerceConnection.findFirst({
-      where: { projectId: input.projectId, type: "ECOMMERCE" },
+    const existing = await prisma.integration.findFirst({
+      where: { storeId: input.storeId, type: "ECOMMERCE" },
     });
 
     const data = {
@@ -51,24 +51,24 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       refreshToken: await encryptString(input.refreshToken ?? null),
       scopes: input.scopes,
       metadata: input.metadata ? (input.metadata as Prisma.InputJsonValue) : Prisma.DbNull,
-      projectId: input.projectId,
+      storeId: input.storeId,
     };
 
     const saved = existing
-      ? await prisma.ecommerceConnection.update({
+      ? await prisma.integration.update({
           where: { id: existing.id },
           data,
         })
-      : await prisma.ecommerceConnection.create({ data });
+      : await prisma.integration.create({ data });
 
     return toRecord(saved);
   }
 
   async findEcommerceByStore(
-    projectId: string,
+    storeId: string,
   ): Promise<IntegrationRecord | null> {
-    const found = await prisma.ecommerceConnection.findFirst({
-      where: { projectId, type: "ECOMMERCE" },
+    const found = await prisma.integration.findFirst({
+      where: { storeId, type: "ECOMMERCE" },
     });
     return found ? toRecord(found as PrismaIntegration) : null;
   }
@@ -76,21 +76,21 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
   async findByShopDomain(
     shopDomain: string,
   ): Promise<IntegrationRecord | null> {
-    const found = await prisma.ecommerceConnection.findFirst({
+    const found = await prisma.integration.findFirst({
       where: { type: "ECOMMERCE", externalId: { equals: shopDomain, mode: "insensitive" } },
     });
     return found ? toRecord(found as PrismaIntegration) : null;
   }
 
-  async findCredentialsByStore(projectId: string): Promise<{
+  async findCredentialsByStore(storeId: string): Promise<{
     provider: string;
     shopDomain: string | null;
     accessToken: string | null;
     refreshToken: string | null;
     metadata: Record<string, unknown> | null;
   } | null> {
-    const found = await prisma.ecommerceConnection.findFirst({
-      where: { projectId, type: "ECOMMERCE" },
+    const found = await prisma.integration.findFirst({
+      where: { storeId, type: "ECOMMERCE" },
       select: { provider: true, externalId: true, accessToken: true, refreshToken: true, metadata: true },
     });
     if (!found) return null;

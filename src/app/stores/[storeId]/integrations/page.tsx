@@ -17,11 +17,11 @@ import {
 export default async function IntegrationsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -29,8 +29,8 @@ export default async function IntegrationsPage({
   const { store } = access;
 
   const [ecommerce, meta] = await Promise.all([
-    ecommerceQueries.getStoreConnection(projectId),
-    metaQueries.getMetaConnection(projectId),
+    ecommerceQueries.getStoreConnection(storeId),
+    metaQueries.getMetaConnection(storeId),
   ]);
 
   const connectedCount = [ecommerce.connected, meta.connected].filter(Boolean)
@@ -46,7 +46,7 @@ export default async function IntegrationsPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
+          <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -110,7 +110,7 @@ export default async function IntegrationsPage({
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${projectId}`}>Manage connection</Link>
+              <Link href={`/stores/${storeId}`}>Manage connection</Link>
             </Button>
           </CardContent>
         </Card>
@@ -158,7 +158,7 @@ export default async function IntegrationsPage({
               </p>
             )}
             <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${projectId}`}>Manage connection</Link>
+              <Link href={`/stores/${storeId}`}>Manage connection</Link>
             </Button>
           </CardContent>
         </Card>

@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { AIConfigurationRecord, AIConfigurationRepository } from "./ports";
 
 export const updateAIConfigSchema = z.object({
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
   systemPrompt: z.string().min(1).max(4000),
   tone: z.string().max(100).optional(),
   welcomeStrategy: z.string().max(2000).optional(),
@@ -21,7 +21,7 @@ export function makeUpdateAIConfiguration(deps: {
     raw: UpdateAIConfigInput,
   ): Promise<AIConfigurationRecord> {
     const input = updateAIConfigSchema.parse(raw);
-    return deps.repository.update(input.projectId, {
+    return deps.repository.update(input.storeId, {
       systemPrompt: input.systemPrompt,
       tone: input.tone ?? null,
       welcomeStrategy: input.welcomeStrategy ?? null,

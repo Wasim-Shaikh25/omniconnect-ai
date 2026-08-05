@@ -14,17 +14,17 @@ export interface GenerateWelcomeInput {
 export interface GenerateWelcomeDeps {
   aiProvider: AIProvider;
   aiConfigurationRepository: {
-    getOrCreateDefault(projectId: string): Promise<AIConfigurationRecord>;
+    getOrCreateDefault(storeId: string): Promise<AIConfigurationRecord>;
   };
 }
 
 export function makeGenerateWelcome(deps: GenerateWelcomeDeps) {
   return async function generateWelcome(
-    projectId: string,
+    storeId: string,
     input: GenerateWelcomeInput,
   ): Promise<string> {
     const config = await deps.aiConfigurationRepository.getOrCreateDefault(
-      projectId,
+      storeId,
     );
 
     const tone = input.toneOverride ?? config.tone ?? "friendly and concise";

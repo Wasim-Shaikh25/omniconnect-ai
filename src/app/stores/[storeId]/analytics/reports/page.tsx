@@ -10,19 +10,19 @@ import type { Report } from "@/modules/analytics";
 export default async function ReportsAnalyticsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.userId) notFound();
+  if (!user.organizationId) notFound();
 
-  const { reports, error } = await listReportsAction(projectId);
+  const { reports, error } = await listReportsAction(storeId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -32,7 +32,7 @@ export default async function ReportsAnalyticsPage({
           <p className="text-sm text-muted-foreground">Marketing performance reports for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
+          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
         </Button>
       </header>
 
@@ -42,7 +42,7 @@ export default async function ReportsAnalyticsPage({
           <CardDescription>Create a weekly or monthly snapshot.</CardDescription>
         </CardHeader>
         <CardContent>
-          <GenerateReportForm action={generateReportAction} projectId={projectId} />
+          <GenerateReportForm action={generateReportAction} storeId={storeId} />
         </CardContent>
       </Card>
 

@@ -13,13 +13,13 @@ export function makeSyncProducts(deps: {
   products: ProductRepository;
 }) {
   return async function syncProducts(
-    projectId: string,
+    storeId: string,
   ): Promise<Result<{ count: number; deleted: number }, StoreNotConnectedError | ConnectorError>> {
     let connector;
     try {
-      connector = await deps.connectors.forStore(projectId);
+      connector = await deps.connectors.forStore(storeId);
     } catch {
-      return err(new StoreNotConnectedError(projectId));
+      return err(new StoreNotConnectedError(storeId));
     }
 
     let fetched;
@@ -43,13 +43,13 @@ export function makeSyncProducts(deps: {
     }));
 
     const { upserted: count, removed: deletedCount } = await deps.products.sync(
-      projectId,
+      storeId,
       normalized,
     );
 
     await eventBus.publish(
-      new ProductsSynced(projectId, {
-        projectId,
+      new ProductsSynced(storeId, {
+        storeId,
         provider: connector.provider,
         count,
         products: normalized.map((p) => ({
@@ -61,7 +61,7 @@ export function makeSyncProducts(deps: {
     );
 
     logger.info("ecommerce.productsSynced", {
-      projectId,
+      storeId,
       provider: connector.provider,
       count,
       deleted: deletedCount,

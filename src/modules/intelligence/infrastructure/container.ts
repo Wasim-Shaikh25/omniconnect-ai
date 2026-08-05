@@ -150,25 +150,25 @@ const rolloutGates = new PrismaRolloutGateRepository();
 const metricProvider: MetricSourceProvider = {
   getWorkspaceOverview:
     organizationQueries.getOrganizationOverview.bind(organizationQueries),
-  getConversationCount: async (projectId: string) => {
-    const rows = await conversationQueries.listConversations(projectId, 1000);
+  getConversationCount: async (storeId: string) => {
+    const rows = await conversationQueries.listConversations(storeId, 1000);
     return rows.length;
   },
-  getFollowerCount: async (projectId: string) => {
-    const rows = await crmQueries.listFollowers(projectId, 1000);
+  getFollowerCount: async (storeId: string) => {
+    const rows = await crmQueries.listFollowers(storeId, 1000);
     return rows.length;
   },
-  getCouponCount: async (projectId: string) => {
-    const rows = await ecommerceQueries.listCoupons(projectId, 1000);
+  getCouponCount: async (storeId: string) => {
+    const rows = await ecommerceQueries.listCoupons(storeId, 1000);
     return rows.length;
   },
-  getProductCount: async (projectId: string) => {
-    const rows = await ecommerceQueries.listProducts(projectId, 1000);
+  getProductCount: async (storeId: string) => {
+    const rows = await ecommerceQueries.listProducts(storeId, 1000);
     return rows.length;
   },
-  getLastMessageAt: async (projectId: string) => {
+  getLastMessageAt: async (storeId: string) => {
     const conversations = await conversationQueries.listConversations(
-      projectId,
+      storeId,
       500,
     );
     const details = await Promise.all(
@@ -188,10 +188,10 @@ const metricProvider: MetricSourceProvider = {
     }
     return latest;
   },
-  getRevenue: async (projectId: string, days: number) => {
+  getRevenue: async (storeId: string, days: number) => {
     try {
       const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-      const orders = await ecommerceQueries.listOrders(projectId, 500);
+      const orders = await ecommerceQueries.listOrders(storeId, 500);
       return orders
         .filter((o) => new Date(o.createdAt) >= cutoff)
         .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
@@ -200,20 +200,20 @@ const metricProvider: MetricSourceProvider = {
       throw error;
     }
   },
-  getOrderCount: async (projectId: string, days: number) => {
+  getOrderCount: async (storeId: string, days: number) => {
     try {
       const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-      const orders = await ecommerceQueries.listOrders(projectId, 500);
+      const orders = await ecommerceQueries.listOrders(storeId, 500);
       return orders.filter((o) => new Date(o.createdAt) >= cutoff).length;
     } catch (error) {
       if (error instanceof StoreNotConnectedError) return 0;
       throw error;
     }
   },
-  getAverageOrderValue: async (projectId: string, days: number) => {
+  getAverageOrderValue: async (storeId: string, days: number) => {
     try {
       const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-      const orders = await ecommerceQueries.listOrders(projectId, 500);
+      const orders = await ecommerceQueries.listOrders(storeId, 500);
       const recent = orders.filter((o) => new Date(o.createdAt) >= cutoff);
       if (recent.length === 0) return 0;
       return (
@@ -286,13 +286,13 @@ export const dailyActionService = makeDailyActionService({
   recommendations,
   prioritize: recommendationLifecycleService.prioritizeRecommendations,
   metrics: metricService,
-  getMemory: (userId, projectId) =>
-    updateMarketingMemory(userId, projectId),
-  enqueueMeasurement: async (outcomeId: string, userId: string) => {
+  getMemory: (organizationId, storeId) =>
+    updateMarketingMemory(organizationId, storeId),
+  enqueueMeasurement: async (outcomeId: string, organizationId: string) => {
     const queue = await getQueue(INTELLIGENCE_QUEUE);
     await queue.add<MeasureActionOutcomeData>(
       JOB_MEASURE_ACTION_OUTCOME,
-      { outcomeId, userId },
+      { outcomeId, organizationId },
     );
   },
 });
@@ -311,8 +311,8 @@ export const businessBrainContextService = makeBusinessBrainContextService({
   goals,
   dailyActions,
   journeys,
-  getMemory: (userId, projectId) =>
-    updateMarketingMemory(userId, projectId),
+  getMemory: (organizationId, storeId) =>
+    updateMarketingMemory(organizationId, storeId),
 });
 export const decisionPolicyService = makeDecisionPolicyService();
 export const outcomeService = makeOutcomeService({ outcomes });
@@ -350,19 +350,19 @@ export const portfolioService = makePortfolioService({
   snapshots: portfolioSnapshots,
   predictions,
   recommendations,
-  getStores: async (userId: string) => {
+  getStores: async (organizationId: string) => {
     const overview =
-      await organizationQueries.getOrganizationOverview(userId);
+      await organizationQueries.getOrganizationOverview(organizationId);
     return overview?.stores.map((s) => ({ id: s.id, name: s.name })) ?? [];
   },
 });
 export const competitorIntelligenceService = makeCompetitorIntelligenceService({
   insights: competitorInsights,
-  getStoreFollowerCount: async (userId: string, projectId: string) => {
+  getStoreFollowerCount: async (organizationId: string, storeId: string) => {
     const snapshot = await metricService.getMetric(
       "follower_count",
-      userId,
-      projectId,
+      organizationId,
+      storeId,
     );
     return typeof snapshot?.value === "number" ? snapshot.value : 0;
   },

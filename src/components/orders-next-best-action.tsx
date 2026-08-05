@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getOrdersNextBestActionAction } from "@/modules/intelligence";
 
-export async function OrdersNextBestAction({ projectId }: { projectId: string }) {
-  const { action } = await getOrdersNextBestActionAction(projectId);
+export async function OrdersNextBestAction({ storeId }: { storeId: string }) {
+  const { action } = await getOrdersNextBestActionAction(storeId);
   if (!action || (action.atRiskHighValueCustomers.length === 0 && action.postDeliveryUpsells.length === 0 && !action.suppressed)) {
     return null;
   }

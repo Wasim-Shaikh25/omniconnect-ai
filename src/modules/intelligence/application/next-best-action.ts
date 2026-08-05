@@ -133,8 +133,8 @@ export interface NextBestActionServiceInput {
 
 export function makeNextBestActionService(input: NextBestActionServiceInput) {
   async function forConversation(
-    userId: string,
-    projectId: string,
+    organizationId: string,
+    storeId: string,
     conversationId: string,
   ): Promise<InboxNextBestAction | null> {
     const detail = await input.conversations.getConversation(conversationId);
@@ -142,13 +142,13 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
 
     const content = detail.messages.map((m) => m.content).join(" ");
     const customerId = detail.conversation.customerId;
-    const customer = customerId ? await input.customerDirectory.getCustomerDetail(userId, customerId) : null;
+    const customer = customerId ? await input.customerDirectory.getCustomerDetail(organizationId, customerId) : null;
 
     const isSupport = containsKeyword(content, SUPPORT_KEYWORDS);
     const hasIntent = containsKeyword(content, INTENT_KEYWORDS);
     const suppressSales = isSupport || customer?.consent === "DECLINED";
 
-    const products = await input.ecommerce.listProducts(projectId, 100);
+    const products = await input.ecommerce.listProducts(storeId, 100);
     const mentioned = findProductMentions(products, content);
     const suggestedProducts = mentioned.slice(0, 3).map((p) => toSuggestedProduct(p, "Mentioned in conversation"));
 
@@ -194,13 +194,13 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
   }
 
   async function forStoreOrders(
-    userId: string,
-    projectId: string,
+    organizationId: string,
+    storeId: string,
   ): Promise<OrdersNextBestAction | null> {
     const [orders, products, allCustomers] = await Promise.all([
-      input.ecommerce.listOrders(projectId, 250),
-      input.ecommerce.listProducts(projectId, 100),
-      input.customerDirectory.listCustomersByOrganization(userId, undefined, projectId),
+      input.ecommerce.listOrders(storeId, 250),
+      input.ecommerce.listProducts(storeId, 100),
+      input.customerDirectory.listCustomersByOrganization(organizationId, undefined, storeId),
     ]);
 
     const now = Date.now();
@@ -270,7 +270,7 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
       });
     }
 
-    const recentSignals = await input.signals.listByStore(projectId, 100);
+    const recentSignals = await input.signals.listByStore(storeId, 100);
     const sevenDaysAgo = now - sevenDays;
     const supportSignals = recentSignals.filter(
       (s: SignalRecord) =>
@@ -289,8 +289,8 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     };
   }
 
-  async function forCrm(userId: string): Promise<CustomerNextBestAction | null> {
-    const all = await input.customerDirectory.listCustomersByOrganization(userId);
+  async function forCrm(organizationId: string): Promise<CustomerNextBestAction | null> {
+    const all = await input.customerDirectory.listCustomersByOrganization(organizationId);
     const retentionCandidates: CrmCandidate[] = [];
     const advocateCandidates: CrmCandidate[] = [];
 
@@ -323,10 +323,10 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     };
   }
 
-  async function forContent(projectId: string): Promise<ContentNextBestAction> {
+  async function forContent(storeId: string): Promise<ContentNextBestAction> {
     const [ugc, products] = await Promise.all([
-      input.growth.listUgc(projectId, 50),
-      input.ecommerce.listProducts(projectId, 100),
+      input.growth.listUgc(storeId, 50),
+      input.ecommerce.listProducts(storeId, 100),
     ]);
 
     const formatCounts = new Map<string, number>();
@@ -367,8 +367,8 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     };
   }
 
-  async function forCampaigns(projectId: string): Promise<CampaignsNextBestAction> {
-    const campaigns = await input.growth.listCampaigns(projectId, 50);
+  async function forCampaigns(storeId: string): Promise<CampaignsNextBestAction> {
+    const campaigns = await input.growth.listCampaigns(storeId, 50);
 
     const now = Date.now();
     const sevenDays = 7 * 24 * 60 * 60 * 1000;
@@ -409,8 +409,8 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     };
   }
 
-  async function forBrandDeals(projectId: string): Promise<BrandDealNextBestAction> {
-    const deals = await input.brandDeals.listByStore(projectId, 100);
+  async function forBrandDeals(storeId: string): Promise<BrandDealNextBestAction> {
+    const deals = await input.brandDeals.listByStore(storeId, 100);
     const now = Date.now();
     const oneDay = 24 * 60 * 60 * 1000;
 
@@ -437,8 +437,8 @@ export function makeNextBestActionService(input: NextBestActionServiceInput) {
     return { followUps, deliverableRisks, recommendedAction };
   }
 
-  async function forCompetitorIntelligence(userId: string, projectId: string): Promise<CompetitorNextBestAction> {
-    const insights = await input.competitorIntelligence.list(userId, projectId, 50);
+  async function forCompetitorIntelligence(organizationId: string, storeId: string): Promise<CompetitorNextBestAction> {
+    const insights = await input.competitorIntelligence.list(organizationId, storeId, 50);
     const experiments: CompetitorNextBestAction["experiments"] = [];
     const warnings: string[] = [];
 

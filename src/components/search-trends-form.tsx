@@ -10,15 +10,15 @@ type Action = (_prev: SearchTrendingHashtagsState, formData: FormData) => Promis
 
 interface SearchTrendsFormProps {
   action: Action;
-  projectId: string;
+  storeId: string;
 }
 
-export function SearchTrendsForm({ action, projectId }: SearchTrendsFormProps) {
+export function SearchTrendsForm({ action, storeId }: SearchTrendsFormProps) {
   const [state, formAction, pending] = useActionState<SearchTrendingHashtagsState, FormData>(action, {});
 
   return (
     <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <div className="flex-1 space-y-2">
         <Label htmlFor="query">Hashtag / trend</Label>
         <Input id="query" name="query" placeholder="e.g. smallbusiness" required />

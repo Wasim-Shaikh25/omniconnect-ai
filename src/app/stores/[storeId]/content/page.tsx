@@ -10,18 +10,18 @@ import { ContentStudioForms } from "@/components/content-studio-forms";
 export default async function ContentStudioPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { store } = access;
 
-  const products = await ecommerceQueries.listProducts(projectId, 100);
+  const products = await ecommerceQueries.listProducts(storeId, 100);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -33,14 +33,14 @@ export default async function ContentStudioPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
+          <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
 
-      <ContentNextBestAction projectId={projectId} />
+      <ContentNextBestAction storeId={storeId} />
 
       <ContentStudioForms
-        projectId={projectId}
+        storeId={storeId}
         products={products.map((p) => ({ id: p.id, title: p.title }))}
       />
     </main>

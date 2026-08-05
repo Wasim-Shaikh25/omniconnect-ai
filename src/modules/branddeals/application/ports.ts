@@ -8,7 +8,7 @@ export type BrandDealStatus =
 
 export interface BrandDealRecord {
   id: string;
-  projectId: string;
+  storeId: string;
   brandName: string;
   contactEmail: string | null;
   value: number | null;
@@ -19,7 +19,7 @@ export interface BrandDealRecord {
 }
 
 export interface CreateBrandDealInput {
-  projectId: string;
+  storeId: string;
   brandName: string;
   contactEmail?: string;
   value?: number;
@@ -28,12 +28,12 @@ export interface CreateBrandDealInput {
 }
 
 export interface BrandDealRepository {
-  listByStore(projectId: string, limit?: number): Promise<BrandDealRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<BrandDealRecord[]>;
   create(input: CreateBrandDealInput): Promise<BrandDealRecord>;
 }
 
 export interface BrandDealQueries {
-  listByStore(projectId: string, limit?: number): Promise<BrandDealRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<BrandDealRecord[]>;
 }
 
 export interface BrandDealCommands {

@@ -20,8 +20,8 @@ export default async function StoresPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const overview = user.userId
-    ? await organizationQueries.getOrganizationOverview(user.userId)
+  const overview = user.organizationId
+    ? await organizationQueries.getOrganizationOverview(user.organizationId)
     : null;
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
 
@@ -70,7 +70,7 @@ export default async function StoresPage() {
           </CardContent>
         </Card>
 
-        {canManage && user.userId && (
+        {canManage && user.organizationId && (
           <Card>
             <CardHeader>
               <CardTitle>Add a store</CardTitle>

@@ -16,13 +16,13 @@ export async function executeEcommerceAction(actionType: string, params: unknown
 
   switch (actionType) {
     case "GENERATE_COUPON": {
-      const projectId = String(typed.projectId ?? "");
+      const storeId = String(typed.storeId ?? "");
       const customerId = typed.customerId ? String(typed.customerId) : undefined;
       const discountPct = typeof typed.discountPct === "number" ? typed.discountPct : 10;
-      if (!projectId) return { ok: false, message: "Missing projectId" };
+      if (!storeId) return { ok: false, message: "Missing storeId" };
 
       const result = await generateCoupon({
-        projectId,
+        storeId,
         code: generateCouponCode(),
         discountPct,
         customerId,

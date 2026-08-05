@@ -7,7 +7,7 @@ import type {
 
 function toRecord(row: {
   id: string;
-  userId: string | null;
+  organizationId: string | null;
   actorId: string | null;
   actorEmail: string | null;
   action: string;
@@ -18,7 +18,7 @@ function toRecord(row: {
 }): AuditLogRecord {
   return {
     id: row.id,
-    userId: row.userId,
+    organizationId: row.organizationId,
     actorId: row.actorId,
     actorEmail: row.actorEmail,
     action: row.action,
@@ -31,11 +31,11 @@ function toRecord(row: {
 
 export class PrismaAuditLogRepository implements AuditLogRepository {
   async listByOrganization(
-    userId: string,
+    organizationId: string,
     limit = 100,
   ): Promise<AuditLogRecord[]> {
     const rows = await prisma.auditLog.findMany({
-      where: { userId },
+      where: { organizationId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -45,7 +45,7 @@ export class PrismaAuditLogRepository implements AuditLogRepository {
   async create(input: CreateAuditLogInput): Promise<AuditLogRecord> {
     const row = await prisma.auditLog.create({
       data: {
-        userId: input.userId,
+        organizationId: input.organizationId,
         actorId: input.actorId ?? null,
         actorEmail: input.actorEmail ?? null,
         action: input.action,

@@ -1,8 +1,8 @@
 import { getWorkspaceKpisAction } from "@/modules/intelligence";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export async function WorkspaceKpis({ projectId, period = "7d" }: { projectId?: string; period?: "24h" | "7d" | "30d" }) {
-  const snapshot = await getWorkspaceKpisAction(projectId, period);
+export async function WorkspaceKpis({ storeId, period = "7d" }: { storeId?: string; period?: "24h" | "7d" | "30d" }) {
+  const snapshot = await getWorkspaceKpisAction(storeId, period);
   if (!snapshot) return null;
 
   const cards = [

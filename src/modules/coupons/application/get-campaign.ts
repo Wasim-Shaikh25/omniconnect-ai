@@ -2,9 +2,9 @@ import type { CampaignRepository, CampaignRecord } from "./ports";
 
 export function makeGetCampaign(deps: { campaigns: CampaignRepository }) {
   return async function getCampaign(
-    projectId: string,
+    storeId: string,
   ): Promise<CampaignRecord> {
-    return deps.campaigns.getOrCreateDefault(projectId, "FIRST_TIME_FOLLOWER");
+    return deps.campaigns.getOrCreateDefault(storeId, "FIRST_TIME_FOLLOWER");
   };
 }
 

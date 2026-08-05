@@ -9,15 +9,15 @@ type Action = (_prev: GenerateReportState, formData: FormData) => Promise<Genera
 
 interface GenerateReportFormProps {
   action: Action;
-  projectId: string;
+  storeId: string;
 }
 
-export function GenerateReportForm({ action, projectId }: GenerateReportFormProps) {
+export function GenerateReportForm({ action, storeId }: GenerateReportFormProps) {
   const [state, formAction, pending] = useActionState<GenerateReportState, FormData>(action, {});
 
   return (
     <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <div className="flex-1 space-y-2">
         <Label htmlFor="period">Period</Label>
         <select

@@ -12,7 +12,7 @@ import type {
 
 export class PrismaCatalogSyncRepository implements CatalogSyncRepository {
   async upsert(
-    projectId: string,
+    storeId: string,
     input: {
       externalCatalogId?: string | null;
       status: string;
@@ -20,7 +20,7 @@ export class PrismaCatalogSyncRepository implements CatalogSyncRepository {
     },
   ): Promise<CatalogSyncRecord> {
     const existing = await prisma.metaCatalogSync.findFirst({
-      where: { projectId },
+      where: { storeId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -40,7 +40,7 @@ export class PrismaCatalogSyncRepository implements CatalogSyncRepository {
 
     const created = await prisma.metaCatalogSync.create({
       data: {
-        projectId,
+        storeId,
         externalCatalogId: input.externalCatalogId ?? null,
         status: input.status as CatalogSyncStatus,
         errorLog: input.errorLog ?? null,
@@ -50,9 +50,9 @@ export class PrismaCatalogSyncRepository implements CatalogSyncRepository {
     return toSyncRecord(created);
   }
 
-  async findLatest(projectId: string): Promise<CatalogSyncRecord | null> {
+  async findLatest(storeId: string): Promise<CatalogSyncRecord | null> {
     const row = await prisma.metaCatalogSync.findFirst({
-      where: { projectId },
+      where: { storeId },
       orderBy: { createdAt: "desc" },
     });
     return row ? toSyncRecord(row) : null;
@@ -61,7 +61,7 @@ export class PrismaCatalogSyncRepository implements CatalogSyncRepository {
 
 export class PrismaProductMappingRepository implements ProductMappingRepository {
   async saveMany(
-    projectId: string,
+    storeId: string,
     products: Array<{
       productId: string;
       externalProductId: string | null;
@@ -73,10 +73,10 @@ export class PrismaProductMappingRepository implements ProductMappingRepository 
       products.map((p) =>
         prisma.metaProductMapping.upsert({
           where: {
-            storeId_productId: { projectId, productId: p.productId },
+            storeId_productId: { storeId, productId: p.productId },
           },
           create: {
-            projectId,
+            storeId,
             productId: p.productId,
             externalProductId: p.externalProductId,
             status: p.status,
@@ -94,9 +94,9 @@ export class PrismaProductMappingRepository implements ProductMappingRepository 
     );
   }
 
-  async listByStore(projectId: string, limit = 1000): Promise<ProductMappingRecord[]> {
+  async listByStore(storeId: string, limit = 1000): Promise<ProductMappingRecord[]> {
     const rows = await prisma.metaProductMapping.findMany({
-      where: { projectId },
+      where: { storeId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -108,7 +108,7 @@ export class PrismaShoppableMediaRepository
   implements ShoppableMediaRepository
 {
   async create(input: {
-    projectId: string;
+    storeId: string;
     mediaType: string;
     caption?: string;
     productTags: unknown;
@@ -116,7 +116,7 @@ export class PrismaShoppableMediaRepository
   }): Promise<ShoppableMediaRecord> {
     const created = await prisma.shoppableMedia.create({
       data: {
-        projectId: input.projectId,
+        storeId: input.storeId,
         mediaType: input.mediaType,
         caption: input.caption,
         productTags: input.productTags as Prisma.InputJsonValue,
@@ -143,9 +143,9 @@ export class PrismaShoppableMediaRepository
     return toMediaRecord(updated);
   }
 
-  async listByStore(projectId: string, limit = 1000): Promise<ShoppableMediaRecord[]> {
+  async listByStore(storeId: string, limit = 1000): Promise<ShoppableMediaRecord[]> {
     const rows = await prisma.shoppableMedia.findMany({
-      where: { projectId },
+      where: { storeId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -155,7 +155,7 @@ export class PrismaShoppableMediaRepository
 
 function toSyncRecord(row: {
   id: string;
-  projectId: string;
+  storeId: string;
   externalCatalogId: string | null;
   status: string;
   lastSyncedAt: Date | null;
@@ -168,7 +168,7 @@ function toSyncRecord(row: {
 
 function toMappingRecord(row: {
   id: string;
-  projectId: string;
+  storeId: string;
   productId: string;
   externalProductId: string | null;
   externalCatalogId: string | null;
@@ -183,7 +183,7 @@ function toMappingRecord(row: {
 
 function toMediaRecord(row: {
   id: string;
-  projectId: string;
+  storeId: string;
   externalMediaId: string | null;
   mediaType: string;
   caption: string | null;

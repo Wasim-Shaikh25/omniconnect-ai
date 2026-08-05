@@ -14,14 +14,14 @@ export class ProviderNotSupportedError extends EcommerceError {
 }
 
 export class StoreNotFoundError extends EcommerceError {
-  constructor(projectId: string) {
-    super(`Store not found: ${projectId}`);
+  constructor(storeId: string) {
+    super(`Store not found: ${storeId}`);
   }
 }
 
 export class StoreNotConnectedError extends EcommerceError {
-  constructor(projectId: string) {
-    super(`Store has no active eCommerce connection: ${projectId}`);
+  constructor(storeId: string) {
+    super(`Store has no active eCommerce connection: ${storeId}`);
   }
 }
 

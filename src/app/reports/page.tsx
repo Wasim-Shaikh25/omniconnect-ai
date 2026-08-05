@@ -53,8 +53,8 @@ export default async function ReportsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const overview = user.userId
-    ? await organizationQueries.getOrganizationOverview(user.userId)
+  const overview = user.organizationId
+    ? await organizationQueries.getOrganizationOverview(user.organizationId)
     : null;
 
   if (!overview) {
@@ -69,8 +69,8 @@ export default async function ReportsPage() {
   }
 
   const [kpis, rows] = await Promise.all([
-    user.userId
-      ? analyticsQueries.getWorkspaceKpis(user.userId, user.id)
+    user.organizationId
+      ? analyticsQueries.getWorkspaceKpis(user.organizationId, user.id)
       : Promise.resolve(null),
     Promise.all(
       overview.stores.map(async (store) => {

@@ -18,13 +18,13 @@ import {
 export default function CommerceCatalogPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
   return <CatalogPage params={params} />;
 }
 
-function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const projectId = use(params).projectId;
+function CatalogPage({ params }: { params: Promise<{ storeId: string }> }) {
+  const storeId = use(params).storeId;
   const [data, setData] = useState<Awaited<ReturnType<typeof listCommerceCatalogAction>> | null>(null);
   const [syncState, syncAction, syncPending] = useActionState(syncMetaCatalogAction, { ok: false });
   const [mediaState, mediaAction, mediaPending] = useActionState(createShoppableMediaAction, { ok: false });
@@ -32,15 +32,15 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
   const [caption, setCaption] = useState("");
 
   useEffect(() => {
-    listCommerceCatalogAction(projectId).then(setData);
-  }, [projectId, syncState, mediaState]);
+    listCommerceCatalogAction(storeId).then(setData);
+  }, [storeId, syncState, mediaState]);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-xl font-semibold">Commerce catalog</h1>
         <p className="text-sm text-muted-foreground">Sync Shopify products to Instagram Shop and tag them in shoppable media.</p>
-        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
+        <Link href={`/stores/${storeId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
       </header>
 
       <Card className="mb-6">
@@ -53,7 +53,7 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
             Status: {data?.sync?.status ?? "never synced"} {data?.sync?.lastSyncedAt ? ` · ${data.sync.lastSyncedAt.toLocaleString()}` : ""}
           </p>
           <form action={syncAction} className="flex items-center gap-4">
-            <input type="hidden" name="projectId" value={projectId} />
+            <input type="hidden" name="storeId" value={storeId} />
             <Button type="submit" disabled={syncPending}>{syncPending ? "Syncing…" : "Sync catalog"}</Button>
             {syncState.error && <p className="text-sm text-destructive">{syncState.error}</p>}
             {syncState.ok && <p className="text-sm text-green-600">Sync triggered</p>}
@@ -115,7 +115,7 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
         </CardHeader>
         <CardContent>
           <form action={captionAction} className="space-y-4">
-            <input type="hidden" name="projectId" value={projectId} />
+            <input type="hidden" name="storeId" value={storeId} />
             <div>
               <Label htmlFor="captionMediaType">Media type</Label>
               <select name="mediaType" id="captionMediaType" className="w-full rounded-md border bg-background px-3 py-2 text-sm" required>
@@ -188,7 +188,7 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
             </ul>
           ) : null}
           <form action={mediaAction} className="space-y-4">
-            <input type="hidden" name="projectId" value={projectId} />
+            <input type="hidden" name="storeId" value={storeId} />
             <div>
               <Label htmlFor="mediaType">Media type</Label>
               <select name="mediaType" id="mediaType" className="w-full rounded-md border bg-background px-3 py-2 text-sm" required>

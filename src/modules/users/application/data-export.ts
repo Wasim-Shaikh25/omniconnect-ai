@@ -23,7 +23,7 @@ export interface DataExportBuilder {
 }
 
 export interface DataExportService {
-  requestExport(userId: string, userId?: string | null): Promise<ExportRequestRecord>;
+  requestExport(userId: string, organizationId?: string | null): Promise<ExportRequestRecord>;
   getExport(userId: string): Promise<UserDataExport>;
   listExports(userId: string): Promise<ExportRequestRecord[]>;
 }
@@ -33,8 +33,8 @@ export function makeDataExportService(deps: {
   builder: DataExportBuilder;
 }): DataExportService {
   return {
-    async requestExport(userId, userId) {
-      const request = await deps.users.requestDataExport(userId, userId);
+    async requestExport(userId, organizationId) {
+      const request = await deps.users.requestDataExport(userId, organizationId);
       await deps.builder.build(userId);
       const downloadUrl = `/api/export/${request.id}`;
       const completed = await deps.users.markExportCompleted(request.id, downloadUrl);

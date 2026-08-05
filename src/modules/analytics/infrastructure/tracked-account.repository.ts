@@ -9,7 +9,7 @@ import type {
 
 function mapRow(row: {
   id: string;
-  projectId: string;
+  storeId: string;
   platform: string;
   handle: string;
   niche: string | null;
@@ -22,7 +22,7 @@ function mapRow(row: {
 }): TrackedAccountRecord {
   return {
     id: row.id,
-    projectId: row.projectId,
+    storeId: row.storeId,
     platform: row.platform,
     handle: row.handle,
     niche: row.niche,
@@ -39,7 +39,7 @@ export class PrismaTrackedAccountRepository implements TrackedAccountRepository 
   async create(input: CreateTrackedAccountInput): Promise<TrackedAccountRecord> {
     const row = await prisma.trackedAccount.create({
       data: {
-        projectId: input.projectId,
+        storeId: input.storeId,
         platform: input.platform ?? "INSTAGRAM",
         handle: input.handle,
         niche: input.niche ?? null,
@@ -49,9 +49,9 @@ export class PrismaTrackedAccountRepository implements TrackedAccountRepository 
     return mapRow(row);
   }
 
-  async listByStore(projectId: string, limit = 1000): Promise<TrackedAccountRecord[]> {
+  async listByStore(storeId: string, limit = 1000): Promise<TrackedAccountRecord[]> {
     const rows = await prisma.trackedAccount.findMany({
-      where: { projectId },
+      where: { storeId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -77,7 +77,7 @@ export class PrismaTrackedAccountRepository implements TrackedAccountRepository 
     return mapRow(row);
   }
 
-  async delete(id: string, projectId: string): Promise<void> {
-    await prisma.trackedAccount.delete({ where: { id, projectId } });
+  async delete(id: string, storeId: string): Promise<void> {
+    await prisma.trackedAccount.delete({ where: { id, storeId } });
   }
 }

@@ -20,11 +20,11 @@ import {
 export default async function ConversationDetailPage({
   params,
 }: {
-  params: Promise<{ projectId: string; conversationId: string }>;
+  params: Promise<{ storeId: string; conversationId: string }>;
 }) {
-  const { projectId, conversationId } = await params;
+  const { storeId, conversationId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -32,7 +32,7 @@ export default async function ConversationDetailPage({
   const { store } = access;
 
   const detail = await conversationQueries.getConversation(conversationId);
-  if (!detail || detail.conversation.projectId !== projectId) notFound();
+  if (!detail || detail.conversation.storeId !== storeId) notFound();
 
   const isHuman = detail.conversation.status === "HUMAN_ACTIVE";
 
@@ -46,7 +46,7 @@ export default async function ConversationDetailPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/conversations`}>
+          <Link href={`/stores/${storeId}/conversations`}>
             Back to conversations
           </Link>
         </Button>
@@ -79,7 +79,7 @@ export default async function ConversationDetailPage({
               action={
                 isHuman ? resumeAIConversationAction : takeOverConversationAction
               }
-              projectId={projectId}
+              storeId={storeId}
               conversationId={conversationId}
               isHuman={isHuman}
             />

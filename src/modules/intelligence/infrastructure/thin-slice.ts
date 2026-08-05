@@ -26,8 +26,8 @@ export interface ThinSliceResult {
 }
 
 export async function runWeek4ThinSlice(input: {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   userId: string;
   userRole: string;
   outOfStockProductTitle: string;
@@ -35,15 +35,15 @@ export async function runWeek4ThinSlice(input: {
   conversationContent: string;
   now: Date;
 }): Promise<ThinSliceResult> {
-  const { userId, projectId, userId, userRole, outOfStockProductTitle, alternativeProductTitle, conversationContent, now } = input;
+  const { organizationId, storeId, userId, userRole, outOfStockProductTitle, alternativeProductTitle, conversationContent, now } = input;
 
   const oneDay = 24 * 60 * 60 * 1000;
   const occurredAt = new Date(now.getTime() - oneDay);
 
   await signalIngestionService.ingest({
     eventType: "ProductInventory",
-    userId,
-    projectId,
+    organizationId,
+    storeId,
     occurredAt,
     source: "shopify",
     subjectType: "product",
@@ -55,8 +55,8 @@ export async function runWeek4ThinSlice(input: {
 
   await signalIngestionService.ingest({
     eventType: "NewMessage",
-    userId,
-    projectId,
+    organizationId,
+    storeId,
     occurredAt,
     source: "instagram",
     subjectType: "conversation",
@@ -83,16 +83,16 @@ export async function runWeek4ThinSlice(input: {
     now,
   });
 
-  await detection.analyzeStore(userId, projectId);
+  await detection.analyzeStore(organizationId, storeId);
 
-  const openInsights = await insights.listOpen(userId, projectId, 50);
+  const openInsights = await insights.listOpen(organizationId, storeId, 50);
   const revenueInsight = openInsights.find((i) =>
     i.title.toLowerCase().includes("revenue declined") &&
     i.title.toLowerCase().includes("out-of-stock"),
   ) ?? null;
 
-  await recommendationService.generateFromOpenInsights(userId, projectId);
-  const recs = await recommendationService.listOpen(userId, projectId, 50);
+  await recommendationService.generateFromOpenInsights(organizationId, storeId);
+  const recs = await recommendationService.listOpen(organizationId, storeId, 50);
   const altRec = recs.find((r) =>
     r.actionType === "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN" &&
     r.actionParams &&
@@ -112,11 +112,11 @@ export async function runWeek4ThinSlice(input: {
     };
   }
 
-  const plan = await actionPlanService.createFromRecommendation(altRec.id, userId, userId);
-  const approved = await actionPlanService.approve(plan.id, userId, userId, userRole);
-  const executed = await actionPlanService.execute(approved.id, userId, userId, userRole);
+  const plan = await actionPlanService.createFromRecommendation(altRec.id, organizationId, userId);
+  const approved = await actionPlanService.approve(plan.id, organizationId, userId, userRole);
+  const executed = await actionPlanService.execute(approved.id, organizationId, userId, userRole);
 
-  const measured = await outcomeService.measure(executed.outcome.id, userId, 0, 1, "SUCCESS");
+  const measured = await outcomeService.measure(executed.outcome.id, organizationId, 0, 1, "SUCCESS");
 
   return {
     revenueInsightId: revenueInsight?.id ?? null,

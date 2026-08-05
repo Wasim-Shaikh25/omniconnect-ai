@@ -11,10 +11,10 @@ type Action = (
 
 interface SyncProductsButtonProps {
   action: Action;
-  projectId: string;
+  storeId: string;
 }
 
-export function SyncProductsButton({ action, projectId }: SyncProductsButtonProps) {
+export function SyncProductsButton({ action, storeId }: SyncProductsButtonProps) {
   const [state, formAction, pending] = useActionState<
     EcommerceActionState,
     FormData
@@ -22,7 +22,7 @@ export function SyncProductsButton({ action, projectId }: SyncProductsButtonProp
 
   return (
     <form action={formAction} className="flex items-center gap-3">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
         {pending ? "Syncing…" : "Sync products"}
       </Button>

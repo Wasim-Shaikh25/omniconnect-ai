@@ -4,7 +4,7 @@ import type { CartRecord, CartRepository } from "../application/ports";
 
 type PrismaCart = {
   id: string;
-  projectId: string;
+  storeId: string;
   cartToken: string;
   email: string | null;
   lineItemTitles: string[];
@@ -21,7 +21,7 @@ type PrismaCart = {
 function toRecord(c: PrismaCart): CartRecord {
   return {
     id: c.id,
-    projectId: c.projectId,
+    storeId: c.storeId,
     cartToken: c.cartToken,
     email: c.email,
     lineItemTitles: c.lineItemTitles,
@@ -38,7 +38,7 @@ function toRecord(c: PrismaCart): CartRecord {
 
 export class PrismaCartRepository implements CartRepository {
   async upsert(input: {
-    projectId: string;
+    storeId: string;
     cartToken: string;
     email?: string | null;
     lineItemTitles?: string[];
@@ -48,9 +48,9 @@ export class PrismaCartRepository implements CartRepository {
     lastActivityAt: Date;
   }): Promise<CartRecord> {
     const result = await prisma.cart.upsert({
-      where: { storeId_cartToken: { projectId: input.projectId, cartToken: input.cartToken } },
+      where: { storeId_cartToken: { storeId: input.storeId, cartToken: input.cartToken } },
       create: {
-        projectId: input.projectId,
+        storeId: input.storeId,
         cartToken: input.cartToken,
         email: input.email ?? null,
         lineItemTitles: input.lineItemTitles ?? [],
@@ -72,18 +72,18 @@ export class PrismaCartRepository implements CartRepository {
   }
 
   async findByStoreAndToken(
-    projectId: string,
+    storeId: string,
     cartToken: string,
   ): Promise<CartRecord | null> {
     const row = await prisma.cart.findUnique({
-      where: { storeId_cartToken: { projectId, cartToken } },
+      where: { storeId_cartToken: { storeId, cartToken } },
     });
     return row ? toRecord(row) : null;
   }
 
-  async markConverted(projectId: string, cartToken: string): Promise<void> {
+  async markConverted(storeId: string, cartToken: string): Promise<void> {
     await prisma.cart.updateMany({
-      where: { projectId, cartToken, convertedAt: null },
+      where: { storeId, cartToken, convertedAt: null },
       data: { convertedAt: new Date() },
     });
   }

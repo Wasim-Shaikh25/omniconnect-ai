@@ -16,7 +16,7 @@ export function makeNotificationService(deps: {
 }) {
   return {
     async notify(input: {
-      projectId: string;
+      storeId: string;
       type: Parameters<NotificationService["notify"]>[0]["type"];
       title: string;
       body: string;
@@ -25,9 +25,9 @@ export function makeNotificationService(deps: {
       tier?: Parameters<NotificationService["notify"]>[0]["tier"];
       dedupKey?: string;
     }): Promise<void> {
-      const userIds = await deps.members.getUserIdsForStore(input.projectId);
+      const userIds = await deps.members.getUserIdsForStore(input.storeId);
       if (userIds.length === 0) {
-        logger.warn("notifications.notify.noUsers", { projectId: input.projectId });
+        logger.warn("notifications.notify.noUsers", { storeId: input.storeId });
         return;
       }
 
@@ -48,7 +48,7 @@ export function makeNotificationService(deps: {
 
         const record = await deps.notifications.create({
           userId,
-          projectId: input.projectId,
+          storeId: input.storeId,
           type: input.type,
           channel,
           tier: input.tier,

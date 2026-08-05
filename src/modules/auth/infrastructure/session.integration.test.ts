@@ -18,8 +18,8 @@ interface MockSession {
     name: string | null;
     role: string;
     isSuperAdmin: boolean;
-    userId: string | null;
-    projectId: string | null;
+    organizationId: string | null;
+    storeId: string | null;
     tokenVersion: number;
   };
 }
@@ -55,8 +55,8 @@ describe("getCurrentUser", () => {
         name: user.name,
         role: user.role,
         isSuperAdmin: user.isSuperAdmin,
-        userId: user.userId,
-        projectId: user.projectId,
+        organizationId: user.organizationId,
+        storeId: user.storeId,
         tokenVersion: 1,
       },
     });
@@ -86,8 +86,8 @@ describe("getCurrentUser", () => {
         name: user.name,
         role: user.role,
         isSuperAdmin: user.isSuperAdmin,
-        userId: user.userId,
-        projectId: user.projectId,
+        organizationId: user.organizationId,
+        storeId: user.storeId,
         tokenVersion: user.tokenVersion,
       },
     });
@@ -118,8 +118,8 @@ describe("requireSuperAdmin", () => {
         name: admin.name,
         role: admin.role,
         isSuperAdmin: admin.isSuperAdmin,
-        userId: admin.userId,
-        projectId: admin.projectId,
+        organizationId: admin.organizationId,
+        storeId: admin.storeId,
         tokenVersion: admin.tokenVersion,
       },
     });
@@ -148,8 +148,8 @@ describe("requireSuperAdmin", () => {
         name: owner.name,
         role: owner.role,
         isSuperAdmin: owner.isSuperAdmin,
-        userId: owner.userId,
-        projectId: owner.projectId,
+        organizationId: owner.organizationId,
+        storeId: owner.storeId,
         tokenVersion: owner.tokenVersion,
       },
     });
@@ -180,8 +180,8 @@ describe("requireVerifiedEmail", () => {
         name: unverified.name,
         role: unverified.role,
         isSuperAdmin: unverified.isSuperAdmin,
-        userId: unverified.userId,
-        projectId: unverified.projectId,
+        organizationId: unverified.organizationId,
+        storeId: unverified.storeId,
         tokenVersion: unverified.tokenVersion,
       },
     });
@@ -210,8 +210,8 @@ describe("requireVerifiedEmail", () => {
         name: verified.name,
         role: verified.role,
         isSuperAdmin: verified.isSuperAdmin,
-        userId: verified.userId,
-        projectId: verified.projectId,
+        organizationId: verified.organizationId,
+        storeId: verified.storeId,
         tokenVersion: verified.tokenVersion,
       },
     });

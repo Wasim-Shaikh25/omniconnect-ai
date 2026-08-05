@@ -20,7 +20,7 @@ export async function getUnifiedInboxAction(
   pagination?: PaginationInput,
 ) {
   const user = await getCurrentUser();
-  if (!user || !user.userId) {
+  if (!user || !user.organizationId) {
     return { items: [], total: 0, page: 1, limit: 10, totalPages: 0 };
   }
   const all = await unifiedInboxQueries(user, filter);
@@ -33,7 +33,7 @@ export async function getUnifiedInboxAction(
 }
 
 const takeoverSchema = z.object({
-  projectId: z.string().min(1),
+  storeId: z.string().min(1),
   conversationId: z.string().min(1),
 });
 
@@ -49,9 +49,9 @@ export async function takeOverConversationAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { projectId, conversationId } = parsed.data;
+  const { storeId, conversationId } = parsed.data;
   try {
-    await tenantGuard.assertStoreAccess(user, projectId);
+    await tenantGuard.assertStoreAccess(user, storeId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return { error: "Store not found in your organization." };
@@ -61,13 +61,13 @@ export async function takeOverConversationAction(
 
   await conversationCommands.takeOver({
     conversationId,
-    projectId,
+    storeId,
     humanUserId: user.id,
   });
 
   revalidatePath("/inbox");
-  revalidatePath(`/stores/${projectId}/conversations`);
-  revalidatePath(`/stores/${projectId}/conversations/${conversationId}`);
+  revalidatePath(`/stores/${storeId}/conversations`);
+  revalidatePath(`/stores/${storeId}/conversations/${conversationId}`);
   return { ok: true, message: "Conversation taken over." };
 }
 
@@ -83,9 +83,9 @@ export async function resumeAIConversationAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { projectId, conversationId } = parsed.data;
+  const { storeId, conversationId } = parsed.data;
   try {
-    await tenantGuard.assertStoreAccess(user, projectId);
+    await tenantGuard.assertStoreAccess(user, storeId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return { error: "Store not found in your organization." };
@@ -93,10 +93,10 @@ export async function resumeAIConversationAction(
     throw error;
   }
 
-  await conversationCommands.resumeAI({ conversationId, projectId });
+  await conversationCommands.resumeAI({ conversationId, storeId });
 
   revalidatePath("/inbox");
-  revalidatePath(`/stores/${projectId}/conversations`);
-  revalidatePath(`/stores/${projectId}/conversations/${conversationId}`);
+  revalidatePath(`/stores/${storeId}/conversations`);
+  revalidatePath(`/stores/${storeId}/conversations/${conversationId}`);
   return { ok: true, message: "AI resumed." };
 }

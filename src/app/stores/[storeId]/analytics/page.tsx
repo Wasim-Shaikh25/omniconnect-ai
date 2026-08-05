@@ -25,22 +25,22 @@ function formatCurrency(value: number, currency: string | null): string {
 export default async function StoreAnalyticsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.userId) notFound();
+  if (!user.organizationId) notFound();
 
   let view: MarketingPerformanceView | null = null;
   let error: string | null = null;
   try {
-    view = await getMarketingPerformance({ userId: user.userId, projectId });
+    view = await getMarketingPerformance({ organizationId: user.organizationId, storeId });
   } catch (e) {
     error = e instanceof Error ? e.message : "Could not load marketing performance";
   }
@@ -53,7 +53,7 @@ export default async function StoreAnalyticsPage({
           <p className="text-sm text-muted-foreground">Snapshot for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
+          <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -75,16 +75,16 @@ export default async function StoreAnalyticsPage({
 
           <div className="mb-6 flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${projectId}/analytics/content`}>Content</Link>
+              <Link href={`/stores/${storeId}/analytics/content`}>Content</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${projectId}/analytics/audience`}>Audience</Link>
+              <Link href={`/stores/${storeId}/analytics/audience`}>Audience</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${projectId}/analytics/product`}>Product</Link>
+              <Link href={`/stores/${storeId}/analytics/product`}>Product</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/stores/${projectId}/analytics/campaign`}>Campaign</Link>
+              <Link href={`/stores/${storeId}/analytics/campaign`}>Campaign</Link>
             </Button>
           </div>
 

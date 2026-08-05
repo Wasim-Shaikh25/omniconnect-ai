@@ -10,8 +10,8 @@ export interface AccountRecord {
   phoneVerified: Date | null;
   role: Role;
   isSuperAdmin: boolean;
-  userId: string | null;
-  projectId: string | null;
+  organizationId: string | null;
+  storeId: string | null;
   tokenVersion: number;
   deletedAt: Date | null;
 }
@@ -34,8 +34,8 @@ export interface AccountRepository {
     phone?: string | null;
     emailVerified?: Date | null;
     isSuperAdmin?: boolean;
-    userId?: string | null;
-    projectId?: string | null;
+    organizationId?: string | null;
+    storeId?: string | null;
   }): Promise<AccountRecord>;
 }
 

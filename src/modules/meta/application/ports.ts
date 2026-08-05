@@ -2,7 +2,7 @@ import type { MetaChannel } from "../domain/types";
 
 export interface MetaIntegrationRecord {
   id: string;
-  projectId: string;
+  storeId: string;
   channel: MetaChannel;
   accountId: string | null;
   connectedAt: Date;
@@ -10,21 +10,21 @@ export interface MetaIntegrationRecord {
 
 export interface MetaIntegrationRepository {
   connect(input: {
-    projectId: string;
+    storeId: string;
     channel: MetaChannel;
     accountId: string | null;
     accessToken: string | null;
     refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord>;
 
-  findByStore(projectId: string): Promise<MetaIntegrationRecord | null>;
+  findByStore(storeId: string): Promise<MetaIntegrationRecord | null>;
 
   /** Resolve which store owns an inbound page/IG account. */
   findStoreByAccountId(accountId: string): Promise<string | null>;
 
   /** Read the stored page/IG token for outbound calls (infra-only). */
   findAccessToken(
-    projectId: string,
+    storeId: string,
     channel?: MetaChannel,
   ): Promise<string | null>;
 }
@@ -94,44 +94,44 @@ export interface MetaAudienceInsights {
 /** Outbound Graph API port (send replies, etc.). */
 export interface MetaService {
   sendMessage(input: {
-    projectId: string;
+    storeId: string;
     recipientId: string;
     text: string;
   }): Promise<void>;
 
   /** Search the connected IG Business account for a hashtag id. */
   searchHashtag(
-    projectId: string,
+    storeId: string,
     query: string,
   ): Promise<{ hashtagId: string | null; userId: string | null }>;
 
   /** Fetch public top/recent media for a hashtag. */
   getHashtagMedia(
-    projectId: string,
+    storeId: string,
     hashtagId: string,
     options?: HashtagMediaOptions,
   ): Promise<MetaMediaItem[]>;
 
   /** Fetch the connected account's own media. */
   getAccountMedia(
-    projectId: string,
+    storeId: string,
     limit?: number,
   ): Promise<MetaMediaItem[]>;
 
   /** Fetch page-level insights for the connected account. */
   getPageInsights(
-    projectId: string,
+    storeId: string,
     days?: number,
   ): Promise<MetaPageInsights | null>;
 
   /** Fetch audience demographics for the connected account. */
   getAudienceInsights(
-    projectId: string,
+    storeId: string,
   ): Promise<MetaAudienceInsights | null>;
 
   /** Fetch public media for a competitor/creator handle. */
   getCompetitorMedia(
-    projectId: string,
+    storeId: string,
     handle: string,
     options?: CompetitorMediaOptions,
   ): Promise<MetaMediaItem[]>;

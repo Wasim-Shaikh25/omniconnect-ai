@@ -13,10 +13,10 @@ type Action = (
 
 interface MetaConnectFormProps {
   action: Action;
-  projectId: string;
+  storeId: string;
 }
 
-export function MetaConnectForm({ action, projectId }: MetaConnectFormProps) {
+export function MetaConnectForm({ action, storeId }: MetaConnectFormProps) {
   const [state, formAction, pending] = useActionState<
     MetaActionState,
     FormData
@@ -24,7 +24,7 @@ export function MetaConnectForm({ action, projectId }: MetaConnectFormProps) {
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <div className="space-y-2">
         <Label htmlFor="channel">Channel</Label>
         <select

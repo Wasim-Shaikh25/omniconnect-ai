@@ -7,11 +7,11 @@ export interface KpiServiceInput {
 export function makeKpiService(input: KpiServiceInput) {
   return {
     async getWorkspaceSnapshot(
-      userId: string,
-      projectId?: string,
+      organizationId: string,
+      storeId?: string,
       period: KpiSnapshot["period"] = "7d",
     ): Promise<KpiSnapshot> {
-      return input.kpis.getWorkspaceSnapshot(userId, projectId ?? null, period);
+      return input.kpis.getWorkspaceSnapshot(organizationId, storeId ?? null, period);
     },
   };
 }

@@ -93,8 +93,8 @@ const providers: NextAuthConfig["providers"] = [
         role: account.role,
         isSuperAdmin: account.isSuperAdmin,
         emailVerified: account.emailVerified,
-        userId: account.userId,
-        projectId: account.projectId,
+        organizationId: account.organizationId,
+        storeId: account.storeId,
         tokenVersion: account.tokenVersion,
       };
     },
@@ -161,8 +161,8 @@ async function refreshTokenFromDb(
     role: fresh.role,
     isSuperAdmin: fresh.isSuperAdmin,
     emailVerified: fresh.emailVerified,
-    userId: fresh.userId,
-    projectId: fresh.projectId,
+    organizationId: fresh.organizationId,
+    storeId: fresh.storeId,
     tokenVersion: fresh.tokenVersion,
   };
 }
@@ -182,14 +182,14 @@ export const authConfig: NextAuthConfig = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.projectId =
-          typeof user.projectId === "string" ? user.projectId : null;
+        token.storeId =
+          typeof user.storeId === "string" ? user.storeId : null;
         // OAuth users do not go through the email/password registration flow,
         // so they may not have an organization. Provision one synchronously
         // before the JWT is issued so the token carries the tenant claim.
         if (account?.provider !== "credentials" && typeof user.id === "string") {
           const existing = await accounts.findById(user.id);
-          if (existing && !existing.userId && user.email) {
+          if (existing && !existing.organizationId && user.email) {
             await eventBus.publish(
               new UserRegistered(user.id, {
                 userId: user.id,
@@ -219,9 +219,9 @@ export const authConfig: NextAuthConfig = {
         session.user.role = isRole(token.role)
           ? (token.role as Role)
           : "STORE_OWNER";
-        session.user.userId =
-          typeof token.userId === "string"
-            ? token.userId
+        session.user.organizationId =
+          typeof token.organizationId === "string"
+            ? token.organizationId
             : null;
         session.user.isSuperAdmin =
           typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
@@ -231,8 +231,8 @@ export const authConfig: NextAuthConfig = {
             : typeof token.emailVerified === "string"
               ? new Date(token.emailVerified)
               : null;
-        session.user.projectId =
-          typeof token.projectId === "string" ? token.projectId : null;
+        session.user.storeId =
+          typeof token.storeId === "string" ? token.storeId : null;
         session.user.tokenVersion =
           typeof token.tokenVersion === "number" ? token.tokenVersion : 0;
       }

@@ -27,18 +27,18 @@ const consentSchema = z.object({
 });
 
 async function assertCustomerInOrg(
-  userId: string | null,
+  organizationId: string | null,
   customerId: string,
-): Promise<{ ok: boolean; projectId?: string }> {
-  if (!userId) return { ok: false };
+): Promise<{ ok: boolean; storeId?: string }> {
+  if (!organizationId) return { ok: false };
   const overview = await organizationQueries.getOrganizationOverview(
-    userId,
+    organizationId,
   );
   // Search all stores in the org for this customer first.
   const storeIds = overview?.stores.map((s) => s.id) ?? [];
-  for (const projectId of storeIds) {
-    const customer = await customers.findById(customerId, projectId);
-    if (customer) return { ok: true, projectId: customer.projectId };
+  for (const storeId of storeIds) {
+    const customer = await customers.findById(customerId, storeId);
+    if (customer) return { ok: true, storeId: customer.storeId };
   }
   return { ok: false };
 }
@@ -55,15 +55,15 @@ export async function updateCustomerLifecycleAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const auth = await assertCustomerInOrg(user.userId, parsed.data.customerId);
-  if (!auth.ok || !auth.projectId) {
+  const auth = await assertCustomerInOrg(user.organizationId, parsed.data.customerId);
+  if (!auth.ok || !auth.storeId) {
     return { error: "Customer not found in your organization." };
   }
 
   try {
     await customers.updateLifecycleStage(
       parsed.data.customerId,
-      auth.projectId,
+      auth.storeId,
       parsed.data.lifecycleStage as CustomerLifecycleStage,
     );
     revalidatePath("/customers");
@@ -84,15 +84,15 @@ export async function updateCustomerConsentAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const auth = await assertCustomerInOrg(user.userId, parsed.data.customerId);
-  if (!auth.ok || !auth.projectId) {
+  const auth = await assertCustomerInOrg(user.organizationId, parsed.data.customerId);
+  if (!auth.ok || !auth.storeId) {
     return { error: "Customer not found in your organization." };
   }
 
   try {
     await customers.updateConsent(
       parsed.data.customerId,
-      auth.projectId,
+      auth.storeId,
       parsed.data.consent as CustomerConsent,
     );
     revalidatePath("/customers");
@@ -104,21 +104,21 @@ export async function updateCustomerConsentAction(
 }
 
 export async function getCustomerDirectoryAction(
-  userId: string,
+  organizationId: string,
   filter?: Parameters<typeof customerDirectory.listCustomersByOrganization>[1],
 ) {
   const user = await getCurrentUser();
-  if (!user || user.userId !== userId) {
+  if (!user || user.organizationId !== organizationId) {
     return { customers: [] };
   }
-  const projectId = user.role === "STAFF" ? user.projectId : undefined;
-  if (user.role === "STAFF" && !projectId) {
+  const storeId = user.role === "STAFF" ? user.storeId : undefined;
+  if (user.role === "STAFF" && !storeId) {
     return { customers: [] };
   }
   const customers = await customerDirectory.listCustomersByOrganization(
-    userId,
+    organizationId,
     filter,
-    projectId,
+    storeId,
   );
   return { customers };
 }

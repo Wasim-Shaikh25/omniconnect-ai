@@ -21,7 +21,7 @@ const DEFAULT_CONFIG = {
 };
 
 function toRecord(row: {
-  projectId: string;
+  storeId: string;
   systemPrompt: string;
   tone: string | null;
   welcomeStrategy: string | null;
@@ -31,7 +31,7 @@ function toRecord(row: {
   model: string;
 }): AIConfigurationRecord {
   return {
-    projectId: row.projectId,
+    storeId: row.storeId,
     systemPrompt: row.systemPrompt,
     tone: row.tone,
     welcomeStrategy: row.welcomeStrategy,
@@ -45,29 +45,29 @@ function toRecord(row: {
 export class PrismaAIConfigurationRepository
   implements AIConfigurationRepository
 {
-  async getByStore(projectId: string): Promise<AIConfigurationRecord | null> {
-    const row = await prisma.aIConfiguration.findUnique({ where: { projectId } });
+  async getByStore(storeId: string): Promise<AIConfigurationRecord | null> {
+    const row = await prisma.aIConfiguration.findUnique({ where: { storeId } });
     return row ? toRecord(row) : null;
   }
 
   async getOrCreateDefault(
-    projectId: string,
+    storeId: string,
   ): Promise<AIConfigurationRecord> {
     const row = await prisma.aIConfiguration.upsert({
-      where: { projectId },
+      where: { storeId },
       update: {},
-      create: { projectId, ...DEFAULT_CONFIG },
+      create: { storeId, ...DEFAULT_CONFIG },
     });
     return toRecord(row);
   }
 
   async update(
-    projectId: string,
-    input: Partial<Omit<AIConfigurationRecord, "projectId">>,
+    storeId: string,
+    input: Partial<Omit<AIConfigurationRecord, "storeId">>,
   ): Promise<AIConfigurationRecord> {
     const upserted = await prisma.aIConfiguration.upsert({
-      where: { projectId },
-      create: { projectId, ...DEFAULT_CONFIG, ...input },
+      where: { storeId },
+      create: { storeId, ...DEFAULT_CONFIG, ...input },
       update: input,
     });
     return toRecord(upserted);

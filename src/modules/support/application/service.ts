@@ -13,12 +13,12 @@ export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 export function makeCreateTicket(deps: { tickets: SupportTicketRepository }) {
   return async function createTicket(
     input: CreateTicketInput,
-    userId: string,
+    organizationId: string,
     userId: string,
   ): Promise<SupportTicketRecord> {
     return deps.tickets.create({
       ...input,
-      userId,
+      organizationId,
       userId,
     });
   };
@@ -27,15 +27,15 @@ export function makeCreateTicket(deps: { tickets: SupportTicketRepository }) {
 export function makeListUserTickets(deps: { tickets: SupportTicketRepository }) {
   return async function listUserTickets(
     userId: string,
-    userId?: string,
+    organizationId?: string,
   ): Promise<SupportTicketRecord[]> {
-    return deps.tickets.listByUser(userId, userId);
+    return deps.tickets.listByUser(userId, organizationId);
   };
 }
 
 export function makeListAllTickets(deps: { tickets: SupportTicketRepository }) {
   return async function listAllTickets(
-    userId?: string | null,
+    organizationId?: string | null,
     filters?: {
       status?: TicketStatus;
       priority?: TicketPriority;
@@ -43,28 +43,28 @@ export function makeListAllTickets(deps: { tickets: SupportTicketRepository }) {
     },
     pagination?: PaginationInput,
   ) {
-    return deps.tickets.listAll(userId, filters, pagination);
+    return deps.tickets.listAll(organizationId, filters, pagination);
   };
 }
 
 export function makeUpdateTicket(deps: { tickets: SupportTicketRepository }) {
   return async function updateTicket(
     id: string,
-    userId: string,
+    organizationId: string,
     input: Partial<{ status: TicketStatus; priority: TicketPriority; assignedTo: string | null }>,
   ): Promise<SupportTicketRecord | null> {
-    return deps.tickets.update(id, userId, input);
+    return deps.tickets.update(id, organizationId, input);
   };
 }
 
 export function makeAddTicketComment(deps: { tickets: SupportTicketRepository }) {
   return async function addTicketComment(
     ticketId: string,
-    userId: string,
+    organizationId: string,
     userId: string,
     message: string,
     isInternal: boolean,
   ) {
-    return deps.tickets.addComment({ ticketId, userId, userId, message, isInternal });
+    return deps.tickets.addComment({ ticketId, organizationId, userId, message, isInternal });
   };
 }

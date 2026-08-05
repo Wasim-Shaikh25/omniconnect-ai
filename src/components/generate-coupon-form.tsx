@@ -13,10 +13,10 @@ type Action = (
 
 interface GenerateCouponFormProps {
   action: Action;
-  projectId: string;
+  storeId: string;
 }
 
-export function GenerateCouponForm({ action, projectId }: GenerateCouponFormProps) {
+export function GenerateCouponForm({ action, storeId }: GenerateCouponFormProps) {
   const [state, formAction, pending] = useActionState<
     EcommerceActionState,
     FormData
@@ -24,7 +24,7 @@ export function GenerateCouponForm({ action, projectId }: GenerateCouponFormProp
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="storeId" value={storeId} />
       <div className="space-y-2">
         <Label htmlFor="code">Coupon code</Label>
         <Input

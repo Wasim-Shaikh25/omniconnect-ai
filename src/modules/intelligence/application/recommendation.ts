@@ -38,8 +38,8 @@ async function recommendationFromInsight(
 ): Promise<Omit<RecommendationRecord, "id" | "createdAt" | "updatedAt"> | null> {
   const now = new Date();
   const base = {
-    userId: insight.userId,
-    projectId: insight.projectId,
+    organizationId: insight.organizationId,
+    storeId: insight.storeId,
     insightId: insight.id,
     producedByModule: "intelligence" as const,
     producedByService: "recommendationFromInsight",
@@ -73,8 +73,8 @@ async function recommendationFromInsight(
       riskTier: riskFromSeverity(insight.severity),
       eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
       actionType: "GENERATE_COUPON",
-      actionParams: { projectId: insight.projectId, discountPct: 10 },
-      deepLink: insight.projectId ? `/stores/${insight.projectId}/coupons` : "/dashboard",
+      actionParams: { storeId: insight.storeId, discountPct: 10 },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/coupons` : "/dashboard",
     };
   }
 
@@ -93,7 +93,7 @@ async function recommendationFromInsight(
       riskTier: riskFromSeverity(insight.severity),
       eligibility: { requiresApproval: false, roles: ["ADMIN", "STORE_OWNER", "STAFF"] },
       actionType: "TAKE_OVER_CONVERSATION",
-      actionParams: { projectId: insight.projectId, conversationId },
+      actionParams: { storeId: insight.storeId, conversationId },
       deepLink: insight.deepLink ?? "/inbox",
     };
   }
@@ -112,20 +112,20 @@ async function recommendationFromInsight(
       riskTier: riskFromSeverity(insight.severity),
       eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
       actionType: "CREATE_DM_CAMPAIGN",
-      actionParams: { projectId: insight.projectId, campaignType: "RE_ENGAGE", audienceCriteria: { segment: "existing_followers" } },
-      deepLink: insight.projectId ? `/stores/${insight.projectId}/commerce/growth` : "/dashboard",
+      actionParams: { storeId: insight.storeId, campaignType: "RE_ENGAGE", audienceCriteria: { segment: "existing_followers" } },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
     };
   }
 
   if (
     (insight.title.toLowerCase().includes("out of stock") ||
       insight.title.toLowerCase().includes("low stock")) &&
-    insight.projectId
+    insight.storeId
   ) {
     const titleMatch = insight.title.match(/^"([^"]+)"/);
     const productTitle = titleMatch?.[1] ?? "";
     if (productTitle) {
-      const products = await ecommerce.listProducts(insight.projectId, 100);
+      const products = await ecommerce.listProducts(insight.storeId, 100);
       const outOfStockProduct = products.find((p) => p.title.toLowerCase() === productTitle.toLowerCase());
       const alternative = products
         .filter((p) => p.externalId !== outOfStockProduct?.externalId && typeof p.inventory === "number" && p.inventory > 0)
@@ -146,12 +146,12 @@ async function recommendationFromInsight(
           eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
           actionType: "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN",
           actionParams: {
-            projectId: insight.projectId,
+            storeId: insight.storeId,
             outOfStockProductTitle: productTitle,
             alternativeProductTitle: alternative.title,
             audienceCriteria: { conversationMentions: productTitle },
           },
-          deepLink: `/stores/${insight.projectId}/commerce/growth`,
+          deepLink: `/stores/${insight.storeId}/commerce/growth`,
         };
       }
     }
@@ -175,11 +175,11 @@ async function recommendationFromInsight(
       eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
       actionType: "CREATE_DM_CAMPAIGN",
       actionParams: {
-        projectId: insight.projectId,
+        storeId: insight.storeId,
         campaignType: "ANSWER_PATTERN",
         audienceCriteria: { segment: "recent_conversations", dmPattern: category, sampleQuestion: sample },
       },
-      deepLink: insight.projectId ? `/stores/${insight.projectId}/commerce/growth` : "/dashboard",
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
     };
   }
 
@@ -203,11 +203,11 @@ async function recommendationFromInsight(
       eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
       actionType: "CREATE_DM_CAMPAIGN",
       actionParams: {
-        projectId: insight.projectId,
+        storeId: insight.storeId,
         campaignType: isObjection ? "OBJECTION_RESPONSE" : "SOCIAL_PROOF",
         audienceCriteria: { segment: "recent_commenters", commentPattern: category },
       },
-      deepLink: insight.projectId ? `/stores/${insight.projectId}/commerce/growth` : "/dashboard",
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
     };
   }
 
@@ -230,13 +230,13 @@ async function recommendationFromInsight(
         riskTier: riskFromSeverity(insight.severity),
         eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
         actionType: "GENERATE_COUPON",
-        actionParams: { projectId: insight.projectId, discountPct: 10, minimumSpendPct: 25 },
-        deepLink: insight.projectId ? `/stores/${insight.projectId}/coupons` : "/dashboard",
+        actionParams: { storeId: insight.storeId, discountPct: 10, minimumSpendPct: 25 },
+        deepLink: insight.storeId ? `/stores/${insight.storeId}/coupons` : "/dashboard",
       };
     }
 
-    if (availabilityDriven && insight.projectId) {
-      const products = await ecommerce.listProducts(insight.projectId, 100);
+    if (availabilityDriven && insight.storeId) {
+      const products = await ecommerce.listProducts(insight.storeId, 100);
       const alternative = products
         .filter((p) => typeof p.inventory === "number" && p.inventory > 0)
         .sort((a, b) => (b.inventory ?? 0) - (a.inventory ?? 0))[0];
@@ -255,8 +255,8 @@ async function recommendationFromInsight(
           riskTier: riskFromSeverity(insight.severity),
           eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
           actionType: "CREATE_ALTERNATIVE_PRODUCT_CAMPAIGN",
-          actionParams: { projectId: insight.projectId, outOfStockProductTitle: "N/A", alternativeProductTitle: alternative.title, audienceCriteria: { segment: "recent_customers" } },
-          deepLink: `/stores/${insight.projectId}/commerce/growth`,
+          actionParams: { storeId: insight.storeId, outOfStockProductTitle: "N/A", alternativeProductTitle: alternative.title, audienceCriteria: { segment: "recent_customers" } },
+          deepLink: `/stores/${insight.storeId}/commerce/growth`,
         };
       }
     }
@@ -274,8 +274,8 @@ async function recommendationFromInsight(
       riskTier: riskFromSeverity(insight.severity),
       eligibility: { requiresApproval: true, roles: ["ADMIN", "STORE_OWNER"] },
       actionType: "CREATE_DM_CAMPAIGN",
-      actionParams: { projectId: insight.projectId, campaignType: "RE_ENGAGE", audienceCriteria: { segment: "recent_customers" } },
-      deepLink: insight.projectId ? `/stores/${insight.projectId}/commerce/growth` : "/dashboard",
+      actionParams: { storeId: insight.storeId, campaignType: "RE_ENGAGE", audienceCriteria: { segment: "recent_customers" } },
+      deepLink: insight.storeId ? `/stores/${insight.storeId}/commerce/growth` : "/dashboard",
     };
   }
 
@@ -292,16 +292,16 @@ async function recommendationFromInsight(
     riskTier: "TIER_1",
     eligibility: { requiresApproval: false, roles: ["ADMIN", "STORE_OWNER", "STAFF"] },
     actionType: "REFRESH_INTEGRATION",
-    actionParams: { projectId: insight.projectId, metricNames: insight.evidence?.metricIds ?? [] },
-    deepLink: insight.projectId ? `/stores/${insight.projectId}/integrations` : "/dashboard",
+    actionParams: { storeId: insight.storeId, metricNames: insight.evidence?.metricIds ?? [] },
+    deepLink: insight.storeId ? `/stores/${insight.storeId}/integrations` : "/dashboard",
   };
 }
 
 export function makeRecommendationService(input: RecommendationServiceInput) {
   return {
-    async generateFromOpenInsights(userId: string, projectId?: string): Promise<RecommendationRecord[]> {
-      const insights = await input.insights.listOpen(userId, projectId, 50);
-      const existing = await input.recommendations.listOpen(userId, projectId, 200);
+    async generateFromOpenInsights(organizationId: string, storeId?: string): Promise<RecommendationRecord[]> {
+      const insights = await input.insights.listOpen(organizationId, storeId, 50);
+      const existing = await input.recommendations.listOpen(organizationId, storeId, 200);
       const seenInsightIds = new Set(existing.map((r) => r.insightId).filter(Boolean));
 
       const generated: RecommendationRecord[] = [];
@@ -324,29 +324,29 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
       return generated;
     },
 
-    async listOpen(userId: string, projectId?: string, limit = 20): Promise<RecommendationRecord[]> {
-      return input.recommendations.listOpen(userId, projectId, limit);
+    async listOpen(organizationId: string, storeId?: string, limit = 20): Promise<RecommendationRecord[]> {
+      return input.recommendations.listOpen(organizationId, storeId, limit);
     },
 
-    async dismiss(id: string, userId: string): Promise<RecommendationRecord | null> {
-      return input.recommendations.updateStatus(id, userId, "DISMISSED");
+    async dismiss(id: string, organizationId: string): Promise<RecommendationRecord | null> {
+      return input.recommendations.updateStatus(id, organizationId, "DISMISSED");
     },
 
     async tagObjective(
       recommendationId: string,
-      userId: string,
+      organizationId: string,
       objective: BusinessObjective,
       reason: string,
     ): Promise<RecommendationRecord | null> {
-      return input.recommendations.updateObjective(recommendationId, userId, objective, reason);
+      return input.recommendations.updateObjective(recommendationId, organizationId, objective, reason);
     },
 
     async recalculateConfidence(
       recommendationId: string,
-      userId: string,
+      organizationId: string,
       signals?: { supportingSignals?: number; contradictingSignals?: number },
     ): Promise<RecommendationRecord | null> {
-      const rec = await input.recommendations.findById(recommendationId, userId);
+      const rec = await input.recommendations.findById(recommendationId, organizationId);
       if (!rec) return null;
       const next = recalculateConfidence({
         currentConfidence: rec.confidence ?? 0.5,
@@ -354,7 +354,7 @@ export function makeRecommendationService(input: RecommendationServiceInput) {
         supportingSignals: signals?.supportingSignals ?? 1,
         contradictingSignals: signals?.contradictingSignals ?? 0,
       });
-      const updated = await input.recommendations.updateConfidence(recommendationId, userId, next.confidence, next.signals);
+      const updated = await input.recommendations.updateConfidence(recommendationId, organizationId, next.confidence, next.signals);
       if (updated && Math.abs((rec.confidence ?? 0.5) - next.confidence) >= 0.001) {
         await eventBus.publish(
           new ConfidenceChanged(recommendationId, {

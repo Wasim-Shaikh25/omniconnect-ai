@@ -7,7 +7,7 @@ import type { ConnectorOrder } from "../domain/connector";
 type PrismaOrder = {
   id: string;
   externalId: string;
-  projectId: string;
+  storeId: string;
   total: Prisma.Decimal | null;
   currency: string | null;
   orderDate: Date;
@@ -23,12 +23,12 @@ type PrismaOrder = {
 };
 
 export class PrismaOrderRepository implements OrderRepository {
-  async sync(projectId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }> {
+  async sync(storeId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }> {
     const providedExternalIds = new Set(orders.map((o) => o.externalId));
     const now = new Date();
 
     const existing = await prisma.order.findMany({
-      where: { projectId },
+      where: { storeId },
       select: { id: true, externalId: true },
     });
 
@@ -38,14 +38,14 @@ export class PrismaOrderRepository implements OrderRepository {
     for (const order of orders) {
       const existingId = externalToId.get(order.externalId);
       const isFirst = await this.isFirstTimeCustomer(
-        projectId,
+        storeId,
         order.customerEmail ?? null,
         order.customerRef ?? null,
         order.createdAt,
       );
       const data = {
         externalId: order.externalId,
-        projectId,
+        storeId,
         total: order.total,
         currency: order.currency,
         orderDate: order.createdAt,
@@ -65,16 +65,16 @@ export class PrismaOrderRepository implements OrderRepository {
     }
 
     const removed = await prisma.order.deleteMany({
-      where: { projectId, externalId: { notIn: Array.from(providedExternalIds) } },
+      where: { storeId, externalId: { notIn: Array.from(providedExternalIds) } },
     });
 
     return { upserted, removed: removed.count };
   }
 
-  async upsertMany(projectId: string, orders: ConnectorOrder[]): Promise<number> {
+  async upsertMany(storeId: string, orders: ConnectorOrder[]): Promise<number> {
     const now = new Date();
     const existing = await prisma.order.findMany({
-      where: { projectId },
+      where: { storeId },
       select: { id: true, externalId: true },
     });
     const externalToId = new Map(existing.map((e) => [e.externalId, e.id]));
@@ -83,14 +83,14 @@ export class PrismaOrderRepository implements OrderRepository {
     for (const order of orders) {
       const existingId = externalToId.get(order.externalId);
       const isFirst = await this.isFirstTimeCustomer(
-        projectId,
+        storeId,
         order.customerEmail ?? null,
         order.customerRef ?? null,
         order.createdAt,
       );
       const data = {
         externalId: order.externalId,
-        projectId,
+        storeId,
         total: order.total,
         currency: order.currency,
         orderDate: order.createdAt,
@@ -112,7 +112,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   private async isFirstTimeCustomer(
-    projectId: string,
+    storeId: string,
     email: string | null,
     ref: string | null,
     before: Date,
@@ -124,7 +124,7 @@ export class PrismaOrderRepository implements OrderRepository {
 
     const count = await prisma.order.count({
       where: {
-        projectId,
+        storeId,
         orderDate: { lt: before },
         OR: orConditions,
       },
@@ -133,7 +133,7 @@ export class PrismaOrderRepository implements OrderRepository {
   }
 
   async listByStore(
-    projectId: string,
+    storeId: string,
     options: {
       limit?: number;
       offset?: number;
@@ -145,7 +145,7 @@ export class PrismaOrderRepository implements OrderRepository {
   ): Promise<OrderRecord[]> {
     const rows = await prisma.order.findMany({
       where: {
-        projectId,
+        storeId,
         ...(options.since ? { orderDate: { gte: options.since } } : {}),
         ...(options.couponCode ? { couponCode: options.couponCode } : {}),
         ...(options.attributedMediaId ? { attributedMediaId: options.attributedMediaId } : {}),
@@ -158,12 +158,12 @@ export class PrismaOrderRepository implements OrderRepository {
     return rows.map((o) => this.toRecord(o as PrismaOrder));
   }
 
-  async countByStore(projectId: string): Promise<number> {
-    return prisma.order.count({ where: { projectId } });
+  async countByStore(storeId: string): Promise<number> {
+    return prisma.order.count({ where: { storeId } });
   }
 
-  async findByExternalId(projectId: string, externalId: string): Promise<OrderRecord | null> {
-    const row = await prisma.order.findFirst({ where: { projectId, externalId } });
+  async findByExternalId(storeId: string, externalId: string): Promise<OrderRecord | null> {
+    const row = await prisma.order.findFirst({ where: { storeId, externalId } });
     return row ? this.toRecord(row as PrismaOrder) : null;
   }
 
@@ -181,7 +181,7 @@ export class PrismaOrderRepository implements OrderRepository {
     return {
       id: o.id,
       externalId: o.externalId,
-      projectId: o.projectId,
+      storeId: o.storeId,
       total: o.total ? o.total.toNumber() : null,
       currency: o.currency,
       orderDate: o.orderDate,

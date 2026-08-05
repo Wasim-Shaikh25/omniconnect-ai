@@ -3,7 +3,7 @@ import type { ConversationChannel, ConversationRepository, MessageRepository, Me
 
 export interface InboxItem {
   conversationId: string;
-  projectId: string;
+  storeId: string;
   storeName: string;
   channel: ConversationChannel;
   status: string;
@@ -28,12 +28,12 @@ export interface UnifiedInboxFilter {
 export function makeGetUnifiedInbox(deps: {
   organizations: {
     getOrganizationOverview(
-      userId: string,
+      organizationId: string,
       user?: SessionUser,
     ): Promise<{ id: string; name: string; stores: { id: string; name: string }[] } | null>;
   };
   customers: {
-    listCustomers(projectId: string, limit?: number): Promise<{ id: string; username: string | null; projectId: string }[]>;
+    listCustomers(storeId: string, limit?: number): Promise<{ id: string; username: string | null; storeId: string }[]>;
   };
   conversations: ConversationRepository;
   messages: MessageRepository;
@@ -42,9 +42,9 @@ export function makeGetUnifiedInbox(deps: {
     user: SessionUser,
     filter?: UnifiedInboxFilter,
   ): Promise<InboxItem[]> {
-    if (!user.userId) return [];
+    if (!user.organizationId) return [];
     const overview = await deps.organizations.getOrganizationOverview(
-      user.userId,
+      user.organizationId,
       user,
     );
     if (!overview) return [];
@@ -80,8 +80,8 @@ export function makeGetUnifiedInbox(deps: {
 
       return {
         conversationId: c.id,
-        projectId: c.projectId,
-        storeName: storeNameById.get(c.projectId) ?? "Unknown",
+        storeId: c.storeId,
+        storeName: storeNameById.get(c.storeId) ?? "Unknown",
         channel: c.channel,
         status: c.status,
         participantName:

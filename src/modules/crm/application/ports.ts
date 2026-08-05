@@ -8,7 +8,7 @@ export type CustomerConsent = "PENDING" | "GRANTED" | "DECLINED";
 
 export interface CustomerRecord {
   id: string;
-  projectId: string;
+  storeId: string;
   igUserId: string | null;
   fbUserId: string | null;
   username: string | null;
@@ -23,7 +23,7 @@ export interface CustomerRecord {
 
 export interface FollowerRecord {
   id: string;
-  projectId: string;
+  storeId: string;
   customerId: string | null;
   igUserId: string | null;
   username: string | null;
@@ -56,19 +56,19 @@ export interface CustomerProfile {
 export interface CustomerRepository {
   /** Upsert a customer by store + external (IG/FB) id. */
   upsertByExternalId(input: {
-    projectId: string;
+    storeId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
     externalUserId: string;
     username: string | null;
   }): Promise<CustomerRecord>;
 
-  listByStore(projectId: string, limit?: number): Promise<CustomerRecord[]>;
+  listByStore(storeId: string, limit?: number): Promise<CustomerRecord[]>;
 
   listByStoreIds(storeIds: string[], limit?: number): Promise<CustomerRecord[]>;
 
-  findById(id: string, projectId?: string): Promise<CustomerRecord | null>;
+  findById(id: string, storeId?: string): Promise<CustomerRecord | null>;
 
-  getActivity(customerId: string, projectId?: string): Promise<{
+  getActivity(customerId: string, storeId?: string): Promise<{
     conversationCount: number;
     messageCount: number;
     followerCount: number;
@@ -78,7 +78,7 @@ export interface CustomerRepository {
 
   /** Load the customer plus sent coupons and usages. */
   getProfile(input: {
-    projectId: string;
+    storeId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
     externalUserId: string;
   }): Promise<CustomerProfile | null>;
@@ -86,34 +86,34 @@ export interface CustomerRepository {
   /** Merge additional tags/interests onto a customer. */
   tag(input: {
     customerId: string;
-    projectId: string;
+    storeId: string;
     tags?: string[];
     interests?: string[];
   }): Promise<CustomerRecord>;
 
   updateLifecycleStage(
     customerId: string,
-    projectId: string,
+    storeId: string,
     stage: CustomerLifecycleStage,
   ): Promise<CustomerRecord>;
 
   updateConsent(
     customerId: string,
-    projectId: string,
+    storeId: string,
     consent: CustomerConsent,
   ): Promise<CustomerRecord>;
 
   /** Mark a coupon as sent to a customer. */
   recordCouponSent(input: {
     customerId: string;
-    projectId: string;
+    storeId: string;
     couponId: string;
   }): Promise<CustomerRecord>;
 
   /** Record that a customer used a coupon. */
   recordCouponUsed(input: {
     customerId: string;
-    projectId: string;
+    storeId: string;
     couponId: string;
     orderRef?: string;
   }): Promise<CustomerRecord>;
@@ -125,22 +125,22 @@ export interface FollowerRepository {
    * the first time this follower is seen for the store.
    */
   record(input: {
-    projectId: string;
+    storeId: string;
     customerId: string | null;
     externalUserId: string;
     username: string | null;
   }): Promise<{ record: FollowerRecord; isNew: boolean }>;
 
   listByStore(
-    projectId: string,
+    storeId: string,
     options?: { limit?: number; offset?: number; search?: string },
   ): Promise<FollowerRecord[]>;
 
-  countByStore(projectId: string, search?: string): Promise<number>;
+  countByStore(storeId: string, search?: string): Promise<number>;
 
   recordCampaignEnrollment(input: {
     followerId: string;
-    projectId: string;
+    storeId: string;
     couponId: string;
     welcomeMessageText: string;
   }): Promise<FollowerRecord>;
@@ -149,7 +149,7 @@ export interface FollowerRepository {
 /** Public memory port consumed by the AI assistant. */
 export interface CustomerMemory {
   getProfile(input: {
-    projectId: string;
+    storeId: string;
     externalUserId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
   }): Promise<CustomerProfile | null>;

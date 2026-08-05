@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface WelcomeCouponGeneratedPayload {
-  projectId: string;
+  storeId: string;
   followerId: string;
   customerId: string;
   externalUserId: string;
@@ -16,7 +16,7 @@ export class WelcomeCouponGenerated extends BaseDomainEvent<WelcomeCouponGenerat
 }
 
 export interface WelcomeMessageSentPayload {
-  projectId: string;
+  storeId: string;
   followerId: string;
   customerId: string;
   externalUserId: string;

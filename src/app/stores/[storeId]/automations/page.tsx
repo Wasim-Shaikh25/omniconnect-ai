@@ -47,11 +47,11 @@ function AutomationCard({
 export default async function AutomationsHubPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
+  const { storeId } = await params;
 
-  const access = await checkStoreAccess(projectId);
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -60,10 +60,10 @@ export default async function AutomationsHubPage({
 
   const [welcomeCampaign, dmCampaigns, backInStock, commentUnlocks] =
     await Promise.all([
-      couponsQueries.getCampaign(projectId),
-      growthQueries.listCampaigns(projectId, 50),
-      growthQueries.listBackInStock(projectId, 50),
-      growthQueries.listCommentUnlockCampaigns(projectId),
+      couponsQueries.getCampaign(storeId),
+      growthQueries.listCampaigns(storeId, 50),
+      growthQueries.listBackInStock(storeId, 50),
+      growthQueries.listCommentUnlockCampaigns(storeId),
     ]);
 
   return (
@@ -76,7 +76,7 @@ export default async function AutomationsHubPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
+          <Link href={`/stores/${storeId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -85,42 +85,42 @@ export default async function AutomationsHubPage({
           title="Welcome & follow-up"
           description="Greet new followers with a welcome coupon and message."
           status={welcomeCampaign.active ? "Active" : "Paused"}
-          href={`/stores/${projectId}/campaigns/first-follower`}
+          href={`/stores/${storeId}/campaigns/first-follower`}
           cta="Configure welcome"
         />
         <AutomationCard
           title="DM campaigns"
           description="Abandoned cart, review request, re-engage, and custom DM campaigns."
           status={`${dmCampaigns.length} campaign(s)`}
-          href={`/stores/${projectId}/commerce/growth`}
+          href={`/stores/${storeId}/commerce/growth`}
           cta="Manage DM campaigns"
         />
         <AutomationCard
           title="Back-in-stock alerts"
           description="Notify subscribers when out-of-stock products return."
           status={`${backInStock.length} subscriber(s)`}
-          href={`/stores/${projectId}/commerce/growth`}
+          href={`/stores/${storeId}/commerce/growth`}
           cta="Manage back-in-stock"
         />
         <AutomationCard
           title="Comment-to-DM unlock"
           description="Auto-reply to comments with a keyword unlock and reward DM."
           status={`${commentUnlocks.length} campaign(s)`}
-          href={`/stores/${projectId}/commerce/growth`}
+          href={`/stores/${storeId}/commerce/growth`}
           cta="Manage unlocks"
         />
         <AutomationCard
           title="AI assistant"
           description="Auto-reply to messages and escalate to a human when needed."
           status="Active on new messages"
-          href={`/stores/${projectId}`}
+          href={`/stores/${storeId}`}
           cta="Configure AI"
         />
         <AutomationCard
           title="Goal-based automations"
           description="Outcome-first templates: repeat purchases, abandoned carts, re-engagement, reviews, and more."
           status="Create from template"
-          href={`/stores/${projectId}/automations/goals`}
+          href={`/stores/${storeId}/automations/goals`}
           cta="New goal automation"
         />
         <Card className="flex flex-col border-dashed">

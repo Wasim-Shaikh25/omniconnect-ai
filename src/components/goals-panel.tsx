@@ -24,8 +24,8 @@ function GoalRow({ goal }: { goal: GoalRecord }) {
   );
 }
 
-export async function GoalsPanel({ projectId }: { projectId?: string }) {
-  const { goals } = await getGoalsAction(projectId);
+export async function GoalsPanel({ storeId }: { storeId?: string }) {
+  const { goals } = await getGoalsAction(storeId);
 
   return (
     <Card>
@@ -35,7 +35,7 @@ export async function GoalsPanel({ projectId }: { projectId?: string }) {
       </CardHeader>
       <CardContent>
         <form action={createGoalAction} className="mb-4 grid gap-3 sm:grid-cols-4">
-          {projectId && <input type="hidden" name="projectId" value={projectId} />}
+          {storeId && <input type="hidden" name="storeId" value={storeId} />}
           <div>
             <Label htmlFor="goalName" className="text-xs">Name</Label>
             <Input id="goalName" name="name" placeholder="e.g. 100 followers" required />

@@ -54,7 +54,7 @@ export function AuthForm({
     <div className="w-full space-y-4">
       <form action={formAction} className="space-y-4">
         {inviteToken && <input type="hidden" name="inviteToken" value={inviteToken} />}
-        {inviteStoreId && <input type="hidden" name="projectId" value={inviteStoreId} />}
+        {inviteStoreId && <input type="hidden" name="storeId" value={inviteStoreId} />}
         {isRegister && (
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>

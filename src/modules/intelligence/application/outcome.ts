@@ -8,16 +8,16 @@ export interface OutcomeServiceInput {
 export function makeOutcomeService(input: OutcomeServiceInput) {
   return {
     async create(
-      userId: string,
+      organizationId: string,
       actionPlanId: string,
-      projectId: string | null,
+      storeId: string | null,
       metricName: string | null,
       beforeValue: number | null,
       confidence: number,
     ): Promise<OutcomeRecord> {
       return input.outcomes.save({
-        userId,
-        projectId,
+        organizationId,
+        storeId,
         actionPlanId,
         metricName,
         beforeValue,
@@ -32,16 +32,16 @@ export function makeOutcomeService(input: OutcomeServiceInput) {
 
     async measure(
       id: string,
-      userId: string,
+      organizationId: string,
       beforeValue: number | null,
       afterValue: number | null,
       status: OutcomeStatus,
     ): Promise<OutcomeRecord> {
-      return input.outcomes.updateMeasured(id, userId, beforeValue, afterValue, status, new Date());
+      return input.outcomes.updateMeasured(id, organizationId, beforeValue, afterValue, status, new Date());
     },
 
-    async list(userId: string, projectId?: string, limit = 20): Promise<OutcomeRecord[]> {
-      return input.outcomes.list(userId, projectId, limit);
+    async list(organizationId: string, storeId?: string, limit = 20): Promise<OutcomeRecord[]> {
+      return input.outcomes.list(organizationId, storeId, limit);
     },
   };
 }

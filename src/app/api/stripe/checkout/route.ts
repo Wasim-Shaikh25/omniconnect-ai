@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const user = await requireRole("STORE_OWNER");
     await requireVerifiedEmail(user);
-    if (!user.userId) {
+    if (!user.organizationId) {
       return NextResponse.json({ error: "No organization" }, { status: 400 });
     }
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
     const appUrl = env.APP_URL ?? "http://localhost:3000";
     const { url } = await billingService.createCheckoutSession({
-      userId: user.userId,
+      organizationId: user.organizationId,
       plan: body.plan,
       successUrl: `${appUrl}/settings/billing?success=1`,
       cancelUrl: `${appUrl}/settings/billing?canceled=1`,

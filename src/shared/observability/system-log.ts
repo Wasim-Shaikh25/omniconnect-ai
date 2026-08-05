@@ -11,7 +11,7 @@ export interface SystemLogRecord {
   message: string;
   stackTrace: string | null;
   metadata: Record<string, unknown> | null;
-  userId: string | null;
+  organizationId: string | null;
   userId: string | null;
   createdAt: Date;
 }
@@ -19,7 +19,7 @@ export interface SystemLogRecord {
 export interface SystemLogFilter {
   level?: SystemLogLevel;
   service?: string;
-  userId?: string;
+  organizationId?: string;
   userId?: string;
   limit?: number;
 }
@@ -31,7 +31,7 @@ export class PrismaSystemLogRepository {
     message: string;
     stackTrace?: string;
     metadata?: Record<string, unknown>;
-    userId?: string;
+    organizationId?: string;
     userId?: string;
   }): Promise<SystemLogRecord> {
     const log = await prisma.systemLog.create({
@@ -41,7 +41,7 @@ export class PrismaSystemLogRepository {
         message: input.message,
         stackTrace: input.stackTrace,
         metadata: input.metadata as Prisma.InputJsonValue,
-        userId: input.userId,
+        organizationId: input.organizationId,
         userId: input.userId,
       },
     });
@@ -53,7 +53,7 @@ export class PrismaSystemLogRepository {
       where: {
         level: filter.level,
         service: filter.service ? { contains: filter.service } : undefined,
-        userId: filter.userId,
+        organizationId: filter.organizationId,
         userId: filter.userId,
       },
       orderBy: { createdAt: "desc" },
@@ -72,7 +72,7 @@ export async function logSystem(
   fields: {
     stackTrace?: string;
     metadata?: Record<string, unknown>;
-    userId?: string;
+    organizationId?: string;
     userId?: string;
   } = {},
 ): Promise<void> {
@@ -98,7 +98,7 @@ export async function logSystem(
       message,
       stackTrace: fields.stackTrace,
       metadata: safeMetadata,
-      userId: fields.userId,
+      organizationId: fields.organizationId,
       userId: fields.userId,
     });
   } catch (error) {
@@ -112,7 +112,7 @@ export async function logSystemError(
   error: unknown,
   fields: {
     metadata?: Record<string, unknown>;
-    userId?: string;
+    organizationId?: string;
     userId?: string;
   } = {},
 ): Promise<void> {

@@ -34,12 +34,12 @@ export interface GenerateReplyDeps {
   ecommerceQueries: EcommerceQueries;
   metaService: MetaService;
   eventBus: EventBus;
-  getOrganizationIdByStoreId: (projectId: string) => Promise<string | null>;
-  consumeAIReply: (userId: string) => Promise<boolean>;
+  getOrganizationIdByStoreId: (storeId: string) => Promise<string | null>;
+  consumeAIReply: (organizationId: string) => Promise<boolean>;
   contentModerator?: ContentModerator;
   auditLogCommands: {
     create(input: {
-      userId: string;
+      organizationId: string;
       action: string;
       resource: string;
       resourceId?: string;
@@ -175,7 +175,7 @@ async function sendReply(
   deps: GenerateReplyDeps,
   input: {
     conversationId: string;
-    projectId: string;
+    storeId: string;
     externalUserId: string;
     text: string;
     escalate: boolean;
@@ -183,11 +183,11 @@ async function sendReply(
   },
 ): Promise<void> {
   if (input.escalate) {
-    await deps.conversationCommands.setHumanActive(input.conversationId, input.projectId);
+    await deps.conversationCommands.setHumanActive(input.conversationId, input.storeId);
   } else {
     await deps.conversationCommands.appendMessage(
       input.conversationId,
-      input.projectId,
+      input.storeId,
       "AI",
       input.text,
       input.messageId,
@@ -196,7 +196,7 @@ async function sendReply(
 
   try {
     await deps.metaService.sendMessage({
-      projectId: input.projectId,
+      storeId: input.storeId,
       recipientId: input.externalUserId,
       text: input.text,
     });
@@ -211,7 +211,7 @@ async function sendReply(
     await deps.eventBus.publish(
       new EscalationRequested(input.conversationId, {
         conversationId: input.conversationId,
-        projectId: input.projectId,
+        storeId: input.storeId,
         externalUserId: input.externalUserId,
         reason: "AI escalation marker triggered",
       }),
@@ -220,7 +220,7 @@ async function sendReply(
     await deps.eventBus.publish(
       new ReplyGenerated(input.conversationId, {
         conversationId: input.conversationId,
-        projectId: input.projectId,
+        storeId: input.storeId,
         externalUserId: input.externalUserId,
         text: input.text,
       }),
@@ -253,19 +253,19 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
       return { text: "", escalate: false };
     }
 
-    const projectId = meta.projectId;
+    const storeId = meta.storeId;
 
-    const [config, rawProfile, products, coupons, userId] =
+    const [config, rawProfile, products, coupons, organizationId] =
       await Promise.all([
-        deps.aiConfigurationRepository.getOrCreateDefault(projectId),
+        deps.aiConfigurationRepository.getOrCreateDefault(storeId),
         deps.crmQueries.getCustomerProfile({
-          projectId,
+          storeId,
           externalUserId,
           channel: meta.channel,
         }),
-        deps.ecommerceQueries.listProducts(projectId, MAX_PRODUCTS),
-        deps.ecommerceQueries.listCoupons(projectId, MAX_COUPONS),
-        deps.getOrganizationIdByStoreId(projectId),
+        deps.ecommerceQueries.listProducts(storeId, MAX_PRODUCTS),
+        deps.ecommerceQueries.listCoupons(storeId, MAX_COUPONS),
+        deps.getOrganizationIdByStoreId(storeId),
       ]);
 
     // Privacy: do not generate or send automated replies if the customer has declined consent.
@@ -275,7 +275,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         "We're connecting you with a human agent who will help you shortly.";
       await sendReply(deps, {
         conversationId,
-        projectId,
+        storeId,
         externalUserId,
         text: handoff,
         escalate: true,
@@ -285,20 +285,20 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
     }
 
     // Enforce monthly AI reply quota before invoking the LLM.
-    const allowed = userId
-      ? await deps.consumeAIReply(userId)
+    const allowed = organizationId
+      ? await deps.consumeAIReply(organizationId)
       : false;
     if (!allowed) {
       logger.warn("ai.generateReply.planLimitExceeded", {
         conversationId,
-        projectId,
-        userId,
+        storeId,
+        organizationId,
       });
       const handoff =
         "I'm connecting you with a human agent who will help you shortly.";
       await sendReply(deps, {
         conversationId,
-        projectId,
+        storeId,
         externalUserId,
         text: handoff,
         escalate: true,
@@ -321,15 +321,15 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
       )
       .withModel(selectModel("reply", config.model).model)
       .withOperation("reply")
-      .withMetadata({ conversationId, projectId, externalUserId, hasProfile: Boolean(profile) })
+      .withMetadata({ conversationId, storeId, externalUserId, hasProfile: Boolean(profile) })
       .build();
     const aiMessages = context.messages;
 
     // Audit prompt metadata without PII.
-    if (userId) {
+    if (organizationId) {
       try {
         await deps.auditLogCommands.create({
-          userId,
+          organizationId,
           action: "ai.promptSent",
           resource: "conversation",
           resourceId: conversationId,
@@ -379,10 +379,10 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
             conversationId,
             categories: verdict.categories,
           });
-          if (userId) {
+          if (organizationId) {
             try {
               await deps.auditLogCommands.create({
-                userId,
+                organizationId,
                 action: "ai.reply.moderationBlocked",
                 resource: "conversation",
                 resourceId: conversationId,
@@ -407,7 +407,7 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
       }
     }
 
-    await sendReply(deps, { conversationId, projectId, externalUserId, text, escalate, messageId });
+    await sendReply(deps, { conversationId, storeId, externalUserId, text, escalate, messageId });
 
     return { text, escalate };
   };

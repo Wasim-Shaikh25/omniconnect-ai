@@ -16,8 +16,8 @@ export interface SessionUser {
   name: string | null;
   role: string;
   isSuperAdmin: boolean;
-  userId: string | null;
-  projectId: string | null;
+  organizationId: string | null;
+  storeId: string | null;
   tokenVersion: number;
 }
 
@@ -35,8 +35,8 @@ export async function actingAs(user: SessionUser): Promise<AuthenticatedRequest>
       name: user.name,
       role: user.role,
       isSuperAdmin: user.isSuperAdmin,
-      userId: user.userId,
-      projectId: user.projectId,
+      organizationId: user.organizationId,
+      storeId: user.storeId,
       tokenVersion: user.tokenVersion,
     },
     secret: getSecret(),

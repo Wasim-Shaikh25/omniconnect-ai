@@ -16,7 +16,7 @@ export type ChangeRoleInput = z.infer<typeof changeRoleSchema>;
 export interface ChangedByContext {
   id: string;
   role: Role;
-  userId: string | null;
+  organizationId: string | null;
 }
 
 export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
@@ -27,7 +27,7 @@ export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
     const input = changeRoleSchema.parse(raw);
     const existing = await deps.users.findById(input.userId);
     if (!existing) return err(new UserNotFoundError(input.userId));
-    if (existing.userId !== changedBy.userId) {
+    if (existing.organizationId !== changedBy.organizationId) {
       return err(new ForbiddenError("User is not in your organization."));
     }
 
@@ -50,7 +50,7 @@ export function makeChangeUserRole(deps: { users: UserProfileRepository }) {
     const isDemotingAdmin =
       roleSatisfies(existing.role, "STORE_OWNER") && !roleSatisfies(input.role, "STORE_OWNER");
     if (isDemotingAdmin) {
-      const peers = await deps.users.listByOrganization(existing.userId ?? "", { page: 1, limit: 10000 });
+      const peers = await deps.users.listByOrganization(existing.organizationId ?? "", { page: 1, limit: 10000 });
       const otherAdmins = peers.items.filter(
         (p) => p.id !== input.userId && roleSatisfies(p.role, "STORE_OWNER"),
       );

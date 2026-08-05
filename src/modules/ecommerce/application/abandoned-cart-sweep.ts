@@ -27,7 +27,7 @@ export function makeAbandonedCartSweep(deps: AbandonedCartSweepDeps) {
           cart.id,
           {
             cartId: cart.id,
-            projectId: cart.projectId,
+            storeId: cart.storeId,
             cartToken: cart.cartToken,
             email: cart.email,
             lineItemTitles: cart.lineItemTitles,
@@ -42,7 +42,7 @@ export function makeAbandonedCartSweep(deps: AbandonedCartSweepDeps) {
       published += 1;
       logger.info("abandonedCart.sweep.published", {
         cartId: cart.id,
-        projectId: cart.projectId,
+        storeId: cart.storeId,
         cartToken: cart.cartToken,
       });
     }

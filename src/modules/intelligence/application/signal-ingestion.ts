@@ -4,8 +4,8 @@ import { SignalIngested } from "../domain/events";
 import type { JourneyStage, SignalRecord } from "../domain/types";
 
 export interface IngestSignalInput {
-  userId: string;
-  projectId: string;
+  organizationId: string;
+  storeId: string;
   eventType: string;
   subjectType: string;
   subjectId: string;
@@ -48,8 +48,8 @@ export function makeSignalIngestionService(signals: SignalRepository) {
       const qualityStatus = freshnessMs > 600_000 ? "stale" : "ok";
 
       const signal = await signals.save({
-        userId: input.userId,
-        projectId: input.projectId,
+        organizationId: input.organizationId,
+        storeId: input.storeId,
         eventType: input.eventType,
         schemaVersion: 1,
         subjectType: input.subjectType,

@@ -15,7 +15,7 @@ interface SignalSummary {
   eventType: string;
   subjectType: string;
   subjectId: string;
-  projectId: string;
+  storeId: string;
   occurredAt: Date;
   data: unknown;
 }
@@ -47,8 +47,8 @@ export function makeDetectionService(input: DetectionServiceInput) {
   }
 
   interface ExternalInsight {
-    userId: string;
-    projectId: string;
+    organizationId: string;
+    storeId: string;
     type: string;
     severity: string;
     status: string;
@@ -65,8 +65,8 @@ export function makeDetectionService(input: DetectionServiceInput) {
       summary: insight.description,
     };
     return {
-      userId: insight.userId,
-      projectId: insight.projectId,
+      organizationId: insight.organizationId,
+      storeId: insight.storeId,
       type: insight.type as InsightType,
       severity: insight.severity as InsightSeverity,
       status: insight.status as BusinessInsightRecord["status"],
@@ -80,9 +80,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
     };
   }
 
-  async function emitCommerceInsights(userId: string, projectId: string) {
-    const { insights } = await input.detectCommerceInsights(userId, projectId);
-    const openInsights = await input.insights.listOpen(userId, projectId, 50);
+  async function emitCommerceInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectCommerceInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
       if (alreadyExists) continue;
@@ -90,9 +90,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function emitCrmInsights(userId: string, projectId: string) {
-    const { insights } = await input.detectCrmInsights(userId, projectId);
-    const openInsights = await input.insights.listOpen(userId, projectId, 50);
+  async function emitCrmInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectCrmInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
       if (alreadyExists) continue;
@@ -100,9 +100,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function emitConversationInsights(userId: string, projectId: string) {
-    const { insights } = await input.detectConversationInsights(userId, projectId);
-    const openInsights = await input.insights.listOpen(userId, projectId, 50);
+  async function emitConversationInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectConversationInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
       if (alreadyExists) continue;
@@ -110,9 +110,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function emitGrowthInsights(userId: string, projectId: string) {
-    const { insights } = await input.detectGrowthInsights(userId, projectId);
-    const openInsights = await input.insights.listOpen(userId, projectId, 50);
+  async function emitGrowthInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectGrowthInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
       if (alreadyExists) continue;
@@ -120,9 +120,9 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function emitBrandDealInsights(userId: string, projectId: string) {
-    const { insights } = await input.detectBrandDealInsights(userId, projectId);
-    const openInsights = await input.insights.listOpen(userId, projectId, 50);
+  async function emitBrandDealInsights(organizationId: string, storeId: string) {
+    const { insights } = await input.detectBrandDealInsights(organizationId, storeId);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
     for (const insight of insights) {
       const alreadyExists = openInsights.some((i) => i.title.toLowerCase() === insight.title.toLowerCase());
       if (alreadyExists) continue;
@@ -130,16 +130,16 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function detectProductAvailabilityAndDemand(userId: string, projectId: string) {
+  async function detectProductAvailabilityAndDemand(organizationId: string, storeId: string) {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const products = await input.ecommerce.listProducts(projectId, 100);
+    const products = await input.ecommerce.listProducts(storeId, 100);
     if (products.length === 0) return;
 
     const inStockAlternatives = products
       .filter((p) => typeof p.inventory === "number" && p.inventory > 0)
       .sort((a, b) => (b.inventory ?? 0) - (a.inventory ?? 0));
 
-    const allSignals = await input.signals.listByStore(projectId, 500);
+    const allSignals = await input.signals.listByStore(storeId, 500);
     const productSignals = allSignals.filter(
       (s) => s.eventType === "ProductInventory" && s.subjectType === "product" && s.occurredAt >= sevenDaysAgo,
     );
@@ -147,7 +147,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
       (s) => s.eventType === "NewMessage" && s.subjectType === "conversation" && s.occurredAt >= sevenDaysAgo,
     );
 
-    const openInsights = await input.insights.listOpen(userId, projectId, 50);
+    const openInsights = await input.insights.listOpen(organizationId, storeId, 50);
 
     for (const product of products) {
       const inventory = product.inventory ?? null;
@@ -168,7 +168,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
             eventType: s.eventType,
             subjectType: s.subjectType,
             subjectId: s.subjectId,
-            projectId: s.projectId,
+            storeId: s.storeId,
             occurredAt: s.occurredAt,
             data: s.data,
           });
@@ -195,8 +195,8 @@ export function makeDetectionService(input: DetectionServiceInput) {
       };
 
       await emit({
-        userId,
-        projectId,
+        organizationId,
+        storeId,
         type: (isOutOfStock ? "OPPORTUNITY" : "RISK") as InsightType,
         severity: (matchingMessages.length > 5 ? "HIGH" : "MEDIUM") as InsightSeverity,
         status: "OPEN",
@@ -205,7 +205,7 @@ export function makeDetectionService(input: DetectionServiceInput) {
           : `"${product.title}" is low stock (${inventory}) and ${matchingMessages.length} customer(s) asked about it`,
         description: evidence.summary,
         evidence,
-        deepLink: `/stores/${projectId}/commerce/catalog`,
+        deepLink: `/stores/${storeId}/commerce/catalog`,
         generatedAt: now,
         dismissedAt: null,
         snoozedUntil: null,
@@ -213,10 +213,10 @@ export function makeDetectionService(input: DetectionServiceInput) {
     }
   }
 
-  async function detectStaleMetrics(userId: string, projectId: string) {
-    const definitions = await input.metrics.listDefinitions(userId);
+  async function detectStaleMetrics(organizationId: string, storeId: string) {
+    const definitions = await input.metrics.listDefinitions(organizationId);
     for (const definition of definitions) {
-      const latest = await input.metrics.getLatestSnapshot(definition.id, userId, projectId);
+      const latest = await input.metrics.getLatestSnapshot(definition.id, organizationId, storeId);
       if (!latest || latest.status !== "STALE") continue;
 
       const evidence: BusinessInsightEvidence = {
@@ -226,15 +226,15 @@ export function makeDetectionService(input: DetectionServiceInput) {
       };
 
       await emit({
-        userId,
-        projectId,
+        organizationId,
+        storeId,
         type: "ANOMALY" as InsightType,
         severity: "MEDIUM" as InsightSeverity,
         status: "OPEN",
         title: `Stale metric: ${definition.displayName}`,
         description: `The ${definition.displayName} metric has not been refreshed within its SLA. Check the store integration or event ingestion.`,
         evidence,
-        deepLink: `/stores/${projectId}`,
+        deepLink: `/stores/${storeId}`,
         generatedAt: now,
         dismissedAt: null,
         snoozedUntil: null,
@@ -243,26 +243,26 @@ export function makeDetectionService(input: DetectionServiceInput) {
   }
 
   return {
-    async analyzeOrganization(userId: string, storeIds: string[]) {
-      for (const projectId of storeIds) {
-        await this.analyzeStore(userId, projectId);
+    async analyzeOrganization(organizationId: string, storeIds: string[]) {
+      for (const storeId of storeIds) {
+        await this.analyzeStore(organizationId, storeId);
       }
     },
 
-    async analyzeStore(userId: string, projectId: string) {
+    async analyzeStore(organizationId: string, storeId: string) {
       if (input.dataQualityGate) {
-        const gate = await input.dataQualityGate.check({ userId, projectId, priority: "high" });
+        const gate = await input.dataQualityGate.check({ organizationId, storeId, priority: "high" });
         if (!gate.ok) {
           await emit({
-            userId,
-            projectId,
+            organizationId,
+            storeId,
             type: "RISK" as InsightType,
             severity: "MEDIUM" as InsightSeverity,
             status: "OPEN",
             title: "Data quality gate blocked high-priority insight generation",
             description: `Data quality issues: ${gate.issues.join("; ")}`,
             evidence: { signalIds: [], metricIds: [], summary: gate.issues.join("; ") },
-            deepLink: `/stores/${projectId}/integrations`,
+            deepLink: `/stores/${storeId}/integrations`,
             generatedAt: now,
             dismissedAt: null,
             snoozedUntil: null,
@@ -271,13 +271,13 @@ export function makeDetectionService(input: DetectionServiceInput) {
         }
       }
 
-      await emitCommerceInsights(userId, projectId);
-      await emitCrmInsights(userId, projectId);
-      await emitConversationInsights(userId, projectId);
-      await emitGrowthInsights(userId, projectId);
-      await emitBrandDealInsights(userId, projectId);
-      await detectProductAvailabilityAndDemand(userId, projectId);
-      await detectStaleMetrics(userId, projectId);
+      await emitCommerceInsights(organizationId, storeId);
+      await emitCrmInsights(organizationId, storeId);
+      await emitConversationInsights(organizationId, storeId);
+      await emitGrowthInsights(organizationId, storeId);
+      await emitBrandDealInsights(organizationId, storeId);
+      await detectProductAvailabilityAndDemand(organizationId, storeId);
+      await detectStaleMetrics(organizationId, storeId);
     },
   };
 }

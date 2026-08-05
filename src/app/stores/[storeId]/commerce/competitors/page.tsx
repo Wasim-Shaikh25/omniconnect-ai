@@ -7,22 +7,22 @@ import CompetitorsPageClient from "./competitors-client";
 export default async function CompetitorsPage({
   params,
 }: {
-  params: Promise<{ projectId: string }>;
+  params: Promise<{ storeId: string }>;
 }) {
-  const { projectId } = await params;
-  const access = await checkStoreAccess(projectId);
+  const { storeId } = await params;
+  const access = await checkStoreAccess(storeId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
 
   const repository = new PrismaTrackedAccountRepository();
-  const accounts = await repository.listByStore(projectId);
+  const accounts = await repository.listByStore(storeId);
 
   return (
     <>
-      <CompetitorNextBestAction projectId={projectId} />
-      <CompetitorsPageClient projectId={projectId} initialAccounts={accounts} />
+      <CompetitorNextBestAction storeId={storeId} />
+      <CompetitorsPageClient storeId={storeId} initialAccounts={accounts} />
     </>
   );
 }
