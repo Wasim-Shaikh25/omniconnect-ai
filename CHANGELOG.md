@@ -64,12 +64,16 @@ All notable changes to **OmniConnect AI** are documented here.
   added pure deterministic `profile_quality` operation (audience authenticity, spam risk,
   engagement consistency, geo/content diversity) with unit tests and public exports via
   `@/modules/analytics/pure`.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 6)** on `devin/deterministic-resolver-1785941957`:
+  added the `EmbeddingProvider` port, a dependency-free `KeywordEmbeddingProvider`, and
+  `OperationResolver` that maps natural-language questions to typed `AnalysisSpec` values with
+  confidence + unsupported fallback. Added golden snapshot tests for every implemented operation.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 6)** — local MiniLM `EmbeddingProvider`,
-  `OperationResolver` NL → `AnalysisSpec`, golden/snapshot tests, and `queryAnalytics` /
-  `generateDashboard` wiring.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 7)** — local MiniLM `TransformersEmbeddingProvider`
+  (via `@xenova/transformers` / transformers.js), `queryAnalytics` / `generateDashboard` wiring, and
+  Profile Inspector integration.
 
 ### ⏭️ Next
 

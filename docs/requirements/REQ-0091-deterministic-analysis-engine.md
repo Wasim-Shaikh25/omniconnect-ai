@@ -109,9 +109,11 @@ answered with an invented figure.
 - [x] `cohort_trend` and `attribution_breakdown` deterministic operations implemented and
       unit-tested.
 - [x] `profile_quality` deterministic operation implemented and unit-tested.
-- [ ] `EmbeddingProvider` / `OperationResolver` / golden tests / dashboard wiring to be
-      implemented in later batches.
-- [ ] Golden tests: each operation produces identical output for a fixed fixture dataset.
+- [x] `EmbeddingProvider` port + dependency-free `KeywordEmbeddingProvider` adapter implemented.
+- [x] `OperationResolver` maps NL questions to `AnalysisSpec` with confidence + unsupported fallback.
+- [x] Golden tests: each operation produces identical output for a fixed fixture dataset.
+- [ ] Local MiniLM `TransformersEmbeddingProvider` and `queryAnalytics` / `generateDashboard` wiring
+      to be implemented in later batches.
 - [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 
 ## 6. Scope & Dependencies

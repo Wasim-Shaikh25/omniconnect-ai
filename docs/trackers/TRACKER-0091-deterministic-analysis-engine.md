@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Progress (Batch 5)
+- **Status:** In Progress (Batch 6)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -16,7 +16,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Requirement REQ-0091 approved.
 - [x] Task file TASK-0091 created.
 - [x] Tracker file TRACKER-0091 created.
-- [x] Branch created (`devin/deterministic-profile-quality-1785941725`).
+- [x] Branch created (`devin/deterministic-resolver-1785941957`).
 
 ### Batch 1 — Core Engine + analyze-media (merged in PR #132)
 - [x] T-078: Define `AnalysisSpec` schema + closed operation vocabulary + `validateSpec()`.
@@ -60,24 +60,33 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `docs/specs/current-state.md` updated.
 - [x] PR #135 merged.
 
-### Batch 5 — profile_quality (In Review)
+### Batch 5 — profile_quality (merged in PR #136)
 - [x] T-087a: Implement `profile_quality` deterministic operation.
 - [x] Export `profileQuality` from `analytics/pure.ts` and `analytics/index.ts`.
 - [x] Add unit tests for `profile_quality`.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
+- [x] PR #136 merged.
+
+### Batch 6 — OperationResolver, EmbeddingProvider port, golden tests (In Review)
+- [x] T-081a: Define `EmbeddingProvider` port.
+- [x] T-081b: Implement `KeywordEmbeddingProvider` adapter.
+- [x] T-082a: Implement `OperationResolver` with confidence + unsupported fallback.
+- [x] T-088a: Add golden/snapshot tests for all implemented operations.
+- [x] Export new types/functions from `analytics` and `ai` barrels.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 - [ ] PR created and merged.
 
-### Batch 6 (Deferred)
-- [ ] T-081: `EmbeddingProvider` port + local MiniLM adapter.
-- [ ] T-082: `OperationResolver` — NL → spec with confidence + unsupported fallback.
-- [ ] T-084: Wire REQ-0081 `queryAnalytics` / `generateDashboard` to emit/run `AnalysisSpec`.
-- [ ] T-087: Profile Inspector deterministic signals + AI narration.
-- [ ] T-088: Golden/snapshot tests per operation + narration guard.
+### Batch 7 (Deferred)
+- [ ] Local MiniLM `TransformersEmbeddingProvider` via `@xenova/transformers` / transformers.js.
+- [ ] Wire REQ-0081 `queryAnalytics` / `generateDashboard` to emit/run `AnalysisSpec`.
+- [ ] Profile Inspector feature integration (T-087 full).
 
 ## 3. Acceptance Criteria
 
-- [x] Batch 5 acceptance criteria from TASK-0091 met.
-- [x] All verification steps above pass.
-- [ ] Full REQ-0091 acceptance criteria remain for Batch 6.
+- [ ] Batch 6 acceptance criteria from TASK-0091 met.
+- [ ] All verification steps above pass.
+- [ ] Full REQ-0091 acceptance criteria remain for Batch 7.
