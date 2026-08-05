@@ -10,19 +10,19 @@ import type { TrendSnapshot } from "@/modules/analytics";
 export default async function TrendsAnalyticsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.organizationId) notFound();
+  if (!user.userId) notFound();
 
-  const { snapshots, error } = await listTrendSnapshotsAction(storeId);
+  const { snapshots, error } = await listTrendSnapshotsAction(projectId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -32,7 +32,7 @@ export default async function TrendsAnalyticsPage({
           <p className="text-sm text-muted-foreground">Trending hashtags and audio for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
+          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
         </Button>
       </header>
 
@@ -42,7 +42,7 @@ export default async function TrendsAnalyticsPage({
           <CardDescription>Look up a hashtag to save its top posts to your trend history.</CardDescription>
         </CardHeader>
         <CardContent>
-          <SearchTrendsForm action={searchTrendingHashtagsAction} storeId={storeId} />
+          <SearchTrendsForm action={searchTrendingHashtagsAction} projectId={projectId} />
         </CardContent>
       </Card>
 

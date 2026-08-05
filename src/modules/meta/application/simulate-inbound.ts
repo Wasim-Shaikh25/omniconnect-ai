@@ -6,7 +6,7 @@ import type { NormalizedMetaEvent } from "../domain/types";
 import { publishMetaEvent } from "./publish-event";
 
 export const simulateInboundSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   channel: z.enum(META_CHANNELS).default("INSTAGRAM"),
   kind: z.enum(META_EVENT_KINDS).default("message"),
   externalUserId: z.string().min(1).max(255),
@@ -29,16 +29,16 @@ export function simulateInbound(raw: SimulateInboundInput): Promise<void> {
   const event: NormalizedMetaEvent = {
     kind: input.kind,
     channel: input.channel,
-    accountId: `sim-${input.storeId}`,
+    accountId: `sim-${input.projectId}`,
     externalUserId: input.externalUserId,
     username: input.username ?? null,
     text: input.text ?? (input.kind === "follow" ? null : ""),
     externalRef: null,
   };
   logger.info("meta.simulateInbound", {
-    storeId: input.storeId,
+    projectId: input.projectId,
     kind: input.kind,
     channel: input.channel,
   });
-  return publishMetaEvent(input.storeId, event);
+  return publishMetaEvent(input.projectId, event);
 }

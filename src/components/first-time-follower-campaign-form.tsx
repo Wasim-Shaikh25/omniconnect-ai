@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CouponsActionState } from "@/modules/coupons";
 
-type Campaign = UpdateCampaignInput & { id: string; storeId: string };
+type Campaign = UpdateCampaignInput & { id: string; projectId: string };
 type Action = (
   prev: CouponsActionState,
   formData: FormData,
@@ -15,13 +15,13 @@ type Action = (
 
 interface FirstTimeFollowerCampaignFormProps {
   action: Action;
-  storeId: string;
+  projectId: string;
   campaign: Campaign;
 }
 
 export function FirstTimeFollowerCampaignForm({
   action,
-  storeId,
+  projectId,
   campaign,
 }: FirstTimeFollowerCampaignFormProps) {
   const [state, formAction, pending] = useActionState(action, {
@@ -31,7 +31,7 @@ export function FirstTimeFollowerCampaignForm({
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <div className="space-y-2">
         <Label htmlFor="name">Campaign name</Label>
         <Input

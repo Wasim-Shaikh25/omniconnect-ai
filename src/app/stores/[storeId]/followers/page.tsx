@@ -35,11 +35,11 @@ export default async function StoreFollowersPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
   searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
-  const { storeId } = await params;
-  const access = await checkStoreAccess(storeId);
+  const { projectId } = await params;
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -50,7 +50,7 @@ export default async function StoreFollowersPage({
   const search = paramsResolved.q?.trim();
 
   const { items: followers, total, totalPages } = await crmQueries.listFollowersPaginated(
-    storeId,
+    projectId,
     pagination,
     search,
   );
@@ -65,7 +65,7 @@ export default async function StoreFollowersPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -80,7 +80,7 @@ export default async function StoreFollowersPage({
               No followers yet. Simulate a follow event from the store page.
             </p>
             <Button asChild variant="outline" className="mt-4">
-              <Link href={`/stores/${storeId}`}>Simulate follow</Link>
+              <Link href={`/stores/${projectId}`}>Simulate follow</Link>
             </Button>
           </CardContent>
         </Card>

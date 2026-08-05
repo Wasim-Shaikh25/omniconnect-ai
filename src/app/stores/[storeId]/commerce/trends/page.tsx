@@ -14,9 +14,9 @@ import { searchHashtagMediaAction } from "@/modules/meta";
 export default function TrendsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const storeId = use(params).storeId;
+  const projectId = use(params).projectId;
   const [trendsState, trendsAction, trendsPending] = useActionState(generateTrendsAction, {});
   const [mediaState, mediaAction, mediaPending] = useActionState(searchHashtagMediaAction, {});
 
@@ -25,7 +25,7 @@ export default function TrendsPage({
       <header className="mb-6">
         <h1 className="text-xl font-semibold">Social media trends & ideas</h1>
         <p className="text-sm text-muted-foreground">See what is currently working in your niche and get AI-generated content ideas.</p>
-        <Link href={`/stores/${storeId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
+        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
       </header>
 
       <section className="space-y-6 mb-10">
@@ -36,7 +36,7 @@ export default function TrendsPage({
           </CardHeader>
           <CardContent>
             <form action={trendsAction} className="grid gap-4 md:grid-cols-5">
-              <input type="hidden" name="storeId" value={storeId} />
+              <input type="hidden" name="projectId" value={projectId} />
               <div className="md:col-span-2">
                 <Label htmlFor="niche">Niche / topic</Label>
                 <Input id="niche" name="niche" placeholder="e.g. sustainable fashion" required />
@@ -97,7 +97,7 @@ export default function TrendsPage({
           </CardHeader>
           <CardContent>
             <form action={mediaAction} className="grid gap-4 md:grid-cols-5">
-              <input type="hidden" name="storeId" value={storeId} />
+              <input type="hidden" name="projectId" value={projectId} />
               <div className="md:col-span-2">
                 <Label htmlFor="query">Hashtag / niche</Label>
                 <Input id="query" name="query" placeholder="e.g. sustainablefashion" required />
@@ -145,7 +145,7 @@ export default function TrendsPage({
                       </Button>
                     )}
                   </div>
-                  <PostIdeaPanel media={m} storeId={storeId} />
+                  <PostIdeaPanel media={m} projectId={projectId} />
                 </CardContent>
               </Card>
             ))}
@@ -189,14 +189,14 @@ function MediaPreview({ media }: { media: MetaMediaItem }) {
   );
 }
 
-function PostIdeaPanel({ media, storeId }: { media: MetaMediaItem; storeId: string }) {
+function PostIdeaPanel({ media, projectId }: { media: MetaMediaItem; projectId: string }) {
   const [state, action, pending] = useActionState(generatePostIdeasAction, {});
   const caption = media.caption ?? "";
   const hashtags = media.hashtags.join(" ");
 
   return (
     <form action={action} className="mt-2">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="caption" value={caption} />
       <input type="hidden" name="hashtags" value={hashtags} />
       <input type="hidden" name="mediaType" value={media.mediaType} />

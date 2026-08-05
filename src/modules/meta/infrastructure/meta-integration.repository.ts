@@ -8,7 +8,7 @@ import type {
 
 type PrismaIntegration = {
   id: string;
-  storeId: string;
+  projectId: string;
   provider: string;
   externalId: string | null;
   createdAt: Date;
@@ -21,7 +21,7 @@ function toChannel(provider: string): MetaChannel {
 function toRecord(i: PrismaIntegration): MetaIntegrationRecord {
   return {
     id: i.id,
-    storeId: i.storeId,
+    projectId: i.projectId,
     channel: toChannel(i.provider),
     accountId: i.externalId,
     connectedAt: i.createdAt,
@@ -37,14 +37,14 @@ export class PrismaMetaIntegrationRepository
   implements MetaIntegrationRepository
 {
   async connect(input: {
-    storeId: string;
+    projectId: string;
     channel: MetaChannel;
     accountId: string | null;
     accessToken: string | null;
     refreshToken?: string | null;
   }): Promise<MetaIntegrationRecord> {
-    const existing = await prisma.integration.findFirst({
-      where: { storeId: input.storeId, type: "META", provider: input.channel },
+    const existing = await prisma.ecommerceConnection.findFirst({
+      where: { projectId: input.projectId, type: "META", provider: input.channel },
     });
 
     const data = {
@@ -53,39 +53,39 @@ export class PrismaMetaIntegrationRepository
       externalId: input.accountId,
       accessToken: await encryptString(input.accessToken),
       refreshToken: await encryptString(input.refreshToken ?? null),
-      storeId: input.storeId,
+      projectId: input.projectId,
     };
 
     const saved = existing
-      ? await prisma.integration.update({ where: { id: existing.id }, data })
-      : await prisma.integration.create({ data });
+      ? await prisma.ecommerceConnection.update({ where: { id: existing.id }, data })
+      : await prisma.ecommerceConnection.create({ data });
 
     return toRecord(saved);
   }
 
-  async findByStore(storeId: string): Promise<MetaIntegrationRecord | null> {
-    const found = await prisma.integration.findFirst({
-      where: { storeId, type: "META" },
+  async findByStore(projectId: string): Promise<MetaIntegrationRecord | null> {
+    const found = await prisma.ecommerceConnection.findFirst({
+      where: { projectId, type: "META" },
       orderBy: { createdAt: "desc" },
     });
     return found ? toRecord(found) : null;
   }
 
   async findStoreByAccountId(accountId: string): Promise<string | null> {
-    const found = await prisma.integration.findFirst({
+    const found = await prisma.ecommerceConnection.findFirst({
       where: { type: "META", externalId: accountId },
-      select: { storeId: true },
+      select: { projectId: true },
     });
-    return found?.storeId ?? null;
+    return found?.projectId ?? null;
   }
 
   async findAccessToken(
-    storeId: string,
+    projectId: string,
     channel?: MetaChannel,
   ): Promise<string | null> {
-    const found = await prisma.integration.findFirst({
+    const found = await prisma.ecommerceConnection.findFirst({
       where: {
-        storeId,
+        projectId,
         type: "META",
         ...(channel ? { provider: channel } : {}),
       },

@@ -24,8 +24,8 @@ export default async function BillingPage({
   if (!["ADMIN", "STORE_OWNER"].includes(user.role)) notFound();
 
   const params = await searchParams;
-  const overview = user.organizationId
-    ? await organizationQueries.getOrganizationOverview(user.organizationId)
+  const overview = user.userId
+    ? await organizationQueries.getOrganizationOverview(user.userId)
     : null;
   const currentPlan = parsePlan(overview?.plan ?? Plan.FREE);
   const meta = PLAN_FEATURES[currentPlan];

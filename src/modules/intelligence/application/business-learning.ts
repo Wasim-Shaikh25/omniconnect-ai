@@ -18,16 +18,16 @@ export function makeBusinessLearningService(input: BusinessLearningServiceInput)
       outcome: OutcomeRecord,
     ): Promise<BusinessLearningRecord> {
       const ruleName = ruleNameFor(recommendation);
-      const storeId = recommendation.storeId;
-      let record = await input.learning.findByRule(recommendation.organizationId, ruleName, storeId ?? undefined);
+      const projectId = recommendation.projectId;
+      let record = await input.learning.findByRule(recommendation.userId, ruleName, projectId ?? undefined);
       const success = outcome.status === "SUCCESS";
       const weightDelta = success ? 0.1 : -0.05;
       const now = new Date();
 
       if (!record) {
         record = await input.learning.save({
-          organizationId: recommendation.organizationId,
-          storeId,
+          userId: recommendation.userId,
+          projectId,
           ruleName,
           condition: { actionType: recommendation.actionType, reasonCodes: recommendation.reasonCodes },
           effect: { targetMetric: recommendation.actionParams },
@@ -37,21 +37,21 @@ export function makeBusinessLearningService(input: BusinessLearningServiceInput)
           lastOutcomeAt: now,
         });
       } else {
-        record = await input.learning.updateOutcome(record.id, record.organizationId, success, weightDelta, now);
+        record = await input.learning.updateOutcome(record.id, record.userId, success, weightDelta, now);
       }
 
       await eventBus.publish(new BusinessLearningUpdated(record.id, { learning: record }));
       return record;
     },
 
-    async getWeight(organizationId: string, recommendation: RecommendationRecord): Promise<number> {
-      const storeId = recommendation.storeId ?? undefined;
-      const record = await input.learning.findByRule(organizationId, ruleNameFor(recommendation), storeId);
+    async getWeight(userId: string, recommendation: RecommendationRecord): Promise<number> {
+      const projectId = recommendation.projectId ?? undefined;
+      const record = await input.learning.findByRule(userId, ruleNameFor(recommendation), projectId);
       return record?.weight ?? 0;
     },
 
-    async list(organizationId: string, storeId?: string, limit = 20): Promise<BusinessLearningRecord[]> {
-      return input.learning.list(organizationId, storeId, limit);
+    async list(userId: string, projectId?: string, limit = 20): Promise<BusinessLearningRecord[]> {
+      return input.learning.list(userId, projectId, limit);
     },
   };
 }

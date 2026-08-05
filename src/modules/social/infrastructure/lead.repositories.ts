@@ -5,7 +5,7 @@ import type { LeadRepository, SocialLeadRecord } from "../application/lead.ports
 
 export class PrismaLeadRepository implements LeadRepository {
   async create(input: {
-    storeId: string;
+    projectId: string;
     source: string;
     externalFormId?: string | null;
     externalLeadId?: string | null;
@@ -17,7 +17,7 @@ export class PrismaLeadRepository implements LeadRepository {
   }): Promise<SocialLeadRecord> {
     const created = await prisma.socialLead.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         source: input.source as LeadSource,
         externalFormId: input.externalFormId ?? null,
         externalLeadId: input.externalLeadId ?? null,
@@ -31,9 +31,9 @@ export class PrismaLeadRepository implements LeadRepository {
     return toRecord(created);
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<SocialLeadRecord[]> {
+  async listByStore(projectId: string, limit = 50): Promise<SocialLeadRecord[]> {
     const rows = await prisma.socialLead.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -55,7 +55,7 @@ export class PrismaLeadRepository implements LeadRepository {
 
 function toRecord(row: {
   id: string;
-  storeId: string;
+  projectId: string;
   source: string;
   externalFormId: string | null;
   externalLeadId: string | null;

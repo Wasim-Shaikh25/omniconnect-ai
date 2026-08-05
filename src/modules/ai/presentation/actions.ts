@@ -36,13 +36,13 @@ export interface GeneratePostIdeasState {
 
 /** Ensures the current user's organization owns the target store. */
 async function assertStoreInOrg(
-  organizationId: string | null,
-  storeId: string,
+  userId: string | null,
+  projectId: string,
 ): Promise<boolean> {
-  if (!organizationId) return false;
+  if (!userId) return false;
   const overview =
-    await organizationQueries.getOrganizationOverview(organizationId);
-  return overview?.stores.some((s) => s.id === storeId) ?? false;
+    await organizationQueries.getOrganizationOverview(userId);
+  return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
 export async function updateAIConfigurationAction(
@@ -53,7 +53,7 @@ export async function updateAIConfigurationAction(
   await requireVerifiedEmail(user);
 
   const parsed = updateAIConfigSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     systemPrompt: formData.get("systemPrompt"),
     tone: formData.get("tone") || undefined,
     welcomeStrategy: formData.get("welcomeStrategy") || undefined,
@@ -66,7 +66,7 @@ export async function updateAIConfigurationAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -77,12 +77,12 @@ export async function updateAIConfigurationAction(
     throw error;
   }
 
-  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/stores/${parsed.data.projectId}`);
   return { ok: true, message: "AI configuration saved." };
 }
 
 const generateCaptionsSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   mediaType: z.enum(["POST", "REEL", "STORY"]),
   productTagIds: z.array(z.string()).default([]),
   niche: z.string().optional(),
@@ -98,7 +98,7 @@ export async function generateCaptionsAction(
 
   const rawTagIds = formData.getAll("productTagIds");
   const parsed = generateCaptionsSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     mediaType: formData.get("mediaType"),
     productTagIds: rawTagIds.filter((v): v is string => typeof v === "string"),
     niche: formData.get("niche") || undefined,
@@ -106,22 +106,22 @@ export async function generateCaptionsAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
   try {
-    await aiUsageGuard.assertAvailable(user.organizationId);
+    await aiUsageGuard.assertAvailable(user.userId);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
 
-  const products = await ecommerceQueries.listProducts(parsed.data.storeId, 100);
+  const products = await ecommerceQueries.listProducts(parsed.data.projectId, 100);
   const selected = products.filter((p) => parsed.data.productTagIds.includes(p.id));
 
   try {
     const captions = await generateCaptions({
-      storeId: parsed.data.storeId,
+      projectId: parsed.data.projectId,
       mediaType: parsed.data.mediaType,
       productNames: selected.map((p) => p.title),
       niche: parsed.data.niche ?? null,
@@ -134,7 +134,7 @@ export async function generateCaptionsAction(
 }
 
 const generateTrendsSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   niche: z.string().min(1).max(120),
   format: z.enum(["REEL", "POST", "CAROUSEL", "STORY", "ANY"]).optional(),
   count: z.coerce.number().min(1).max(10).optional(),
@@ -148,26 +148,26 @@ export async function generateTrendsAction(
   await requireVerifiedEmail(user);
 
   const parsed = generateTrendsSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     niche: formData.get("niche"),
     format: formData.get("format") || undefined,
     count: formData.get("count") ? Number(formData.get("count")) : undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
   try {
-    await aiUsageGuard.assertAvailable(user.organizationId);
+    await aiUsageGuard.assertAvailable(user.userId);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
 
   try {
     const trends = await generateTrends({
-      storeId: parsed.data.storeId,
+      projectId: parsed.data.projectId,
       niche: parsed.data.niche,
       format: parsed.data.format ?? null,
       count: parsed.data.count,
@@ -179,7 +179,7 @@ export async function generateTrendsAction(
 }
 
 const generatePostIdeasSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   caption: z.string().max(5000).optional(),
   hashtags: z.string().max(2000).optional(),
   mediaType: z.string().max(50),
@@ -199,7 +199,7 @@ export async function generatePostIdeasAction(
   await requireVerifiedEmail(user);
 
   const parsed = generatePostIdeasSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     caption: formData.get("caption") || undefined,
     hashtags: formData.get("hashtags") || undefined,
     mediaType: formData.get("mediaType"),
@@ -212,12 +212,12 @@ export async function generatePostIdeasAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
   try {
-    await aiUsageGuard.assertAvailable(user.organizationId);
+    await aiUsageGuard.assertAvailable(user.userId);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
@@ -228,8 +228,8 @@ export async function generatePostIdeasAction(
 
   try {
     const { ideas, evidence } = await generatePostIdeas({
-      storeId: parsed.data.storeId,
-      organizationId: user.organizationId ?? undefined,
+      projectId: parsed.data.projectId,
+      userId: user.userId ?? undefined,
       caption: parsed.data.caption ?? null,
       hashtags: hashtagList,
       mediaType: parsed.data.mediaType,
@@ -255,7 +255,7 @@ export interface AskBusinessBrainState {
 
 const askBusinessBrainSchema = z.object({
   question: z.string().min(1).max(2000),
-  storeId: z.string().optional(),
+  projectId: z.string().optional(),
 });
 
 export async function askBusinessBrainAction(
@@ -263,28 +263,28 @@ export async function askBusinessBrainAction(
   formData: FormData,
 ): Promise<AskBusinessBrainState> {
   const user = await getCurrentUser();
-  if (!user || !user.organizationId) {
+  if (!user || !user.userId) {
     return { error: "You must be signed in to a workspace." };
   }
   await requireVerifiedEmail(user);
 
   const parsed = askBusinessBrainSchema.safeParse({
     question: formData.get("question"),
-    storeId: formData.get("storeId") || undefined,
+    projectId: formData.get("projectId") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
   if (
-    parsed.data.storeId &&
-    !(await assertStoreInOrg(user.organizationId, parsed.data.storeId))
+    parsed.data.projectId &&
+    !(await assertStoreInOrg(user.userId, parsed.data.projectId))
   ) {
     return { error: "Store not found in your organization." };
   }
 
   try {
-    await aiUsageGuard.assertAvailable(user.organizationId);
+    await aiUsageGuard.assertAvailable(user.userId);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "AI quota exceeded" };
   }
@@ -292,9 +292,9 @@ export async function askBusinessBrainAction(
   try {
     const answer = await askBusinessBrain({
       question: parsed.data.question,
-      organizationId: user.organizationId,
+      userId: user.userId,
       userId: user.id,
-      storeId: parsed.data.storeId,
+      projectId: parsed.data.projectId,
     });
     return { answer };
   } catch (error) {

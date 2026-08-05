@@ -28,7 +28,7 @@ export function makeGenerateMarketingInsightsFromMemory(input: GenerateMarketing
   return async function generateMarketingInsightsFromMemory(
     memory: MarketingMemoryRecord,
   ): Promise<{ dm: number; comment: number }> {
-    const openInsights = await input.insights.listOpen(memory.organizationId, memory.storeId, 50);
+    const openInsights = await input.insights.listOpen(memory.userId, memory.projectId, 50);
 
     function findDuplicate(titleFragment: string): boolean {
       return openInsights.some((i) => i.title.toLowerCase().includes(titleFragment.toLowerCase()));
@@ -43,17 +43,17 @@ export function makeGenerateMarketingInsightsFromMemory(input: GenerateMarketing
     ) {
       const saved = await input.insights.save(draft);
       const payload = {
-        organizationId: memory.organizationId,
-        storeId: memory.storeId,
+        userId: memory.userId,
+        projectId: memory.projectId,
         category,
         frequency,
         sample,
         insightId: saved.id,
       };
       if (eventType === "dm") {
-        await input.eventBus.publish(new DmPatternDetected(memory.storeId, payload));
+        await input.eventBus.publish(new DmPatternDetected(memory.projectId, payload));
       } else {
-        await input.eventBus.publish(new CommentPatternDetected(memory.storeId, payload));
+        await input.eventBus.publish(new CommentPatternDetected(memory.projectId, payload));
       }
       return saved;
     }
@@ -72,15 +72,15 @@ export function makeGenerateMarketingInsightsFromMemory(input: GenerateMarketing
 
       await emitPattern(
         {
-          organizationId: memory.organizationId,
-          storeId: memory.storeId,
+          userId: memory.userId,
+          projectId: memory.projectId,
           type: (isRisk(pattern.category) ? "RISK" : "OPPORTUNITY") as InsightType,
           severity: categorySeverity(pattern.frequency),
           status: "OPEN",
           title: `${titleFragment} (${pattern.frequency})`,
           description: evidence.summary,
           evidence,
-          deepLink: `/stores/${memory.storeId}/conversations`,
+          deepLink: `/stores/${memory.projectId}/conversations`,
           generatedAt: memory.generatedAt,
           dismissedAt: null,
           snoozedUntil: null,
@@ -107,15 +107,15 @@ export function makeGenerateMarketingInsightsFromMemory(input: GenerateMarketing
 
       await emitPattern(
         {
-          organizationId: memory.organizationId,
-          storeId: memory.storeId,
+          userId: memory.userId,
+          projectId: memory.projectId,
           type: (isRisk(pattern.category) ? "RISK" : "OPPORTUNITY") as InsightType,
           severity: categorySeverity(pattern.frequency),
           status: "OPEN",
           title: `${titleFragment} (${pattern.frequency})`,
           description: evidence.summary,
           evidence,
-          deepLink: `/stores/${memory.storeId}/commerce/comments`,
+          deepLink: `/stores/${memory.projectId}/commerce/comments`,
           generatedAt: memory.generatedAt,
           dismissedAt: null,
           snoozedUntil: null,

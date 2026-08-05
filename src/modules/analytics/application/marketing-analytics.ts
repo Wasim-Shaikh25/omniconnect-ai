@@ -8,8 +8,8 @@ import { MarketingPerformanceUpdated } from "../domain/events";
 import type { MarketingPerformanceView } from "../domain/types";
 
 export interface GetMarketingPerformanceInput {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
 }
 
 function oneWeekAgo(): Date {
@@ -125,33 +125,33 @@ export function makeGetMarketingPerformance(deps: {
   crm: CrmQueries;
   social: SocialQueries;
   eventBus: EventBus;
-  getAccountMedia?: (storeId: string, limit?: number) => Promise<MetaMediaItem[]>;
-  getPageInsights?: (storeId: string, days?: number) => Promise<MetaPageInsights | null>;
-  getAudienceInsights?: (storeId: string) => Promise<MetaAudienceInsights | null>;
+  getAccountMedia?: (projectId: string, limit?: number) => Promise<MetaMediaItem[]>;
+  getPageInsights?: (projectId: string, days?: number) => Promise<MetaPageInsights | null>;
+  getAudienceInsights?: (projectId: string) => Promise<MetaAudienceInsights | null>;
 }) {
   return async function getMarketingPerformance(
     input: GetMarketingPerformanceInput,
   ): Promise<MarketingPerformanceView> {
-    const storeId = input.storeId;
+    const projectId = input.projectId;
     const since = oneWeekAgo();
 
     const [connection, followers, customers, conversations, comments, mentions, coupons, products] =
       await Promise.all([
-        deps.ecommerce.getStoreConnection(storeId),
-        deps.crm.listFollowers(storeId, 500),
-        deps.crm.listCustomers(storeId, 500),
-        deps.conversations.listConversations(storeId, 100),
-        deps.social.listComments(storeId, 500).catch(() => []),
-        deps.social.listMentions(storeId, 500).catch(() => []),
-        deps.ecommerce.listCoupons(storeId, 500).catch(() => []),
-        deps.ecommerce.listProducts(storeId, 100).catch(() => []),
+        deps.ecommerce.getStoreConnection(projectId),
+        deps.crm.listFollowers(projectId, 500),
+        deps.crm.listCustomers(projectId, 500),
+        deps.conversations.listConversations(projectId, 100),
+        deps.social.listComments(projectId, 500).catch(() => []),
+        deps.social.listMentions(projectId, 500).catch(() => []),
+        deps.ecommerce.listCoupons(projectId, 500).catch(() => []),
+        deps.ecommerce.listProducts(projectId, 100).catch(() => []),
       ]);
 
     let ownMedia: MetaMediaItem[] = [];
     let mediaSourceError = !deps.getAccountMedia;
     if (deps.getAccountMedia) {
       try {
-        ownMedia = await deps.getAccountMedia(storeId, 25);
+        ownMedia = await deps.getAccountMedia(projectId, 25);
       } catch {
         ownMedia = [];
         mediaSourceError = true;
@@ -161,8 +161,8 @@ export function makeGetMarketingPerformance(deps: {
     let pageInsights: MetaPageInsights | null = null;
     let audienceInsights: MetaAudienceInsights | null = null;
     try {
-      pageInsights = deps.getPageInsights ? await deps.getPageInsights(storeId, 7) : null;
-      audienceInsights = deps.getAudienceInsights ? await deps.getAudienceInsights(storeId) : null;
+      pageInsights = deps.getPageInsights ? await deps.getPageInsights(projectId, 7) : null;
+      audienceInsights = deps.getAudienceInsights ? await deps.getAudienceInsights(projectId) : null;
     } catch {
       pageInsights = null;
       audienceInsights = null;
@@ -201,7 +201,7 @@ export function makeGetMarketingPerformance(deps: {
     let currency: string | null = null;
     if (connection.connected) {
       try {
-        orders = await deps.ecommerce.listOrders(storeId, 500);
+        orders = await deps.ecommerce.listOrders(projectId, 500);
         currency = orders[0]?.currency ?? null;
       } catch {
         orders = [];
@@ -331,8 +331,8 @@ export function makeGetMarketingPerformance(deps: {
     }
 
     const view: MarketingPerformanceView = {
-      organizationId: input.organizationId,
-      storeId,
+      userId: input.userId,
+      projectId,
       generatedAt: new Date(),
       dataQuality,
       content: {
@@ -393,9 +393,9 @@ export function makeGetMarketingPerformance(deps: {
     };
 
     await deps.eventBus.publish(
-      new MarketingPerformanceUpdated(storeId, {
-        organizationId: input.organizationId,
-        storeId,
+      new MarketingPerformanceUpdated(projectId, {
+        userId: input.userId,
+        projectId,
         generatedAt: view.generatedAt,
       }),
     );

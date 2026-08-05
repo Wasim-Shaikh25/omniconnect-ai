@@ -74,8 +74,8 @@ describe("cross-tenant action census (S2)", () => {
           const key = `${file.replace(/^.*src\//, "src/")}:${name}`;
           const hasAuthGuard = hasAny(text, AUTH_GUARDS);
           const hasTenantGuard = hasAny(text, TENANT_GUARDS);
-          const hasStoreId = text.includes("storeId");
-          const hasOrgScope = text.includes("user.organizationId");
+          const hasStoreId = text.includes("projectId");
+          const hasOrgScope = text.includes("user.userId");
           const safe =
             hasTenantGuard ||
             (hasAuthGuard && hasOrgScope) ||

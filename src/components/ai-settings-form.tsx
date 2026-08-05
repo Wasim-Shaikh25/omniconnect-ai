@@ -23,13 +23,13 @@ interface AIConfigurationValues {
 
 interface AISettingsFormProps {
   action: Action;
-  storeId: string;
+  projectId: string;
   defaultValues: AIConfigurationValues;
 }
 
 export function AISettingsForm({
   action,
-  storeId,
+  projectId,
   defaultValues,
 }: AISettingsFormProps) {
   const [state, formAction, pending] = useActionState<AIActionState, FormData>(
@@ -39,7 +39,7 @@ export function AISettingsForm({
 
   return (
     <form action={formAction} className="space-y-4">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <div className="space-y-2">
         <Label htmlFor="model">Model</Label>
         <Input

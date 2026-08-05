@@ -14,23 +14,23 @@ import {
 export default function CommentsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const storeId = use(params).storeId;
+  const projectId = use(params).projectId;
   const [data, setData] = useState<Awaited<ReturnType<typeof listSocialCommentsAction>>>({ comments: [], mentions: [] });
   const [replyState, replyAction, replyPending] = useActionState(replyToCommentAction, { ok: false });
   const [hideState, hideAction, hidePending] = useActionState(toggleCommentHiddenAction, { ok: false });
 
   useEffect(() => {
-    listSocialCommentsAction(storeId).then(setData);
-  }, [storeId, replyState, hideState]);
+    listSocialCommentsAction(projectId).then(setData);
+  }, [projectId, replyState, hideState]);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-xl font-semibold">Comments & mentions</h1>
         <p className="text-sm text-muted-foreground">Engagement automation queue for this store.</p>
-        <Link href={`/stores/${storeId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
+        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
       </header>
 
       <Card className="mb-6">
@@ -52,13 +52,13 @@ export default function CommentsPage({
                   <div className="mt-2 flex items-center gap-2">
                     <form action={replyAction} className="flex gap-2">
                       <input type="hidden" name="commentId" value={c.id} />
-                      <input type="hidden" name="storeId" value={storeId} />
+                      <input type="hidden" name="projectId" value={projectId} />
                       <Input name="replyText" placeholder="Reply..." className="w-64" required />
                       <Button type="submit" size="sm" disabled={replyPending}>Reply</Button>
                     </form>
                     <form action={hideAction}>
                       <input type="hidden" name="commentId" value={c.id} />
-                      <input type="hidden" name="storeId" value={storeId} />
+                      <input type="hidden" name="projectId" value={projectId} />
                       <input type="hidden" name="hidden" value={c.hidden ? "false" : "true"} />
                       <Button type="submit" variant="outline" size="sm" disabled={hidePending}>{c.hidden ? "Unhide" : "Hide"}</Button>
                     </form>

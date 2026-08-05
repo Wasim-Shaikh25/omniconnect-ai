@@ -31,8 +31,8 @@ function PredictionRow({ prediction }: { prediction: PredictionRecord }) {
   );
 }
 
-export async function PredictionsPanel({ storeId }: { storeId?: string }) {
-  const { predictions } = await getPredictionsAction(storeId);
+export async function PredictionsPanel({ projectId }: { projectId?: string }) {
+  const { predictions } = await getPredictionsAction(projectId);
 
   return (
     <Card>

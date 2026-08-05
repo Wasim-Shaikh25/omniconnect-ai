@@ -26,7 +26,7 @@ export function makeApplyShopifyWebhook(deps: {
   processedEvents?: ProcessedEventsRepository;
   compliance: ShopifyComplianceRepository;
   auditLog: AuditLogCommands;
-  jobScheduler?: { cancelForStore(storeId: string): Promise<void> };
+  jobScheduler?: { cancelForStore(projectId: string): Promise<void> };
 }) {
   return async function applyShopifyWebhook(input: ShopifyWebhookInput): Promise<ShopifyWebhookResult> {
     const integration = await deps.integrations.findByShopDomain(input.shopDomain);
@@ -34,7 +34,7 @@ export function makeApplyShopifyWebhook(deps: {
       logger.warn("shopify.webhook.storeNotFound", { shopDomain: input.shopDomain, topic: input.topic });
       return { ok: false, message: "Store not found for shop domain" };
     }
-    const storeId = integration.storeId;
+    const projectId = integration.projectId;
     const topic = input.topic;
 
     if (deps.processedEvents) {
@@ -52,35 +52,35 @@ export function makeApplyShopifyWebhook(deps: {
     try {
       if (topic === "products/create" || topic === "products/update") {
         const product = mapProductPayload(input.payload);
-        await deps.products.upsertMany(storeId, [product]);
-        logger.info("shopify.webhook.productUpserted", { storeId, externalId: product.externalId, topic });
+        await deps.products.upsertMany(projectId, [product]);
+        logger.info("shopify.webhook.productUpserted", { projectId, externalId: product.externalId, topic });
         return { ok: true };
       }
 
       if (topic === "products/delete") {
         const externalId = String(input.payload.id ?? "");
-        const existing = await deps.products.findByExternalId(storeId, externalId);
+        const existing = await deps.products.findByExternalId(projectId, externalId);
         if (existing) {
           await deps.products.delete(existing.id);
         }
-        logger.info("shopify.webhook.productDeleted", { storeId, externalId, topic });
+        logger.info("shopify.webhook.productDeleted", { projectId, externalId, topic });
         return { ok: true };
       }
 
       if (topic === "orders/create" || topic === "orders/paid") {
         const order = mapOrderPayload(input.payload);
-        await deps.orders.upsertMany(storeId, [order]);
+        await deps.orders.upsertMany(projectId, [order]);
         if (order.cartToken) {
-          await deps.carts.markConverted(storeId, order.cartToken);
+          await deps.carts.markConverted(projectId, order.cartToken);
         }
-        logger.info("shopify.webhook.orderUpserted", { storeId, externalId: order.externalId, topic });
+        logger.info("shopify.webhook.orderUpserted", { projectId, externalId: order.externalId, topic });
         return { ok: true };
       }
 
       if (topic === "checkouts/create" || topic === "checkouts/update") {
         const cart = mapAbandonedCartPayload(input.payload);
         await deps.carts.upsert({
-          storeId,
+          projectId,
           cartToken: cart.cartToken,
           email: cart.email,
           lineItemTitles: cart.lineItemTitles,
@@ -89,25 +89,25 @@ export function makeApplyShopifyWebhook(deps: {
           recoveredUrl: cart.recoveredUrl,
           lastActivityAt: new Date(),
         });
-        logger.info("shopify.webhook.cartUpserted", { storeId, cartToken: cart.cartToken, topic });
+        logger.info("shopify.webhook.cartUpserted", { projectId, cartToken: cart.cartToken, topic });
         return { ok: true };
       }
 
       if (topic === "customers/data_request") {
-        return handleDataRequest({ input, storeId, compliance: deps.compliance, auditLog: deps.auditLog });
+        return handleDataRequest({ input, projectId, compliance: deps.compliance, auditLog: deps.auditLog });
       }
 
       if (topic === "customers/redact") {
-        return handleCustomerRedact({ input, storeId, compliance: deps.compliance, auditLog: deps.auditLog });
+        return handleCustomerRedact({ input, projectId, compliance: deps.compliance, auditLog: deps.auditLog });
       }
 
       if (topic === "shop/redact") {
-        return handleShopRedact({ storeId, compliance: deps.compliance, auditLog: deps.auditLog });
+        return handleShopRedact({ projectId, compliance: deps.compliance, auditLog: deps.auditLog });
       }
 
       if (topic === "app/uninstalled") {
         return handleAppUninstalled({
-          storeId,
+          projectId,
           compliance: deps.compliance,
           auditLog: deps.auditLog,
           jobScheduler: deps.jobScheduler,
@@ -118,11 +118,11 @@ export function makeApplyShopifyWebhook(deps: {
         return { ok: false, message: `Unhandled compliance topic: ${topic}` };
       }
 
-      logger.info("shopify.webhook.ignored", { storeId, topic });
+      logger.info("shopify.webhook.ignored", { projectId, topic });
       return { ok: true, message: "Topic ignored" };
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Webhook processing failed";
-      logger.error("shopify.webhook.error", { storeId, topic, error: msg });
+      logger.error("shopify.webhook.error", { projectId, topic, error: msg });
       return { ok: false, message: msg };
     }
   };
@@ -130,15 +130,15 @@ export function makeApplyShopifyWebhook(deps: {
 
 async function handleDataRequest(input: {
   input: ShopifyWebhookInput;
-  storeId: string;
+  projectId: string;
   compliance: ShopifyComplianceRepository;
   auditLog: AuditLogCommands;
 }): Promise<ShopifyWebhookResult> {
   const { customerRef, customerEmail } = extractCustomer(input.input.payload);
-  const data = await input.compliance.fetchCustomerData({ storeId: input.storeId, customerRef, customerEmail });
+  const data = await input.compliance.fetchCustomerData({ projectId: input.projectId, customerRef, customerEmail });
 
   await input.auditLog.create({
-    organizationId: null,
+    userId: null,
     action: "shopify.customers.data_request",
     resource: "shopify_webhook",
     resourceId: input.input.eventId,
@@ -150,15 +150,15 @@ async function handleDataRequest(input: {
 
 async function handleCustomerRedact(input: {
   input: ShopifyWebhookInput;
-  storeId: string;
+  projectId: string;
   compliance: ShopifyComplianceRepository;
   auditLog: AuditLogCommands;
 }): Promise<ShopifyWebhookResult> {
   const { customerRef, customerEmail } = extractCustomer(input.input.payload);
-  const summary = await input.compliance.redactCustomer({ storeId: input.storeId, customerRef, customerEmail });
+  const summary = await input.compliance.redactCustomer({ projectId: input.projectId, customerRef, customerEmail });
 
   await input.auditLog.create({
-    organizationId: null,
+    userId: null,
     action: "shopify.customers.redact",
     resource: "shopify_webhook",
     resourceId: input.input.eventId,
@@ -169,17 +169,17 @@ async function handleCustomerRedact(input: {
 }
 
 async function handleShopRedact(input: {
-  storeId: string;
+  projectId: string;
   compliance: ShopifyComplianceRepository;
   auditLog: AuditLogCommands;
 }): Promise<ShopifyWebhookResult> {
-  const summary = await input.compliance.redactShop(input.storeId);
+  const summary = await input.compliance.redactShop(input.projectId);
 
   await input.auditLog.create({
-    organizationId: null,
+    userId: null,
     action: "shopify.shop.redact",
     resource: "shopify_webhook",
-    resourceId: input.storeId,
+    resourceId: input.projectId,
     details: JSON.stringify({ summary }),
   });
 
@@ -187,23 +187,23 @@ async function handleShopRedact(input: {
 }
 
 async function handleAppUninstalled(input: {
-  storeId: string;
+  projectId: string;
   compliance: ShopifyComplianceRepository;
   auditLog: AuditLogCommands;
-  jobScheduler?: { cancelForStore(storeId: string): Promise<void> };
+  jobScheduler?: { cancelForStore(projectId: string): Promise<void> };
 }): Promise<ShopifyWebhookResult> {
-  await input.compliance.disconnectStore(input.storeId);
+  await input.compliance.disconnectStore(input.projectId);
 
   if (input.jobScheduler) {
-    await input.jobScheduler.cancelForStore(input.storeId);
+    await input.jobScheduler.cancelForStore(input.projectId);
   }
 
   await input.auditLog.create({
-    organizationId: null,
+    userId: null,
     action: "shopify.app.uninstalled",
     resource: "shopify_webhook",
-    resourceId: input.storeId,
-    details: JSON.stringify({ storeId: input.storeId }),
+    resourceId: input.projectId,
+    details: JSON.stringify({ projectId: input.projectId }),
   });
 
   return { ok: true };

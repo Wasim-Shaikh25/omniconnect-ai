@@ -30,14 +30,14 @@ export interface EcommerceActionState {
 
 /** Ensures the current user's organization owns the target store. */
 async function assertStoreInOrg(
-  organizationId: string | null,
-  storeId: string,
+  userId: string | null,
+  projectId: string,
 ): Promise<boolean> {
-  if (!organizationId) return false;
+  if (!userId) return false;
   const overview = await organizationQueries.getOrganizationOverview(
-    organizationId,
+    userId,
   );
-  return overview?.stores.some((s) => s.id === storeId) ?? false;
+  return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
 export async function connectStoreAction(
@@ -47,7 +47,7 @@ export async function connectStoreAction(
   const user = await requireRole("STORE_OWNER");
 
   const parsed = connectStoreSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     provider: formData.get("provider") || undefined,
     shopDomain: formData.get("shopDomain") || undefined,
     accessToken: formData.get("accessToken") || undefined,
@@ -59,7 +59,7 @@ export async function connectStoreAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -71,7 +71,7 @@ export async function connectStoreAction(
     throw error;
   }
 
-  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/stores/${parsed.data.projectId}`);
   return { ok: true, message: "Store connected." };
 }
 
@@ -81,20 +81,20 @@ export async function syncOrdersAction(
 ): Promise<EcommerceActionState> {
   const user = await requireRole("STORE_OWNER");
   const parsed = syncOrdersSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
-  const result = await syncOrders(parsed.data.storeId);
+  const result = await syncOrders(parsed.data.projectId);
   if (!result.ok) return { error: result.error.message };
 
-  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/stores/${parsed.data.projectId}`);
   revalidatePath(`/analytics`);
   return { ok: true, message: `Synced ${result.value.count} orders.` };
 }
@@ -104,17 +104,17 @@ export async function syncProductsAction(
   formData: FormData,
 ): Promise<EcommerceActionState> {
   const user = await requireRole("STORE_OWNER");
-  const storeId = String(formData.get("storeId") ?? "");
-  if (!storeId) return { error: "Missing store." };
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectId) return { error: "Missing store." };
 
-  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
+  if (!(await assertStoreInOrg(user.userId, projectId))) {
     return { error: "Store not found in your organization." };
   }
 
-  const result = await syncProducts(storeId);
+  const result = await syncProducts(projectId);
   if (!result.ok) return { error: result.error.message };
 
-  revalidatePath(`/stores/${storeId}`);
+  revalidatePath(`/stores/${projectId}`);
   return { ok: true, message: `Synced ${result.value.count} products. Marked ${result.value.deleted} removed.` };
 }
 
@@ -125,7 +125,7 @@ export async function generateCouponAction(
   const user = await requireRole("STORE_OWNER");
 
   const parsed = generateCouponSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     code: formData.get("code"),
     discountPct: formData.get("discountPct"),
     expiresAt: formData.get("expiresAt") || undefined,
@@ -134,14 +134,14 @@ export async function generateCouponAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
   const result = await generateCoupon(parsed.data);
   if (!result.ok) return { error: result.error.message };
 
-  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/stores/${parsed.data.projectId}`);
   return { ok: true, message: `Coupon ${result.value.code} created.` };
 }
 
@@ -153,7 +153,7 @@ export async function updateProductAction(
 
   const parsed = updateProductSchema.safeParse({
     productId: formData.get("productId"),
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     title: formData.get("title") || undefined,
     description: formData.get("description") || null,
     price: formData.get("price") || null,
@@ -165,7 +165,7 @@ export async function updateProductAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -177,17 +177,17 @@ export async function updateProductAction(
   }
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email ?? undefined,
     action: "PRODUCT_UPDATED",
     resource: "Product",
     resourceId: parsed.data.productId,
-    details: `Product updated in store ${parsed.data.storeId}`,
+    details: `Product updated in store ${parsed.data.projectId}`,
   });
 
-  revalidatePath(`/stores/${parsed.data.storeId}/products`);
-  revalidatePath(`/stores/${parsed.data.storeId}/commerce/catalog`);
+  revalidatePath(`/stores/${parsed.data.projectId}/products`);
+  revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
   return { ok: true, message: "Product updated." };
 }
 
@@ -199,13 +199,13 @@ export async function deleteProductAction(
 
   const parsed = deleteProductSchema.safeParse({
     productId: formData.get("productId"),
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -217,17 +217,17 @@ export async function deleteProductAction(
   }
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email ?? undefined,
     action: "PRODUCT_DELETED",
     resource: "Product",
     resourceId: parsed.data.productId,
-    details: `Product soft-deleted from store ${parsed.data.storeId}`,
+    details: `Product soft-deleted from store ${parsed.data.projectId}`,
   });
 
-  revalidatePath(`/stores/${parsed.data.storeId}/products`);
-  revalidatePath(`/stores/${parsed.data.storeId}/commerce/catalog`);
+  revalidatePath(`/stores/${parsed.data.projectId}/products`);
+  revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
   return { ok: true, message: "Product deleted." };
 }
 
@@ -236,10 +236,10 @@ export async function bulkDeleteProductsAction(
   formData: FormData,
 ): Promise<EcommerceActionState> {
   const user = await requireRole("STORE_OWNER");
-  const storeId = String(formData.get("storeId") ?? "");
-  if (!storeId) return { error: "Missing store." };
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectId) return { error: "Missing store." };
 
-  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
+  if (!(await assertStoreInOrg(user.userId, projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -250,7 +250,7 @@ export async function bulkDeleteProductsAction(
   let deleted = 0;
   for (const productId of ids) {
     try {
-      await deleteProduct({ productId, storeId });
+      await deleteProduct({ productId, projectId });
       deleted++;
     } catch {
       // ignore missing / already deleted
@@ -258,17 +258,17 @@ export async function bulkDeleteProductsAction(
   }
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email ?? undefined,
     action: "PRODUCT_BULK_DELETED",
     resource: "Product",
     resourceId: ids[0] ?? "",
-    details: `${deleted} product(s) bulk-deleted from store ${storeId}`,
+    details: `${deleted} product(s) bulk-deleted from store ${projectId}`,
   });
 
-  revalidatePath(`/stores/${storeId}/products`);
-  revalidatePath(`/stores/${storeId}/commerce/catalog`);
+  revalidatePath(`/stores/${projectId}/products`);
+  revalidatePath(`/stores/${projectId}/commerce/catalog`);
   return { ok: true, message: `${deleted} product(s) deleted.` };
 }
 
@@ -280,7 +280,7 @@ export async function updateCouponAction(
 
   const parsed = updateCouponSchema.safeParse({
     couponId: formData.get("couponId"),
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     discountPct: formData.get("discountPct") || undefined,
     status: formData.get("status") || undefined,
     expiresAt: formData.get("expiresAt") || null,
@@ -289,7 +289,7 @@ export async function updateCouponAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -301,16 +301,16 @@ export async function updateCouponAction(
   }
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email ?? undefined,
     action: "COUPON_UPDATED",
     resource: "Coupon",
     resourceId: parsed.data.couponId,
-    details: `Coupon updated in store ${parsed.data.storeId}`,
+    details: `Coupon updated in store ${parsed.data.projectId}`,
   });
 
-  revalidatePath(`/stores/${parsed.data.storeId}/coupons`);
+  revalidatePath(`/stores/${parsed.data.projectId}/coupons`);
   return { ok: true, message: "Coupon updated." };
 }
 
@@ -322,13 +322,13 @@ export async function deleteCouponAction(
 
   const parsed = deleteCouponSchema.safeParse({
     couponId: formData.get("couponId"),
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -340,16 +340,16 @@ export async function deleteCouponAction(
   }
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email ?? undefined,
     action: "COUPON_DELETED",
     resource: "Coupon",
     resourceId: parsed.data.couponId,
-    details: `Coupon soft-deleted from store ${parsed.data.storeId}`,
+    details: `Coupon soft-deleted from store ${parsed.data.projectId}`,
   });
 
-  revalidatePath(`/stores/${parsed.data.storeId}/coupons`);
+  revalidatePath(`/stores/${parsed.data.projectId}/coupons`);
   return { ok: true, message: "Coupon deleted." };
 }
 
@@ -358,10 +358,10 @@ export async function bulkDeleteCouponsAction(
   formData: FormData,
 ): Promise<EcommerceActionState> {
   const user = await requireRole("STORE_OWNER");
-  const storeId = String(formData.get("storeId") ?? "");
-  if (!storeId) return { error: "Missing store." };
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectId) return { error: "Missing store." };
 
-  if (!(await assertStoreInOrg(user.organizationId, storeId))) {
+  if (!(await assertStoreInOrg(user.userId, projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -372,7 +372,7 @@ export async function bulkDeleteCouponsAction(
   let deleted = 0;
   for (const couponId of ids) {
     try {
-      await deleteCoupon({ couponId, storeId });
+      await deleteCoupon({ couponId, projectId });
       deleted++;
     } catch {
       // ignore missing / already deleted
@@ -380,15 +380,15 @@ export async function bulkDeleteCouponsAction(
   }
 
   await auditCommands.create({
-    organizationId: user.organizationId ?? null,
+    userId: user.userId ?? null,
     actorId: user.id,
     actorEmail: user.email ?? undefined,
     action: "COUPON_BULK_DELETED",
     resource: "Coupon",
     resourceId: ids[0] ?? "",
-    details: `${deleted} coupon(s) bulk-deleted from store ${storeId}`,
+    details: `${deleted} coupon(s) bulk-deleted from store ${projectId}`,
   });
 
-  revalidatePath(`/stores/${storeId}/coupons`);
+  revalidatePath(`/stores/${projectId}/coupons`);
   return { ok: true, message: `${deleted} coupon(s) deleted.` };
 }

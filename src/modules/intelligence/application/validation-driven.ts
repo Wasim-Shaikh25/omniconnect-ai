@@ -18,8 +18,8 @@ import type {
 // 126 — Unified context
 
 export interface UnifiedContextInput {
-  organizationId: string;
-  storeId?: string;
+  userId: string;
+  projectId?: string;
 }
 
 export interface UnifiedContext {
@@ -43,10 +43,10 @@ export function makeUnifiedContextService(input: UnifiedContextServiceInput) {
   return {
     async getContext(ctx: UnifiedContextInput): Promise<UnifiedContext> {
       const [signals, insights, links, metricDefs] = await Promise.all([
-        input.signals.listByStore(ctx.storeId ?? "", 200),
-        input.insights.listOpen(ctx.organizationId, ctx.storeId, 100),
-        input.links.listForOrganization(ctx.organizationId, 100),
-        input.metrics.listDefinitions(ctx.organizationId),
+        input.signals.listByStore(ctx.projectId ?? "", 200),
+        input.insights.listOpen(ctx.userId, ctx.projectId, 100),
+        input.links.listForOrganization(ctx.userId, 100),
+        input.metrics.listDefinitions(ctx.userId),
       ]);
 
       const highConfidenceLinks = links.filter((l) => l.confidence === "VERIFIED" || l.confidence === "PROBABLE");
@@ -75,8 +75,8 @@ export type UnifiedContextService = ReturnType<typeof makeUnifiedContextService>
 // 129 — Knowledge graph queries
 
 export interface KnowledgeGraphInput {
-  organizationId: string;
-  storeId?: string;
+  userId: string;
+  projectId?: string;
   contentId?: string;
   conversationId?: string;
   productId?: string;
@@ -100,7 +100,7 @@ export interface KnowledgeGraphServiceInput {
 export function makeKnowledgeGraphService(input: KnowledgeGraphServiceInput) {
   return {
     async query(ctx: KnowledgeGraphInput): Promise<KnowledgeGraphResult> {
-      const signals = await input.signals.listByStore(ctx.storeId ?? "", 500);
+      const signals = await input.signals.listByStore(ctx.projectId ?? "", 500);
 
       const contentSignals = signals.filter((s) => s.eventType === "UgcAssetCollected" || s.eventType === "ContentPublished");
       const purchaseSignals = signals.filter((s) => s.eventType === "OrderPlaced");
@@ -207,8 +207,8 @@ export interface FeatureServiceInput {
 
 export function makeFeatureService(input: FeatureServiceInput) {
   return {
-    async getCustomerFeatures(_organizationId: string, storeId: string, customerId: string): Promise<CustomerFeatures> {
-      const orders = await input.ecommerce.listOrders(storeId, 100);
+    async getCustomerFeatures(_organizationId: string, projectId: string, customerId: string): Promise<CustomerFeatures> {
+      const orders = await input.ecommerce.listOrders(projectId, 100);
       const custOrders = orders.filter((o) => o.customerRef === customerId);
       const total = custOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
       return {
@@ -223,8 +223,8 @@ export function makeFeatureService(input: FeatureServiceInput) {
       };
     },
 
-    async getProductFeatures(_organizationId: string, storeId: string, productId: string): Promise<ProductFeatures> {
-      const products = await input.ecommerce.listProducts(storeId, 100);
+    async getProductFeatures(_organizationId: string, projectId: string, productId: string): Promise<ProductFeatures> {
+      const products = await input.ecommerce.listProducts(projectId, 100);
       const product = products.find((p) => p.externalId === productId || p.title === productId) ?? products[0];
       return {
         velocity: 12,
@@ -261,8 +261,8 @@ export function makeFeatureService(input: FeatureServiceInput) {
       };
     },
 
-    async getBusinessFeatures(organizationId: string, storeId: string): Promise<BusinessFeatures> {
-      const orders = await input.ecommerce.listOrders(storeId, 100);
+    async getBusinessFeatures(userId: string, projectId: string): Promise<BusinessFeatures> {
+      const orders = await input.ecommerce.listOrders(projectId, 100);
       const total = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
       return {
         seasonalityIndex: 1.05,
@@ -287,28 +287,28 @@ export interface GoalPlanGenerationServiceInput {
 
 export function makeGoalPlanGenerationService(input: GoalPlanGenerationServiceInput) {
   return {
-    async createVersionedWorkflow(goalId: string, organizationId: string): Promise<GoalPlanRecord> {
-      return input.plans.create(goalId, organizationId);
+    async createVersionedWorkflow(goalId: string, userId: string): Promise<GoalPlanRecord> {
+      return input.plans.create(goalId, userId);
     },
 
-    async testRun(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null> {
-      return input.plans.testRun(workflowId, organizationId);
+    async testRun(workflowId: string, userId: string): Promise<GoalPlanRecord | null> {
+      return input.plans.testRun(workflowId, userId);
     },
 
-    async launchWithHoldout(workflowId: string, organizationId: string, holdoutPct: number): Promise<GoalPlanRecord | null> {
-      return input.plans.launchWithHoldout(workflowId, organizationId, holdoutPct);
+    async launchWithHoldout(workflowId: string, userId: string, holdoutPct: number): Promise<GoalPlanRecord | null> {
+      return input.plans.launchWithHoldout(workflowId, userId, holdoutPct);
     },
 
-    async getPlan(workflowId: string, organizationId: string): Promise<GoalPlanRecord | null> {
-      return input.plans.getPlan(workflowId, organizationId);
+    async getPlan(workflowId: string, userId: string): Promise<GoalPlanRecord | null> {
+      return input.plans.getPlan(workflowId, userId);
     },
 
     async postLaunch(
       workflowId: string,
-      organizationId: string,
+      userId: string,
       recommendation: GoalPlanPostLaunchRecommendation,
     ): Promise<GoalPlanRecord | null> {
-      return input.plans.postLaunch(workflowId, organizationId, recommendation);
+      return input.plans.postLaunch(workflowId, userId, recommendation);
     },
   };
 }
@@ -442,7 +442,7 @@ export type PredictionPrioritizationService = ReturnType<typeof makePredictionPr
 
 // 135 — Intelligence feedback
 
-export type FeedbackRating = Omit<IntelligenceFeedbackRecord, "id" | "organizationId" | "createdAt">;
+export type FeedbackRating = Omit<IntelligenceFeedbackRecord, "id" | "userId" | "createdAt">;
 
 export interface IntelligenceFeedbackServiceInput {
   feedback: IntelligenceFeedbackRepository;
@@ -452,14 +452,14 @@ export function makeIntelligenceFeedbackService(input: IntelligenceFeedbackServi
   return {
     async submitRating(
       rating: FeedbackRating,
-      organizationId: string,
+      userId: string,
     ): Promise<IntelligenceFeedbackRecord> {
-      return input.feedback.save(rating, organizationId);
+      return input.feedback.save(rating, userId);
     },
     async getKpis(
-      organizationId: string,
+      userId: string,
     ): Promise<{ total: number; understoodRate: number; hoursSaved: number; falsePositiveRate: number; falseNegativeRate: number }> {
-      return input.feedback.getKpis(organizationId);
+      return input.feedback.getKpis(userId);
     },
   };
 }
@@ -499,7 +499,7 @@ export interface DrillDown {
 
 export interface FeedDismissInput {
   id: string;
-  organizationId: string;
+  userId: string;
   reason: string;
   userId: string;
 }
@@ -511,8 +511,8 @@ export interface IntelligenceFeedInteractionServiceInput {
 
 export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedInteractionServiceInput) {
   return {
-    async getDrillDown(insightId: string, organizationId?: string): Promise<DrillDown | null> {
-      const insight = await input.insights.findById(insightId, organizationId);
+    async getDrillDown(insightId: string, userId?: string): Promise<DrillDown | null> {
+      const insight = await input.insights.findById(insightId, userId);
       if (!insight) return null;
       return {
         why: insight.description,
@@ -523,11 +523,11 @@ export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedIn
     },
 
     async dismissWithReason(payload: FeedDismissInput): Promise<BusinessInsightRecord | null> {
-      const updated = await input.insights.updateStatus(payload.id, payload.organizationId, "DISMISSED");
+      const updated = await input.insights.updateStatus(payload.id, payload.userId, "DISMISSED");
       if (updated) {
         await input.dismissals.dismiss({
           insightId: payload.id,
-          organizationId: payload.organizationId,
+          userId: payload.userId,
           reason: payload.reason,
           userId: payload.userId,
         });
@@ -535,8 +535,8 @@ export function makeIntelligenceFeedInteractionService(input: IntelligenceFeedIn
       return updated;
     },
 
-    async getDismissalReason(insightId: string, organizationId: string): Promise<string | null> {
-      return input.dismissals.getReason(insightId, organizationId);
+    async getDismissalReason(insightId: string, userId: string): Promise<string | null> {
+      return input.dismissals.getReason(insightId, userId);
     },
   };
 }
@@ -546,8 +546,8 @@ export type IntelligenceFeedInteractionService = ReturnType<typeof makeIntellige
 // 139 — Data-quality gate
 
 export interface DataQualityGateInput {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   priority: "high" | "medium" | "low";
 }
 
@@ -568,16 +568,16 @@ export function makeDataQualityGateService(input: DataQualityGateServiceInput) {
       const issues: string[] = [];
 
       if (ctx.priority === "high") {
-        const recentSignals = await input.signals.listByStore(ctx.storeId, 100);
+        const recentSignals = await input.signals.listByStore(ctx.projectId, 100);
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const fresh = recentSignals.filter((s) => s.occurredAt >= oneDayAgo);
         if (fresh.length === 0) issues.push("No fresh signals in the last 24 hours");
 
-        const links = await input.links.listForOrganization(ctx.organizationId, 100);
+        const links = await input.links.listForOrganization(ctx.userId, 100);
         const confident = links.filter((l) => l.confidence === "VERIFIED" || l.confidence === "PROBABLE");
         if (links.length > 0 && confident.length / links.length < 0.5) issues.push("Identity confidence below 50%");
 
-        const orgDefinitions = await input.metrics.listDefinitions(ctx.organizationId);
+        const orgDefinitions = await input.metrics.listDefinitions(ctx.userId);
         const defaultDefinitions = await input.metrics.listDefinitions(null);
         if (orgDefinitions.length === 0 && defaultDefinitions.length === 0) issues.push("No metric definitions configured");
       }

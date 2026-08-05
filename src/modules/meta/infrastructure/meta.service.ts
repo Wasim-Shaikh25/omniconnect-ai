@@ -28,17 +28,17 @@ export class GraphApiMetaService implements MetaService {
   constructor(private readonly integrations: MetaIntegrationRepository) {}
 
   async sendMessage(input: {
-    storeId: string;
+    projectId: string;
     recipientId: string;
     text: string;
   }): Promise<void> {
     return withSpan(
       "meta.sendMessage",
       async () => {
-        const token = await this.integrations.findAccessToken(input.storeId);
+        const token = await this.integrations.findAccessToken(input.projectId);
         if (!token || !env.META_APP_ID) {
           logger.info("meta.sendMessage.skipped", {
-            storeId: input.storeId,
+            projectId: input.projectId,
             reason: "not-configured",
           });
           return;
@@ -58,26 +58,26 @@ export class GraphApiMetaService implements MetaService {
 
         if (!res.ok) {
           logger.warn("meta.sendMessage.failed", {
-            storeId: input.storeId,
+            projectId: input.projectId,
             status: res.status,
           });
           return;
         }
 
-        logger.info("meta.sendMessage.ok", { storeId: input.storeId });
+        logger.info("meta.sendMessage.ok", { projectId: input.projectId });
       },
-      { attributes: { storeId: input.storeId } },
+      { attributes: { projectId: input.projectId } },
     );
   }
 
   async searchHashtag(
-    storeId: string,
+    projectId: string,
     query: string,
   ): Promise<{ hashtagId: string | null; userId: string | null }> {
-    const token = await this.integrations.findAccessToken(storeId);
-    const integration = await this.integrations.findByStore(storeId);
+    const token = await this.integrations.findAccessToken(projectId);
+    const integration = await this.integrations.findByStore(projectId);
     if (!token || !integration?.accountId) {
-      logger.info("meta.searchHashtag.skipped", { storeId, query, reason: "not-configured" });
+      logger.info("meta.searchHashtag.skipped", { projectId, query, reason: "not-configured" });
       if (env.NODE_ENV !== "production") {
         return { hashtagId: `mock-hashtag-${query.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`, userId: "mock-user" };
       }
@@ -92,7 +92,7 @@ export class GraphApiMetaService implements MetaService {
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
-        logger.warn("meta.searchHashtag.failed", { storeId, query, status: res.status });
+        logger.warn("meta.searchHashtag.failed", { projectId, query, status: res.status });
         return { hashtagId: null, userId: integration.accountId };
       }
       const payload: unknown = await res.json();
@@ -100,7 +100,7 @@ export class GraphApiMetaService implements MetaService {
       return { hashtagId: data?.[0]?.id ?? null, userId: integration.accountId };
     } catch (error) {
       logger.error("meta.searchHashtag.error", {
-        storeId,
+        projectId,
         query,
         error: error instanceof Error ? error.message : "unknown",
       });
@@ -109,15 +109,15 @@ export class GraphApiMetaService implements MetaService {
   }
 
   async getHashtagMedia(
-    storeId: string,
+    projectId: string,
     hashtagId: string,
     options: HashtagMediaOptions = { top: true, limit: 10 },
   ): Promise<MetaMediaItem[]> {
-    const token = await this.integrations.findAccessToken(storeId);
-    const integration = await this.integrations.findByStore(storeId);
+    const token = await this.integrations.findAccessToken(projectId);
+    const integration = await this.integrations.findByStore(projectId);
     const limit = Math.min(Math.max(options.limit ?? 10, 1), 25);
     if (!token || !integration?.accountId) {
-      logger.info("meta.getHashtagMedia.skipped", { storeId, hashtagId, reason: "not-configured" });
+      logger.info("meta.getHashtagMedia.skipped", { projectId, hashtagId, reason: "not-configured" });
       if (env.NODE_ENV !== "production") {
         return generateSampleMedia(hashtagId.replace(/^mock-hashtag-/, ""), limit);
       }
@@ -136,7 +136,7 @@ export class GraphApiMetaService implements MetaService {
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
-        logger.warn("meta.getHashtagMedia.failed", { storeId, hashtagId, status: res.status });
+        logger.warn("meta.getHashtagMedia.failed", { projectId, hashtagId, status: res.status });
         return [];
       }
       const payload: unknown = await res.json();
@@ -144,7 +144,7 @@ export class GraphApiMetaService implements MetaService {
       return rows.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
     } catch (error) {
       logger.error("meta.getHashtagMedia.error", {
-        storeId,
+        projectId,
         hashtagId,
         error: error instanceof Error ? error.message : "unknown",
       });
@@ -152,11 +152,11 @@ export class GraphApiMetaService implements MetaService {
     }
   }
 
-  async getAccountMedia(storeId: string, limit = 10): Promise<MetaMediaItem[]> {
-    const token = await this.integrations.findAccessToken(storeId);
-    const integration = await this.integrations.findByStore(storeId);
+  async getAccountMedia(projectId: string, limit = 10): Promise<MetaMediaItem[]> {
+    const token = await this.integrations.findAccessToken(projectId);
+    const integration = await this.integrations.findByStore(projectId);
     if (!token || !integration?.accountId) {
-      logger.info("meta.getAccountMedia.skipped", { storeId, reason: "not-configured" });
+      logger.info("meta.getAccountMedia.skipped", { projectId, reason: "not-configured" });
       return [];
     }
 
@@ -170,7 +170,7 @@ export class GraphApiMetaService implements MetaService {
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
-        logger.warn("meta.getAccountMedia.failed", { storeId, status: res.status });
+        logger.warn("meta.getAccountMedia.failed", { projectId, status: res.status });
         return [];
       }
       const payload: unknown = await res.json();
@@ -185,7 +185,7 @@ export class GraphApiMetaService implements MetaService {
       return items;
     } catch (error) {
       logger.error("meta.getAccountMedia.error", {
-        storeId,
+        projectId,
         error: error instanceof Error ? error.message : "unknown",
       });
       return [];
@@ -193,16 +193,16 @@ export class GraphApiMetaService implements MetaService {
   }
 
   async getPageInsights(
-    storeId: string,
+    projectId: string,
     days = 7,
   ): Promise<MetaPageInsights | null> {
     return withSpan(
       "meta.getPageInsights",
       async () => {
-        const token = await this.integrations.findAccessToken(storeId);
-        const integration = await this.integrations.findByStore(storeId);
+        const token = await this.integrations.findAccessToken(projectId);
+        const integration = await this.integrations.findByStore(projectId);
         if (!token || !integration?.accountId) {
-          logger.info("meta.getPageInsights.skipped", { storeId, reason: "not-configured" });
+          logger.info("meta.getPageInsights.skipped", { projectId, reason: "not-configured" });
           return null;
         }
 
@@ -242,26 +242,26 @@ export class GraphApiMetaService implements MetaService {
           };
         } catch (error) {
           logger.error("meta.getPageInsights.error", {
-            storeId,
+            projectId,
             error: error instanceof Error ? error.message : "unknown",
           });
           return null;
         }
       },
-      { attributes: { storeId, days } },
+      { attributes: { projectId, days } },
     );
   }
 
   async getAudienceInsights(
-    storeId: string,
+    projectId: string,
   ): Promise<MetaAudienceInsights | null> {
     return withSpan(
       "meta.getAudienceInsights",
       async () => {
-        const token = await this.integrations.findAccessToken(storeId);
-        const integration = await this.integrations.findByStore(storeId);
+        const token = await this.integrations.findAccessToken(projectId);
+        const integration = await this.integrations.findByStore(projectId);
         if (!token || !integration?.accountId) {
-          logger.info("meta.getAudienceInsights.skipped", { storeId, reason: "not-configured" });
+          logger.info("meta.getAudienceInsights.skipped", { projectId, reason: "not-configured" });
           return null;
         }
 
@@ -274,7 +274,7 @@ export class GraphApiMetaService implements MetaService {
             headers: { authorization: `Bearer ${token}` },
           }));
           if (!res.ok) {
-            logger.warn("meta.getAudienceInsights.failed", { storeId, status: res.status });
+            logger.warn("meta.getAudienceInsights.failed", { projectId, status: res.status });
             return null;
           }
           const payload: unknown = await res.json();
@@ -312,13 +312,13 @@ export class GraphApiMetaService implements MetaService {
           return { demographics };
         } catch (error) {
           logger.error("meta.getAudienceInsights.error", {
-            storeId,
+            projectId,
             error: error instanceof Error ? error.message : "unknown",
           });
           return null;
         }
       },
-      { attributes: { storeId } },
+      { attributes: { projectId } },
     );
   }
 
@@ -372,18 +372,18 @@ export class GraphApiMetaService implements MetaService {
   }
 
   async getCompetitorMedia(
-    storeId: string,
+    projectId: string,
     handle: string,
     options: CompetitorMediaOptions = {},
   ): Promise<MetaMediaItem[]> {
     return withSpan(
       "meta.getCompetitorMedia",
       async () => {
-        const token = await this.integrations.findAccessToken(storeId);
-        const integration = await this.integrations.findByStore(storeId);
+        const token = await this.integrations.findAccessToken(projectId);
+        const integration = await this.integrations.findByStore(projectId);
         const limit = Math.min(Math.max(options.limit ?? 10, 1), 25);
         if (!token || !integration?.accountId) {
-          logger.info("meta.getCompetitorMedia.skipped", { storeId, handle, reason: "not-configured" });
+          logger.info("meta.getCompetitorMedia.skipped", { projectId, handle, reason: "not-configured" });
           if (env.NODE_ENV !== "production") {
             return generateSampleCompetitorMedia(handle, limit);
           }
@@ -402,7 +402,7 @@ export class GraphApiMetaService implements MetaService {
             headers: { authorization: `Bearer ${token}` },
           }));
           if (!res.ok) {
-            logger.warn("meta.getCompetitorMedia.failed", { storeId, handle, status: res.status });
+            logger.warn("meta.getCompetitorMedia.failed", { projectId, handle, status: res.status });
             return [];
           }
           const payload: unknown = await res.json();
@@ -410,14 +410,14 @@ export class GraphApiMetaService implements MetaService {
           return media.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
         } catch (error) {
           logger.error("meta.getCompetitorMedia.error", {
-            storeId,
+            projectId,
             handle,
             error: error instanceof Error ? error.message : "unknown",
           });
           return [];
         }
       },
-      { attributes: { storeId, handle, limit: options.limit } },
+      { attributes: { projectId, handle, limit: options.limit } },
     );
   }
 }

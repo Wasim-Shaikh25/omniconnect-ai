@@ -5,7 +5,7 @@ import type { ProductRecord, ProductRepository } from "../application/ports";
 type PrismaProduct = {
   id: string;
   externalId: string;
-  storeId: string;
+  projectId: string;
   title: string;
   description: string | null;
   price: { toString(): string } | null;
@@ -19,7 +19,7 @@ function toRecord(p: PrismaProduct): ProductRecord {
   return {
     id: p.id,
     externalId: p.externalId,
-    storeId: p.storeId,
+    projectId: p.projectId,
     title: p.title,
     description: p.description,
     price: p.price !== null ? Number(p.price.toString()) : null,
@@ -36,17 +36,17 @@ function notDeleted() {
 
 export class PrismaProductRepository implements ProductRepository {
   async upsertMany(
-    storeId: string,
+    projectId: string,
     products: ConnectorProduct[],
   ): Promise<number> {
     await prisma.$transaction(
       products.map((p) =>
         prisma.product.upsert({
           where: {
-            storeId_externalId: { storeId, externalId: p.externalId },
+            storeId_externalId: { projectId, externalId: p.externalId },
           },
           create: {
-            storeId,
+            projectId,
             externalId: p.externalId,
             title: p.title,
             description: p.description,
@@ -71,7 +71,7 @@ export class PrismaProductRepository implements ProductRepository {
   }
 
   async sync(
-    storeId: string,
+    projectId: string,
     products: ConnectorProduct[],
   ): Promise<{ upserted: number; removed: number }> {
     if (products.length === 0) {
@@ -85,10 +85,10 @@ export class PrismaProductRepository implements ProductRepository {
       const upsertOps = products.map((p) =>
         tx.product.upsert({
           where: {
-            storeId_externalId: { storeId, externalId: p.externalId },
+            storeId_externalId: { projectId, externalId: p.externalId },
           },
           create: {
-            storeId,
+            projectId,
             externalId: p.externalId,
             title: p.title,
             description: p.description,
@@ -111,7 +111,7 @@ export class PrismaProductRepository implements ProductRepository {
       await Promise.all(upsertOps);
       const removed = await tx.product.updateMany({
         where: {
-          storeId,
+          projectId,
           externalId: { notIn: externalIds },
           deletedAt: null,
         },
@@ -157,20 +157,20 @@ export class PrismaProductRepository implements ProductRepository {
     return product ? toRecord(product) : null;
   }
 
-  async findByExternalId(storeId: string, externalId: string): Promise<ProductRecord | null> {
+  async findByExternalId(projectId: string, externalId: string): Promise<ProductRecord | null> {
     const product = await prisma.product.findFirst({
-      where: { storeId, externalId, ...notDeleted() },
+      where: { projectId, externalId, ...notDeleted() },
     });
     return product ? toRecord(product) : null;
   }
 
   async listByStore(
-    storeId: string,
+    projectId: string,
     options: { limit?: number; offset?: number; search?: string; includeDeleted?: boolean } = {},
   ): Promise<ProductRecord[]> {
     const rows = await prisma.product.findMany({
       where: {
-        storeId,
+        projectId,
         ...(options.includeDeleted ? {} : notDeleted()),
         ...(options.search
           ? { title: { contains: options.search, mode: "insensitive" } }
@@ -183,10 +183,10 @@ export class PrismaProductRepository implements ProductRepository {
     return rows.map(toRecord);
   }
 
-  async countByStore(storeId: string, search?: string): Promise<number> {
+  async countByStore(projectId: string, search?: string): Promise<number> {
     return prisma.product.count({
       where: {
-        storeId,
+        projectId,
         ...notDeleted(),
         ...(search ? { title: { contains: search, mode: "insensitive" } } : {}),
       },
@@ -202,13 +202,13 @@ export class PrismaProductRepository implements ProductRepository {
   }
 
   async markDeletedNotInBatch(
-    storeId: string,
+    projectId: string,
     externalIds: string[],
     deletedAt: Date,
   ): Promise<number> {
     const result = await prisma.product.updateMany({
       where: {
-        storeId,
+        projectId,
         externalId: { notIn: externalIds },
         deletedAt: null,
       },

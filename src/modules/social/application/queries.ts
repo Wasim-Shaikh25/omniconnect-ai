@@ -9,11 +9,11 @@ export function makeSocialQueries(deps: {
   mentions: SocialMentionRepository;
 }): SocialQueries {
   return {
-    async listComments(storeId: string, limit = 50) {
-      return deps.comments.listByStore(storeId, limit);
+    async listComments(projectId: string, limit = 50) {
+      return deps.comments.listByStore(projectId, limit);
     },
-    async listMentions(storeId: string, limit = 50) {
-      return deps.mentions.listByStore(storeId, limit);
+    async listMentions(projectId: string, limit = 50) {
+      return deps.mentions.listByStore(projectId, limit);
     },
   };
 }

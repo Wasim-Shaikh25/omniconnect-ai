@@ -12,7 +12,7 @@ import type {
 
 export class PrismaSupportTicketRepository implements SupportTicketRepository {
   async create(input: {
-    organizationId: string;
+    userId: string;
     userId: string;
     title: string;
     description: string;
@@ -20,7 +20,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
   }): Promise<SupportTicketRecord> {
     const ticket = await prisma.supportTicket.create({
       data: {
-        organizationId: input.organizationId,
+        userId: input.userId,
         userId: input.userId,
         title: input.title,
         description: input.description,
@@ -33,10 +33,10 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async findById(
     id: string,
-    organizationId?: string,
+    userId?: string,
   ): Promise<SupportTicketRecord | null> {
     const ticket = await prisma.supportTicket.findUnique({
-      where: organizationId ? { id, organizationId } : { id },
+      where: userId ? { id, userId } : { id },
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
     });
     return ticket ? this.mapTicket(ticket) : null;
@@ -44,11 +44,11 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async listByUser(
     userId: string,
-    organizationId?: string,
+    userId?: string,
     limit = 1000,
   ): Promise<SupportTicketRecord[]> {
     const tickets = await prisma.supportTicket.findMany({
-      where: { userId, ...(organizationId ? { organizationId } : {}) },
+      where: { userId, ...(userId ? { userId } : {}) },
       orderBy: { createdAt: "desc" },
       take: limit,
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" }, take: 100 } },
@@ -57,7 +57,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
   }
 
   async listAll(
-    organizationId?: string | null,
+    userId?: string | null,
     filters?: {
       status?: TicketStatus;
       priority?: TicketPriority;
@@ -66,7 +66,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
     pagination?: PaginationInput,
   ) {
     const where = {
-      ...(organizationId ? { organizationId } : {}),
+      ...(userId ? { userId } : {}),
       ...filters,
     };
     const effectivePagination = pagination ?? { page: 1, limit: 100 };
@@ -89,7 +89,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async update(
     id: string,
-    organizationId: string,
+    userId: string,
     input: Partial<{
       status: TicketStatus;
       priority: TicketPriority;
@@ -97,7 +97,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
     }>,
   ): Promise<SupportTicketRecord | null> {
     const ticket = await prisma.supportTicket.update({
-      where: { id, organizationId },
+      where: { id, userId },
       data: input,
       include: { user: true, comments: { include: { user: true }, orderBy: { createdAt: "asc" } } },
     });
@@ -106,13 +106,13 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   async addComment(input: {
     ticketId: string;
-    organizationId: string;
+    userId: string;
     userId: string;
     message: string;
     isInternal: boolean;
   }): Promise<TicketCommentRecord> {
     const ticket = await prisma.supportTicket.findUnique({
-      where: { id: input.ticketId, organizationId: input.organizationId },
+      where: { id: input.ticketId, userId: input.userId },
     });
     if (!ticket) throw new Error("Ticket not found");
 
@@ -130,7 +130,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
 
   private mapTicket(t: {
     id: string;
-    organizationId: string;
+    userId: string;
     userId: string;
     title: string;
     description: string;
@@ -145,7 +145,7 @@ export class PrismaSupportTicketRepository implements SupportTicketRepository {
   }): SupportTicketRecord {
     return {
       id: t.id,
-      organizationId: t.organizationId,
+      userId: t.userId,
       userId: t.userId,
       userEmail: t.user.email,
       title: t.title,

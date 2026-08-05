@@ -11,7 +11,7 @@ import { CustomerProfileUpdated } from "../domain/events";
 
 type PrismaCustomer = {
   id: string;
-  storeId: string;
+  projectId: string;
   igUserId: string | null;
   fbUserId: string | null;
   username: string | null;
@@ -41,7 +41,7 @@ function toConsent(value: string): CustomerRecord["consent"] {
 function toRecord(c: PrismaCustomer): CustomerRecord {
   return {
     id: c.id,
-    storeId: c.storeId,
+    projectId: c.projectId,
     igUserId: c.igUserId,
     fbUserId: c.fbUserId,
     username: c.username,
@@ -90,7 +90,7 @@ function unique(values: string[]): string[] {
 async function emitProfileUpdated(record: CustomerRecord): Promise<void> {
   await eventBus.publish(
     new CustomerProfileUpdated(record.id, {
-      storeId: record.storeId,
+      projectId: record.projectId,
       customerId: record.id,
       tags: record.tags,
       interests: record.interests,
@@ -100,7 +100,7 @@ async function emitProfileUpdated(record: CustomerRecord): Promise<void> {
 
 export class PrismaCustomerRepository implements CustomerRepository {
   async upsertByExternalId(input: {
-    storeId: string;
+    projectId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
     externalUserId: string;
     username: string | null;
@@ -108,14 +108,14 @@ export class PrismaCustomerRepository implements CustomerRepository {
     const idField = input.channel === "INSTAGRAM" ? "igUserId" : "fbUserId";
 
     const existing = await prisma.customer.findFirst({
-      where: { storeId: input.storeId, [idField]: input.externalUserId },
+      where: { projectId: input.projectId, [idField]: input.externalUserId },
     });
 
     if (existing) {
       const updated =
         input.username && input.username !== existing.username
           ? await prisma.customer.update({
-              where: { id: existing.id, storeId: input.storeId },
+              where: { id: existing.id, projectId: input.projectId },
               data: { username: input.username },
             })
           : existing;
@@ -124,7 +124,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
     const created = await prisma.customer.create({
       data: {
-        storeId: input.storeId,
+        projectId: input.projectId,
         username: input.username,
         [idField]: input.externalUserId,
       },
@@ -132,9 +132,9 @@ export class PrismaCustomerRepository implements CustomerRepository {
     return toRecord(created);
   }
 
-  async listByStore(storeId: string, limit = 50): Promise<CustomerRecord[]> {
+  async listByStore(projectId: string, limit = 50): Promise<CustomerRecord[]> {
     const rows = await prisma.customer.findMany({
-      where: { storeId },
+      where: { projectId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -146,23 +146,23 @@ export class PrismaCustomerRepository implements CustomerRepository {
     limit = 250,
   ): Promise<CustomerRecord[]> {
     const rows = await prisma.customer.findMany({
-      where: { storeId: { in: storeIds } },
+      where: { projectId: { in: storeIds } },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
     return rows.map(toRecord);
   }
 
-  async findById(id: string, storeId?: string): Promise<CustomerRecord | null> {
+  async findById(id: string, projectId?: string): Promise<CustomerRecord | null> {
     const found = await prisma.customer.findUnique({
-      where: storeId ? { id, storeId } : { id },
+      where: projectId ? { id, projectId } : { id },
     });
     return found ? toRecord(found) : null;
   }
 
   async getActivity(
     customerId: string,
-    storeId?: string,
+    projectId?: string,
   ): Promise<{
     conversationCount: number;
     messageCount: number;
@@ -170,7 +170,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
     couponUsageCount: number;
     lastMessageAt: Date | null;
   }> {
-    const storeFilter = storeId ? { storeId } : {};
+    const storeFilter = projectId ? { projectId } : {};
     const [
       conversationCount,
       messageCount,
@@ -203,13 +203,13 @@ export class PrismaCustomerRepository implements CustomerRepository {
   }
 
   async getProfile(input: {
-    storeId: string;
+    projectId: string;
     channel: "INSTAGRAM" | "FACEBOOK";
     externalUserId: string;
   }): Promise<CustomerProfile | null> {
     const idField = input.channel === "INSTAGRAM" ? "igUserId" : "fbUserId";
     const row = await prisma.customer.findFirst({
-      where: { storeId: input.storeId, [idField]: input.externalUserId },
+      where: { projectId: input.projectId, [idField]: input.externalUserId },
       include: { coupons: true, couponUsages: true },
     });
     if (!row) return null;
@@ -223,17 +223,17 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async tag(input: {
     customerId: string;
-    storeId: string;
+    projectId: string;
     tags?: string[];
     interests?: string[];
   }): Promise<CustomerRecord> {
     const existing = await prisma.customer.findUnique({
-      where: { id: input.customerId, storeId: input.storeId },
+      where: { id: input.customerId, projectId: input.projectId },
     });
     if (!existing) throw new Error("Customer not found");
 
     const updated = await prisma.customer.update({
-      where: { id: input.customerId, storeId: input.storeId },
+      where: { id: input.customerId, projectId: input.projectId },
       data: {
         tags: unique([...(existing.tags ?? []), ...(input.tags ?? [])]),
         interests: unique([
@@ -250,11 +250,11 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async updateLifecycleStage(
     customerId: string,
-    storeId: string,
+    projectId: string,
     stage: CustomerRecord["lifecycleStage"],
   ): Promise<CustomerRecord> {
     const updated = await prisma.customer.update({
-      where: { id: customerId, storeId },
+      where: { id: customerId, projectId },
       data: { lifecycleStage: stage },
     });
     return toRecord(updated);
@@ -262,11 +262,11 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async updateConsent(
     customerId: string,
-    storeId: string,
+    projectId: string,
     consent: CustomerRecord["consent"],
   ): Promise<CustomerRecord> {
     const updated = await prisma.customer.update({
-      where: { id: customerId, storeId },
+      where: { id: customerId, projectId },
       data: { consent, consentUpdatedAt: new Date() },
     });
     return toRecord(updated);
@@ -274,16 +274,16 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async recordCouponSent(input: {
     customerId: string;
-    storeId: string;
+    projectId: string;
     couponId: string;
   }): Promise<CustomerRecord> {
     const existing = await prisma.customer.findUnique({
-      where: { id: input.customerId, storeId: input.storeId },
+      where: { id: input.customerId, projectId: input.projectId },
     });
     if (!existing) throw new Error("Customer not found");
 
     const updated = await prisma.customer.update({
-      where: { id: input.customerId, storeId: input.storeId },
+      where: { id: input.customerId, projectId: input.projectId },
       data: {
         tags: unique([...existing.tags, "coupon-sent"]),
       },
@@ -296,12 +296,12 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   async recordCouponUsed(input: {
     customerId: string;
-    storeId: string;
+    projectId: string;
     couponId: string;
     orderRef?: string;
   }): Promise<CustomerRecord> {
     const existing = await prisma.customer.findUnique({
-      where: { id: input.customerId, storeId: input.storeId },
+      where: { id: input.customerId, projectId: input.projectId },
     });
     if (!existing) throw new Error("Customer not found");
 
@@ -314,7 +314,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
     });
 
     const updated = await prisma.customer.update({
-      where: { id: input.customerId, storeId: input.storeId },
+      where: { id: input.customerId, projectId: input.projectId },
       data: {
         tags: unique([...existing.tags, "coupon-used"]),
       },

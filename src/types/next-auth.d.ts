@@ -8,8 +8,8 @@ declare module "next-auth" {
       role: Role;
       isSuperAdmin: boolean;
       emailVerified: Date | null;
-      organizationId: string | null;
-      storeId: string | null;
+      userId: string | null;
+      projectId: string | null;
       tokenVersion: number;
     } & DefaultSession["user"];
   }
@@ -18,8 +18,8 @@ declare module "next-auth" {
     role?: Role;
     isSuperAdmin?: boolean;
     emailVerified?: Date | null;
-    organizationId?: string | null;
-    storeId?: string | null;
+    userId?: string | null;
+    projectId?: string | null;
     tokenVersion?: number;
   }
 }
@@ -30,8 +30,8 @@ declare module "next-auth/jwt" {
     role?: Role;
     isSuperAdmin?: boolean;
     emailVerified?: Date | null;
-    organizationId?: string | null;
-    storeId?: string | null;
+    userId?: string | null;
+    projectId?: string | null;
     tokenVersion?: number;
   }
 }

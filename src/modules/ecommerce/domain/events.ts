@@ -1,7 +1,7 @@
 import { BaseDomainEvent } from "@/shared/kernel";
 
 export interface StoreConnectedPayload {
-  storeId: string;
+  projectId: string;
   provider: string;
   shopDomain: string | null;
 }
@@ -17,7 +17,7 @@ export interface ProductInventorySnapshot {
 }
 
 export interface ProductsSyncedPayload {
-  storeId: string;
+  projectId: string;
   provider: string;
   count: number;
   products: ProductInventorySnapshot[];
@@ -28,7 +28,7 @@ export class ProductsSynced extends BaseDomainEvent<ProductsSyncedPayload> {
 }
 
 export interface CouponGeneratedPayload {
-  storeId: string;
+  projectId: string;
   couponId: string;
   code: string;
   discountPct: number;
@@ -40,7 +40,7 @@ export class CouponGenerated extends BaseDomainEvent<CouponGeneratedPayload> {
 }
 
 export interface CouponDisabledPayload {
-  storeId: string;
+  projectId: string;
   code: string;
 }
 
@@ -49,8 +49,8 @@ export class CouponDisabled extends BaseDomainEvent<CouponDisabledPayload> {
 }
 
 export interface CommerceInsight {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   type: "RISK" | "OPPORTUNITY" | "ANOMALY";
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   status: "OPEN" | "DISMISSED" | "SNOOZED";
@@ -61,8 +61,8 @@ export interface CommerceInsight {
 }
 
 export interface CommerceRecommendation {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   type: "ACTION" | "INVESTIGATE" | "WAIT";
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   title: string;
@@ -72,8 +72,8 @@ export interface CommerceRecommendation {
 }
 
 export interface CommerceInsightGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   insight: CommerceInsight;
 }
 
@@ -82,8 +82,8 @@ export class CommerceInsightGenerated extends BaseDomainEvent<CommerceInsightGen
 }
 
 export interface CommerceRecommendationGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   recommendation: CommerceRecommendation;
 }
 
@@ -93,7 +93,7 @@ export class CommerceRecommendationGenerated extends BaseDomainEvent<CommerceRec
 
 export interface AbandonedCartDetectedPayload {
   cartId: string;
-  storeId: string;
+  projectId: string;
   cartToken: string;
   email: string | null;
   lineItemTitles: string[];

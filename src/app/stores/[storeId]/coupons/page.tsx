@@ -28,11 +28,11 @@ export default async function StoreCouponsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
   searchParams?: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
-  const { storeId } = await params;
-  const access = await checkStoreAccess(storeId);
+  const { projectId } = await params;
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -43,7 +43,7 @@ export default async function StoreCouponsPage({
   const search = paramsResolved.q?.trim();
 
   const { items: coupons, total, totalPages } = await ecommerceQueries.listCouponsPaginated(
-    storeId,
+    projectId,
     pagination,
     search,
   );
@@ -58,7 +58,7 @@ export default async function StoreCouponsPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -79,11 +79,11 @@ export default async function StoreCouponsPage({
                 No coupons yet. Generate one from the store page.
               </p>
               <Button asChild variant="outline" className="mt-4">
-                <Link href={`/stores/${storeId}`}>Generate coupon</Link>
+                <Link href={`/stores/${projectId}`}>Generate coupon</Link>
               </Button>
             </div>
           ) : (
-            <CouponList coupons={coupons} storeId={storeId} />
+            <CouponList coupons={coupons} projectId={projectId} />
           )}
           <PaginationControls
             page={pagination.page}

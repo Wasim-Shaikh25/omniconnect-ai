@@ -22,13 +22,13 @@ export interface MetaActionState {
 
 /** Ensures the current user's organization owns the target store. */
 async function assertStoreInOrg(
-  organizationId: string | null,
-  storeId: string,
+  userId: string | null,
+  projectId: string,
 ): Promise<boolean> {
-  if (!organizationId) return false;
+  if (!userId) return false;
   const overview =
-    await organizationQueries.getOrganizationOverview(organizationId);
-  return overview?.stores.some((s) => s.id === storeId) ?? false;
+    await organizationQueries.getOrganizationOverview(userId);
+  return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
 
 export async function connectMetaAction(
@@ -38,7 +38,7 @@ export async function connectMetaAction(
   const user = await requireRole("STORE_OWNER");
 
   const parsed = connectMetaSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     channel: formData.get("channel") || undefined,
     accountId: formData.get("accountId"),
     accessToken: formData.get("accessToken") || undefined,
@@ -47,7 +47,7 @@ export async function connectMetaAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -58,7 +58,7 @@ export async function connectMetaAction(
     throw error;
   }
 
-  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/stores/${parsed.data.projectId}`);
   return { ok: true, message: `${parsed.data.channel} connected.` };
 }
 
@@ -69,7 +69,7 @@ export async function simulateInboundAction(
   const user = await requireRole("STORE_OWNER");
 
   const parsed = simulateInboundSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     channel: formData.get("channel") || undefined,
     kind: formData.get("kind") || undefined,
     externalUserId: formData.get("externalUserId"),
@@ -80,18 +80,18 @@ export async function simulateInboundAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
   await simulateInbound(parsed.data);
 
-  revalidatePath(`/stores/${parsed.data.storeId}`);
+  revalidatePath(`/stores/${parsed.data.projectId}`);
   return { ok: true, message: `Simulated ${parsed.data.kind} event.` };
 }
 
 const searchHashtagMediaSchema = z.object({
-  storeId: z.string().min(1),
+  projectId: z.string().min(1),
   query: z.string().min(1).max(120),
   ownerFilter: z.string().max(120).optional(),
   limit: z.coerce.number().min(1).max(25).default(10),
@@ -103,7 +103,7 @@ export async function searchHashtagMediaAction(
 ): Promise<MetaActionState> {
   const user = await requireRole("STORE_OWNER");
   const parsed = searchHashtagMediaSchema.safeParse({
-    storeId: formData.get("storeId"),
+    projectId: formData.get("projectId"),
     query: formData.get("query"),
     ownerFilter: formData.get("ownerFilter") || undefined,
     limit: formData.get("limit") || 10,
@@ -112,23 +112,23 @@ export async function searchHashtagMediaAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.organizationId, parsed.data.storeId))) {
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
-  const { storeId, query, ownerFilter, limit } = parsed.data;
+  const { projectId, query, ownerFilter, limit } = parsed.data;
 
-  const search = await metaService.searchHashtag(storeId, query);
+  const search = await metaService.searchHashtag(projectId, query);
   if (!search.hashtagId) {
     // When no connected IG account / token, fallback returns dev sample media.
-    const fallback = await metaService.getHashtagMedia(storeId, `mock-${query.toLowerCase()}`, {
+    const fallback = await metaService.getHashtagMedia(projectId, `mock-${query.toLowerCase()}`, {
       top: true,
       limit,
     });
     return { ok: true, media: filterByOwner(fallback, ownerFilter) };
   }
 
-  const media = await metaService.getHashtagMedia(storeId, search.hashtagId, {
+  const media = await metaService.getHashtagMedia(projectId, search.hashtagId, {
     top: true,
     limit,
   });

@@ -8,19 +8,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default async function CampaignAnalyticsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
   const { user, store } = access;
-  if (!user.organizationId) notFound();
+  if (!user.userId) notFound();
 
-  const view = await getMarketingPerformance({ organizationId: user.organizationId, storeId });
+  const view = await getMarketingPerformance({ userId: user.userId, projectId });
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -30,7 +30,7 @@ export default async function CampaignAnalyticsPage({
           <p className="text-sm text-muted-foreground">Which campaigns drove growth for {store.name}.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}/analytics`}>Back to analytics</Link>
+          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
         </Button>
       </header>
 

@@ -28,10 +28,10 @@ export { PrismaMarketingInsightsRepository } from "./infrastructure/marketing-in
 
 /** Fetch the connected Meta account's own media. Kept server-only to avoid pulling node:crypto into the client bundle. */
 export async function getAccountMedia(
-  storeId: string,
+  projectId: string,
   limit?: number,
 ): Promise<MetaMediaItem[]> {
-  return metaService.getAccountMedia(storeId, limit);
+  return metaService.getAccountMedia(projectId, limit);
 }
 
 /** Server-only marketing performance with richer media metrics and post-to-order attribution. */
@@ -42,28 +42,28 @@ export const getMarketingPerformance = makeGetMarketingPerformance({
   social: socialQueries,
   eventBus,
   getAccountMedia,
-  getPageInsights: (storeId, days) => metaService.getPageInsights(storeId, days),
-  getAudienceInsights: (storeId) => metaService.getAudienceInsights(storeId),
+  getPageInsights: (projectId, days) => metaService.getPageInsights(projectId, days),
+  getAudienceInsights: (projectId) => metaService.getAudienceInsights(projectId),
 });
 
 /** Compute the best hours/days to post from historical media engagement and order timing. */
-export async function getBestTimeToPostForStore(storeId: string): Promise<ReturnType<typeof getBestTimeToPost>> {
+export async function getBestTimeToPostForStore(projectId: string): Promise<ReturnType<typeof getBestTimeToPost>> {
   const [media, orders] = await Promise.all([
-    getAccountMedia(storeId, 100),
-    ecommerceQueries.listOrders(storeId, 500).catch(() => []),
+    getAccountMedia(projectId, 100),
+    ecommerceQueries.listOrders(projectId, 500).catch(() => []),
   ]);
   return getBestTimeToPost({ media, orders });
 }
 
 /** Build an AI content calendar for the next 7 days using best-time-to-post and product catalog. */
 export async function getContentCalendarForStore(
-  storeId: string,
+  projectId: string,
   products: Pick<ProductRecord, "title">[] = [],
 ): Promise<ReturnType<typeof getContentCalendar>> {
   const [media, orders, storeProducts] = await Promise.all([
-    getAccountMedia(storeId, 100),
-    ecommerceQueries.listOrders(storeId, 500).catch(() => []),
-    products.length > 0 ? Promise.resolve(products) : ecommerceQueries.listProducts(storeId, 50).catch(() => []),
+    getAccountMedia(projectId, 100),
+    ecommerceQueries.listOrders(projectId, 500).catch(() => []),
+    products.length > 0 ? Promise.resolve(products) : ecommerceQueries.listProducts(projectId, 50).catch(() => []),
   ]);
   return getContentCalendar({ media, orders, products: storeProducts });
 }

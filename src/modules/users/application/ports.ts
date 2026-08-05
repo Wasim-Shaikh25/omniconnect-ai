@@ -4,7 +4,7 @@ import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 export interface ExportRequestRecord {
   id: string;
   userId: string;
-  organizationId: string | null;
+  userId: string | null;
   status: "PENDING" | "PROCESSING" | "COMPLETED" | "EXPIRED";
   downloadUrl: string | null;
   expiresAt: Date | null;
@@ -19,8 +19,8 @@ export interface UserProfile {
   image: string | null;
   role: Role;
   isSuperAdmin: boolean;
-  organizationId: string | null;
-  storeId: string | null;
+  userId: string | null;
+  projectId: string | null;
 }
 
 export interface UserProfileRepository {
@@ -29,15 +29,15 @@ export interface UserProfileRepository {
     id: string,
     data: { name?: string | null; image?: string | null },
   ): Promise<UserProfile>;
-  setOrganization(id: string, organizationId: string): Promise<void>;
+  setOrganization(id: string, userId: string): Promise<void>;
   setRole(id: string, role: Role): Promise<UserProfile>;
-  setStore(id: string, storeId: string | null): Promise<UserProfile>;
-  listByOrganization(organizationId: string, pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
+  setStore(id: string, projectId: string | null): Promise<UserProfile>;
+  listByOrganization(userId: string, pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
   listAll(pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
-  countByOrganization(organizationId: string): Promise<number>;
+  countByOrganization(userId: string): Promise<number>;
   setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
   removeFromOrganization(id: string): Promise<UserProfile>;
-  requestDataExport(userId: string, organizationId?: string | null): Promise<ExportRequestRecord>;
+  requestDataExport(userId: string, userId?: string | null): Promise<ExportRequestRecord>;
   listExportRequests(userId: string, limit?: number): Promise<ExportRequestRecord[]>;
   getExportRequest(id: string, userId: string): Promise<ExportRequestRecord | null>;
   markExportCompleted(id: string, downloadUrl: string): Promise<ExportRequestRecord | null>;

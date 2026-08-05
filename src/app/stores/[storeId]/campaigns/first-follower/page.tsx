@@ -23,11 +23,11 @@ import {
 export default async function FirstTimeFollowerCampaignPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
+  const { projectId } = await params;
 
-  const access = await checkStoreAccess(storeId);
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -36,8 +36,8 @@ export default async function FirstTimeFollowerCampaignPage({
 
   const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
   const [campaign, followers] = await Promise.all([
-    couponsQueries.getCampaign(storeId),
-    crmQueries.listFollowers(storeId, 10),
+    couponsQueries.getCampaign(projectId),
+    crmQueries.listFollowers(projectId, 10),
   ]);
 
   return (
@@ -50,7 +50,7 @@ export default async function FirstTimeFollowerCampaignPage({
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
 
@@ -66,7 +66,7 @@ export default async function FirstTimeFollowerCampaignPage({
             {canManage ? (
               <FirstTimeFollowerCampaignForm
                 action={updateCampaignAction}
-                storeId={storeId}
+                projectId={projectId}
                 campaign={campaign}
               />
             ) : (
@@ -89,7 +89,7 @@ export default async function FirstTimeFollowerCampaignPage({
             {env.NODE_ENV !== "production" && canManage ? (
               <FirstTimeFollowerSimulator
                 action={simulateFirstTimeFollower}
-                storeId={storeId}
+                projectId={projectId}
               />
             ) : (
               <p className="text-sm text-muted-foreground">

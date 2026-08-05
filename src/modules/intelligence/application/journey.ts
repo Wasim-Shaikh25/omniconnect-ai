@@ -22,12 +22,12 @@ export function makeJourneyService(input: JourneyServiceInput) {
 
   async function appendTouchpoint(touchpoint: AppendTouchpointInput): Promise<JourneyRecord> {
     const key = { customerId: touchpoint.customerId, externalUserId: touchpoint.externalUserId };
-    let journey = await input.journeys.findOpen(touchpoint.organizationId, touchpoint.storeId, key);
+    let journey = await input.journeys.findOpen(touchpoint.userId, touchpoint.projectId, key);
 
     if (!journey) {
       journey = await input.journeys.create({
-        organizationId: touchpoint.organizationId,
-        storeId: touchpoint.storeId,
+        userId: touchpoint.userId,
+        projectId: touchpoint.projectId,
         customerId: touchpoint.customerId ?? null,
         externalUserId: touchpoint.externalUserId ?? null,
         channel: touchpoint.channel ?? touchpoint.step.channel ?? null,
@@ -46,7 +46,7 @@ export function makeJourneyService(input: JourneyServiceInput) {
 
     const updated = await input.journeys.appendStep(
       journey.id,
-      journey.organizationId,
+      journey.userId,
       {
         type: touchpoint.step.type,
         externalId: touchpoint.step.externalId ?? null,
@@ -64,8 +64,8 @@ export function makeJourneyService(input: JourneyServiceInput) {
     await eventBus.publish(
       new JourneyUpdated(updated.id, {
         journeyId: updated.id,
-        organizationId: updated.organizationId,
-        storeId: updated.storeId,
+        userId: updated.userId,
+        projectId: updated.projectId,
         stepType: touchpoint.step.type,
         outcome: updated.outcome,
       }),
@@ -74,20 +74,20 @@ export function makeJourneyService(input: JourneyServiceInput) {
     return updated;
   }
 
-  async function getJourney(id: string, organizationId: string): Promise<JourneyRecord | null> {
-    return input.journeys.findById(id, organizationId);
+  async function getJourney(id: string, userId: string): Promise<JourneyRecord | null> {
+    return input.journeys.findById(id, userId);
   }
 
-  async function listJourneys(organizationId: string, storeId?: string, limit = 50): Promise<JourneyRecord[]> {
-    return input.journeys.list(organizationId, storeId, limit);
+  async function listJourneys(userId: string, projectId?: string, limit = 50): Promise<JourneyRecord[]> {
+    return input.journeys.list(userId, projectId, limit);
   }
 
   async function findJourneys(
-    organizationId: string,
-    query: { storeId?: string; externalUserId?: string; customerId?: string; postId?: string; couponCode?: string },
+    userId: string,
+    query: { projectId?: string; externalUserId?: string; customerId?: string; postId?: string; couponCode?: string },
     limit = 50,
   ): Promise<JourneyRecord[]> {
-    return input.journeys.search(organizationId, query, limit);
+    return input.journeys.search(userId, query, limit);
   }
 
   return { appendTouchpoint, getJourney, listJourneys, findJourneys };

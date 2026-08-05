@@ -1,6 +1,6 @@
 export interface SocialCommentRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   externalMediaId: string | null;
   externalCommentId: string | null;
   parentId: string | null;
@@ -19,7 +19,7 @@ export interface SocialCommentRecord {
 
 export interface SocialMentionRecord {
   id: string;
-  storeId: string;
+  projectId: string;
   externalMediaId: string | null;
   externalUserId: string | null;
   handle: string | null;
@@ -32,7 +32,7 @@ export interface SocialMentionRecord {
 
 export interface SocialCommentRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     externalMediaId?: string | null;
     externalCommentId?: string | null;
     parentId?: string | null;
@@ -43,7 +43,7 @@ export interface SocialCommentRepository {
     sentiment: string;
     autoReplyText?: string | null;
   }): Promise<SocialCommentRecord>;
-  listByStore(storeId: string, limit?: number): Promise<SocialCommentRecord[]>;
+  listByStore(projectId: string, limit?: number): Promise<SocialCommentRecord[]>;
   findById(id: string): Promise<SocialCommentRecord | null>;
   markReplied(id: string, replyText: string): Promise<SocialCommentRecord>;
   markHidden(id: string, hidden: boolean): Promise<SocialCommentRecord>;
@@ -51,7 +51,7 @@ export interface SocialCommentRepository {
 
 export interface SocialMentionRepository {
   create(input: {
-    storeId: string;
+    projectId: string;
     externalMediaId?: string | null;
     externalUserId?: string | null;
     handle?: string | null;
@@ -60,23 +60,23 @@ export interface SocialMentionRepository {
     caption?: string | null;
     hashtags?: string[];
   }): Promise<SocialMentionRecord>;
-  listByStore(storeId: string, limit?: number): Promise<SocialMentionRecord[]>;
+  listByStore(projectId: string, limit?: number): Promise<SocialMentionRecord[]>;
 }
 
 export interface SocialAutomationService {
   handleComment(input: {
-    storeId: string;
+    projectId: string;
     externalUserId: string;
     username: string | null;
     text: string;
     externalMediaId?: string | null;
     externalCommentId?: string | null;
   }): Promise<SocialCommentRecord>;
-  replyToComment(id: string, storeId: string, replyText: string): Promise<SocialCommentRecord>;
-  toggleHidden(id: string, storeId: string, hidden: boolean): Promise<SocialCommentRecord>;
+  replyToComment(id: string, projectId: string, replyText: string): Promise<SocialCommentRecord>;
+  toggleHidden(id: string, projectId: string, hidden: boolean): Promise<SocialCommentRecord>;
 }
 
 export interface SocialQueries {
-  listComments(storeId: string, limit?: number): Promise<SocialCommentRecord[]>;
-  listMentions(storeId: string, limit?: number): Promise<SocialMentionRecord[]>;
+  listComments(projectId: string, limit?: number): Promise<SocialCommentRecord[]>;
+  listMentions(projectId: string, limit?: number): Promise<SocialMentionRecord[]>;
 }

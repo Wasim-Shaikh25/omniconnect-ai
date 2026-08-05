@@ -13,7 +13,7 @@ import {
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.organizationId) redirect("/dashboard");
+  if (user.userId) redirect("/dashboard");
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">

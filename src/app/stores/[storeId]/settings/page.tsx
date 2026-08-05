@@ -14,10 +14,10 @@ import { Button } from "@/components/ui/button";
 export default async function StoreSettingsPage({
   params,
 }: {
-  params: Promise<{ storeId: string }>;
+  params: Promise<{ projectId: string }>;
 }) {
-  const { storeId } = await params;
-  const access = await checkStoreAccess(storeId);
+  const { projectId } = await params;
+  const access = await checkStoreAccess(projectId);
   if (!access.ok) {
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
@@ -45,7 +45,7 @@ export default async function StoreSettingsPage({
 
       <div className="mt-6 flex items-center gap-2">
         <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${storeId}`}>Back to store</Link>
+          <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
         <Button asChild variant="outline" size="sm">
           <Link href="/stores">All stores</Link>

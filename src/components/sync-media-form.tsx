@@ -8,15 +8,15 @@ type Action = (_prev: SyncMediaCatalogState, formData: FormData) => Promise<Sync
 
 interface SyncMediaFormProps {
   action: Action;
-  storeId: string;
+  projectId: string;
 }
 
-export function SyncMediaForm({ action, storeId }: SyncMediaFormProps) {
+export function SyncMediaForm({ action, projectId }: SyncMediaFormProps) {
   const [state, formAction, pending] = useActionState<SyncMediaCatalogState, FormData>(action, {});
 
   return (
     <form action={formAction} className="flex items-center gap-2">
-      <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="projectId" value={projectId} />
       <Button type="submit" size="sm" disabled={pending}>
         {pending ? "Syncing…" : "Sync media"}
       </Button>

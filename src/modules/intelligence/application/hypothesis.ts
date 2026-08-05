@@ -27,8 +27,8 @@ function hypothesisFromInsight(insight: BusinessInsightRecord): Omit<HypothesisR
   }
 
   return {
-    organizationId: insight.organizationId,
-    storeId: insight.storeId,
+    userId: insight.userId,
+    projectId: insight.projectId,
     insightId: insight.id,
     statement,
     features: insight.evidence,
@@ -41,9 +41,9 @@ function hypothesisFromInsight(insight: BusinessInsightRecord): Omit<HypothesisR
 
 export function makeHypothesisService(input: HypothesisServiceInput) {
   return {
-    async generateFromOpenInsights(organizationId: string, storeId?: string): Promise<HypothesisRecord[]> {
-      const insights = await input.insights.listOpen(organizationId, storeId, 50);
-      const existing = await input.hypotheses.list(organizationId, storeId, 200);
+    async generateFromOpenInsights(userId: string, projectId?: string): Promise<HypothesisRecord[]> {
+      const insights = await input.insights.listOpen(userId, projectId, 50);
+      const existing = await input.hypotheses.list(userId, projectId, 200);
       const seenInsightIds = new Set(existing.map((h) => h.insightId).filter(Boolean));
 
       const generated: HypothesisRecord[] = [];
@@ -57,8 +57,8 @@ export function makeHypothesisService(input: HypothesisServiceInput) {
       return generated;
     },
 
-    async list(organizationId: string, storeId?: string, limit = 20): Promise<HypothesisRecord[]> {
-      return input.hypotheses.list(organizationId, storeId, limit);
+    async list(userId: string, projectId?: string, limit = 20): Promise<HypothesisRecord[]> {
+      return input.hypotheses.list(userId, projectId, limit);
     },
   };
 }

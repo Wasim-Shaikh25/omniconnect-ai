@@ -3,7 +3,7 @@ import type { ConversationChannel } from "../application/ports";
 
 export interface NewMessagePayload {
   conversationId: string;
-  storeId: string;
+  projectId: string;
   channel: ConversationChannel;
   externalUserId: string;
   customerId: string | null;
@@ -21,7 +21,7 @@ export class NewMessage extends BaseDomainEvent<NewMessagePayload> {
 
 export interface ConversationTakenOverPayload {
   conversationId: string;
-  storeId: string;
+  projectId: string;
   humanUserId: string;
   customerId: string | null;
 }
@@ -32,7 +32,7 @@ export class ConversationTakenOver extends BaseDomainEvent<ConversationTakenOver
 
 export interface AIResumedPayload {
   conversationId: string;
-  storeId: string;
+  projectId: string;
   customerId: string | null;
 }
 
@@ -41,8 +41,8 @@ export class AIResumed extends BaseDomainEvent<AIResumedPayload> {
 }
 
 export interface ConversationInsight {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   conversationId: string;
   type: "RISK" | "OPPORTUNITY" | "ANOMALY";
   severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -54,8 +54,8 @@ export interface ConversationInsight {
 }
 
 export interface ConversationRecommendation {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   conversationId: string;
   type: "ACTION" | "INVESTIGATE" | "WAIT";
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
@@ -66,8 +66,8 @@ export interface ConversationRecommendation {
 }
 
 export interface ConversationInsightGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   conversationId: string;
   insight: ConversationInsight;
 }
@@ -77,8 +77,8 @@ export class ConversationInsightGenerated extends BaseDomainEvent<ConversationIn
 }
 
 export interface ConversationRecommendationGeneratedPayload {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   conversationId: string;
   recommendation: ConversationRecommendation;
 }

@@ -19,8 +19,8 @@ export type JourneyStage =
 
 export interface SignalRecord {
   id: string;
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   eventType: string;
   schemaVersion: number;
   subjectType: string;
@@ -40,8 +40,8 @@ export interface SignalRecord {
 
 export interface EntityLinkRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   sourceType: string;
   sourceId: string;
   targetType: string;
@@ -56,8 +56,8 @@ export interface EntityLinkRecord {
 
 export interface DataQualityIssueRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   source: string;
   entityType: string | null;
   entityId: string | null;
@@ -71,7 +71,7 @@ export interface DataQualityIssueRecord {
 
 export interface MetricDefinitionRecord {
   id: string;
-  organizationId: string | null;
+  userId: string | null;
   name: string;
   displayName: string;
   description: string | null;
@@ -87,8 +87,8 @@ export interface MetricDefinitionRecord {
 export interface MetricSnapshotRecord {
   id: string;
   definitionId: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   value: number | null;
   dimensions: Record<string, string> | null;
   periodStart: Date;
@@ -113,7 +113,7 @@ export interface TimelineEvent {
 
 export interface CustomerIntelligenceSummary {
   customerId: string;
-  storeId: string;
+  projectId: string;
   displayName: string;
   lifecycleStage: string;
   consent: string;
@@ -144,8 +144,8 @@ export interface BusinessInsightEvidence {
 
 export interface BusinessInsightRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   type: InsightType;
   severity: InsightSeverity;
   status: InsightStatus;
@@ -182,8 +182,8 @@ export type BusinessObjective = "GROWTH" | "REVENUE" | "ENGAGEMENT" | "RETENTION
 
 export interface RecommendationRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   insightId: string | null;
   producedByModule: string;
   producedByService: string | null;
@@ -220,8 +220,8 @@ export interface RecommendationRecord {
 
 export interface RecommendationConflictRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   winnerId: string;
   runnerUpId: string | null;
   winnerTitle: string;
@@ -233,8 +233,8 @@ export interface RecommendationConflictRecord {
 
 export interface ActionPlanRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   recommendationId: string | null;
   title: string;
   steps: unknown;
@@ -250,7 +250,7 @@ export interface ActionPlanRecord {
 
 export interface DecisionRecord {
   id: string;
-  organizationId: string;
+  userId: string;
   actionPlanId: string;
   recommendationId: string | null;
   decisionType: DecisionType;
@@ -263,8 +263,8 @@ export interface DecisionRecord {
 
 export interface OutcomeRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   actionPlanId: string;
   metricName: string | null;
   beforeValue: number | null;
@@ -286,8 +286,8 @@ export interface GoalPacing {
 
 export interface GoalRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   name: string;
   targetMetric: string;
   baseline: number | null;
@@ -307,8 +307,8 @@ export type HypothesisStatus = "PROPOSED" | "VALIDATED" | "REFUTED";
 
 export interface PredictionRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   predictionType: PredictionType;
   targetEntityType: string | null;
   targetEntityId: string | null;
@@ -328,8 +328,8 @@ export interface PredictionRecord {
 
 export interface HypothesisRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   insightId: string | null;
   statement: string;
   features: unknown;
@@ -343,8 +343,8 @@ export interface HypothesisRecord {
 
 export interface BusinessLearningRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   ruleName: string;
   condition: unknown;
   effect: unknown;
@@ -358,8 +358,8 @@ export interface BusinessLearningRecord {
 
 export interface CompetitorInsightRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   competitorHandle: string;
   metricName: string;
   value: number;
@@ -373,7 +373,7 @@ export interface CompetitorInsightRecord {
 
 export interface PortfolioSnapshotRecord {
   id: string;
-  organizationId: string;
+  userId: string;
   storeCount: number;
   totalRevenueEstimate: number | null;
   totalChurnRisk: number | null;
@@ -387,7 +387,7 @@ export interface PortfolioSnapshotRecord {
 
 export interface SystemMetricRecord {
   id: string;
-  organizationId: string;
+  userId: string;
   operation: string;
   module: string;
   latencyMs: number | null;
@@ -436,8 +436,8 @@ export interface CompetitorChange {
 }
 
 export interface MarketingMemoryRecord {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   generatedAt: Date;
   followerCount: number;
   productScores: ProductScoreRecord[];
@@ -460,8 +460,8 @@ export interface DailyBriefSection {
 }
 
 export interface DailyBriefRecord {
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   generatedAt: Date;
   sections: DailyBriefSection[];
   contentIdea: string | null;
@@ -487,8 +487,8 @@ export type JourneyOutcome = "PURCHASE" | "FOLLOW" | "INQUIRY" | "CHURNED" | "OP
 
 export interface DailyActionRecord {
   id: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   title: string;
   description: string;
   objective: BusinessObjective;
@@ -511,8 +511,8 @@ export interface DailyActionRecord {
 export interface ActionOutcomeRecord {
   id: string;
   actionId: string;
-  organizationId: string;
-  storeId: string | null;
+  userId: string;
+  projectId: string | null;
   metricName: string | null;
   metricBefore: unknown;
   metricAfter: unknown;
@@ -536,8 +536,8 @@ export interface JourneyStepRecord {
 
 export interface JourneyRecord {
   id: string;
-  organizationId: string;
-  storeId: string;
+  userId: string;
+  projectId: string;
   customerId: string | null;
   externalUserId: string | null;
   channel: string | null;
@@ -553,7 +553,7 @@ export interface JourneyRecord {
 
 export interface IntelligenceFeedbackRecord {
   id: string;
-  organizationId: string;
+  userId: string;
   insightId: string;
   userId: string;
   understood: boolean;
@@ -565,7 +565,7 @@ export interface IntelligenceFeedbackRecord {
 
 export interface IntelligenceDismissalRecord {
   id: string;
-  organizationId: string;
+  userId: string;
   insightId: string;
   reason: string;
   userId: string;
@@ -578,7 +578,7 @@ export type GoalPlanPostLaunchRecommendation = "continue" | "adjust" | "pause" |
 export interface GoalPlanRecord {
   id: string;
   goalId: string;
-  organizationId: string;
+  userId: string;
   version: number;
   workflowId: string;
   status: GoalPlanStatus;
@@ -593,7 +593,7 @@ export type RolloutMode = "SHADOW" | "INTERNAL" | "PILOT" | "BETA" | "GA";
 
 export interface RolloutGateRecord {
   id: string;
-  organizationId: string;
+  userId: string;
   name: RolloutMode;
   enabled: boolean;
   canExecuteOutboundActions: boolean;

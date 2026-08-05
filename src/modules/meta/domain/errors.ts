@@ -20,7 +20,7 @@ export class UnknownAccountError extends MetaError {
 }
 
 export class MetaNotConnectedError extends MetaError {
-  constructor(storeId: string) {
-    super(`Store has no Meta connection: ${storeId}`);
+  constructor(projectId: string) {
+    super(`Store has no Meta connection: ${projectId}`);
   }
 }
