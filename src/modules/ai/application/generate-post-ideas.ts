@@ -174,6 +174,8 @@ Generate content ideas that follow the same vibe, tie to the brand's current mar
     const raw = await deps.aiProvider.complete(context.messages, {
       model: context.model,
       fallback: context.fallback,
+      operation: context.operation,
+      metadata: context.metadata,
     });
 
     try {

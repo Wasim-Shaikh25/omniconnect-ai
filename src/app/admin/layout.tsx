@@ -38,6 +38,9 @@ export default async function AdminLayout({
           <Link href="/admin/logs" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
             Logs
           </Link>
+          <Link href="/admin/ai-usage" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
+            AI Usage
+          </Link>
         </nav>
       </header>
       {children}

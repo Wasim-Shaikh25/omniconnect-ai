@@ -71,6 +71,8 @@ Return only a JSON array. Do not wrap in markdown.`;
     const raw = await deps.aiProvider.complete(context.messages, {
       model: context.model,
       fallback: context.fallback,
+      operation: context.operation,
+      metadata: context.metadata,
     });
 
     try {

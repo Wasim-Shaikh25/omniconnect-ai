@@ -4,7 +4,7 @@ description: OpenRouter Integration
 
 # REQ-0086: OpenRouter Integration
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0086-openrouter-integration.md`
@@ -38,12 +38,12 @@ Replace direct OpenAI integration with OpenRouter as a unified AI gateway. Singl
 
 ## 5. Acceptance Criteria
 
-- [ ] OpenRouterClient with chat, streaming, tool calling support.
-- [ ] Environment vars: `OPENROUTER_API_KEY`, `AI_DEFAULT_MODEL`, `AI_REPLY_MODEL`, `AI_DASHBOARD_MODEL`, `AI_CONTENT_MODEL`.
-- [ ] `getModelForFeature()` resolves: project override → env → default.
-- [ ] `validateModelAccess()` checks plan.allowedModels before API call.
-- [ ] Token usage recorded per request (model, tokens, cost).
-- [ ] All existing OpenAI imports replaced with OpenRouter.
+- [x] OpenRouterClient with chat, streaming, tool calling support.
+- [x] Environment vars: `OPENROUTER_API_KEY`, `AI_DEFAULT_MODEL`, `AI_REPLY_MODEL`, `AI_DASHBOARD_MODEL`, `AI_CONTENT_MODEL`.
+- [x] `getModelForFeature()` resolves: project override → env → default.
+- [x] `validateModelAccess()` checks plan.allowedModels before API call.
+- [x] Token usage recorded per request (model, tokens, cost) and viewable on `/admin/ai-usage`.
+- [x] All existing OpenAI imports replaced with OpenRouter.
 
 ## 6. Scope & Dependencies
 

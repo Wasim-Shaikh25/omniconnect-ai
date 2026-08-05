@@ -55,13 +55,15 @@ Personalize this welcome message for the new follower whose name is in the <<<FO
       .withModel(selectModel("welcome-message", config.model).model)
       .withFallback(safeFallback)
       .withOperation("welcome-message")
-      .withMetadata({ username, discountPct: input.discountPct })
+      .withMetadata({ projectId, username, discountPct: input.discountPct })
       .build();
 
     try {
       return await deps.aiProvider.complete(context.messages, {
         model: context.model,
         fallback: context.fallback,
+        operation: context.operation,
+        metadata: context.metadata,
       });
     } catch {
       return context.fallback;

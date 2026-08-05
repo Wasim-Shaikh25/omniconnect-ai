@@ -77,6 +77,8 @@ Explain why it worked and provide a slide-by-slide storyboard.`;
     const raw = await deps.aiProvider.complete(context.messages, {
       model: context.model,
       fallback: context.fallback,
+      operation: context.operation,
+      metadata: context.metadata,
     });
 
     try {

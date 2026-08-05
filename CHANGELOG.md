@@ -31,16 +31,17 @@ All notable changes to **OmniConnect AI** are documented here.
   `OpenAIProvider` with `OpenRouterProvider` backed by `OpenRouterClient`; updated `env.ts`
   production-required secrets from `OPENAI_API_KEY` to `OPENROUTER_API_KEY`; help page now refers to
   OpenRouter model ids.
+- `REQ-0086` **OpenRouter Integration** on `devin/ai-usage-tracking-1785936345`:
+  completed T-062 by persisting `TokenUsage` rows per user/project/feature/model/day through
+  `PrismaTokenUsageRepository` wired into `OpenRouterProvider`; added `/admin/ai-usage` super-admin
+  dashboard showing totals, daily summary, and recent calls.
 
 ### 🚧 In Progress
 
-- `REQ-0086` **OpenRouter Integration** — T-062 AI usage tracking (persist `TokenUsage` rows,
-  super-admin dashboard) remains before REQ-0086 is complete.
+_None — last batch is on `devin/ai-usage-tracking-1785936345` pending review._
 
 ### ⏭️ Next
 
-- `REQ-0086` **T-062 AI usage tracking** — persist `TokenUsage` rows per model/feature/day and add
-  a super-admin usage dashboard.
 - `REQ-0091` **Deterministic Analysis Engine** — AnalysisSpec vocabulary + safe engine so numbers
   are computed by code and the LLM narrates only; modifies `analyze-media.ts` and
   `generate-trends.ts` to stop the LLM inventing metrics.

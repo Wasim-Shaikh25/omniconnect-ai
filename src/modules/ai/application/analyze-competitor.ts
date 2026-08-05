@@ -75,6 +75,8 @@ Posts:\n${postsSummary}\n\nAnalyze the content strategy and suggest how to outpe
     const raw = await deps.aiProvider.complete(context.messages, {
       model: context.model,
       fallback: context.fallback,
+      operation: context.operation,
+      metadata: context.metadata,
     });
 
     try {

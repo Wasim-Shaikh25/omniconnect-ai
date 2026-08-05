@@ -16,6 +16,7 @@ export type {
 
 // Application ports + record types
 export type {
+  AICompletionConfig,
   AIConfigurationRecord,
   AIConfigurationRepository,
   AIMessage,
@@ -23,6 +24,8 @@ export type {
   AssistantService,
   BrainConversationMemoryRecord,
   BrainMemoryRepository,
+  TokenUsageRecord,
+  TokenUsageRepository,
 } from "./application/ports";
 export type { BrainMemoryService } from "./application/brain-memory";
 export type { GenerateWelcome } from "./application/generate-welcome";
