@@ -39,6 +39,7 @@ function isAllowed(route: string): boolean {
     "/settings",
     "/customers/[customerId]",
     "/stores/[projectId]",
+    "/share",
   ];
   if (allow.includes(route)) return true;
   return allowedPrefixes.some((prefix) => route === prefix || route.startsWith(`${prefix}/`));

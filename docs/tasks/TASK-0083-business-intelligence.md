@@ -62,7 +62,11 @@ Marketing dashboard with default widgets. AI-generated custom dashboards via cha
   - [x] T-070c: `mentionService` with `syncMentions` and `listMentionsWithSentiment`.
   - [x] T-070d: `syncMentionsAction` and `listMentionsWithSentimentAction`.
   - [x] T-070e: `/stores/[projectId]/analytics/mentions` page and nav link.
-- [ ] T-074: Dashboard export (PDF, image, shareable link) — Phase 4
+- [x] T-074: Dashboard export (PDF, image, shareable link) — Phase 4
+  - [x] T-074a: Add `DashboardShare` Prisma model and `createDashboardShareAction` / `getDashboardShareByTokenAction`.
+  - [x] T-074b: Add client-side export buttons (image and PDF) to `/analytics/dashboard` using `html-to-image` and `jspdf`.
+  - [x] T-074c: Add read-only share page `/share/d/[token]` that renders a stored `DashboardSchema`.
+  - [x] T-074d: Update requirement/tracker and run quality gates.
 
 ## 5. Acceptance Criteria
 

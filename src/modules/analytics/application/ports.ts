@@ -118,6 +118,32 @@ export interface CreateReportInput {
   generatedAt?: Date;
 }
 
+import type { DashboardSchema } from "@/modules/ai";
+
+export interface DashboardShareRecord {
+  id: string;
+  projectId: string;
+  token: string;
+  title: string | null;
+  schema: DashboardSchema;
+  expiresAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateDashboardShareInput {
+  projectId: string;
+  token: string;
+  title?: string | null;
+  schema: DashboardSchema;
+  expiresAt?: Date | null;
+}
+
+export interface DashboardShareRepository {
+  create(input: CreateDashboardShareInput): Promise<DashboardShareRecord>;
+  findByToken(token: string): Promise<DashboardShareRecord | null>;
+}
+
 export interface MarketingInsightsRepository {
   upsertMediaPost(projectId: string, input: UpsertMediaPostInput): Promise<MediaPost>;
   upsertMediaInsight(mediaPostId: string, input: UpsertMediaInsightInput): Promise<MediaInsight>;

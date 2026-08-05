@@ -24,6 +24,8 @@ export {
   marketingInsightsService,
   marketingInsightsRepository,
   queryAnalytics,
+  dashboardShareCommands,
+  dashboardShareQueries,
 } from "./infrastructure/container";
 export { PrismaTrackedAccountRepository } from "./infrastructure/tracked-account.repository";
 export { PrismaMarketingInsightsRepository } from "./infrastructure/marketing-insights.repository";

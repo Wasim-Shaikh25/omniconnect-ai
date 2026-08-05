@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DynamicDashboard } from "@/components/dashboard/DynamicDashboard";
 import { queryAnalyticsAction, type QueryAnalyticsState } from "@/modules/analytics";
+import { DashboardExportToolbar } from "./_components/dashboard-export-toolbar";
 
 interface QueryAnalyticsFormProps {
   projectId: string;
@@ -17,6 +18,7 @@ export function QueryAnalyticsForm({ projectId }: QueryAnalyticsFormProps) {
     queryAnalyticsAction,
     {},
   );
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="space-y-6">
@@ -58,10 +60,15 @@ export function QueryAnalyticsForm({ projectId }: QueryAnalyticsFormProps) {
 
       {state.schema && (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Operation: <span className="font-medium text-foreground">{state.operation}</span>
-          </p>
-          <DynamicDashboard schema={state.schema} />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Operation: <span className="font-medium text-foreground">{state.operation}</span>
+            </p>
+            <DashboardExportToolbar projectId={projectId} schema={state.schema} targetRef={dashboardRef} />
+          </div>
+          <div ref={dashboardRef} className="rounded-lg border bg-card p-4">
+            <DynamicDashboard schema={state.schema} />
+          </div>
         </div>
       )}
     </div>

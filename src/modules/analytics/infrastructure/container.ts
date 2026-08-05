@@ -14,11 +14,15 @@ import {
 import { makeMarketingInsightsService } from "../application/marketing-insights";
 import { makeQueryAnalytics } from "../application/query-analytics";
 import { makePrismaDatasetFetcher } from "./prisma-dataset-fetcher";
+import { env } from "@/shared/config";
 import { PrismaTrackedAccountRepository } from "./tracked-account.repository";
 import { PrismaMarketingInsightsRepository } from "./marketing-insights.repository";
+import { PrismaDashboardShareRepository } from "./dashboard-share.repository";
+import { makeDashboardShareCommands, makeDashboardShareQueries } from "../application/dashboard-share";
 
 const trackedAccounts = new PrismaTrackedAccountRepository();
 export const marketingInsightsRepository = new PrismaMarketingInsightsRepository();
+const dashboardShares = new PrismaDashboardShareRepository();
 export const marketingInsightsService = makeMarketingInsightsService({
   repository: marketingInsightsRepository,
 });
@@ -51,3 +55,6 @@ const fetchDataset = makePrismaDatasetFetcher({
 });
 
 export const queryAnalytics = makeQueryAnalytics({ fetchDataset });
+
+export const dashboardShareCommands = makeDashboardShareCommands(dashboardShares, env.APP_URL);
+export const dashboardShareQueries = makeDashboardShareQueries(dashboardShares);

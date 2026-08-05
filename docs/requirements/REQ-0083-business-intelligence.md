@@ -4,7 +4,7 @@ description: Business Intelligence (Read-Only Analytics)
 
 # REQ-0083: Business Intelligence (Read-Only Analytics)
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0083-business-intelligence.md`
@@ -42,6 +42,7 @@ Read-only business intelligence dashboard powered by e-commerce adapter data and
 - [x] AI generateDashboard tool returns valid DashboardSchema.
 - [x] Six metric groups available via queryAnalytics.
 - [x] Brand mention monitoring: project-scoped `SocialMention` feed with AI/heuristic sentiment (positive / negative / neutral / mixed) and a sync action backed by a `BrandMentionSource` port.
+- [x] Dashboard export: download `/analytics/dashboard` as PNG image and PDF, plus create a read-only shareable link (`/share/d/[token]`) backed by a `DashboardShare` model.
 - [x] All data read-only — no mutations via dashboard.
 
 ## 6. Scope & Dependencies

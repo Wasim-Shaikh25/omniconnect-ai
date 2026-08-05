@@ -156,6 +156,11 @@ All notable changes to **OmniConnect AI** are documented here.
   `syncMentionsAction` / `listMentionsWithSentimentAction`, and the
   `/stores/[projectId]/analytics/mentions` page with source badges, sentiment badges, confidence,
   and a sync button; linked the page from the project analytics hub.
+- `REQ-0083` **Business Intelligence (Phase 4)** on `devin/bi-dashboard-export-1785954826`:
+  added `DashboardShare` Prisma model and migration; `createDashboardShareAction` / `getDashboardShareByTokenAction`;
+  `DashboardExportToolbar` on `/analytics/dashboard` for PNG image and PDF download using `html-to-image`
+  and `jspdf`; public `/share/d/[token]` page rendering a read-only `DynamicDashboard` from the stored
+  snapshot. Expired or missing tokens return 404.
 
 ### 🚧 In Progress
 
@@ -163,7 +168,8 @@ None.
 
 ### ⏭️ Next
 
-- `REQ-0083` **Business Intelligence (Phase 4)** — dashboard export (PDF / image / shareable link).
+- `REQ-0084` **Attribution & direct checkout links** — coupon + UTM, order webhook matching, Meta CAPI, attribution dashboard.
+- `REQ-0085` **Profile/reel inspector plan gating** — AI demographic estimation and plan-limit enforcement.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 
