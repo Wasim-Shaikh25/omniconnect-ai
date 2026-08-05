@@ -128,6 +128,10 @@ All notable changes to **OmniConnect AI** are documented here.
   renderers for KPI, line_chart, bar_chart, pie_chart, table, and sparkline widgets; grid sizes
   small/medium/large/full map to `col-span-3/6/9/12`; unit tests cover all widget types.
 
+- `REQ-0083` **Business Intelligence (review fix)** on `devin/bi-review-fixes-1785946663`:
+  clamped `PieChartWidget` sweep to 359.99° so a 100% slice no longer collapses to an empty SVG
+  path; added `PieChartWidget.test.tsx` regression guard.
+
 ### 🚧 In Progress
 
 - `REQ-0083` **Business Intelligence (Batch 2)** — `/analytics/dashboard` page and server action wired
