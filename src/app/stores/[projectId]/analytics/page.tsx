@@ -86,6 +86,9 @@ export default async function StoreAnalyticsPage({
             <Button asChild variant="outline" size="sm">
               <Link href={`/stores/${projectId}/analytics/campaign`}>Campaign</Link>
             </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/stores/${projectId}/analytics/competitors`}>Competitors</Link>
+            </Button>
           </div>
 
           {view.audience.pageInsights && (

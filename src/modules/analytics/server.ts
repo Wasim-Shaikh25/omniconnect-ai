@@ -20,6 +20,7 @@ import type { ProductRecord } from "@/modules/ecommerce";
 export {
   analyticsQueries,
   getCompetitorBenchmark,
+  getCompetitorComparisonDashboard,
   marketingInsightsService,
   marketingInsightsRepository,
   queryAnalytics,

@@ -43,12 +43,12 @@ function normalizeDate(input?: string | Date | null): Date | null {
 function dateRange(
   range?: { from?: string; to?: string },
   fallbackDays = 7,
-  offsetDays = 0,
 ): { start: Date; end: Date } {
   const end = new Date();
-  end.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
   const start = new Date(end);
-  start.setDate(start.getDate() - fallbackDays);
+  start.setDate(start.getDate() - (fallbackDays - 1));
+  start.setHours(0, 0, 0, 0);
 
   const parsedEnd = normalizeDate(range?.to);
   if (parsedEnd) {
@@ -58,13 +58,8 @@ function dateRange(
 
   const parsedStart = normalizeDate(range?.from);
   if (parsedStart) {
+    parsedStart.setHours(0, 0, 0, 0);
     start.setTime(parsedStart.getTime());
-  }
-
-  if (offsetDays !== 0) {
-    const delta = offsetDays * 24 * 60 * 60 * 1000;
-    start.setTime(start.getTime() + delta);
-    end.setTime(end.getTime() + delta);
   }
 
   return { start, end };
@@ -238,10 +233,22 @@ export function makePrismaDatasetFetcher(deps: PrismaDatasetFetcherDeps) {
   }
 
   async function fetchAccountInsights(projectId: string, start: Date, end: Date): Promise<AccountInsight[]> {
-    return prisma.accountInsight.findMany({
+    const rows = await prisma.accountInsight.findMany({
       where: { projectId, date: { gte: start, lte: end } },
       orderBy: { date: "asc" },
-    }) as unknown as AccountInsight[];
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      projectId: row.projectId,
+      date: row.date,
+      followers: row.followers,
+      profileViews: row.profileViews,
+      reach: row.reach,
+      impressions: row.impressions,
+      websiteClicks: row.websiteClicks,
+      audienceJson: row.audienceJson as AccountInsight["audienceJson"],
+      fetchedAt: row.fetchedAt,
+    }));
   }
 
   async function fetchSinglePost(spec: AnalysisSpec, projectId: string): Promise<SinglePostDataset> {
@@ -278,13 +285,24 @@ export function makePrismaDatasetFetcher(deps: PrismaDatasetFetcherDeps) {
 
   async function fetchComparePeriod(spec: AnalysisSpec, projectId: string): Promise<ComparePeriodDataset> {
     const currentRange = dateRange(spec.target?.dateRange, 7);
+
+    const previousDurationDays = Math.max(
+      1,
+      Math.ceil(
+        (currentRange.end.getTime() - currentRange.start.getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
+    );
+    const previousStart = new Date(currentRange.start);
+    previousStart.setDate(previousStart.getDate() - previousDurationDays);
+    const previousEnd = new Date(currentRange.start.getTime() - 1);
+
     const previousRange = dateRange(
       spec.target?.compareTo ?? {
-        from: new Date(currentRange.start.getTime() - (currentRange.end.getTime() - currentRange.start.getTime())).toISOString(),
-        to: currentRange.start.toISOString(),
+        from: toISODate(previousStart),
+        to: toISODate(previousEnd),
       },
       7,
-      -7,
     );
 
     const [currentOrders, previousOrders] = await Promise.all([

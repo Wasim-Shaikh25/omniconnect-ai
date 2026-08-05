@@ -48,7 +48,14 @@ export { profileQuality } from "./application/operations/profile-quality";
 export { engagementScore, percentileRank, zScore, topN, correlation, mean, stdDev, median } from "./application/operations/stats";
 export type { ScoredPost } from "./application/operations/stats";
 export type { GetMarketingPerformance } from "./application/marketing-analytics";
-export type { CompetitorBenchmark, GetCompetitorBenchmark, WorkspaceCompetitorComparison, GetWorkspaceCompetitorComparison } from "./application/competitor-benchmark";
+export type {
+  CompetitorBenchmark,
+  GetCompetitorBenchmark,
+  WorkspaceCompetitorComparison,
+  GetWorkspaceCompetitorComparison,
+  CompetitorComparisonDashboard,
+  GetCompetitorComparisonDashboard,
+} from "./application/competitor-benchmark";
 
 export {
   MarketingPerformanceUpdated,
@@ -74,6 +81,7 @@ export {
   getMarketingPerformanceAction,
   getCompetitorBenchmarkAction,
   getWorkspaceCompetitorComparisonAction,
+  getCompetitorComparisonDashboardAction,
   getBestTimeToPostAction,
   getContentCalendarAction,
   syncMediaCatalogAction,
@@ -98,6 +106,7 @@ export type {
   MarketingPerformanceState,
   CompetitorBenchmarkState,
   WorkspaceCompetitorComparisonState,
+  CompetitorComparisonDashboardState,
   BestTimeToPostState,
   ContentCalendarState,
   SyncMediaCatalogState,
