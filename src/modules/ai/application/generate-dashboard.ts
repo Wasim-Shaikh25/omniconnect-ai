@@ -6,6 +6,7 @@ export interface KPIData {
   label: string;
   change?: number;
   changeLabel?: string;
+  icon?: string;
 }
 
 export interface ChartData {

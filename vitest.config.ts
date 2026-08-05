@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
-    exclude: ["src/**/*.integration.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    exclude: ["src/**/*.integration.test.ts", "src/**/*.integration.test.tsx"],
     globals: false,
     coverage: {
       provider: "v8",
@@ -13,7 +13,9 @@ export default defineConfig({
       include: ["src/**/*.ts"],
       exclude: [
         "src/**/*.test.ts",
+        "src/**/*.test.tsx",
         "src/**/*.integration.test.ts",
+        "src/**/*.integration.test.tsx",
         "src/**/*.d.ts",
         "src/app/**/layout.tsx",
       ],
@@ -29,6 +31,9 @@ export default defineConfig({
         statements: 7,
       },
     },
+  },
+  esbuild: {
+    jsx: "automatic",
   },
   resolve: {
     alias: {
