@@ -72,11 +72,18 @@ All notable changes to **OmniConnect AI** are documented here.
   wired `queryAnalytics` and `generateDashboard` to the deterministic engine, added a
   `DashboardSchema` transformer for KPI / line_chart / table widgets, and exposed everything through
   the `ai` public barrel.
+- `REQ-0085 / REQ-0091` **Profile Inspector core** on `devin/deterministic-profile-inspector-1785943443`:
+  added a new `inspector` module with `inspectProfile`, `ProfileFetcher`, and `ProfileNarrator`
+  ports. The use-case computes deterministic audience quality (via `profileQuality`), engagement
+  rate, top content, demographic estimates with confidence tiers, and a growth trend from follower
+  snapshots. A deterministic narrator is included; Meta/OpenRouter adapters can be wired behind
+  the ports later.
 
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 8)** — local MiniLM `TransformersEmbeddingProvider`
-  (via `@xenova/transformers` / transformers.js) and Profile Inspector integration.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 9)** — local MiniLM `TransformersEmbeddingProvider`
+  (via `@xenova/transformers` / transformers.js) and Meta/OpenRouter-backed `ProfileFetcher` / `ProfileNarrator`
+  adapters for the inspector.
 
 ### ⏭️ Next
 

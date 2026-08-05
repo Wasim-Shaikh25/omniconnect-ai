@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Progress (Batch 7)
+- **Status:** In Progress (Batch 9)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -16,7 +16,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Requirement REQ-0091 approved.
 - [x] Task file TASK-0091 created.
 - [x] Tracker file TRACKER-0091 created.
-- [x] Branch created (`devin/deterministic-dashboard-wiring-1785942456`).
+- [x] Branch created (`devin/deterministic-profile-inspector-1785943443`).
 
 ### Batch 1 — Core Engine + analyze-media (merged in PR #132)
 - [x] T-078: Define `AnalysisSpec` schema + closed operation vocabulary + `validateSpec()`.
@@ -80,7 +80,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `docs/specs/current-state.md` updated.
 - [x] PR #137 merged.
 
-### Batch 7 — queryAnalytics / generateDashboard wiring (In Review)
+### Batch 7 — queryAnalytics / generateDashboard wiring (merged in PR #138)
 - [x] T-084a: Define `DatasetFetcher` port.
 - [x] T-084b: Implement `queryAnalytics` application service.
 - [x] T-084c: Implement `generateDashboard` application service and `DashboardSchema`.
@@ -89,14 +89,27 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
+- [x] PR #138 merged.
+
+### Batch 8 — Profile Inspector core (In Review)
+- [x] T-087: Define `inspector` domain types.
+- [x] T-087: Define `ProfileFetcher` and `ProfileNarrator` ports.
+- [x] T-087: Implement deterministic `inspectProfile` use-case.
+- [x] T-087: Implement deterministic `ProfileNarrator`.
+- [x] Export public contract from `src/modules/inspector/index.ts`.
+- [x] Add unit tests for `inspectProfile`.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
+- [x] `docs/requirements/REQ-0085-profile-reel-inspector.md` updated.
 - [ ] PR created and merged.
 
-### Batch 8 (Deferred)
+### Batch 9 (Deferred)
 - [ ] Local MiniLM `TransformersEmbeddingProvider` via `@xenova/transformers` / transformers.js.
-- [ ] Profile Inspector feature integration (T-087 full).
+- [ ] Meta/OpenRouter-backed `ProfileFetcher` / `ProfileNarrator` adapters for the inspector.
 
 ## 3. Acceptance Criteria
 
-- [ ] Batch 7 acceptance criteria from TASK-0091 met.
+- [ ] Batch 8 acceptance criteria from TASK-0091 met.
 - [ ] All verification steps above pass.
-- [ ] Full REQ-0091 acceptance criteria remain for Batch 8.
+- [ ] Full REQ-0091 acceptance criteria remain for Batch 9.

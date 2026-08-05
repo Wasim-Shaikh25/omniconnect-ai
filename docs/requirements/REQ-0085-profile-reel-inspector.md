@@ -38,12 +38,14 @@ Built entirely on free Meta APIs + AI estimation. No paid third-party data. Thre
 
 ## 5. Acceptance Criteria
 
-- [ ] Business Discovery API fetch for public profile data.
-- [ ] AI demographic estimation from comment language, posting times, hashtags, locations.
-- [ ] Three confidence tiers: high (70%+), medium (40-70%), low (<40%).
-- [ ] Low confidence metrics labeled "insufficient data" instead of showing unreliable numbers.
-- [ ] Audience quality score based on engagement patterns and spam detection.
-- [ ] Growth trend classification: growing, stable, declining.
+- [x] Deterministic `inspectProfile` core with `ProfileFetcher` and `ProfileNarrator` ports.
+- [x] Audience quality score based on engagement patterns and spam detection (via `profileQuality`).
+- [x] Three confidence tiers: high (70%+), medium (40-70%), low (<40%).
+- [x] Low confidence metrics labeled with the `confidence` field; `generateDashboard` / UI can gate display.
+- [x] Growth trend classification: growing, stable, declining from follower snapshots.
+- [x] Top content ranking from public media engagement.
+- [ ] Business Discovery API fetch for public profile data (adapter behind `ProfileFetcher` port).
+- [ ] AI demographic estimation from comment language, posting times, hashtags, locations (adapter behind `ProfileNarrator` / estimator port).
 - [ ] Inspector UI: username input, results dashboard with confidence labels.
 - [ ] Plan limits: Free (3/day), Pro (50/day), Business (unlimited).
 
