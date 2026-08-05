@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ElementType } from "react";
 import { getCurrentUser } from "@/modules/auth";
+import { isStaff } from "@/modules/auth/domain";
 import { analyticsQueries } from "@/modules/analytics/server";
 import { DataQualityAlerts } from "@/components/data-quality-alerts";
 import { TodayFeed } from "@/components/today-feed";
@@ -61,7 +62,8 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!user.userId) redirect("/onboarding");
-  if (user.role === "USER" && user.projectId) redirect(`/stores/${user.projectId}`);
+  if (isStaff(user) && !user.projectId) redirect("/stores");
+  if (isStaff(user) && user.projectId) redirect(`/stores/${user.projectId}`);
 
   const kpis = await analyticsQueries.getWorkspaceKpis(user.userId);
   if (!kpis) redirect("/stores");

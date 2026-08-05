@@ -3,10 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { SignOutButton } from "./sign-out-button";
+import { getUnreadNotificationCountAction } from "@/modules/notifications";
+import { isRole, type Role } from "@/modules/auth/domain";
 import type { SessionUser } from "@/modules/auth";
 
 import * as Dialog from "@radix-ui/react-dialog";
@@ -46,12 +49,34 @@ interface NavItem {
 }
 
 interface AppShellProps {
-  user: SessionUser | null;
-  unreadCount?: number;
   children: React.ReactNode;
 }
 
-export function AppShell({ user, unreadCount = 0, children }: AppShellProps) {
+function sessionUserFromClient(raw: unknown): SessionUser | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const u = raw as Record<string, unknown>;
+  if (!u.id || !u.email || typeof u.id !== "string" || typeof u.email !== "string") return null;
+  return {
+    id: u.id,
+    email: u.email,
+    name: typeof u.name === "string" ? u.name : null,
+    role: isRole(u.role) ? (u.role as Role) : "USER",
+    isSuperAdmin: typeof u.isSuperAdmin === "boolean" ? u.isSuperAdmin : false,
+    emailVerified: u.emailVerified instanceof Date ? u.emailVerified : null,
+    userId: typeof u.userId === "string" ? u.userId : null,
+    projectId: typeof u.projectId === "string" ? u.projectId : null,
+  };
+}
+
+export function AppShell({ children }: AppShellProps) {
+  const { data: session } = useSession();
+  const user = sessionUserFromClient(session?.user);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!user) return;
+    getUnreadNotificationCountAction().then(setUnreadCount).catch(() => setUnreadCount(0));
+  }, [user]);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [collapsed, setCollapsed] = React.useState(false);
   const pathname = usePathname();

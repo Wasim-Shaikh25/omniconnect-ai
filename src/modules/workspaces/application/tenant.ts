@@ -1,4 +1,5 @@
-import { ForbiddenError, isStaff } from "@/modules/auth/domain";
+import { ForbiddenError } from "@/modules/auth";
+import { isStaff } from "@/modules/auth/domain";
 import type { SessionUser } from "@/modules/auth";
 
 export interface TenantGuardQueries {

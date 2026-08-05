@@ -134,13 +134,16 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
 - Store pages use `checkStoreAccess(projectId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(projectId)` wrapper remains for server actions that need throwing semantics.
 - The global `src/app/loading.tsx` was removed so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.
+- The `authorized` middleware callback redirects authenticated non-super-admins away from `/admin*` to `/dashboard` (`307`) before any admin page streams.
+- `RootLayout` does not call `getCurrentUser()`; the app is wrapped in `next-auth/react` `SessionProvider` and `AppShell` fetches the session client-side. This keeps the server-rendered 404/error HTML from embedding the authenticated user's name/email/store data, satisfying the M7 smoke-test assertions in `scripts/check-http-status.ts`.
 - Super admin requires email-based OTP in addition to login.
 
 ### 7.5 Tenancy and Workspace Model
 
 - A user is the root tenant (`userId` equals their own id for owners, or the owner id for invited staff). A `Workspace` is created automatically during onboarding.
 - Inviting an existing user to a project updates their `projectId` / `userId` (and bumps `tokenVersion`); staff are pinned to a single project.
-- Owners can access any project in their workspace. Assigned `USER` staff are pinned to a single `projectId`; on login they are redirected from `/dashboard` to `/stores/{projectId}`.
+- Owners can access any project in their workspace. Assigned `USER` staff are pinned to a single `projectId`; on login they are redirected from `/dashboard` to `/stores/{projectId}`. Staff with no `projectId` are redirected from `/dashboard` to `/stores` and the **Add a store** card is hidden.
+- `/stores` and `/dashboard` scope the store list and KPIs by `projectId` for staff; `/settings` lists all workspace members by `userId` so the owner can reassign a staff member's project.
 - Old `Organization`/`Store`/`Staff`/`StoreIntegration` models have been removed; `Workspace` + `Project` + `EcommerceConnection` provide the same scoping.
 
 ---

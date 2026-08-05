@@ -13,13 +13,20 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ## [Unreleased]
 
+### ✅ Done
+
+- `REQ-0076`–`0090` **Platform V2 Rewrite** — Owner/tenant mapping hotfix merged via PR #127.
+  Canonical `User.userId`/`projectId` loaded from DB, onboarding sets owner `userId` to self, and
+  owner/staff checks use `user.userId === user.id` with `isStaff()`.
+
 ### 🚧 In Progress
 
-- `REQ-0076`–`0090` **Platform V2 Rewrite** — Phase 1 foundation merged via PR #126. Hotfix in
-  progress on `devin/fix-owner-tenant-mapping-1785912057`: canonical `User.userId`/`projectId`
-  loaded from DB, onboarding sets owner `userId` to self, and owner/staff checks now use
-  `user.userId === user.id` with `isStaff()` so normal owners can submit onboarding and access
-  `/stores/{projectId}`. Lint, typecheck, tests, and build pass.
+- `REQ-0076`–`0090` **Platform V2 Rewrite** — Staff isolation and audit follow-up on
+  `devin/fix-staff-isolation-audit-1785912057`: `/stores` and `/dashboard` scope staff by
+  `projectId`, `/settings` lists all workspace members, `npm audit` findings fixed, M7 smoke-test
+  `scripts/check-http-status.ts` restored and green, and `RootLayout`/`AppShell` now fetch the
+  session client-side so 404 bodies do not leak user/tenant data. Lint, typecheck, tests, build,
+  audit, and smoke test pass locally.
 
 ### ⏭️ Next
 
