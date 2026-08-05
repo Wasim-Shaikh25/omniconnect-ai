@@ -47,6 +47,7 @@ Read-only business intelligence dashboard powered by e-commerce adapter data and
 
 - Modules: `analytics`, `ai`
 - Depends on: REQ-0078 (e-commerce data), REQ-0084 (attribution data), REQ-0080 (messaging data)
+- Augmented by: REQ-0091 (all dashboard numbers come from the deterministic AnalysisEngine; the DynamicDashboard renders computed `AnalysisResult` values, never LLM-guessed figures)
 
 ## 7. Code Snippets
 

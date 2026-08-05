@@ -54,6 +54,7 @@ Keep and expand all existing intelligence features. Business analysis is a compe
 
 - Modules: `intelligence`
 - Depends on: REQ-0086 (OpenRouter for AI), REQ-0083 (analytics data)
+- Augmented by: REQ-0091 (signals, predictions, and anomaly detection run on the deterministic AnalysisEngine; the LLM narrates the "why" and next action — the existing rule-based prediction/detection services already follow this pattern)
 
 ## 7. Open Questions
 

@@ -19,6 +19,9 @@ All notable changes to **OmniConnect AI** are documented here.
   Business Intelligence), Workspace/Project hierarchy, dynamic e-commerce adapters, unified
   messaging, OpenRouter AI gateway, AI assistant with tools, and full cleanup of old
   Organization/Store/Staff models. See requirements docs for full details.
+- `REQ-0091` **Deterministic Analysis Engine** — AnalysisSpec vocabulary + safe engine so numbers
+  are computed by code and the LLM narrates only; modifies `analyze-media.ts` and
+  `generate-trends.ts` to stop the LLM inventing metrics.
 - `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
   and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
@@ -100,9 +103,41 @@ no gaps.
 | REQ-0088 | Billing & Plans | 4 | Draft |
 | REQ-0089 | Intelligence Layer | 4 | Draft |
 | REQ-0090 | Cleanup & Migration | 1 | Draft |
+| REQ-0091 | Deterministic Analysis Engine (AnalysisSpec) | 3 | Draft |
 
-77 implementation tasks (T-001 through T-077) across 4 phases. Full task list in each
-TASK file. Trackers in `docs/trackers/TRACKER-0076` through `TRACKER-0090`.
+77 implementation tasks (T-001 through T-077) across 4 phases, plus 11 tasks (T-078 through T-088)
+added by REQ-0091. Full task list in each TASK file. Trackers in `docs/trackers/TRACKER-0076`
+through `TRACKER-0091`.
+
+### 🔬 Deterministic Analysis Engine (REQ-0091, 2026-08-05)
+
+Added a requirement + task + tracker for a three-layer analytics pipeline so **every metric shown to
+a user is computed by auditable code, and the LLM is used only to explain results — never to produce
+numbers**:
+
+- **Deterministic layer** — pure functions for percentile rank, z-score/EWMA anomaly detection,
+  attribution, correlation, cohort trends, engagement scoring.
+- **Small-model layer** — local MiniLM embeddings + BM25 (no Python service, no network at
+  inference) to map a natural-language question to a whitelisted operation.
+- **LLM layer** — narration only; receives computed numbers as immutable facts.
+
+The connective tissue is `AnalysisSpec`: the AI picks one operation from a **closed vocabulary** and
+emits a validated spec — it never writes or runs code. A safe `AnalysisEngine` executes it within
+project scope. Same security posture as REQ-0078's ConfigInterpreter (no `eval`, hard tenant
+boundary, no hallucinated metrics, reproducible via golden tests).
+
+**Audit of implemented code** (recorded in REQ-0091 §9):
+
+- *Already deterministic, no change needed* — `best-time-to-post.ts`, `prediction.ts`,
+  `detection.ts`, `competitor-benchmark.ts`, `marketing-analytics.ts` (rule-based, calibration
+  labels, evidence trails). They become reference implementations for the engine.
+- *Needs modification, LLM currently invents numbers* — `analyze-media.ts` (LLM decides if/why a
+  post worked with no baseline → **T-085**) and `generate-trends.ts` (LLM invents
+  `predictedEngagementScore`/`predictedRevenue`/`bestTimeToPost` → **T-086**). Profile Inspector to
+  be built deterministic-first → **T-087**.
+
+New tasks **T-078–T-088** (engine core, resolver, narration, tool wiring, the three modifications,
+golden tests). REQ-0081/0083/0079/0085/0089 cross-referenced as augmented by REQ-0091.
 
 ### ✅ Done
 
