@@ -142,6 +142,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 - A user is the root tenant (`userId` equals their own id for owners, or the owner id for invited staff). A `Workspace` is created automatically during onboarding.
 - Inviting an existing user to a project updates their `projectId` / `userId` (and bumps `tokenVersion`); staff are pinned to a single project.
+- The invite email sender is best-effort: `sendInviteEmail` catches provider errors, logs them, and resolves so the `OrganizationInvite` record is still created and the `/settings` form does not 500.
 - Owners can access any project in their workspace. Assigned `USER` staff are pinned to a single `projectId`; on login they are redirected from `/dashboard` to `/stores/{projectId}`. Staff with no `projectId` are redirected from `/dashboard` to `/stores` and the **Add a store** card is hidden.
 - `/stores` and `/dashboard` scope the store list and KPIs by `projectId` for staff; `/settings` lists all workspace members by `userId` so the owner can reassign a staff member's project.
 - Old `Organization`/`Store`/`Staff`/`StoreIntegration` models have been removed; `Workspace` + `Project` + `EcommerceConnection` provide the same scoping.

@@ -26,6 +26,7 @@ import { StripePaymentGateway } from "./stripe-payment-gateway";
 import { setUserOrganization } from "@/modules/users";
 import { createEmailSender } from "@/shared/email";
 import { env } from "@/shared/config";
+import { logger } from "@/shared/observability";
 import { PrismaProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 
 const organizations = new PrismaOrganizationRepository();
@@ -49,7 +50,7 @@ function generateInviteToken(): string {
   return crypto.randomUUID();
 }
 
-function sendInviteEmail(input: {
+async function sendInviteEmail(input: {
   email: string;
   token: string;
   organizationName: string;
@@ -61,7 +62,16 @@ function sendInviteEmail(input: {
   const link = `${env.APP_URL}/register?inviteToken=${encodeURIComponent(input.token)}${storeParam}`;
   const text = `You have been invited to join ${input.organizationName} on OmniConnect AI.\n\nAccept the invite:\n${link}\n\nThis link expires in 7 days.`;
   const html = `<p>You have been invited to join <strong>${input.organizationName}</strong> on OmniConnect AI.</p><p><a href="${link}">Accept the invite</a></p><p>This link expires in 7 days.</p>`;
-  return emailSender.send(input.email, `Invite to ${input.organizationName}`, text, html);
+  try {
+    await emailSender.send(input.email, `Invite to ${input.organizationName}`, text, html);
+  } catch (error) {
+    // Email delivery is best-effort. The invite is already persisted; a retry
+    // or resend can recover from a transient provider outage.
+    logger.error("workspaces.inviteEmailFailed", {
+      error: error instanceof Error ? error.message : String(error),
+      email: input.email,
+    });
+  }
 }
 
 /** Composition root for the organizations module. */
