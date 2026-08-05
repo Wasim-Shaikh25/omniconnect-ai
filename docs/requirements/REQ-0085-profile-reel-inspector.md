@@ -51,6 +51,7 @@ Built entirely on free Meta APIs + AI estimation. No paid third-party data. Thre
 
 - Modules: `inspector` (new)
 - Depends on: REQ-0077 (Project with Meta access token), REQ-0086 (OpenRouter for AI estimation)
+- Augmented by: REQ-0091 (language/geo/quality signals computed deterministically with confidence tiers; the LLM narrates and arbitrates only genuinely ambiguous cases — see T-087)
 - External: Instagram Business Discovery API, Instagram Insights API
 
 ## 7. Code Snippets

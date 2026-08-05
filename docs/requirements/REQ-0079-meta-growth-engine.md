@@ -50,6 +50,7 @@ Build the Meta Growth Engine pillar: content publishing via Instagram Content Pu
 
 - Modules: `content` (new), `meta`
 - Depends on: REQ-0077 (Project with metaAccountId), Meta OAuth (T-021)
+- Augmented by: REQ-0091 (hashtag scoring and best-time-to-post are deterministic; `generate-trends` numeric predictions are sourced from the analysis engine, not invented by the LLM — see T-086)
 - External: Instagram Content Publishing API, Instagram Insights API, Instagram Hashtag API
 
 ## 7. Code Snippets
