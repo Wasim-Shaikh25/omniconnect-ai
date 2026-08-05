@@ -25,6 +25,14 @@ All notable changes to **OmniConnect AI** are documented here.
   minimal "sign out everywhere" implemented by bumping `User.tokenVersion`, writing an `AuditLog`
   entry, and calling `next-auth` `signOut` from the client to clear the current session and redirect
   to `/login`.
+- `REQ-0070` **Super-admin reconciliation and settings cleanup (Package G)** on
+  `devin/cleanup-task-status-1785946663`: `ensureSuperAdmin` now reconciles an existing super admin
+  when `SUPER_ADMIN_RECONCILE=true`, updating the password hash, role, and phone and writing an
+  `AuditLog` entry; super-admin MFA sends the code via SMS when `SUPER_ADMIN_PHONE` and an SMS
+  provider are configured; the break-glass procedure is documented in `docs/operations.md`;
+  `/settings` removes the four dead links (`/settings/quality`, `/settings/rollout`,
+  `/settings/operating-model`, `/settings/unified-context`) and adds a test that every link resolves
+  to an existing route.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 11)** on `devin/cleanup-task-status-1785946663`:
   wired `AIUsageGuard` into `inspectProfileAction` so AI-powered profile narration consumes one
   `monthlyAiReplies` entitlement; deterministic narrator remains the fallback when `OPENROUTER_API_KEY`
@@ -106,7 +114,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0070` Package G — super-admin reconciliation and settings dead links.
+- `REQ-0070` Privacy / GDPR export review for `phone` and `dateOfBirth` (latter omitted for MVP).
 
 ### ⏭️ Next
 

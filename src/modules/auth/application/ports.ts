@@ -28,6 +28,14 @@ export interface AccountRepository {
   setPhoneVerified(id: string, phoneVerified: Date): Promise<AccountRecord | null>;
   bumpTokenVersion(id: string): Promise<AccountRecord | null>;
   setEmailVerified(id: string, emailVerified: Date): Promise<AccountRecord | null>;
+  reconcileSuperAdmin(
+    id: string,
+    input: {
+      passwordHash: string;
+      isSuperAdmin: boolean;
+      phone?: string | null;
+    },
+  ): Promise<AccountRecord | null>;
   create(input: {
     email: string;
     name: string | null;

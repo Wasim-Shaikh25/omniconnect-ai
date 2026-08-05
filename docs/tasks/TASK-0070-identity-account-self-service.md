@@ -1,6 +1,6 @@
 # TASK-0070: Implement Identity and Account Self-Service
 
-- **Status:** In Progress (Packages E and F done; Package G next)
+- **Status:** In Progress (Packages E, F, G done; Privacy / GDPR export review remaining)
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Tracker:** `docs/trackers/TRACKER-0070-identity-account-self-service.md`

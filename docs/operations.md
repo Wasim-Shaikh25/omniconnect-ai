@@ -1,6 +1,37 @@
 # OmniConnect AI Operations Runbook
 
-This document covers routine operations, incident response, backups, restores, rollbacks, and escalation paths for the OmniConnect AI production deployment.
+This document covers routine operations, incident response, backups, restores, rollbacks, break-glass access, and escalation paths for the OmniConnect AI production deployment.
+
+## Super-admin break-glass procedure
+
+Use this procedure only when both the normal super-admin email and SMS MFA channels are unavailable and
+no other super admin can promote a replacement.
+
+1. Connect to the production database with admin credentials.
+2. Identify the target user account (or the default super-admin account if it exists):
+   ```sql
+   SELECT id, email, is_super_admin FROM "User" WHERE email = '<SUPER_ADMIN_EMAIL>';
+   ```
+3. Set `isSuperAdmin` to `true` and force a `tokenVersion` bump to invalidate stale sessions:
+   ```sql
+   UPDATE "User"
+   SET is_super_admin = true,
+       role = 'SUPER_ADMIN',
+       token_version = token_version + 1
+   WHERE id = '<USER_ID>';
+   ```
+4. Rotate `SUPER_ADMIN_PASSWORD` in the deployment environment and enable reconciliation:
+   ```
+   SUPER_ADMIN_PASSWORD=<new-strong-password>
+   SUPER_ADMIN_RECONCILE=true
+   ```
+5. Restart the application containers so `ensureSuperAdmin` reconciles the new password and writes an
+   `AuditLog` entry (`SUPER_ADMIN_RECONCILED`).
+6. Sign in with the new password and complete MFA using the configured channel (email, or SMS if
+   `SUPER_ADMIN_PHONE` and `SMS_PROVIDER` are set).
+7. Verify `/admin` is reachable and that an `AuditLog` row was written for the break-glass action.
+
+Re-enable normal MFA channels and reset `SUPER_ADMIN_RECONCILE` to `false` after access is restored.
 
 ## On-call rotation
 

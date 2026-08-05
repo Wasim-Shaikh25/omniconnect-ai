@@ -1,6 +1,6 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** In Progress (Packages E and F done; Package G next)
+- **Status:** In Progress (Packages E, F, G done; Privacy / GDPR export review remaining)
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
@@ -81,11 +81,11 @@ bot protection.
 - [ ] (If full) `UserSession` added and populated on sign-in.
 
 ### Package G — Super admin and settings navigation
-- [ ] Gated `ensureSuperAdmin` reconciliation implemented and audited.
-- [ ] SMS alternative for super-admin MFA implemented.
-- [ ] Break-glass procedure documented in `docs/operations.md`.
-- [ ] Four dead settings links removed.
-- [ ] Settings-link resolution test added.
+- [x] Gated `ensureSuperAdmin` reconciliation implemented and audited.
+- [x] SMS alternative for super-admin MFA implemented.
+- [x] Break-glass procedure documented in `docs/operations.md`.
+- [x] Four dead settings links removed.
+- [x] Settings-link resolution test added.
 
 ### Privacy
 - [ ] `dateOfBirth` and `phone` included in the GDPR export.

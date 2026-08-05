@@ -11,6 +11,7 @@ describe("register-user use-case", () => {
       findByEmail: vi.fn(async (email) => accounts.find((a) => a.email === email) ?? null),
       findByEmailIncludingDeleted: vi.fn(async (email) => accounts.find((a) => a.email === email && !a.deletedAt) ?? null),
       restoreAccount: vi.fn(async () => null),
+      reconcileSuperAdmin: vi.fn(async () => null),
       updatePassword: vi.fn(async () => null),
       updateEmail: vi.fn(async () => null),
       bumpTokenVersion: vi.fn(async () => null),

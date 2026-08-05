@@ -22,8 +22,10 @@ import { requireUser } from "../infrastructure/session";
 import { registerUserSchema } from "../application/register-user";
 import { changePasswordSchema } from "../application/change-password";
 import { requestEmailChangeSchema } from "../application/change-email";
+import { isE164Phone } from "../domain/phone";
 import { verifyTurnstileToken } from "../infrastructure/turnstile";
 import { clientIp, rateLimit } from "@/shared/security/rate-limit";
+import { smsSender } from "@/modules/notifications";
 
 const emailSender = createEmailSender();
 
@@ -139,8 +141,15 @@ export async function loginAction(
   }
 
   if (account.isSuperAdmin && !parsed.data.mfaCode) {
-    await verificationCodeService.sendCode(email, "mfa");
-    return { mfaRequired: true, message: "A verification code was sent to your email." };
+    const code = await verificationCodeService.sendCode(email, "mfa");
+    const phone = env.SUPER_ADMIN_PHONE || account.phone;
+    if (smsSender && phone && isE164Phone(phone)) {
+      await smsSender.send({
+        to: phone,
+        body: `Your OmniConnect verification code is: ${code}\n\nThis code expires in 10 minutes.`,
+      });
+    }
+    return { mfaRequired: true, message: "A verification code was sent to your email and phone (if configured)." };
   }
 
   if (env.REQUIRE_EMAIL_VERIFICATION && !account.emailVerified) {

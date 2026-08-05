@@ -29,6 +29,7 @@ describe("change-password service", () => {
       findByEmail: vi.fn(async () => null),
       findByEmailIncludingDeleted: vi.fn(async () => null),
       restoreAccount: vi.fn(async () => null),
+      reconcileSuperAdmin: vi.fn(async () => null),
       updatePassword: vi.fn(async (input) => {
         if (!updateResult) return null;
         account = { ...account, passwordHash: input.passwordHash, tokenVersion: account.tokenVersion + 1 };

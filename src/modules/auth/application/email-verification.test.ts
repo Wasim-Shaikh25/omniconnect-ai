@@ -50,6 +50,7 @@ describe("email-verification service", () => {
       findByEmail: vi.fn(async (email) => (account?.email === email ? account : null)),
       findByEmailIncludingDeleted: vi.fn(async () => null),
       restoreAccount: vi.fn(async () => null),
+      reconcileSuperAdmin: vi.fn(async () => null),
       updatePassword: vi.fn(async () => null),
       updateEmail: vi.fn(async () => null),
       bumpTokenVersion: vi.fn(async () => null),

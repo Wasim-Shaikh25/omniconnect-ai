@@ -1,5 +1,6 @@
 import { env } from "@/shared/config";
 import { logger } from "@/shared/observability";
+import { auditCommands } from "@/modules/users";
 import { AccountRepository } from "../application/ports";
 import { PasswordHasher } from "../application/ports";
 
@@ -18,22 +19,49 @@ export async function ensureSuperAdmin(deps: {
   }
 
   const email = env.SUPER_ADMIN_EMAIL.toLowerCase().trim();
-  const existing = await deps.accounts.findByEmail(email);
+  const existing = await deps.accounts.findByEmailIncludingDeleted(email);
 
-  if (existing) {
-    // Nothing to change in this phase beyond ensuring the flag and phone.
+  if (!existing) {
+    const passwordHash = await deps.hasher.hash(env.SUPER_ADMIN_PASSWORD);
+    const user = await deps.accounts.create({
+      email,
+      name: "Super Admin",
+      passwordHash,
+      role: "SUPER_ADMIN",
+      phone: env.SUPER_ADMIN_PHONE ?? null,
+      isSuperAdmin: true,
+    });
+    await auditCommands.create({
+      userId: user.id,
+      action: "SUPER_ADMIN_CREATED",
+      resource: "User",
+      resourceId: user.id,
+      details: JSON.stringify({ reason: "env bootstrap" }),
+    });
+    logger.info("superadmin.created", { email });
+    return;
+  }
+
+  if (!env.SUPER_ADMIN_RECONCILE) {
+    logger.info("superadmin.skip", { reason: "reconcile disabled", userId: existing.id });
     return;
   }
 
   const passwordHash = await deps.hasher.hash(env.SUPER_ADMIN_PASSWORD);
-  await deps.accounts.create({
-    email,
-    name: "Super Admin",
+  const reconciled = await deps.accounts.reconcileSuperAdmin(existing.id, {
     passwordHash,
-    role: "SUPER_ADMIN",
-    phone: env.SUPER_ADMIN_PHONE ?? null,
     isSuperAdmin: true,
+    phone: env.SUPER_ADMIN_PHONE ?? undefined,
   });
 
-  logger.info("superadmin.created", { email });
+  if (reconciled) {
+    await auditCommands.create({
+      userId: reconciled.id,
+      action: "SUPER_ADMIN_RECONCILED",
+      resource: "User",
+      resourceId: reconciled.id,
+      details: JSON.stringify({ passwordChanged: true }),
+    });
+    logger.warn("superAdmin.reconciled", { userId: reconciled.id });
+  }
 }

@@ -109,6 +109,30 @@ export class PrismaAccountRepository implements AccountRepository {
     return mapUser(user);
   }
 
+  async reconcileSuperAdmin(
+    id: string,
+    input: {
+      passwordHash: string;
+      isSuperAdmin: boolean;
+      phone?: string | null;
+    },
+  ): Promise<AccountRecord | null> {
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) return null;
+    const passwordChanged = existing.passwordHash !== input.passwordHash;
+    const user = await prisma.user.update({
+      where: { id, deletedAt: null },
+      data: {
+        passwordHash: input.passwordHash,
+        isSuperAdmin: input.isSuperAdmin,
+        role: input.isSuperAdmin ? "SUPER_ADMIN" : existing.role,
+        phone: input.phone ?? existing.phone,
+        tokenVersion: passwordChanged ? { increment: 1 } : undefined,
+      },
+    });
+    return mapUser(user);
+  }
+
   async create(input: {
     email: string;
     name: string | null;
