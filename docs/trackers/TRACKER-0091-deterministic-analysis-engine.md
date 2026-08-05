@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Progress (Batch 9)
+- **Status:** In Review (Batch 9)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -16,7 +16,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Requirement REQ-0091 approved.
 - [x] Task file TASK-0091 created.
 - [x] Tracker file TRACKER-0091 created.
-- [x] Branch created (`devin/deterministic-profile-inspector-1785943443`).
+- [x] Branch created (`devin/deterministic-adapters-1785943819`).
 
 ### Batch 1 — Core Engine + analyze-media (merged in PR #132)
 - [x] T-078: Define `AnalysisSpec` schema + closed operation vocabulary + `validateSpec()`.
@@ -91,7 +91,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `docs/specs/current-state.md` updated.
 - [x] PR #138 merged.
 
-### Batch 8 — Profile Inspector core (In Review)
+### Batch 8 — Profile Inspector core (merged in PR #139)
 - [x] T-087: Define `inspector` domain types.
 - [x] T-087: Define `ProfileFetcher` and `ProfileNarrator` ports.
 - [x] T-087: Implement deterministic `inspectProfile` use-case.
@@ -102,14 +102,26 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/specs/current-state.md` updated.
 - [x] `docs/requirements/REQ-0085-profile-reel-inspector.md` updated.
+- [x] PR #139 merged.
+
+### Batch 9 — TransformersEmbeddingProvider + inspector adapters (In Review)
+- [x] T-081: Add `@xenova/transformers` dependency.
+- [x] T-081: Implement `TransformersEmbeddingProvider` with local-only model loading and fallback.
+- [x] T-087: Implement `OpenRouterProfileNarrator` adapter.
+- [x] T-087: Implement `MetaProfileFetcher` adapter.
+- [x] Export adapters from module public barrels.
+- [x] Add unit tests for all adapters.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 - [ ] PR created and merged.
 
-### Batch 9 (Deferred)
-- [ ] Local MiniLM `TransformersEmbeddingProvider` via `@xenova/transformers` / transformers.js.
-- [ ] Meta/OpenRouter-backed `ProfileFetcher` / `ProfileNarrator` adapters for the inspector.
+### Next
+- [ ] Wire inspector adapters into server actions / route handlers.
+- [ ] Build Profile Inspector UI and plan-limit gating.
 
 ## 3. Acceptance Criteria
 
-- [ ] Batch 8 acceptance criteria from TASK-0091 met.
+- [ ] Batch 9 acceptance criteria from TASK-0091 met.
 - [ ] All verification steps above pass.
-- [ ] Full REQ-0091 acceptance criteria remain for Batch 9.
+- [ ] Full REQ-0091 acceptance criteria met.

@@ -79,11 +79,15 @@ All notable changes to **OmniConnect AI** are documented here.
   snapshots. A deterministic narrator is included; Meta/OpenRouter adapters can be wired behind
   the ports later.
 
+- `REQ-0091` **Deterministic Analysis Engine (Batch 9)** on `devin/deterministic-adapters-1785943819`:
+  added `TransformersEmbeddingProvider` using `@xenova/transformers` with `local_files_only: true` and a
+  keyword fallback when no local MiniLM model is configured; added `makeMetaProfileFetcher` and
+  `makeOpenRouterProfileNarrator` adapters behind the `inspector` ports.
+
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 9)** — local MiniLM `TransformersEmbeddingProvider`
-  (via `@xenova/transformers` / transformers.js) and Meta/OpenRouter-backed `ProfileFetcher` / `ProfileNarrator`
-  adapters for the inspector.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 9)** — wire the new adapters into server actions
+  / route handlers and add a Profile Inspector UI.
 
 ### ⏭️ Next
 
