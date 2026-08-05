@@ -19,6 +19,7 @@ export const PUBLIC_PATHS = [
   "/_next",
   "/favicon.ico",
   "/manifest.webmanifest",
+  "/share",
 ];
 
 export function isPublicPath(pathname: string): boolean {
