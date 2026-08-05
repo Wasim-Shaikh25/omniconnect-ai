@@ -1,11 +1,12 @@
-import { createRequire } from "module";
+import path from "path";
+import { fileURLToPath } from "url";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 
 function resolveWorkerPath(): string | undefined {
   try {
     if (typeof import.meta.url === "undefined") return undefined;
-    const require = createRequire(import.meta.url);
-    return require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    return path.resolve(__dirname, "../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs");
   } catch {
     return undefined;
   }
