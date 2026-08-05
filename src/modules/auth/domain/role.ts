@@ -17,3 +17,8 @@ export function isRole(value: unknown): value is Role {
 export function roleSatisfies(actual: Role, required: Role): boolean {
   return RANK[actual] >= RANK[required];
 }
+
+/** Staff users have a non-null `userId` that points to their owner and is not their own id. */
+export function isStaff(user: { id: string; userId: string | null }): boolean {
+  return !!user.userId && user.userId !== user.id;
+}

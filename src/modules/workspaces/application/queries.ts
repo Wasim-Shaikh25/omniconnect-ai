@@ -1,4 +1,5 @@
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
+import { isStaff } from "@/modules/auth/domain";
 import type { SessionUser } from "@/modules/auth";
 import { OrganizationInviteRecord, OrganizationInviteRepository, OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
 import { Plan } from "../domain/plan";
@@ -46,7 +47,7 @@ export function makeOrganizationQueries(deps: {
       const org = await deps.organizations.findById(userId);
       if (!org) return null;
       let stores = await deps.stores.listByOrganization(userId);
-      if (user && !user.isSuperAdmin && user.id !== userId) {
+      if (user && !user.isSuperAdmin && isStaff(user)) {
         if (user.projectId) {
           stores = stores.filter((s) => s.id === user.projectId);
         } else {

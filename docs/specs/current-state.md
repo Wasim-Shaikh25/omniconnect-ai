@@ -129,8 +129,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 ## 7. Authentication and Authorization
 
 - **NextAuth v5 JWT strategy** with `tokenVersion` invalidation.
-- `getCurrentUser()` loads the canonical DB record and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions.
-- `tenantGuard.assertStoreAccess(user, projectId)` enforces: staff only access `user.projectId`; owners access any project in their workspace.
+- `getCurrentUser()` loads the canonical DB record including `userId`/`projectId` and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions.
+- `tenantGuard.assertStoreAccess(user, projectId)` enforces: owners (`user.userId === user.id`) access any project in their workspace; staff (`user.userId` points to the owner) are pinned to `user.projectId`; super-admins bypass.
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
 - Store pages use `checkStoreAccess(projectId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(projectId)` wrapper remains for server actions that need throwing semantics.
 - The global `src/app/loading.tsx` was removed so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.

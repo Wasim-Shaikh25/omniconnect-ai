@@ -5,9 +5,6 @@ import { prisma } from "@/shared/database";
 import type { UserRegisteredPayload } from "@/modules/auth";
 import type { ProductsSyncedPayload } from "@/modules/ecommerce";
 import { OrganizationCreated } from "../domain/events";
-import { PrismaOrganizationRepository } from "./organization.repository";
-
-const organizations = new PrismaOrganizationRepository();
 
 // Subscribes by event name so this file never imports another module's
 // infrastructure — only the payload *type* (erased at build time).
@@ -19,30 +16,27 @@ const onUserRegistered: EventHandler = async (event) => {
   // user is routed to `/onboarding` to create the workspace explicitly.
   if (autoProvisionOrganization === false) return;
 
-  // Idempotency: a user may already have a workspace and should not get a second one.
-  const user = await prisma.user.findUnique({
+  // Idempotency: an OAuth user should only be linked to their own tenant once.
+  const existing = await prisma.user.findUnique({
     where: { id: userId },
-    select: { workspaces: { select: { id: true }, take: 1 } },
+    select: { userId: true },
   });
-  if (user?.workspaces.length) {
+  if (existing?.userId) {
     logger.info("organizations.alreadyProvisioned", { userId });
     return;
   }
 
   const localPart = email.split("@")[0] ?? "My";
-  const org = await organizations.create({
-    name: `${localPart}'s Organization`,
-    email,
-  });
 
+  // The owner User is its own tenant. The `users` subscriber will persist `userId`.
   await eventBus.publish(
-    new OrganizationCreated(org.id, {
-      userId: org.id,
+    new OrganizationCreated(userId, {
+      userId,
       ownerUserId: userId,
-      name: org.name,
+      name: `${localPart}'s Organization`,
     }),
   );
-  logger.info("organizations.provisioned", { userId: org.id });
+  logger.info("organizations.provisioned", { userId });
 };
 
 const onProductsSynced: EventHandler = async (event) => {

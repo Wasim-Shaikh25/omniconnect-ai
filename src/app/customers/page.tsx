@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
+import { isStaff } from "@/modules/auth/domain";
 import { customerDirectory } from "@/modules/crm";
 import { CrmNextBestAction } from "@/components/crm-next-best-action";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export default async function CustomersPage({
 }) {
   const user = await getCurrentUser();
   if (!user || !user.userId) redirect("/login");
-  if (user.role === "USER" && !user.projectId) redirect("/dashboard");
+  if (isStaff(user) && !user.projectId) redirect("/dashboard");
 
   const params = (await searchParams) ?? {};
   const pagination = parsePagination(params.page, params.limit);
@@ -76,7 +77,7 @@ export default async function CustomersPage({
     ...(segment ? { segment } : {}),
   };
 
-  const projectId = user.role === "USER" ? user.projectId : undefined;
+  const projectId = isStaff(user) ? user.projectId : undefined;
   const { items: customers, total, totalPages } = await customerDirectory.listCustomersByOrganizationPaginated(
     user.userId,
     pagination,

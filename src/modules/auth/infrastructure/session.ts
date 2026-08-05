@@ -21,7 +21,9 @@ function toSessionUser(row: {
   role: string;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
-}): Omit<SessionUser, "userId" | "projectId"> {
+  userId: string | null;
+  projectId: string | null;
+}): SessionUser {
   const role = isRole(row.role) ? (row.role as Role) : "USER";
   return {
     id: row.id,
@@ -30,6 +32,8 @@ function toSessionUser(row: {
     role,
     isSuperAdmin: row.isSuperAdmin,
     emailVerified: row.emailVerified,
+    userId: row.userId,
+    projectId: row.projectId,
   };
 }
 
@@ -48,16 +52,12 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const { tokenVersion, ...sessionUser } = fresh;
   void tokenVersion;
 
-  return {
-    ...sessionUser,
-    userId: sessionUser.id,
-    projectId: user?.projectId ?? null,
-  };
+  return sessionUser;
 }
 
 async function loadFreshUser(
   id: string,
-): Promise<(Omit<SessionUser, "userId" | "projectId"> & { tokenVersion: number }) | null> {
+): Promise<(SessionUser & { tokenVersion: number }) | null> {
   const row = await prisma.user.findUnique({
     where: { id, deletedAt: null },
     select: {
@@ -67,6 +67,8 @@ async function loadFreshUser(
       role: true,
       isSuperAdmin: true,
       emailVerified: true,
+      userId: true,
+      projectId: true,
       tokenVersion: true,
     },
   });

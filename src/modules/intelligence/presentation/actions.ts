@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getQueue } from "@/shared/queue";
-import { getCurrentUser, requireRole, requireSuperAdmin, ForbiddenError, type SessionUser } from "@/modules/auth";
+import { getCurrentUser, requireRole, requireSuperAdmin, type SessionUser } from "@/modules/auth";
+import { ForbiddenError, isStaff } from "@/modules/auth/domain";
 import { organizationQueries, tenantGuard } from "@/modules/workspaces";
 import { customerDirectory } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
@@ -96,7 +97,7 @@ async function resolveStoreScope(
   user: SessionUser,
   requestedStoreId?: string | null,
 ): Promise<string | null> {
-  if (user.role === "USER") {
+  if (isStaff(user)) {
     if (!user.projectId) throw new ForbiddenError("No store assigned to staff user.");
     if (requestedStoreId && requestedStoreId !== user.projectId) throw new ForbiddenError();
     return user.projectId;
