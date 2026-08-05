@@ -34,6 +34,7 @@ bot protection.
 - [x] New env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`, `TWILIO_*`,
       `SUPER_ADMIN_RECONCILE`) added to `env.ts`, `.env.example`, `docs/deployment.md`.
 - [x] Migration `20260801162632_add_identity_self_service` applies cleanly.
+- [x] Migration `20260805165952_add_verification_request_salt` adds optional `salt` column for per-request phone-OTP salting.
 
 ### Package B — Registration
 - [x] `confirmPassword` in schema with mismatch refinement.
@@ -74,6 +75,9 @@ bot protection.
 - [x] Add/verify/remove UI shipped; hidden when `SMS_PROVIDER=disabled`.
 - [x] Test: OTP body and phone number never appear in logs.
 - [x] Tests: expiry, attempt cap, replay, rate limit.
+- [x] Salt phone OTPs with per-request random value and user-scoped lookup.
+- [x] Enforce attempt cap on wrong guesses and rate-limit `verifyPhoneAction`.
+- [x] Fix JSX `pattern` attributes in `phone-verification-form.tsx`.
 
 ### Package F — Session management
 - [x] Minimal vs full session-list decision recorded (minimal: bump `tokenVersion` to invalidate all JWTs).
@@ -86,11 +90,15 @@ bot protection.
 - [x] Break-glass procedure documented in `docs/operations.md`.
 - [x] Four dead settings links removed.
 - [x] Settings-link resolution test added.
+- [x] Super-admin MFA SMS only sent to `SUPER_ADMIN_PHONE` or a verified `account.phone`.
 
 ### Privacy
 - [x] `phone` included in the GDPR export (`dateOfBirth` omitted for the MVP).
 - [x] `phone` erased by account deletion (integration test added).
 - [x] Phone numbers redacted in logs (verified by `ConsoleSmsSender` test and existing redaction).
+- [x] Account soft-delete preserves original email for the 30-day recovery window.
+- [x] `.env.example` Twilio variable name aligned with `env.ts` (`TWILIO_FROM_NUMBER`).
+- [x] `SMS_PROVIDER=twilio` fails loudly at startup when credentials are incomplete.
 
 ### Verification
 - [x] `npm run lint` passes.

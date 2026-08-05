@@ -142,10 +142,10 @@ export async function loginAction(
 
   if (account.isSuperAdmin && !parsed.data.mfaCode) {
     const code = await verificationCodeService.sendCode(email, "mfa");
-    const phone = env.SUPER_ADMIN_PHONE || account.phone;
-    if (smsSender && phone && isE164Phone(phone)) {
+    const trustedPhone = env.SUPER_ADMIN_PHONE || (account.phoneVerified ? account.phone : null);
+    if (smsSender && trustedPhone && isE164Phone(trustedPhone)) {
       await smsSender.send({
-        to: phone,
+        to: trustedPhone,
         body: `Your OmniConnect verification code is: ${code}\n\nThis code expires in 10 minutes.`,
       });
     }
@@ -419,6 +419,16 @@ export async function verifyPhoneAction(_prev: ActionState, formData: FormData):
   const user = await requireUser();
   const parsed = verifyPhoneSchema.safeParse({ code: formData.get("code") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid code." };
+
+  const ip = clientIp(await headers());
+  const limit = await rateLimit({
+    key: `phone-verify:${user.id}:${ip}`,
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!limit.allowed) {
+    return { error: "Too many attempts. Try again later." };
+  }
 
   const result = await phoneVerificationService.verify(user.id, parsed.data.code);
   if (!result.success) return { error: result.error };

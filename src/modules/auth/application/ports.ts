@@ -24,7 +24,7 @@ export interface AccountRepository {
   restoreAccount(id: string): Promise<AccountRecord | null>;
   updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
   updateEmail(id: string, email: string): Promise<AccountRecord | null>;
-  updatePhone(id: string, phone: string): Promise<AccountRecord | null>;
+  updatePhone(id: string, phone: string | null): Promise<AccountRecord | null>;
   setPhoneVerified(id: string, phoneVerified: Date): Promise<AccountRecord | null>;
   bumpTokenVersion(id: string): Promise<AccountRecord | null>;
   setEmailVerified(id: string, emailVerified: Date): Promise<AccountRecord | null>;
@@ -57,6 +57,7 @@ export interface VerificationRequestRecord {
   purpose: "signup" | "email_change" | "phone_verify" | "mfa";
   target: string;
   tokenHash: string;
+  salt: string | null;
   attempts: number;
   expiresAt: Date;
   consumedAt: Date | null;
@@ -66,6 +67,7 @@ export interface VerificationRequestRecord {
 export interface VerificationRequestRepository {
   save(request: Omit<VerificationRequestRecord, "id" | "createdAt">): Promise<VerificationRequestRecord>;
   findByTokenHash(tokenHash: string): Promise<VerificationRequestRecord | null>;
+  findPendingByUser(userId: string, purpose: string, target?: string): Promise<VerificationRequestRecord | null>;
   consume(id: string): Promise<void>;
   incrementAttempts(id: string): Promise<void>;
   countRecentByTarget(target: string, purpose: string, since: Date, opts?: { consumed?: "all" | "unconsumed" }): Promise<number>;

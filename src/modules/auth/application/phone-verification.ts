@@ -5,7 +5,11 @@ import {
   isE164Phone,
   normalizePhone,
 } from "../domain/phone-code";
-import { hashVerificationToken } from "../domain/verification-token";
+import {
+  generateVerificationSalt,
+  hashVerificationToken,
+  verifyVerificationToken,
+} from "../domain/verification-token";
 import type { AccountRepository, VerificationRequestRepository } from "./ports";
 
 const TTL_MS = 10 * 60 * 1000;
@@ -46,8 +50,15 @@ export function makePhoneVerificationService(deps: PhoneVerificationDeps): Phone
         return { success: false, error: "Too many attempts. Try again in an hour." };
       }
 
+      // Invalidate any previous pending phone-verification request for this user.
+      const existing = await deps.repository.findPendingByUser(userId, "phone_verify");
+      if (existing) {
+        await deps.repository.consume(existing.id);
+      }
+
       const code = generatePhoneCode();
-      const tokenHash = await hashVerificationToken(code);
+      const salt = generateVerificationSalt();
+      const tokenHash = await hashVerificationToken(code, salt);
       const expiresAt = new Date(now() + TTL_MS);
 
       await deps.repository.save({
@@ -56,6 +67,7 @@ export function makePhoneVerificationService(deps: PhoneVerificationDeps): Phone
         purpose: "phone_verify",
         target: phone,
         tokenHash,
+        salt,
         attempts: 0,
         expiresAt,
         consumedAt: null,
@@ -74,10 +86,8 @@ export function makePhoneVerificationService(deps: PhoneVerificationDeps): Phone
         return { success: false, error: "Enter the 6-digit code." };
       }
 
-      const tokenHash = await hashVerificationToken(code);
-      const request = await deps.repository.findByTokenHash(tokenHash);
-
-      if (!request || request.purpose !== "phone_verify" || request.userId !== userId) {
+      const request = await deps.repository.findPendingByUser(userId, "phone_verify");
+      if (!request) {
         return { success: false, error: "Invalid or expired code." };
       }
 
@@ -89,7 +99,12 @@ export function makePhoneVerificationService(deps: PhoneVerificationDeps): Phone
         return { success: false, error: "Too many attempts. Request a new code." };
       }
 
-      await deps.repository.incrementAttempts(request.id);
+      const valid = await verifyVerificationToken(code, request.tokenHash, request.salt ?? undefined);
+      if (!valid) {
+        await deps.repository.incrementAttempts(request.id);
+        return { success: false, error: "Invalid or expired code." };
+      }
+
       await deps.repository.consume(request.id);
       await deps.accounts.updatePhone(userId, request.target);
       await deps.accounts.setPhoneVerified(userId, new Date(now()));
@@ -104,7 +119,7 @@ export function makePhoneVerificationService(deps: PhoneVerificationDeps): Phone
         return { success: false, error: "User not found." };
       }
 
-      await deps.accounts.updatePhone(userId, "");
+      await deps.accounts.updatePhone(userId, null);
       logger.info("phoneVerification.removed", { userId });
       return { success: true };
     },

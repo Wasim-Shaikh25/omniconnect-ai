@@ -29,12 +29,12 @@ describe("PrismaUserProfileRepository.deleteAccount", () => {
 
     const deleted = await repository.deleteAccount(created.id, "user request");
     expect(deleted).not.toBeNull();
-    expect(deleted?.email).toBe(`deleted-${created.id}@anon.local`);
+    expect(deleted?.email).toBe(originalEmail);
     expect(deleted?.name).toBe("Deleted User");
 
     const raw = await prisma.user.findUnique({ where: { id: created.id } });
     expect(raw).not.toBeNull();
-    expect(raw?.email).toBe(`deleted-${created.id}@anon.local`);
+    expect(raw?.email).toBe(originalEmail);
     expect(raw?.name).toBe("Deleted User");
     expect(raw?.phone).toBeNull();
     expect(raw?.phoneVerified).toBeNull();

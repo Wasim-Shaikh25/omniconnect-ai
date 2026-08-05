@@ -20,6 +20,10 @@ class InMemoryVerificationRequestRepository implements VerificationRequestReposi
     return this.records.find((r) => r.tokenHash === tokenHash && !r.consumedAt && r.expiresAt.getTime() > Date.now()) ?? null;
   }
 
+  async findPendingByUser(userId: string, purpose: string): Promise<VerificationRequestRecord | null> {
+    return this.records.find((r) => r.userId === userId && r.purpose === purpose && !r.consumedAt && r.expiresAt.getTime() > Date.now()) ?? null;
+  }
+
   async consume(id: string): Promise<void> {
     const record = this.records.find((r) => r.id === id);
     if (record) record.consumedAt = new Date();

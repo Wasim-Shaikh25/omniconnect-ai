@@ -32,6 +32,7 @@ class InMemoryVerificationRequestRepository implements VerificationRequestReposi
     purpose: "signup" | "email_change" | "phone_verify" | "mfa";
     target: string;
     tokenHash: string;
+    salt: string | null;
     attempts: number;
     expiresAt: Date;
     consumedAt: Date | null;
@@ -52,6 +53,13 @@ class InMemoryVerificationRequestRepository implements VerificationRequestReposi
 
   async findByTokenHash(tokenHash: string) {
     return this.records.find((r) => r.tokenHash === tokenHash && r.consumedAt === null && r.expiresAt.getTime() > FIXED_NOW) ?? null;
+  }
+
+  async findPendingByUser(userId: string, purpose: string, target?: string) {
+    return this.records
+      .filter((r) => r.userId === userId && r.purpose === purpose && r.consumedAt === null && r.expiresAt.getTime() > FIXED_NOW)
+      .filter((r) => (target ? r.target === target : true))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null;
   }
 
   async consume(id: string) {
@@ -199,11 +207,30 @@ describe("phone-verification service", () => {
     expect(sent).toHaveLength(0);
   });
 
+  it("rejects a code after five wrong attempts", async () => {
+    const { service, repository } = makeSut();
+    await service.request("user-1", "+447700900123");
+    const code = sent[0].body.match(/\d{6}/)![0];
+
+    for (let i = 0; i < 5; i++) {
+      const result = await service.verify("user-1", "000000");
+      expect(result.success).toBe(false);
+    }
+
+    const record = repository.records.find((r) => r.purpose === "phone_verify" && r.consumedAt === null);
+    expect(record?.attempts).toBe(5);
+
+    const sixth = await service.verify("user-1", code);
+    expect(sixth.success).toBe(false);
+    expect(sixth.error).toContain("Too many attempts");
+    expect(account.phoneVerified).toBeNull();
+  });
+
   it("removes a verified phone number", async () => {
     account = makeAccount({ phone: "+447700900123", phoneVerified: new Date() });
     const { service } = makeSut();
     const result = await service.remove("user-1");
     expect(result.success).toBe(true);
-    expect(account.phone).toBe("");
+    expect(account.phone).toBeNull();
   });
 });

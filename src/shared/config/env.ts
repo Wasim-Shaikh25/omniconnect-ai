@@ -176,6 +176,18 @@ export function validateProductionSecrets(): void {
       );
     }
   }
+  if (env.SMS_PROVIDER === "twilio") {
+    const twilioMissing = ([
+      "TWILIO_ACCOUNT_SID",
+      "TWILIO_AUTH_TOKEN",
+      "TWILIO_FROM_NUMBER",
+    ] as const).filter((key) => !env[key]);
+    if (twilioMissing.length > 0) {
+      throw new Error(
+        `SMS_PROVIDER=twilio is selected but missing environment variables: ${twilioMissing.join(", ")}`,
+      );
+    }
+  }
 }
 
 // Top-level validation is skipped during `next build` because env is not

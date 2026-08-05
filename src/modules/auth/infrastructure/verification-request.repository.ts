@@ -12,6 +12,7 @@ export class PrismaVerificationRequestRepository implements VerificationRequestR
         purpose: request.purpose,
         target: request.target,
         tokenHash: request.tokenHash,
+        salt: request.salt,
         attempts: request.attempts,
         expiresAt: request.expiresAt,
         consumedAt: request.consumedAt,
@@ -24,6 +25,24 @@ export class PrismaVerificationRequestRepository implements VerificationRequestR
     const found = await prisma.verificationRequest.findUnique({ where: { tokenHash } });
     if (!found) return null;
     return found as VerificationRequestRecord;
+  }
+
+  async findPendingByUser(
+    userId: string,
+    purpose: string,
+    target?: string,
+  ): Promise<VerificationRequestRecord | null> {
+    const found = await prisma.verificationRequest.findFirst({
+      where: {
+        userId,
+        purpose,
+        consumedAt: null,
+        expiresAt: { gt: new Date() },
+        ...(target ? { target } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return found ? (found as VerificationRequestRecord) : null;
   }
 
   async consume(id: string): Promise<void> {

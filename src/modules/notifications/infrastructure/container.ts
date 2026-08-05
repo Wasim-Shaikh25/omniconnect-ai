@@ -36,7 +36,14 @@ export const notificationPreferences = {
 function makeSmsSender(): SmsSender | null {
   if (env.SMS_PROVIDER === "disabled") return null;
   if (env.SMS_PROVIDER === "twilio") {
-    return makeTwilioSmsSender() ?? new ConsoleSmsSender();
+    const sender = makeTwilioSmsSender();
+    if (!sender) {
+      throw new Error(
+        "SMS_PROVIDER=twilio but Twilio credentials are incomplete. " +
+        "Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER.",
+      );
+    }
+    return sender;
   }
   return new ConsoleSmsSender();
 }

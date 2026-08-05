@@ -77,7 +77,7 @@ export class PrismaAccountRepository implements AccountRepository {
     return mapUser(user);
   }
 
-  async updatePhone(id: string, phone: string): Promise<AccountRecord | null> {
+  async updatePhone(id: string, phone: string | null): Promise<AccountRecord | null> {
     const user = await prisma.user.update({
       where: { id, deletedAt: null },
       data: { phone, mobile: null, phoneVerified: null },

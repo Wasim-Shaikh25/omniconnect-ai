@@ -56,7 +56,7 @@ export function PhoneVerificationForm({
                 onChange={(e) => setLocalPhone(e.target.value)}
                 placeholder="+447700900123"
                 required
-                pattern="\\+[1-9]\\d{7,14}"
+                pattern="\+[1-9]\d{7,14}"
                 title="Use international format, e.g. +447700900123"
               />
               <p className="text-xs text-muted-foreground">
@@ -80,7 +80,7 @@ export function PhoneVerificationForm({
                 maxLength={6}
                 placeholder="123456"
                 required
-                pattern="\\d{6}"
+                pattern="\d{6}"
                 title="Enter the 6-digit code"
               />
             </div>

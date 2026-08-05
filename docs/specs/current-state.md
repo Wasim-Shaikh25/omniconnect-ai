@@ -136,7 +136,10 @@ Core tables (see `prisma/schema.prisma` for full model):
 - The global `src/app/loading.tsx` was removed so Next.js does not stream the response before `notFound()` / `redirect()` can set the HTTP status.
 - The `authorized` middleware callback redirects authenticated non-super-admins away from `/admin*` to `/dashboard` (`307`) before any admin page streams.
 - `RootLayout` does not call `getCurrentUser()`; the app is wrapped in `next-auth/react` `SessionProvider` and `AppShell` fetches the session client-side. This keeps the server-rendered 404/error HTML from embedding the authenticated user's name/email/store data, satisfying the M7 smoke-test assertions in `scripts/check-http-status.ts`.
-- Super admin requires email-based OTP in addition to login.
+- Super admin requires email-based OTP in addition to login; if `SUPER_ADMIN_PHONE` is set, an SMS is also sent, otherwise an unverified `account.phone` is never used as an SMS destination.
+- Phone verification issues a 6-digit OTP with a per-request random salt and stores `hash(salt:code)`; verification is performed by looking up the user's pending `phone_verify` request and comparing the salted hash, with a 5-attempt cap and a `verifyPhoneAction` rate limit. Expired/invalid requests are consumed before issuing a new code to avoid collisions.
+- Account soft-delete (`deleteAccount`) preserves the original email so the 30-day grace-period restore path in `authorize()` works; it erases `name`, `phone`, `phoneVerified`, `mobile`, `mobileVerified`, and `image` and bumps `tokenVersion`.
+- `SMS_PROVIDER=twilio` now fails loudly at startup if any Twilio credential is missing instead of silently falling back to the console sender.
 
 ### 7.5 Tenancy and Workspace Model
 
