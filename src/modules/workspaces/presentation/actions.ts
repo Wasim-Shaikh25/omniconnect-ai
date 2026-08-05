@@ -22,14 +22,14 @@ export async function createStoreAction(
   _prev: StoreActionState,
   formData: FormData,
 ): Promise<StoreActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   await requireVerifiedEmail(user);
-  if (!user.organizationId) {
+  if (!user.userId) {
     return { error: "No organization is linked to your account yet." };
   }
 
   const parsed = createStoreSchema.safeParse({
-    organizationId: user.organizationId,
+    userId: user.userId,
     name: formData.get("name"),
     provider: formData.get("provider") || undefined,
     domain: formData.get("domain") || undefined,
@@ -83,7 +83,7 @@ export async function completeOnboardingAction(
   formData: FormData,
 ): Promise<OnboardingActionState> {
   const user = await requireUser();
-  if (user.organizationId) {
+  if (user.userId) {
     return { ok: true };
   }
 
@@ -100,7 +100,7 @@ export async function completeOnboardingAction(
       userEmail: user.email,
       name: parsed.data.name,
     });
-    // Refresh the JWT/session so the new organizationId and tokenVersion are
+    // Refresh the JWT/session so the new userId and tokenVersion are
     // reflected immediately; otherwise `getCurrentUser` will reject the stale
     // session and log the user out.
     await unstable_update({});

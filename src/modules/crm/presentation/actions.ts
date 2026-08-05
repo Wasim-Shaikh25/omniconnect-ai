@@ -47,7 +47,7 @@ export async function updateCustomerLifecycleAction(
   _prev: CustomerActionState,
   formData: FormData,
 ): Promise<CustomerActionState> {
-  const user = await requireRole("STAFF");
+  const user = await requireRole("USER");
   const parsed = lifecycleStageSchema.safeParse(
     Object.fromEntries(formData.entries()),
   );
@@ -78,7 +78,7 @@ export async function updateCustomerConsentAction(
   _prev: CustomerActionState,
   formData: FormData,
 ): Promise<CustomerActionState> {
-  const user = await requireRole("STAFF");
+  const user = await requireRole("USER");
   const parsed = consentSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -111,8 +111,8 @@ export async function getCustomerDirectoryAction(
   if (!user || user.userId !== userId) {
     return { customers: [] };
   }
-  const projectId = user.role === "STAFF" ? user.projectId : undefined;
-  if (user.role === "STAFF" && !projectId) {
+  const projectId = user.role === "USER" ? user.projectId : undefined;
+  if (user.role === "USER" && !projectId) {
     return { customers: [] };
   }
   const customers = await customerDirectory.listCustomersByOrganization(

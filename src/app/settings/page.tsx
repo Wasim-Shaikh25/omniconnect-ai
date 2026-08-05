@@ -34,18 +34,18 @@ export default async function SettingsPage() {
   if (!user) redirect("/login");
 
   const profile = await getUserProfile(user.id);
-  const isAdmin = user.role === "ADMIN" || user.role === "STORE_OWNER";
+  const isAdmin = user.role === "SUPER_ADMIN" || user.role === "USER";
   const members =
-    isAdmin && user.organizationId
-      ? (await listOrganizationUsers(user.organizationId)).items
+    isAdmin && user.userId
+      ? (await listOrganizationUsers(user.userId)).items
       : [];
   const stores =
-    isAdmin && user.organizationId
-      ? await organizationQueries.listStores(user.organizationId)
+    isAdmin && user.userId
+      ? await organizationQueries.listStores(user.userId)
       : [];
   const pendingInvites =
-    isAdmin && user.organizationId
-      ? await organizationQueries.listPendingInvites(user.organizationId)
+    isAdmin && user.userId
+      ? await organizationQueries.listPendingInvites(user.userId)
       : [];
 
   return (
@@ -132,7 +132,7 @@ export default async function SettingsPage() {
                             action={changeUserStoreAction}
                             userId={member.id}
                             stores={stores.map((s) => ({ id: s.id, name: s.name }))}
-                            currentStoreId={member.storeId}
+                            currentStoreId={member.projectId}
                           />
                           {member.id !== user.id && (
                             <TeamActionButton action={removeOrganizationMemberAction} id={member.id} label="Remove" />

@@ -44,7 +44,7 @@ export async function connectStoreAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = connectStoreSchema.safeParse({
     projectId: formData.get("projectId"),
@@ -79,7 +79,7 @@ export async function syncOrdersAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = syncOrdersSchema.safeParse({
     projectId: formData.get("projectId"),
   });
@@ -103,7 +103,7 @@ export async function syncProductsAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const projectId = String(formData.get("projectId") ?? "");
   if (!projectId) return { error: "Missing store." };
 
@@ -122,7 +122,7 @@ export async function generateCouponAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = generateCouponSchema.safeParse({
     projectId: formData.get("projectId"),
@@ -149,7 +149,7 @@ export async function updateProductAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = updateProductSchema.safeParse({
     productId: formData.get("productId"),
@@ -195,7 +195,7 @@ export async function deleteProductAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = deleteProductSchema.safeParse({
     productId: formData.get("productId"),
@@ -235,7 +235,7 @@ export async function bulkDeleteProductsAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const projectId = String(formData.get("projectId") ?? "");
   if (!projectId) return { error: "Missing store." };
 
@@ -276,7 +276,7 @@ export async function updateCouponAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = updateCouponSchema.safeParse({
     couponId: formData.get("couponId"),
@@ -318,7 +318,7 @@ export async function deleteCouponAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = deleteCouponSchema.safeParse({
     couponId: formData.get("couponId"),
@@ -357,7 +357,7 @@ export async function bulkDeleteCouponsAction(
   _prev: EcommerceActionState,
   formData: FormData,
 ): Promise<EcommerceActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const projectId = String(formData.get("projectId") ?? "");
   if (!projectId) return { error: "Missing store." };
 

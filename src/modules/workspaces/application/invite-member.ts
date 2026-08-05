@@ -11,7 +11,7 @@ import type {
 
 export const inviteMemberSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["ADMIN", "STAFF"] as const),
+  role: z.enum(["SUPER_ADMIN", "USER"] as const),
   projectId: z.string().optional(),
 });
 

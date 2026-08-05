@@ -41,7 +41,7 @@ export async function takeOverConversationAction(
   _prev: ConversationActionState,
   formData: FormData,
 ): Promise<ConversationActionState> {
-  const user = await requireRole("STAFF");
+  const user = await requireRole("USER");
   const parsed = takeoverSchema.safeParse(
     Object.fromEntries(formData.entries()),
   );
@@ -75,7 +75,7 @@ export async function resumeAIConversationAction(
   _prev: ConversationActionState,
   formData: FormData,
 ): Promise<ConversationActionState> {
-  const user = await requireRole("STAFF");
+  const user = await requireRole("USER");
   const parsed = takeoverSchema.safeParse(
     Object.fromEntries(formData.entries()),
   );

@@ -12,8 +12,6 @@ function mapUser(user: {
   phoneVerified: Date | null;
   role: string;
   isSuperAdmin: boolean;
-  userId: string | null;
-  projectId: string | null;
   tokenVersion: number;
   deletedAt: Date | null;
 }): AccountRecord {
@@ -27,8 +25,6 @@ function mapUser(user: {
     phoneVerified: user.phoneVerified,
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
-    userId: user.userId,
-    projectId: user.projectId,
     tokenVersion: user.tokenVersion,
     deletedAt: user.deletedAt,
   };
@@ -101,8 +97,6 @@ export class PrismaAccountRepository implements AccountRepository {
     phone?: string | null;
     emailVerified?: Date | null;
     isSuperAdmin?: boolean;
-    userId?: string | null;
-    projectId?: string | null;
   }): Promise<AccountRecord> {
     const user = await prisma.user.create({
       data: {
@@ -113,8 +107,6 @@ export class PrismaAccountRepository implements AccountRepository {
         phone: input.phone ?? null,
         emailVerified: input.emailVerified ?? null,
         isSuperAdmin: input.isSuperAdmin ?? false,
-        userId: input.userId ?? null,
-        projectId: input.projectId ?? null,
       },
     });
     return mapUser(user);

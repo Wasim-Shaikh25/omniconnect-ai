@@ -14,7 +14,7 @@ export interface WorkspaceStoreSnapshot extends StoreRecord {
 }
 
 export interface WorkspaceKpiSnapshot {
-  organizationId: string;
+  userId: string;
   organizationName: string;
   storeCount: number;
   productCount: number;
@@ -28,7 +28,7 @@ export interface WorkspaceKpiSnapshot {
 
 export interface OrganizationOverviewPort {
   getOrganizationOverview(
-    organizationId: string,
+    userId: string,
   ): Promise<{ id: string; name: string; stores: StoreRecord[] } | null>;
 }
 
@@ -42,11 +42,11 @@ export function makeAnalyticsQueries(deps: {
 }) {
   return {
     async getWorkspaceKpis(
-      organizationId: string,
       userId: string,
+      _userId: string,
     ): Promise<WorkspaceKpiSnapshot | null> {
       const overview = await deps.organizations.getOrganizationOverview(
-        organizationId,
+        userId,
       );
       if (!overview) return null;
 
@@ -76,7 +76,7 @@ export function makeAnalyticsQueries(deps: {
       );
 
       return {
-        organizationId: overview.id,
+        userId: overview.id,
         organizationName: overview.name,
         storeCount: stores.length,
         productCount: perStore.reduce(
@@ -98,8 +98,8 @@ export function makeAnalyticsQueries(deps: {
       };
     },
 
-    async listTrackedAccounts(storeId: string): Promise<TrackedAccountRecord[]> {
-      return deps.trackedAccounts.listByStore(storeId);
+    async listTrackedAccounts(projectId: string): Promise<TrackedAccountRecord[]> {
+      return deps.trackedAccounts.listByStore(projectId);
     },
   };
 }

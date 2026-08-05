@@ -12,17 +12,17 @@ function canExecuteAction(actionType: string, riskTier: RiskTier, userRole: stri
     case "TIER_2":
       return {
         allowed: userRole !== null,
-        requiresApproval: userRole === "STAFF",
+        requiresApproval: userRole === "USER",
       };
     case "TIER_3":
       return {
-        allowed: userRole === "ADMIN" || userRole === "STORE_OWNER" || userRole === "STAFF",
+        allowed: userRole === "SUPER_ADMIN" || userRole === "USER" || userRole === "USER",
         requiresApproval: true,
       };
     case "TIER_4":
     default:
       return {
-        allowed: userRole === "ADMIN" || userRole === "STORE_OWNER",
+        allowed: userRole === "SUPER_ADMIN" || userRole === "USER",
         requiresApproval: true,
       };
   }
@@ -35,8 +35,8 @@ export function makeDecisionPolicyService() {
     },
 
     isApprovedBySufficientAuthority(riskTier: RiskTier, userRole: string | null): boolean {
-      if (riskTier === "TIER_4") return userRole === "ADMIN" || userRole === "STORE_OWNER";
-      if (riskTier === "TIER_3") return userRole === "ADMIN" || userRole === "STORE_OWNER" || userRole === "STAFF";
+      if (riskTier === "TIER_4") return userRole === "SUPER_ADMIN" || userRole === "USER";
+      if (riskTier === "TIER_3") return userRole === "SUPER_ADMIN" || userRole === "USER" || userRole === "USER";
       return userRole !== null;
     },
   };

@@ -25,10 +25,10 @@ function makeSessionUser(user: { id: string; email: string }) {
     id: user.id,
     email: user.email,
     name: null,
-    role: "STORE_OWNER",
+    role: "USER",
     isSuperAdmin: false,
-    organizationId: null,
-    storeId: null,
+    userId: null,
+    projectId: null,
   };
 }
 

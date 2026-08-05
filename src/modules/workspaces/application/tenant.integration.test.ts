@@ -88,7 +88,7 @@ describe("makeTenantGuard", () => {
         data: {
           email: "orphan@example.com",
           passwordHash: "hash",
-          role: "STORE_OWNER",
+          role: "USER",
           isSuperAdmin: false,
           userId: null,
         },

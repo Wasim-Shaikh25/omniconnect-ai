@@ -19,19 +19,19 @@ Progress tracker for REQ-0090: Cleanup & Migration.
 
 ### Implementation
 - [x] T-001: Delete Organization/Store/Staff/StoreIntegration models.
-- [~] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018).
+- [~] T-007: Prisma `generate` passes on the V2 schema; migration still needs to be applied to a live DB.
 - [x] T-019: Delete organizations module entirely.
 - [x] T-037: Delete hardcoded connectors.
 - [~] T-038: Delete overscoped features (product CRUD, standalone views, obsolete scripts).
   - [x] T-038a: Delete obsolete verification/maintenance scripts.
   - [ ] T-038b: Delete product CRUD actions, standalone orders view, store lifecycle remnants.
 - [~] T-018: Update all queries (org/store → user/workspace/project).
-  - [~] T-018a: Safe rename applied; remaining files with duplicate `userId` need manual mapping.
-  - [~] T-018b: Prisma model accessors replaced in safe-rename pass; workspaces module refs still being adapted.
-  - [ ] T-018c: Update session/auth context to carry `userId`/`projectId`.
+  - [x] T-018a: Mechanical rename completed for `organizationId→userId` / `storeId→projectId` (AST-safe dedup applied to 47 files).
+  - [~] T-018b: Prisma model accessors replaced; schema fields aligned (`User.projectId`, `Customer.tags` added) to fix repository mappings.
+  - [x] T-018c: Session/auth context carries `userId`/`projectId` from JWT.
 - [~] T-039: `src/modules/workspaces` shell created from old `organizations` module; internal Prisma refs and public contract must be adapted.
 - [~] Replace OpenAI with OpenRouter (client + model router done; wiring in progress — T-017).
-- [ ] Fix all TypeScript compilation errors.
+- [~] Fix all TypeScript compilation errors — `npx tsc --noEmit` down to ~220 errors (from ~1000); remaining errors are in `workspaces`, `ecommerce`, `support` repository manual types.
 
 ### Verification
 - [ ] `npm run lint` passes.

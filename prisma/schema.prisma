@@ -44,6 +44,7 @@ model User {
   gender                  Gender?
   companyName             String?
   image                   String?
+  projectId               String?    // selected active project (session state persisted on user)
   role                    Role       @default(USER)
   isSuperAdmin            Boolean    @default(false)
   plan                    Plan       @default(FREE)
@@ -423,6 +424,7 @@ model Customer {
   fbUserId         String?
   username         String?
   interests        String[]
+  tags             String[]
   lifecycleStage   CustomerLifecycleStage @default(LEAD)
   consent          CustomerConsent        @default(PENDING)
   consentUpdatedAt DateTime?

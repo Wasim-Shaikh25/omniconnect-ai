@@ -42,9 +42,8 @@ export interface QualityReport {
 }
 
 export interface QualityRunContext {
-  organizationId: string;
-  storeId: string;
   userId: string;
+  projectId: string;
   userRole: string;
 }
 
@@ -62,8 +61,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     const subjectId = `qa-subject-${Date.now()}`;
 
     const fresh = await input.signalIngestion.ingest({
-      organizationId: ctx.organizationId,
-      storeId: ctx.storeId,
+      userId: ctx.userId,
+      projectId: ctx.projectId,
       eventType: "QualityCheck",
       subjectType: "customer",
       subjectId,
@@ -74,8 +73,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     const stale = await input.signalIngestion.ingest({
-      organizationId: ctx.organizationId,
-      storeId: ctx.storeId,
+      userId: ctx.userId,
+      projectId: ctx.projectId,
       eventType: "QualityCheck",
       subjectType: "customer",
       subjectId,
@@ -95,15 +94,15 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       reason: `Stale signal qualityStatus=${stale.qualityStatus}, quarantineReason=${stale.quarantineReason}`,
     }));
 
-    const latest = await input.signals.getLatestBySubject(ctx.organizationId, "customer", subjectId, "QualityCheck");
+    const latest = await input.signals.getLatestBySubject(ctx.userId, "customer", subjectId, "QualityCheck");
     const c3 = await runCheck("event lineage / latest lookup", "data", async () => ({
       passed: latest != null && latest.id === fresh.id,
       reason: latest ? `Latest signal id=${latest.id}` : "No latest signal found",
     }));
 
     const link = await input.entityResolution.resolve({
-      organizationId: ctx.organizationId,
-      storeId: ctx.storeId,
+      userId: ctx.userId,
+      projectId: ctx.projectId,
       sourceType: "customer",
       sourceId: `qa-customer-${Date.now()}`,
       targetType: "conversation",
@@ -114,7 +113,7 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     const c4 = await runCheck("entity resolution accuracy", "data", async () => {
-      const updated = await input.entityResolution.merge(link.id, link.organizationId);
+      const updated = await input.entityResolution.merge(link.id, link.userId);
       return {
         passed: updated.confidence === "VERIFIED" && updated.status === "ACTIVE",
         reason: `Link confidence=${updated.confidence}, status=${updated.status}`,
@@ -129,8 +128,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     const productId = `qa-product-${Date.now()}`;
 
     await input.signalIngestion.ingest({
-      organizationId: ctx.organizationId,
-      storeId: ctx.storeId,
+      userId: ctx.userId,
+      projectId: ctx.projectId,
       eventType: "ProductInventory",
       subjectType: "product",
       subjectId: productId,
@@ -140,8 +139,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     await input.signalIngestion.ingest({
-      organizationId: ctx.organizationId,
-      storeId: ctx.storeId,
+      userId: ctx.userId,
+      projectId: ctx.projectId,
       eventType: "NewMessage",
       subjectType: "conversation",
       subjectId: `qa-conversation-${Date.now()}`,
@@ -150,16 +149,16 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       occurredAt: now,
     });
 
-    await input.detection.analyzeStore(ctx.organizationId, ctx.storeId);
+    await input.detection.analyzeStore(ctx.userId, ctx.projectId);
 
     const c1 = await runCheck("known scenario detection", "intelligence", async () => {
-      const open = await input.insights.listOpen(ctx.organizationId, ctx.storeId, 50);
+      const open = await input.insights.listOpen(ctx.userId, ctx.projectId, 50);
       const found = open.some((i) => i.title.toLowerCase().includes("qa product") || i.title.toLowerCase().includes("out of stock"));
       return { passed: found, reason: found ? "Detected out-of-stock scenario" : "No matching insight found" };
     });
 
     const c2 = await runCheck("driver decomposition", "intelligence", async () => {
-      const insight = await input.diagnosis.diagnoseRevenue(ctx.organizationId, ctx.storeId);
+      const insight = await input.diagnosis.diagnoseRevenue(ctx.userId, ctx.projectId);
       if (!insight) return { passed: true, reason: "No revenue decline detected (expected for empty store)" };
       const evidence = typeof insight.evidence === "object" && insight.evidence !== null ? (insight.evidence as { summary?: string }).summary ?? "" : "";
       return {
@@ -168,8 +167,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
       };
     });
 
-    const first = await input.recommendations.generateFromOpenInsights(ctx.organizationId, ctx.storeId);
-    const second = await input.recommendations.generateFromOpenInsights(ctx.organizationId, ctx.storeId);
+    const first = await input.recommendations.generateFromOpenInsights(ctx.userId, ctx.projectId);
+    const second = await input.recommendations.generateFromOpenInsights(ctx.userId, ctx.projectId);
     const c3 = await runCheck("recommendation deduplication", "intelligence", async () => ({
       passed: second.length === 0 || second.every((r2) => first.some((r1) => r1.id === r2.id)),
       reason: `First run: ${first.length}, second run: ${second.length}`,
@@ -207,8 +206,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     const c3 = await runCheck("tool allowlist", "ai", async () => {
-      const allowed = input.aiGovernance.validateToolCall({ tool: "generateCoupon", params: {}, idempotencyKey: "key-12345678" }, "STORE_OWNER");
-      const blocked = input.aiGovernance.validateToolCall({ tool: "executeShell", params: {}, idempotencyKey: "key-87654321" }, "STORE_OWNER");
+      const allowed = input.aiGovernance.validateToolCall({ tool: "generateCoupon", params: {}, idempotencyKey: "key-12345678" }, "USER");
+      const blocked = input.aiGovernance.validateToolCall({ tool: "executeShell", params: {}, idempotencyKey: "key-87654321" }, "USER");
       return { passed: allowed.allowed && !blocked.allowed, reason: `Allowed=${allowed.allowed}, Blocked=${blocked.allowed}` };
     });
 
@@ -240,8 +239,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
 
     const now = new Date();
     await input.recommendationRepo.save({
-      organizationId: ctx.organizationId,
-      storeId: ctx.storeId,
+      userId: ctx.userId,
+      projectId: ctx.projectId,
       insightId: null,
       producedByModule: "intelligence",
       producedByService: "qualityAssurance",
@@ -275,9 +274,9 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
     });
 
     const c3 = await runCheck("outcome linkage", "action", async () => {
-      const outcome = await input.outcomes.create(ctx.organizationId, "qa-plan", ctx.storeId, "order_count", 0, 0.5);
-      const measured = await input.outcomes.measure(outcome.id, ctx.organizationId, 0, 1, "SUCCESS");
-      const linked = await input.outcomeRepo.findByActionPlan("qa-plan", ctx.organizationId);
+      const outcome = await input.outcomes.create(ctx.userId, "qa-plan", ctx.projectId, "order_count", 0, 0.5);
+      const measured = await input.outcomes.measure(outcome.id, ctx.userId, 0, 1, "SUCCESS");
+      const linked = await input.outcomeRepo.findByActionPlan("qa-plan", ctx.userId);
       return {
         passed: measured.status === "SUCCESS" && linked != null,
         reason: `Outcome status=${measured.status}, linked=${linked != null}`,
@@ -289,7 +288,7 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
 
   async function runUatScenarios(ctx: QualityRunContext): Promise<QualityCheck[]> {
     const c1 = await runCheck("UAT: data failure handling", "uat", async () => {
-      const result = await input.metrics.getMetric("nonexistent_metric", ctx.organizationId, ctx.storeId);
+      const result = await input.metrics.getMetric("nonexistent_metric", ctx.userId, ctx.projectId);
       return { passed: result === null, reason: result === null ? "Unknown metric safely returns null" : "Unknown metric unexpectedly resolved" };
     });
 
@@ -300,8 +299,8 @@ export function makeQualityAssuranceService(input: QualityAssuranceServiceInput)
 
     const c3 = await runCheck("UAT: high-value customer linkage", "uat", async () => {
       const link = await input.entityResolution.resolve({
-        organizationId: ctx.organizationId,
-        storeId: ctx.storeId,
+        userId: ctx.userId,
+        projectId: ctx.projectId,
         sourceType: "customer",
         sourceId: `qa-hv-${Date.now()}`,
         targetType: "order",

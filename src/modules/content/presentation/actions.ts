@@ -35,7 +35,7 @@ export async function generateContentIdeasAction(
   _prev: GenerateContentIdeasState,
   formData: FormData,
 ): Promise<GenerateContentIdeasState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = generateContentIdeasSchema.safeParse({
     projectId: formData.get("projectId"),

@@ -22,6 +22,7 @@ type PrismaCustomer = {
   consentUpdatedAt: Date | null;
   lastActivityAt: Date | null;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 function toLifecycleStage(value: string): CustomerRecord["lifecycleStage"] {

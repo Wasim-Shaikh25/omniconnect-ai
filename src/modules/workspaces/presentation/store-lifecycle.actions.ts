@@ -23,7 +23,7 @@ export async function updateStoreAction(
   _prev: StoreLifecycleActionState,
   formData: FormData,
 ): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("STORE_OWNER");
+  const admin = await requireRole("USER");
   const projectId = formData.get("projectId");
   if (typeof projectId !== "string" || !projectId) {
     return { error: "Store ID is required" };
@@ -72,7 +72,7 @@ export async function archiveStoreAction(
   _prev: StoreLifecycleActionState,
   formData: FormData,
 ): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("STORE_OWNER");
+  const admin = await requireRole("USER");
   const projectId = formData.get("projectId");
   if (typeof projectId !== "string" || !projectId) {
     return { error: "Store ID is required" };
@@ -107,7 +107,7 @@ export async function restoreStoreAction(
   _prev: StoreLifecycleActionState,
   formData: FormData,
 ): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("STORE_OWNER");
+  const admin = await requireRole("USER");
   const projectId = formData.get("projectId");
   if (typeof projectId !== "string" || !projectId) {
     return { error: "Store ID is required" };
@@ -142,7 +142,7 @@ export async function deleteStoreAction(
   _prev: StoreLifecycleActionState,
   formData: FormData,
 ): Promise<StoreLifecycleActionState> {
-  const admin = await requireRole("STORE_OWNER");
+  const admin = await requireRole("USER");
   const projectId = formData.get("projectId");
   if (typeof projectId !== "string" || !projectId) {
     return { error: "Store ID is required" };

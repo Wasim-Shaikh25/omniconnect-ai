@@ -26,7 +26,7 @@ export function InviteMemberForm({
   defaultEmail = "",
 }: InviteMemberFormProps) {
   const [state, formAction, pending] = useActionState(action, {});
-  const [role, setRole] = useState<"ADMIN" | "STAFF">("STAFF");
+  const [role, setRole] = useState<"SUPER_ADMIN" | "USER">("USER");
 
   return (
     <form action={formAction} className="space-y-3">
@@ -54,11 +54,11 @@ export function InviteMemberForm({
           id="invite-role"
           name="role"
           value={role}
-          onChange={(e) => setRole(e.target.value as "ADMIN" | "STAFF")}
+          onChange={(e) => setRole(e.target.value as "SUPER_ADMIN" | "USER")}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
         >
-          <option value="ADMIN">Admin</option>
-          <option value="STAFF">Staff</option>
+          <option value="SUPER_ADMIN">Admin</option>
+          <option value="USER">Staff</option>
         </select>
       </div>
       <div>
@@ -66,10 +66,10 @@ export function InviteMemberForm({
         <select
           id="invite-store"
           name="projectId"
-          required={role === "STAFF"}
+          required={role === "USER"}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
         >
-          <option value="">{role === "STAFF" ? "Select a store" : "No specific store"}</option>
+          <option value="">{role === "USER" ? "Select a store" : "No specific store"}</option>
           {stores.map((store) => (
             <option key={store.id} value={store.id}>
               {store.name}

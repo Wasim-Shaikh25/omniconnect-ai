@@ -75,7 +75,7 @@ export async function trackCompetitorAction(
   _prev: TrackCompetitorState,
   formData: FormData,
 ): Promise<TrackCompetitorState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = trackCompetitorSchema.safeParse({
     projectId: formData.get("projectId"),
     handle: formData.get("handle"),
@@ -132,7 +132,7 @@ export async function getCompetitorMediaAction(
   _prev: CompetitorMediaState,
   formData: FormData,
 ): Promise<CompetitorMediaState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = getCompetitorMediaSchema.safeParse({
     projectId: formData.get("projectId"),
     accountId: formData.get("accountId"),
@@ -170,7 +170,7 @@ export async function analyzeCompetitorAction(
   _prev: CompetitorAnalysisState,
   formData: FormData,
 ): Promise<CompetitorAnalysisState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = analyzeCompetitorSchema.safeParse({
     projectId: formData.get("projectId"),
     accountId: formData.get("accountId"),
@@ -222,7 +222,7 @@ export async function discoverCompetitorsAction(
   _prev: DiscoverCompetitorsState,
   formData: FormData,
 ): Promise<DiscoverCompetitorsState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = discoverCompetitorsSchema.safeParse({
     projectId: formData.get("projectId"),
     query: formData.get("query"),
@@ -292,7 +292,7 @@ export async function deleteTrackedCompetitorAction(
   _prev: { error?: string; ok?: boolean },
   formData: FormData,
 ): Promise<{ error?: string; ok?: boolean }> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = deleteTrackedCompetitorSchema.safeParse({
     projectId: formData.get("projectId"),
     accountId: formData.get("accountId"),
@@ -330,7 +330,7 @@ export async function getMarketingPerformanceAction(
   _prev: MarketingPerformanceState,
   formData: FormData,
 ): Promise<MarketingPerformanceState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = marketingPerformanceSchema.safeParse({
     projectId: formData.get("projectId"),
   });
@@ -366,7 +366,7 @@ export async function getCompetitorBenchmarkAction(
   _prev: CompetitorBenchmarkState,
   formData: FormData,
 ): Promise<CompetitorBenchmarkState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = competitorBenchmarkSchema.safeParse({
     projectId: formData.get("projectId"),
     accountId: formData.get("accountId"),
@@ -410,7 +410,7 @@ export async function getWorkspaceCompetitorComparisonAction(
   _prev: WorkspaceCompetitorComparisonState,
   formData: FormData,
 ): Promise<WorkspaceCompetitorComparisonState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = competitorBenchmarkSchema.safeParse({
     projectId: formData.get("projectId"),
     accountId: formData.get("accountId"),
@@ -443,7 +443,7 @@ export async function getBestTimeToPostAction(
   _prev: BestTimeToPostState,
   formData: FormData,
 ): Promise<BestTimeToPostState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = bestTimeToPostSchema.safeParse({ projectId: formData.get("projectId") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
@@ -467,7 +467,7 @@ export async function getContentCalendarAction(
   _prev: ContentCalendarState,
   formData: FormData,
 ): Promise<ContentCalendarState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = contentCalendarSchema.safeParse({ projectId: formData.get("projectId") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 

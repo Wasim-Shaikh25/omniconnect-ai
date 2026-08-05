@@ -23,7 +23,7 @@ export default async function StoresPage() {
   const overview = user.userId
     ? await organizationQueries.getOrganizationOverview(user.userId)
     : null;
-  const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
+  const canManage = user.role === "SUPER_ADMIN" || user.role === "USER";
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-8">

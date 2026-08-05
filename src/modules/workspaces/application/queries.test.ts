@@ -71,7 +71,7 @@ describe("getOrganizationOverview store scoping", () => {
     });
     const overview = await queries.getOrganizationOverview(
       "org-1",
-      makeUser("STORE_OWNER", null),
+      makeUser("USER", null),
     );
     expect(overview?.stores).toHaveLength(2);
   });
@@ -84,7 +84,7 @@ describe("getOrganizationOverview store scoping", () => {
     });
     const overview = await queries.getOrganizationOverview(
       "org-1",
-      makeUser("STAFF", "store-a"),
+      makeUser("USER", "store-a"),
     );
     expect(overview?.stores).toHaveLength(1);
     expect(overview?.stores[0]?.id).toBe("store-a");
@@ -98,7 +98,7 @@ describe("getOrganizationOverview store scoping", () => {
     });
     const overview = await queries.getOrganizationOverview(
       "org-1",
-      makeUser("STAFF", null),
+      makeUser("USER", null),
     );
     expect(overview?.stores).toHaveLength(0);
   });

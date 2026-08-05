@@ -193,7 +193,7 @@ describe("makeInviteMember", () => {
 
     const result = await inviteMember({
       email: "staff@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });
@@ -210,7 +210,7 @@ describe("makeInviteMember", () => {
 
     const result = await inviteMember({
       email: "staff@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });
@@ -226,7 +226,7 @@ describe("makeInviteMember", () => {
 
     const first = await inviteMember({
       email: "one@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });
@@ -234,7 +234,7 @@ describe("makeInviteMember", () => {
 
     const second = await inviteMember({
       email: "two@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });
@@ -250,7 +250,7 @@ describe("makeInviteMember", () => {
 
     const result = await inviteMember({
       email: "staff@example.com",
-      role: "STAFF",
+      role: "USER",
       projectId: "store-a",
       userId: org.id,
       createdByUserId: "owner-1",
@@ -267,7 +267,7 @@ describe("makeInviteMember", () => {
 
     const first = await inviteMember({
       email: "staff@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });
@@ -275,7 +275,7 @@ describe("makeInviteMember", () => {
 
     const second = await inviteMember({
       email: "staff@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });
@@ -290,7 +290,7 @@ describe("makeInviteMember", () => {
 
     const result = await inviteMember({
       email: "staff@example.com",
-      role: "STAFF",
+      role: "USER",
       userId: org.id,
       createdByUserId: "owner-1",
     });

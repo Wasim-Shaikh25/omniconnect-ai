@@ -53,7 +53,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                       <td className="py-2 pr-4 font-medium">{user.email}</td>
                       <td className="py-2 pr-4">{user.name ?? "—"}</td>
                       <td className="py-2 pr-4">{user.role}</td>
-                      <td className="py-2 pr-4">{user.organizationId ? user.organizationId.slice(0, 8) : "—"}…</td>
+                      <td className="py-2 pr-4">{user.userId ? user.userId.slice(0, 8) : "—"}…</td>
                       <td className="py-2 pr-4">{user.isSuperAdmin ? "Yes" : "No"}</td>
                       <td className="py-2 pr-4">
                         <ToggleSuperAdminButton

@@ -46,7 +46,7 @@ export async function changeUserRoleAction(
   _prev: ProfileActionState,
   formData: FormData,
 ): Promise<ProfileActionState> {
-  const admin = await requireRole("STORE_OWNER");
+  const admin = await requireRole("USER");
   const parsed = changeRoleSchema.safeParse({
     userId: formData.get("userId"),
     role: formData.get("role"),
@@ -58,13 +58,13 @@ export async function changeUserRoleAction(
   const result = await changeUserRole(parsed.data, {
     id: admin.id,
     role: admin.role,
-    organizationId: admin.organizationId,
+    userId: admin.userId,
   });
   if (!result.ok) return { error: result.error.message };
 
-  if (admin.organizationId) {
+  if (admin.userId) {
     await auditCommands.create({
-      organizationId: admin.organizationId,
+      userId: admin.userId,
       actorId: admin.id,
       actorEmail: admin.email ?? undefined,
       action: "USER_ROLE_CHANGED",
@@ -83,19 +83,19 @@ export async function changeUserStoreAction(
   _prev: ProfileActionState,
   formData: FormData,
 ): Promise<ProfileActionState> {
-  const admin = await requireRole("STORE_OWNER");
+  const admin = await requireRole("USER");
   const userId = formData.get("userId");
-  const storeId = formData.get("storeId");
+  const projectId = formData.get("projectId");
   if (typeof userId !== "string" || !userId) {
     return { error: "User ID is required" };
   }
 
   const target = await userRepository.findById(userId);
-  if (!target || target.organizationId !== admin.organizationId) {
+  if (!target || target.userId !== admin.userId) {
     return { error: "User not found in your organization." };
   }
 
-  const assignedStoreId = typeof storeId === "string" && storeId.trim() ? storeId.trim() : null;
+  const assignedStoreId = typeof projectId === "string" && projectId.trim() ? projectId.trim() : null;
   if (assignedStoreId) {
     try {
       await tenantGuard.assertStoreAccess(admin, assignedStoreId);
@@ -106,9 +106,9 @@ export async function changeUserStoreAction(
 
   await setUserStore(userId, assignedStoreId);
 
-  if (admin.organizationId) {
+  if (admin.userId) {
     await auditCommands.create({
-      organizationId: admin.organizationId,
+      userId: admin.userId,
       actorId: admin.id,
       actorEmail: admin.email ?? undefined,
       action: "USER_STORE_CHANGED",
@@ -168,7 +168,7 @@ export async function toggleUserSuperAdminAction(
   const user = await setUserSuperAdmin(userId, isSuperAdmin);
 
   await auditCommands.create({
-    organizationId: admin.organizationId ?? null,
+    userId: admin.userId ?? null,
     actorId: admin.id,
     actorEmail: admin.email,
     action: isSuperAdmin ? "USER_PROMOTED_SUPER_ADMIN" : "USER_DEMOTED_SUPER_ADMIN",
@@ -184,7 +184,7 @@ export async function toggleUserSuperAdminAction(
 export async function requestDataExportAction(): Promise<{ downloadUrl?: string; error?: string; ok?: boolean }> {
   const user = await requireUser();
   try {
-    const exportRequest = await dataExportService.requestExport(user.id, user.organizationId);
+    const exportRequest = await dataExportService.requestExport(user.id, user.userId);
     return { downloadUrl: exportRequest.downloadUrl ?? undefined, ok: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not create export" };

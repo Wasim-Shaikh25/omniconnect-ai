@@ -32,7 +32,7 @@ export async function listCommerceCatalogAction(
 ): Promise<CommerceCatalogView> {
   let user: Awaited<ReturnType<typeof requireRole>> | null = null;
   try {
-    user = await requireRole("STAFF");
+    user = await requireRole("USER");
     await tenantGuard.assertStoreAccess(user, projectId);
   } catch (error) {
     if (error instanceof ForbiddenError) {
@@ -60,7 +60,7 @@ export async function syncMetaCatalogAction(
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
   try {
-    const user = await requireRole("STORE_OWNER");
+    const user = await requireRole("USER");
     await tenantGuard.assertStoreAccess(user, parsed.data.projectId);
     await commerceService.syncProductCatalog(parsed.data.projectId);
     revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);
@@ -88,7 +88,7 @@ export async function createShoppableMediaAction(
   if (!parsed.success) return { ok: false, error: parsed.error.message };
 
   try {
-    const user = await requireRole("STORE_OWNER");
+    const user = await requireRole("USER");
     await tenantGuard.assertStoreAccess(user, parsed.data.projectId);
     await commerceService.createShoppableMedia(parsed.data.projectId, parsed.data);
     revalidatePath(`/stores/${parsed.data.projectId}/commerce/catalog`);

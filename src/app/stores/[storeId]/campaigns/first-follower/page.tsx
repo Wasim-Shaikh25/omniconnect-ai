@@ -34,7 +34,7 @@ export default async function FirstTimeFollowerCampaignPage({
   }
   const { user, store } = access;
 
-  const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
+  const canManage = user.role === "SUPER_ADMIN" || user.role === "USER";
   const [campaign, followers] = await Promise.all([
     couponsQueries.getCampaign(projectId),
     crmQueries.listFollowers(projectId, 10),

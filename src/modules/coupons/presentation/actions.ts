@@ -21,7 +21,7 @@ export async function updateCampaignAction(
 ): Promise<CouponsActionState> {
   let user;
   try {
-    user = await requireRole("STORE_OWNER");
+    user = await requireRole("USER");
     await tenantGuard.assertStoreAccess(user, String(formData.get("projectId") ?? ""));
   } catch {
     return { status: "error", message: "Unauthorized" };
@@ -63,7 +63,7 @@ export async function simulateFirstTimeFollower(
   }
   let user;
   try {
-    user = await requireRole("STORE_OWNER");
+    user = await requireRole("USER");
   } catch {
     return { status: "error", message: "Unauthorized" };
   }

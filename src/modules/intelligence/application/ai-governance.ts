@@ -51,11 +51,11 @@ export interface RiskTierEnforcementResult {
 }
 
 const ALLOWED_TOOLS = new Map<string, string[]>([
-  ["generateCoupon", ["ADMIN", "STORE_OWNER", "STAFF"]],
-  ["createDmCampaign", ["ADMIN", "STORE_OWNER", "STAFF"]],
-  ["takeOverConversation", ["ADMIN", "STORE_OWNER", "STAFF"]],
-  ["syncProducts", ["ADMIN", "STORE_OWNER"]],
-  ["updateAIConfiguration", ["ADMIN", "STORE_OWNER"]],
+  ["generateCoupon", ["SUPER_ADMIN", "USER", "USER"]],
+  ["createDmCampaign", ["SUPER_ADMIN", "USER", "USER"]],
+  ["takeOverConversation", ["SUPER_ADMIN", "USER", "USER"]],
+  ["syncProducts", ["SUPER_ADMIN", "USER"]],
+  ["updateAIConfiguration", ["SUPER_ADMIN", "USER"]],
 ]);
 
 const PROMPT_INJECTION_PATTERNS = [
@@ -119,10 +119,10 @@ export function makeAiGovernanceService() {
       else if (input.audienceSize > 100 || input.discountPct > 5) tier = "TIER_2";
 
       const approvers: Record<RiskTier, string[]> = {
-        TIER_1: ["ADMIN", "STORE_OWNER", "STAFF"],
-        TIER_2: ["ADMIN", "STORE_OWNER", "STAFF"],
-        TIER_3: ["ADMIN", "STORE_OWNER"],
-        TIER_4: ["ADMIN"],
+        TIER_1: ["SUPER_ADMIN", "USER", "USER"],
+        TIER_2: ["SUPER_ADMIN", "USER", "USER"],
+        TIER_3: ["SUPER_ADMIN", "USER"],
+        TIER_4: ["SUPER_ADMIN"],
       };
 
       const userCanApprove = input.userRole !== null && approvers[tier].includes(input.userRole);

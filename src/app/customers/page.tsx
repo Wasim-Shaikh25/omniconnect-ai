@@ -49,7 +49,7 @@ export default async function CustomersPage({
 }) {
   const user = await getCurrentUser();
   if (!user || !user.userId) redirect("/login");
-  if (user.role === "STAFF" && !user.projectId) redirect("/dashboard");
+  if (user.role === "USER" && !user.projectId) redirect("/dashboard");
 
   const params = (await searchParams) ?? {};
   const pagination = parsePagination(params.page, params.limit);
@@ -76,7 +76,7 @@ export default async function CustomersPage({
     ...(segment ? { segment } : {}),
   };
 
-  const projectId = user.role === "STAFF" ? user.projectId : undefined;
+  const projectId = user.role === "USER" ? user.projectId : undefined;
   const { items: customers, total, totalPages } = await customerDirectory.listCustomersByOrganizationPaginated(
     user.userId,
     pagination,

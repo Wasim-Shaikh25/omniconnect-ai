@@ -92,8 +92,7 @@ export async function logSystem(
       message,
       stackTrace: fields.stackTrace,
       metadata: safeMetadata,
-      organizationId: fields.organizationId,
-      userId: fields.userId,
+      userId: fields.userId
     });
   } catch (error) {
     // Fallback to console; do not throw from logger.
@@ -106,7 +105,7 @@ export async function logSystemError(
   error: unknown,
   fields: {
     metadata?: Record<string, unknown>;
-    organizationId?: string;
+    userId?: string;
     userId?: string;
   } = {},
 ): Promise<void> {

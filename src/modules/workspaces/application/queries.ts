@@ -46,7 +46,7 @@ export function makeOrganizationQueries(deps: {
       const org = await deps.organizations.findById(userId);
       if (!org) return null;
       let stores = await deps.stores.listByOrganization(userId);
-      if (user?.role === "STAFF") {
+      if (user?.role === "USER") {
         if (user.projectId) {
           stores = stores.filter((s) => s.id === user.projectId);
         } else {

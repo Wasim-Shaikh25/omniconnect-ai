@@ -13,16 +13,15 @@ export interface BusinessBrainAnswer {
 
 export interface AskBusinessBrainInput {
   question: string;
-  organizationId: string;
   userId: string;
-  storeId?: string;
+  projectId?: string;
 }
 
 export interface WorkspaceContextPort {
   getContext(input: {
-    organizationId: string;
     userId: string;
-    storeId?: string;
+    userId: string;
+    projectId?: string;
   }): Promise<{
     organizationName: string;
     storeCount: number;
@@ -37,12 +36,12 @@ export interface WorkspaceContextPort {
 }
 
 export interface MarketingMemoryPort {
-  getMemory(organizationId: string, storeId: string): Promise<MarketingMemoryRecord>;
-  getBrief(organizationId: string, storeId: string): Promise<DailyBriefRecord>;
+  getMemory(userId: string, projectId: string): Promise<MarketingMemoryRecord>;
+  getBrief(userId: string, projectId: string): Promise<DailyBriefRecord>;
 }
 
 export interface BusinessBrainContextPort {
-  getContext(organizationId: string, storeId?: string): Promise<BusinessBrainContext>;
+  getContext(userId: string, projectId?: string): Promise<BusinessBrainContext>;
 }
 
 function buildFallbackAnswer(
@@ -198,20 +197,19 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
     input: AskBusinessBrainInput,
   ): Promise<BusinessBrainAnswer> {
     const ctx = await deps.workspaceContext.getContext({
-      organizationId: input.organizationId,
       userId: input.userId,
-      storeId: input.storeId,
+      projectId: input.projectId,
     });
 
     let memory: MarketingMemoryRecord | undefined;
     let brief: DailyBriefRecord | undefined;
     let brainContext: BusinessBrainContext | undefined;
     let recentMemory: BrainConversationMemoryRecord[] | undefined;
-    const storeId = input.storeId ?? ctx.storeNames[0];
-    if (deps.marketingMemory && storeId) {
+    const projectId = input.projectId ?? ctx.storeNames[0];
+    if (deps.marketingMemory && projectId) {
       try {
-        memory = await deps.marketingMemory.getMemory(input.organizationId, storeId);
-        brief = await deps.marketingMemory.getBrief(input.organizationId, storeId);
+        memory = await deps.marketingMemory.getMemory(input.userId, projectId);
+        brief = await deps.marketingMemory.getBrief(input.userId, projectId);
       } catch {
         // Memory is optional; answer from workspace context if unavailable.
       }
@@ -219,7 +217,7 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
 
     if (deps.businessBrainContext) {
       try {
-        brainContext = await deps.businessBrainContext.getContext(input.organizationId, input.storeId);
+        brainContext = await deps.businessBrainContext.getContext(input.userId, input.projectId);
       } catch {
         // Intelligence context is optional; answer from workspace context if unavailable.
       }
@@ -227,7 +225,7 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
 
     if (deps.brainMemory) {
       try {
-        recentMemory = await deps.brainMemory.getRecentContext(input.userId, input.organizationId, input.storeId, 5);
+        recentMemory = await deps.brainMemory.getRecentContext(input.userId, input.userId, input.projectId, 5);
       } catch {
         // Conversation memory is optional.
       }
@@ -236,14 +234,14 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
     const fallback = buildFallbackAnswer(input.question, ctx, brief, brainContext);
     const promptBuilder = buildPrompt(input.question, ctx, memory, brief, brainContext, recentMemory);
 
-    const configStoreId = storeId ?? "";
+    const configStoreId = projectId ?? "";
     const config = await deps.aiConfigurationRepository.getByStore(configStoreId);
     const model = selectModel("brain", config?.model).model;
 
     const context = promptBuilder
       .withModel(model)
       .withFallback(fallback)
-      .withMetadata({ organizationId: input.organizationId, userId: input.userId, storeId })
+      .withMetadata({ userId: input.userId, projectId })
       .build();
 
     const answer = await deps.aiProvider.complete(context.messages, {
@@ -256,10 +254,10 @@ export function makeAskBusinessBrain(deps: AskBusinessBrainDeps) {
       try {
         const entry = await deps.brainMemory.rememberQuestion(
           input.userId,
-          input.organizationId,
+          input.userId,
           input.question,
           answer,
-          input.storeId,
+          input.projectId,
         );
         memoryId = entry.id;
       } catch {

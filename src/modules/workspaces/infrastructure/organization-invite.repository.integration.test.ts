@@ -19,7 +19,7 @@ describe("PrismaOrganizationInviteRepository.createWithinSeatLimit", () => {
         email: "owner-concurrency@example.com",
         passwordHash: "hash",
         name: "Owner",
-        role: "ADMIN",
+        role: "SUPER_ADMIN",
         isSuperAdmin: false,
         userId,
       },
@@ -43,7 +43,7 @@ describe("PrismaOrganizationInviteRepository.createWithinSeatLimit", () => {
           {
             email: `concurrent-${userId}-${i}@example.com`,
             userId,
-            role: "STAFF",
+            role: "USER",
             projectId: null,
             token: `token-${userId}-${i}`,
             createdByUserId: ownerId,

@@ -8,7 +8,7 @@ export interface TenantGuardQueries {
 export function makeTenantGuard(deps: { queries: TenantGuardQueries }) {
   return {
     assertStoreAccess: async (user: SessionUser, projectId: string): Promise<void> => {
-      if (user.role === "STAFF") {
+      if (user.role === "USER") {
         if (!user.projectId || user.projectId !== projectId) throw new ForbiddenError();
         return;
       }

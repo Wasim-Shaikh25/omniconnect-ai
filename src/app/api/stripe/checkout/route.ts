@@ -7,7 +7,7 @@ import { logSystemError } from "@/shared/observability";
 
 export async function POST(request: Request) {
   try {
-    const user = await requireRole("STORE_OWNER");
+    const user = await requireRole("USER");
     await requireVerifiedEmail(user);
     if (!user.userId) {
       return NextResponse.json({ error: "No organization" }, { status: 400 });

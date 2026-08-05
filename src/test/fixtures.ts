@@ -37,7 +37,7 @@ export async function createTenant(label: string, password = "password"): Promis
       data: {
         email: `owner-${suffix}@example.com`,
         name: `Owner ${label}`,
-        role: "STORE_OWNER",
+        role: "USER",
         isSuperAdmin: false,
         emailVerified: new Date(),
         userId: organization.id,
@@ -49,7 +49,7 @@ export async function createTenant(label: string, password = "password"): Promis
       data: {
         email: `staff-${suffix}@example.com`,
         name: `Staff ${label}`,
-        role: "STAFF",
+        role: "USER",
         isSuperAdmin: false,
         emailVerified: new Date(),
         userId: organization.id,
@@ -74,7 +74,7 @@ export async function createSuperAdmin(password = "password"): Promise<SuperAdmi
     data: {
       email: `superadmin-${suffix}@example.com`,
       name: "Super Admin",
-      role: "ADMIN",
+      role: "SUPER_ADMIN",
       isSuperAdmin: true,
       emailVerified: new Date(),
       userId: null,

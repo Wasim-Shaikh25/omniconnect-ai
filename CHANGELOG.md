@@ -19,6 +19,10 @@ All notable changes to **OmniConnect AI** are documented here.
   Business Intelligence), Workspace/Project hierarchy, dynamic e-commerce adapters, unified
   messaging, OpenRouter AI gateway, AI assistant with tools, and full cleanup of old
   Organization/Store/Staff models. See requirements docs for full details.
+  - Mechanical org/store → user/workspace/project migration applied; session/auth context now
+    carries `userId`/`projectId` from JWT. `npx tsc --noEmit` reduced from ~1000 to ~220 errors.
+  - Added `User.projectId` (selected project) and `Customer.tags` to the V2 schema so repository
+    mappings compile against Prisma-generated types.
 - `REQ-0091` **Deterministic Analysis Engine** — AnalysisSpec vocabulary + safe engine so numbers
   are computed by code and the LLM narrates only; modifies `analyze-media.ts` and
   `generate-trends.ts` to stop the LLM inventing metrics.

@@ -144,11 +144,11 @@ const OPERATING_MODEL: OperatingModel = {
     { storyId: "story-3", scenario: "One-time buyer has not purchased in 90 days but opened a recent Meta DM.", expectedSignals: ["OrderPlaced", "DmCampaignSent", "CustomerProfileUpdated"], expectedInsight: "Customer at risk of churn", expectedRecommendation: "Send repeat-purchase DM campaign with 10% discount", guardrails: ["Frequency cap 7 days", "Max discount 15%"] },
   ],
   riskMatrix: [
-    { tier: "TIER_0", examples: ["Internal dashboard refresh", "Read-only insight"], maxAudience: 0, maxDiscountPct: 0, approvers: ["STAFF"], outboundAllowed: false },
-    { tier: "TIER_1", examples: ["AI response / suggestion", "Manual take-over suggestion"], maxAudience: 100, maxDiscountPct: 0, approvers: ["STAFF", "STORE_OWNER", "ADMIN"], outboundAllowed: false },
-    { tier: "TIER_2", examples: ["Single coupon generation", "Low-risk DM to opted-in segment"], maxAudience: 500, maxDiscountPct: 15, approvers: ["STORE_OWNER", "ADMIN"], outboundAllowed: true },
-    { tier: "TIER_3", examples: ["High-value customer campaign", "Multi-day automation"], maxAudience: 2000, maxDiscountPct: 25, approvers: ["ADMIN"], outboundAllowed: true },
-    { tier: "TIER_4", examples: ["Store-wide discount", "Autonomous outbound campaign", "Bulk data change"], maxAudience: 10000, maxDiscountPct: 50, approvers: ["ADMIN"], outboundAllowed: true },
+    { tier: "TIER_0", examples: ["Internal dashboard refresh", "Read-only insight"], maxAudience: 0, maxDiscountPct: 0, approvers: ["USER"], outboundAllowed: false },
+    { tier: "TIER_1", examples: ["AI response / suggestion", "Manual take-over suggestion"], maxAudience: 100, maxDiscountPct: 0, approvers: ["USER", "USER", "SUPER_ADMIN"], outboundAllowed: false },
+    { tier: "TIER_2", examples: ["Single coupon generation", "Low-risk DM to opted-in segment"], maxAudience: 500, maxDiscountPct: 15, approvers: ["USER", "SUPER_ADMIN"], outboundAllowed: true },
+    { tier: "TIER_3", examples: ["High-value customer campaign", "Multi-day automation"], maxAudience: 2000, maxDiscountPct: 25, approvers: ["SUPER_ADMIN"], outboundAllowed: true },
+    { tier: "TIER_4", examples: ["Store-wide discount", "Autonomous outbound campaign", "Bulk data change"], maxAudience: 10000, maxDiscountPct: 50, approvers: ["SUPER_ADMIN"], outboundAllowed: true },
   ],
   thinSliceReview: {
     dimensions: [

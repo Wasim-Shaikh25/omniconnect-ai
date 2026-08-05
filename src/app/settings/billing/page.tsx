@@ -21,7 +21,7 @@ export default async function BillingPage({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!["ADMIN", "STORE_OWNER"].includes(user.role)) notFound();
+  if (!["SUPER_ADMIN", "USER"].includes(user.role)) notFound();
 
   const params = await searchParams;
   const overview = user.userId

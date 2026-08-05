@@ -54,7 +54,7 @@ export default async function StoreDetailPage({
   }
   const { user, store } = access;
 
-  const canManage = user.role === "ADMIN" || user.role === "STORE_OWNER";
+  const canManage = user.role === "SUPER_ADMIN" || user.role === "USER";
   const isDev = env.NODE_ENV !== "production";
   const [
     connection,

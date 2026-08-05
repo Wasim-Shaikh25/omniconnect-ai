@@ -23,10 +23,10 @@ const onUserRegistered: EventHandler = async (event) => {
   // onboarding retried) and should not get a second one.
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { organizationId: true },
+    select: { userId: true },
   });
-  if (user?.organizationId) {
-    logger.info("organizations.alreadyProvisioned", { userId, organizationId: user.organizationId });
+  if (user?.userId) {
+    logger.info("organizations.alreadyProvisioned", { userId });
     return;
   }
 
@@ -35,26 +35,26 @@ const onUserRegistered: EventHandler = async (event) => {
 
   await eventBus.publish(
     new OrganizationCreated(org.id, {
-      organizationId: org.id,
+      userId: org.id,
       ownerUserId: userId,
       name: org.name,
     }),
   );
-  logger.info("organizations.provisioned", { organizationId: org.id, userId });
+  logger.info("organizations.provisioned", { userId: org.id });
 };
 
 const onProductsSynced: EventHandler = async (event) => {
-  const { storeId, count } = event.payload as ProductsSyncedPayload;
+  const { projectId, count } = event.payload as ProductsSyncedPayload;
 
   try {
-    await prisma.store.update({
-      where: { id: storeId },
+    await prisma.project.update({
+      where: { id: projectId },
       data: { lastProductSyncAt: new Date() },
     });
-    logger.info("organizations.productsSyncRecorded", { storeId, count });
+    logger.info("organizations.productsSyncRecorded", { projectId, count });
   } catch (error) {
     logger.error("organizations.productsSyncRecordFailed", {
-      storeId,
+      projectId,
       error: error instanceof Error ? error.message : String(error),
     });
   }

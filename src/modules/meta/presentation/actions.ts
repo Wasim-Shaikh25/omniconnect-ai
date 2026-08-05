@@ -35,7 +35,7 @@ export async function connectMetaAction(
   _prev: MetaActionState,
   formData: FormData,
 ): Promise<MetaActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = connectMetaSchema.safeParse({
     projectId: formData.get("projectId"),
@@ -66,7 +66,7 @@ export async function simulateInboundAction(
   _prev: MetaActionState,
   formData: FormData,
 ): Promise<MetaActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
 
   const parsed = simulateInboundSchema.safeParse({
     projectId: formData.get("projectId"),
@@ -101,7 +101,7 @@ export async function searchHashtagMediaAction(
   _prev: MetaActionState,
   formData: FormData,
 ): Promise<MetaActionState> {
-  const user = await requireRole("STORE_OWNER");
+  const user = await requireRole("USER");
   const parsed = searchHashtagMediaSchema.safeParse({
     projectId: formData.get("projectId"),
     query: formData.get("query"),

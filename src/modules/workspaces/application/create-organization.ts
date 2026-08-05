@@ -13,7 +13,7 @@ export interface CreateOrganizationInput {
 
 export function makeCreateOrganization(deps: {
   organizations: OrganizationRepository;
-  setUserOrganization: (id: string, organizationId: string) => Promise<void>;
+  setUserOrganization: (id: string, userId: string) => Promise<void>;
 }) {
   return async function createOrganization(input: CreateOrganizationInput) {
     const trimmed = input.name?.trim();
