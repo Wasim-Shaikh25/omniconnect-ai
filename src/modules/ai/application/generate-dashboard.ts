@@ -1,5 +1,6 @@
 import type { AnalysisResult } from "@/modules/analytics/pure";
 import type { QueryAnalyticsResult } from "./query-analytics";
+import { z } from "zod";
 
 export interface KPIData {
   value: string | number;
@@ -106,3 +107,44 @@ export function generateDashboard(
     result,
   };
 }
+
+const kpiDataSchema = z.object({
+  value: z.union([z.string(), z.number()]),
+  label: z.string(),
+  change: z.number().optional(),
+  changeLabel: z.string().optional(),
+  icon: z.string().optional(),
+});
+
+const chartDataSchema = z.object({
+  labels: z.array(z.string()),
+  datasets: z.array(
+    z.object({
+      label: z.string(),
+      data: z.array(z.number()),
+      color: z.string().optional(),
+    }),
+  ),
+});
+
+const tableDataSchema = z.object({
+  headers: z.array(z.string()),
+  rows: z.array(z.record(z.union([z.string(), z.number(), z.null()]))),
+});
+
+const widgetTitleSchema = z.string().min(1);
+const widgetSizeSchema = z.enum(["small", "medium", "large", "full"]);
+
+const dashboardWidgetSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("kpi"), title: widgetTitleSchema, size: widgetSizeSchema, data: kpiDataSchema }),
+  z.object({ type: z.literal("line_chart"), title: widgetTitleSchema, size: widgetSizeSchema, data: chartDataSchema }),
+  z.object({ type: z.literal("bar_chart"), title: widgetTitleSchema, size: widgetSizeSchema, data: chartDataSchema }),
+  z.object({ type: z.literal("pie_chart"), title: widgetTitleSchema, size: widgetSizeSchema, data: chartDataSchema }),
+  z.object({ type: z.literal("table"), title: widgetTitleSchema, size: widgetSizeSchema, data: tableDataSchema }),
+  z.object({ type: z.literal("sparkline"), title: widgetTitleSchema, size: widgetSizeSchema, data: chartDataSchema }),
+]);
+
+export const dashboardSchema = z.object({
+  title: z.string().min(1),
+  widgets: z.array(dashboardWidgetSchema),
+});

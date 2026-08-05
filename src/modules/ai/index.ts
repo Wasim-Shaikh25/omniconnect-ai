@@ -87,5 +87,5 @@ export { resolveOperation } from "./application/operation-resolver";
 export type { ResolveResult, ResolvedOperation, UnsupportedOperation, OperationExemplar } from "./application/operation-resolver";
 export { queryAnalytics } from "./application/query-analytics";
 export type { QueryAnalyticsResult, QueryAnalyticsDeps } from "./application/query-analytics";
-export { generateDashboard } from "./application/generate-dashboard";
+export { generateDashboard, dashboardSchema } from "./application/generate-dashboard";
 export type { GenerateDashboardResult, DashboardSchema, DashboardWidget, DashboardWidgetData, KPIData, ChartData, TableData, TableRow } from "./application/generate-dashboard";
