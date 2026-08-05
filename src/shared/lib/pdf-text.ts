@@ -1,8 +1,27 @@
+import { createRequire } from "module";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 
-pdfjs.GlobalWorkerOptions.workerSrc = "";
+function resolveWorkerPath(): string | undefined {
+  try {
+    if (typeof import.meta.url === "undefined") return undefined;
+    const require = createRequire(import.meta.url);
+    return require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  } catch {
+    return undefined;
+  }
+}
+
+let workerReady = false;
 
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
+  if (!workerReady) {
+    const workerPath = resolveWorkerPath();
+    if (workerPath) {
+      pdfjs.GlobalWorkerOptions.workerSrc = `file://${workerPath}`;
+    }
+    workerReady = true;
+  }
+
   const data = new Uint8Array(buffer);
   const doc = await pdfjs.getDocument({ data, useSystemFonts: true }).promise;
   const parts: string[] = [];

@@ -71,6 +71,20 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - `getCurrentUser()` now reloads canonical `User.userId`/`projectId` from the DB and checks `tokenVersion`, so updating `User.projectId` in Postgres is reflected on the next request without re-authenticating as long as `tokenVersion` is unchanged.
 - The `/settings` **Invite member** form is resilient to email-provider failures: `sendInviteEmail` catches SMTP/console errors, logs them, and the action returns success so the invite record is created. If `EMAIL_PROVIDER=smtp` and the server is unreachable, the form still shows "Invite sent" but the email is not delivered.
 - Browser automation can attach CDP to the wrong window when multiple Chrome windows/tabs are open. Use a single incognito window and close other browser windows before relying on `browser_console`.
+- File upload inputs in headless Chrome can be driven by constructing a `DataTransfer` and assigning it to `input.files`, then dispatching a `change` event:
+  ```js
+  const input = document.getElementById('knowledgeFiles');
+  const dt = new DataTransfer();
+  dt.items.add(new File(['content'], 'kb-test.txt', { type: 'text/plain' }));
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  ```
+- PR #155 knowledge-base upload gotchas:
+  - `.txt` and `.md` extraction works through the `extractKnowledgeBaseFiles` server action.
+  - PDF extraction uses `pdfjs-dist/legacy/build/pdf.mjs`; the worker path is resolved at runtime from `node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs` via `createRequire(import.meta.url)` and set on `GlobalWorkerOptions.workerSrc`.
+  - Product sync dispatches `ProductsSynced` through the in-memory queue when `REDIS_URL` is unset; `AIConfiguration.productKnowledge` is populated by the `onProductsSynced` subscriber.
+  - `/settings/billing` renders the Free plan, plan limits, and a "Payments not configured" alert when Stripe keys are absent; the **Manage subscription** button is disabled.
+- After submitting `/onboarding` the session may briefly land on `/login` with an empty main area because `unstable_update` does not refresh the JWT `tokenVersion` immediately. Navigating to `/login` or refreshing usually resolves it.
 
 ## Cross-tenant regression-test rule
 
