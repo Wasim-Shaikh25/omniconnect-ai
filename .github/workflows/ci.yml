@@ -71,7 +71,7 @@ jobs:
 
           secret_env NEXTAUTH_SECRET "$(openssl rand -hex 32)"
           secret_env ENCRYPTION_KEY "$(openssl rand -hex 32)"
-          secret_env OPENAI_API_KEY "sk-ci-$(openssl rand -hex 32)"
+          secret_env OPENROUTER_API_KEY "sk-or-v1-$(openssl rand -hex 32)"
           secret_env META_APP_SECRET "$(openssl rand -hex 32)"
           secret_env META_WEBHOOK_VERIFY_TOKEN "$(openssl rand -hex 32)"
           secret_env STRIPE_SECRET_KEY "sk_test_$(openssl rand -hex 24)"
