@@ -18,9 +18,9 @@ Progress tracker for REQ-0086: OpenRouter Integration.
 - [ ] Branch created.
 
 ### Implementation
-- [ ] T-016: OpenRouter client (API wrapper, streaming, tools).
+- [x] T-016: OpenRouter client (API wrapper, streaming, tools).
 - [ ] T-017: Replace all OpenAI imports with OpenRouter.
-- [ ] T-061: Per-feature model routing + plan validation.
+- [x] T-061: Per-feature model routing + plan validation.
 - [ ] T-062: AI usage tracking (tokens/model/feature/day).
 
 ### Verification

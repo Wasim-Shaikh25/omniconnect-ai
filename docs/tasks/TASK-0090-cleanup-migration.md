@@ -24,14 +24,14 @@ Full cleanup: delete Organization/Store/Staff/StoreIntegration models, delete or
 
 ## 3. Implementation Plan
 
-### Step 1 — Delete Prisma Models
-Remove Organization, Store, Staff, StoreIntegration and all relations from schema.
+### Step 1 — Delete Prisma Models ✅
+Removed Organization, Store, Staff, StoreIntegration and all relations from schema. Added User/Workspace/Project/EcommerceConnection/AIConfiguration/TokenUsage.
 
-### Step 2 — Delete Organizations Module
-Remove `src/modules/organizations/` entirely.
+### Step 2 — Delete Organizations Module ✅
+Removed `src/modules/organizations/` entirely.
 
-### Step 3 — Delete Hardcoded Connectors
-Remove shopify, woocommerce, bigcommerce connector files.
+### Step 3 — Delete Hardcoded Connectors ✅
+Removed shopify, woocommerce, bigcommerce connector files.
 
 ### Step 4 — Delete Overscoped Features
 Remove product CRUD actions, standalone orders view, store lifecycle management.
@@ -42,15 +42,15 @@ Change every org/store scoped query to user/workspace/project scope. Touch every
 ### Step 6 — Replace OpenAI
 Remove direct OpenAI imports, wire everything through OpenRouter client.
 
-### Step 7 — Fix Compilation
-Ensure `tsc --noEmit` passes. Update or remove broken tests.
+### Step 7 — Fix Compilation 🚧
+Schema generates (`prisma generate` passes). `tsc --noEmit` still has many code-level errors from deleted modules and renamed fields. Update or remove broken tests.
 
 ## 4. Subtasks
 
-- [ ] T-001: Delete Organization/Store/Staff/StoreIntegration models
-- [ ] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018; depends on T-002..T-006 across REQ-0076/0077/0080/0082/0084/0086/0088)
-- [ ] T-019: Delete organizations module
-- [ ] T-037: Delete hardcoded connectors
+- [x] T-001: Delete Organization/Store/Staff/StoreIntegration models
+- [~] T-007: Run Prisma migration — generate and apply new schema (blocks T-014, T-018; depends on T-002..T-006 across REQ-0076/0077/0080/0082/0084/0086/0088)
+- [x] T-019: Delete organizations module
+- [x] T-037: Delete hardcoded connectors
 - [ ] T-038: Delete overscoped features
 - [ ] T-018: Update all queries (org/store → user/workspace/project)
 
