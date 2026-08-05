@@ -115,8 +115,10 @@ answered with an invented figure.
 - [x] `queryAnalytics` resolves, fetches data, runs the engine, and returns structured `AnalysisResult`.
 - [x] `generateDashboard` transforms `AnalysisResult` into a `DashboardSchema` with KPI, chart,
       and table widgets.
-- [ ] Local MiniLM `TransformersEmbeddingProvider` and Profile Inspector integration to be
-      implemented in later batches.
+- [ ] Local MiniLM `TransformersEmbeddingProvider` to be implemented in a later batch.
+- [x] Profile Inspector core integrated: deterministic `inspectProfile` uses `profileQuality` and
+      public signals to compute audience quality, demographics, top content, growth trend, and
+      narration through `ProfileFetcher` / `ProfileNarrator` ports.
 - [x] No `eval`, `Function`, or dynamic code execution anywhere in the engine.
 
 ## 6. Scope & Dependencies
