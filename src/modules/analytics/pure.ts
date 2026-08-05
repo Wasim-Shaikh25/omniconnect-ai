@@ -14,5 +14,8 @@ export { singlePostAnalysis } from "./application/operations/single-post-analysi
 export { bestTime, bestTimeLabel } from "./application/operations/best-time";
 export type { BestTimeWindow } from "./application/best-time-to-post";
 export { topNPosts } from "./application/operations/top-n";
+export { comparePeriod } from "./application/operations/compare-period";
+export { anomalyCheck } from "./application/operations/anomaly-check";
+export { correlation as correlationOp } from "./application/operations/correlation";
 export { engagementScore, percentileRank, zScore, topN, correlation, mean, stdDev, median } from "./application/operations/stats";
 export type { ScoredPost } from "./application/operations/stats";

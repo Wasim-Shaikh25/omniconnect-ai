@@ -51,11 +51,17 @@ All notable changes to **OmniConnect AI** are documented here.
   now accepts a generic `BestTimeMediaInput`/`BestTimeOrderInput` interface so the engine can call
   it without a Meta API round-trip.
 
+### ✅ Done
+
+- `REQ-0091` **Deterministic Analysis Engine (Batch 3)** on `devin/deterministic-operations-1785940945`:
+  added pure deterministic `compare_period`, `anomaly_check`, and `correlation` operations to the
+  `AnalysisEngine` vocabulary, with unit tests and public exports via `@/modules/analytics/pure`.
+
 ### 🚧 In Progress
 
-- `REQ-0091` **Deterministic Analysis Engine (Batch 3)** — remaining operations
-  (`compare_period`, `anomaly_check`, `cohort_trend`, `attribution_breakdown`, `correlation`,
-  `profile_quality`), local MiniLM `EmbeddingProvider`, and `OperationResolver` NL → `AnalysisSpec`.
+- `REQ-0091` **Deterministic Analysis Engine (Batch 4)** — remaining operations
+  (`cohort_trend`, `attribution_breakdown`, `profile_quality`), local MiniLM `EmbeddingProvider`,
+  and `OperationResolver` NL → `AnalysisSpec`.
 
 ### ⏭️ Next
 
