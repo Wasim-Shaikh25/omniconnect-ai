@@ -8,7 +8,7 @@
 export const MODULE_NAME = "auth" as const;
 
 // Domain — RBAC
-export { ROLES, isRole, roleSatisfies } from "./domain/role";
+export { ROLES, isRole, roleSatisfies, isStaff } from "./domain/role";
 export type { Role } from "./domain/role";
 export {
   PASSWORD_MIN_LENGTH,

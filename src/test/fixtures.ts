@@ -22,49 +22,50 @@ const SALT_ROUNDS = 12;
 
 export async function createTenant(label: string, password = "password"): Promise<TenantFixture> {
   const suffix = `${label}-${randomUUID()}`;
-  const organization = await prisma.user.create({
-    data: { name: `Tenant ${label}`, email: `tenant-${suffix}@example.com`, plan: "FREE" },
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+  // The owner User is its own tenant; userId points to itself.
+  const owner = await prisma.user.create({
+    data: {
+      email: `owner-${suffix}@example.com`,
+      name: `Owner ${label}`,
+      role: "USER",
+      isSuperAdmin: false,
+      emailVerified: new Date(),
+      userId: null,
+      projectId: null,
+      passwordHash,
+    },
+  });
+
+  await prisma.user.update({
+    where: { id: owner.id },
+    data: { userId: owner.id },
   });
 
   const workspace = await prisma.workspace.create({
-    data: { userId: organization.id, name: `Tenant ${label}` },
+    data: { userId: owner.id, name: `Tenant ${label}` },
   });
 
   const store = await prisma.project.create({
-    data: { workspaceId: workspace.id, name: `Store ${label}`, userId: organization.id, provider: "SHOPIFY" },
+    data: { workspaceId: workspace.id, name: `Store ${label}`, userId: owner.id, provider: "SHOPIFY" },
   });
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-
-  const [owner, staff] = await prisma.$transaction([
-    prisma.user.create({
-      data: {
-        email: `owner-${suffix}@example.com`,
-        name: `Owner ${label}`,
-        role: "USER",
-        isSuperAdmin: false,
-        emailVerified: new Date(),
-        userId: organization.id,
-        projectId: null,
-        passwordHash,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: `staff-${suffix}@example.com`,
-        name: `Staff ${label}`,
-        role: "USER",
-        isSuperAdmin: false,
-        emailVerified: new Date(),
-        userId: organization.id,
-        projectId: store.id,
-        passwordHash,
-      },
-    }),
-  ]);
+  const staff = await prisma.user.create({
+    data: {
+      email: `staff-${suffix}@example.com`,
+      name: `Staff ${label}`,
+      role: "USER",
+      isSuperAdmin: false,
+      emailVerified: new Date(),
+      userId: owner.id,
+      projectId: store.id,
+      passwordHash,
+    },
+  });
 
   return {
-    organization,
+    organization: { id: owner.id, name: owner.name, plan: owner.plan },
     store,
     owner,
     staff,

@@ -16,13 +16,14 @@ export function makeCreateOrganization(deps: {
   setUserOrganization: (id: string, userId: string) => Promise<void>;
 }) {
   return async function createOrganization(input: CreateOrganizationInput) {
-    const trimmed = input.name?.trim();
-    const localPart = input.userEmail.split("@")[0] ?? "My";
-    const name = trimmed && trimmed.length > 0 ? trimmed : `${localPart}'s Organization`;
+    // The owner User is the tenant. Persist `userId` as the user's own id so
+    // owner/staff checks can use `user.userId === user.id`.
+    await deps.setUserOrganization(input.userId, input.userId);
 
-    const org = await deps.organizations.create({ name, email: input.userEmail });
-    await deps.setUserOrganization(input.userId, org.id);
-
+    const org = await deps.organizations.findById(input.userId);
+    if (!org) {
+      throw new Error("Owner record not found after onboarding setup.");
+    }
     return org;
   };
 }

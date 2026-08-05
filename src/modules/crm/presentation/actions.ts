@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentUser, requireRole } from "@/modules/auth";
+import { isStaff } from "@/modules/auth/domain";
 import { organizationQueries } from "@/modules/workspaces";
 import { customerDirectory } from "../infrastructure/container";
 import { PrismaCustomerRepository } from "../infrastructure/customer.repository";
@@ -111,8 +112,8 @@ export async function getCustomerDirectoryAction(
   if (!user || user.userId !== userId) {
     return { customers: [] };
   }
-  const projectId = user.role === "USER" ? user.projectId : undefined;
-  if (user.role === "USER" && !projectId) {
+  const projectId = isStaff(user) ? user.projectId : undefined;
+  if (isStaff(user) && !projectId) {
     return { customers: [] };
   }
   const customers = await customerDirectory.listCustomersByOrganization(
