@@ -1,12 +1,16 @@
 # TASK-0071: Implement Billing and Monetization Completeness
 
-- **Status:** Todo
+- **Status:** Superseded — see REQ-0088
 - **Owner:** Billing / Frontend
 - **Requirement:** `docs/requirements/REQ-0071-billing-monetization-completeness.md`
 - **Tracker:** `docs/trackers/TRACKER-0071-billing-monetization-completeness.md`
 - **Module(s):** `organizations`, `users`, `notifications`
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Self-service downgrade/cancel, invoice history, payment-method portal, usage/quota visibility, dunning banner, seat management.
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0088-billing-plans.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

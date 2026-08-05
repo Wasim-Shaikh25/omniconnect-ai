@@ -21,6 +21,8 @@ Progress tracker for REQ-0083: Business Intelligence.
 - [ ] T-054: DynamicDashboard React component (KPI, charts, tables).
 - [ ] queryAnalytics handler for 6 metric groups.
 - [ ] Dashboard page with default widgets.
+- [ ] T-070: Brand mention monitoring — Mentions API + AI sentiment analysis (P2).
+- [ ] T-072: Competitor tracking UI — add competitors, comparison dashboard (P2).
 - [ ] T-074: Dashboard export (PDF, image) — Phase 4.
 
 ### Verification

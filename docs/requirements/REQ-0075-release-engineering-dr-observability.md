@@ -9,6 +9,8 @@
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
 - **Last updated:** 2026-07-31
 
+> **ℹ️ Platform V2 note** — this hardening/quality-gate requirement is **retained and still active**. It is orthogonal to the V2 architecture rewrite (REQ-0076–REQ-0090). Findings referencing `Organization`/`Store`/`Project` models must be re-verified against the V2 schema once `REQ-0090-cleanup-migration.md` lands; everything else (security, testing, release engineering) applies unchanged.
+
 ## 1. Summary
 
 There is no continuous deployment, no rollback procedure, no configured database backup, no

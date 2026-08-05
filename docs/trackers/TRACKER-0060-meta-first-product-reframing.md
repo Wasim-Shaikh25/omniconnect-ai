@@ -1,6 +1,6 @@
 # TRACKER-0060: Meta-First Product Reframing
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0090
 - **Requirement:** `docs/requirements/REQ-0060-meta-first-product-reframing.md`
 - **Task:** `docs/tasks/TASK-0060-meta-first-product-reframing.md`
 - **Module(s):** presentation, ecommerce, organizations, coupons, meta, analytics

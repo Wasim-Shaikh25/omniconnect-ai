@@ -1,10 +1,14 @@
 # TRACKER-0071: Billing and Monetization Completeness
 
-- **Status:** Todo
+- **Status:** Superseded — see REQ-0088
 - **Owner:** Billing / Frontend
 - **Requirement:** `docs/requirements/REQ-0071-billing-monetization-completeness.md`
 - **Task:** `docs/tasks/TASK-0071-billing-monetization-completeness.md`
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0088-billing-plans.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

@@ -1,10 +1,14 @@
 # TRACKER-0018: Content Studio — MVP (ideas + captions)
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0079
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0018-content-studio-mvp.md`
 - **Task:** `docs/tasks/TASK-0018-content-studio-mvp.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0079-meta-growth-engine.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

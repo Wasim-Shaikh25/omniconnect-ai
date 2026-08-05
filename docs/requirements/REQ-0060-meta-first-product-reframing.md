@@ -4,13 +4,17 @@ description: Meta-First Product Reframing
 
 # REQ-0060: Meta-First Product Reframing
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0090
 - **Owner:** Devin
 - **Module(s):** presentation, ecommerce, organizations, coupons, meta, analytics
 - **Original spec path:** `docs/specs/0060-meta-first-product-reframing.md` (restructured)
 - **Task:** `docs/tasks/TASK-0060-meta-first-product-reframing.md`
 - **Tracker:** `docs/trackers/TRACKER-0060-meta-first-product-reframing.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0090-cleanup-migration.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0060-meta-first-product-reframing.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

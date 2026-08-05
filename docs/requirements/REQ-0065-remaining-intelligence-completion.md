@@ -1,9 +1,13 @@
 # REQ-0065 — Remaining Intelligence Layer Completion
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0089
 - **Priority:** High
 - **Created:** 2026-07-29
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0089-intelligence-layer.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## Goal
 

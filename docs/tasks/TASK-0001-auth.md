@@ -1,12 +1,16 @@
 # TASK-0001: Authentication
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0076
 - **Owner:** wasim
 - **Module(s):** auth, users
 - **Requirement:** `docs/requirements/REQ-0001-auth.md`
 - **Tracker:** `docs/trackers/TRACKER-0001-auth.md`
 - **Changelog entry:** See `CHANGELOG.md` for TASK-0001.
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0076-auth-registration-overhaul.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

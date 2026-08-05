@@ -4,13 +4,17 @@ description: Executive Dashboard & Workspace KPIs
 
 # REQ-0014: Executive Dashboard & Workspace KPIs
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0083
 - **Owner:** wasim
 - **Module(s):** analytics, organizations, ecommerce, crm, conversations, ai
 - **Original spec path:** `docs/specs/0014-executive-dashboard.md` (restructured)
 - **Task:** `docs/tasks/TASK-0014-executive-dashboard.md`
 - **Tracker:** `docs/trackers/TRACKER-0014-executive-dashboard.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0083-business-intelligence.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0014-executive-dashboard.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

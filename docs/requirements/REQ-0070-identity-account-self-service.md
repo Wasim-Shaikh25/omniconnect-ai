@@ -1,6 +1,6 @@
 # REQ-0070: Identity and Account Self-Service Completeness
 
-- **Status:** Approved
+- **Status:** Superseded — see REQ-0076
 - **Owner:** Auth / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
@@ -8,6 +8,10 @@
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §8.1, §8.2, §8.3, §8.9; L6; Q6
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0076-auth-registration-overhaul.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

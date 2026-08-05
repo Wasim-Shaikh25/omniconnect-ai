@@ -1,12 +1,16 @@
 # TASK-0073: Resolve and Implement the Projects / Workspace Lifecycle
 
-- **Status:** In Progress — Path B (remove) + Package C
+- **Status:** Superseded — see REQ-0077
 - **Owner:** Product / Backend / Frontend
 - **Requirement:** `docs/requirements/REQ-0073-projects-workspace-lifecycle.md`
 - **Tracker:** `docs/trackers/TRACKER-0073-projects-workspace-lifecycle.md`
 - **Module(s):** `organizations`, `auth`, presentation shell
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Resolved the orphaned Projects backend (shipped UI / removed feature) and documented the workspace model.
 - **Last updated:** 2026-08-01
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0077-workspace-project-system.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

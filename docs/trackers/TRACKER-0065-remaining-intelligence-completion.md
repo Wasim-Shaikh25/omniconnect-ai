@@ -1,6 +1,6 @@
 # TRACKER-0065 — Remaining Intelligence Layer Completion
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0089
 - **Linked Task:** `docs/tasks/TASK-0065-remaining-intelligence-completion.md`
 - **Updated:** 2026-07-29
 

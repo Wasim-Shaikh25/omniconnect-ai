@@ -1,12 +1,16 @@
 # TASK-0002: eCommerce Connector Framework
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0078
 - **Owner:** wasim
 - **Module(s):** ecommerce
 - **Requirement:** `docs/requirements/REQ-0002-ecommerce-connector.md`
 - **Tracker:** `docs/trackers/TRACKER-0002-ecommerce-connector.md`
 - **Changelog entry:** See `CHANGELOG.md` for TASK-0002.
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0078-dynamic-ecommerce-adapters.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

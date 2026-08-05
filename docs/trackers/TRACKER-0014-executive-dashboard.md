@@ -1,10 +1,14 @@
 # TRACKER-0014: Executive Dashboard & Workspace KPIs
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0083
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0014-executive-dashboard.md`
 - **Task:** `docs/tasks/TASK-0014-executive-dashboard.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0083-business-intelligence.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

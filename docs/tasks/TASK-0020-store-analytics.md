@@ -1,12 +1,16 @@
 # TASK-0020: Store Analytics Page
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0083
 - **Owner:** wasim
 - **Module(s):** analytics (presentation of ecommerce + crm + conversations)
 - **Requirement:** `docs/requirements/REQ-0020-store-analytics.md`
 - **Tracker:** `docs/trackers/TRACKER-0020-store-analytics.md`
 - **Changelog entry:** See `CHANGELOG.md` for TASK-0020.
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0083-business-intelligence.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

@@ -25,6 +25,8 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [ ] T-025: Content Studio UI.
 - [ ] T-058: Hashtag intelligence (Meta API + AI scoring).
 - [ ] T-059: Best time to post (Insights API + AI correlation).
+- [ ] T-069: Content calendar UI — visual grid, drag-to-reschedule (P1).
+- [ ] T-071: Trending reels/audio analysis — AI niche pattern detection (P2).
 
 ### Verification
 - [ ] `npm run lint` passes.

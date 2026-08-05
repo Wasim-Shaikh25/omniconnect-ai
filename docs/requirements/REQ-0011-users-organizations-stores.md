@@ -4,13 +4,18 @@ description: Users, Organizations & Stores (multi-tenant foundation)
 
 # REQ-0011: Users, Organizations & Stores (multi-tenant foundation)
 
-- **Status:** Implemented
+- **Status:** Superseded — see REQ-0077, REQ-0090
 - **Owner:** wasim
 - **Module(s):** users, organizations
 - **Original spec path:** `docs/specs/0011-users-organizations-stores.md` (restructured)
 - **Task:** `docs/tasks/TASK-0011-users-organizations-stores.md`
 - **Tracker:** `docs/trackers/TRACKER-0011-users-organizations-stores.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0077-workspace-project-system.md`
+> - `docs/requirements/REQ-0090-cleanup-migration.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 > This file was migrated from `docs/specs/0011-users-organizations-stores.md` as part of the unified requirement/task/tracker restructure. The original content is preserved below.
 

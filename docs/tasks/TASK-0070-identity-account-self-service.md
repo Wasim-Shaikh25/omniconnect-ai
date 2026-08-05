@@ -1,12 +1,16 @@
 # TASK-0070: Implement Identity and Account Self-Service
 
-- **Status:** In Progress
+- **Status:** Superseded — see REQ-0076
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Tracker:** `docs/trackers/TRACKER-0070-identity-account-self-service.md`
 - **Module(s):** `auth`, `users`, `organizations`, `notifications`, `shared/security`
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Email verification, confirm password, in-app password/email change, phone verification, session management, super-admin reconciliation, registration bot protection.
 - **Last updated:** 2026-08-01
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0076-auth-registration-overhaul.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

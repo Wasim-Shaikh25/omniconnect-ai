@@ -1,12 +1,16 @@
 # TASK-0003: Meta Integration
 
-- **Status:** Completed
+- **Status:** Superseded — see REQ-0079
 - **Owner:** wasim
 - **Module(s):** meta (+ event consumers: crm, conversations)
 - **Requirement:** `docs/requirements/REQ-0003-meta-integration.md`
 - **Tracker:** `docs/trackers/TRACKER-0003-meta-integration.md`
 - **Changelog entry:** See `CHANGELOG.md` for TASK-0003.
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0079-meta-growth-engine.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

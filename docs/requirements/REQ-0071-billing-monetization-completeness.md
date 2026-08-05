@@ -1,6 +1,6 @@
 # REQ-0071: Billing and Monetization Completeness
 
-- **Status:** Approved
+- **Status:** Superseded — see REQ-0088
 - **Owner:** Billing / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0071-billing-monetization-completeness.md`
@@ -8,6 +8,10 @@
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §3.4 (usage/quota, billing history, seat view), §8.5, §8.9
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/requirements/REQ-0088-billing-plans.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

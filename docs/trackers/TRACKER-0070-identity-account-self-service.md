@@ -1,10 +1,14 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** In Progress
+- **Status:** Superseded — see REQ-0076
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
 - **Last updated:** 2026-08-01
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0076-auth-registration-overhaul.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

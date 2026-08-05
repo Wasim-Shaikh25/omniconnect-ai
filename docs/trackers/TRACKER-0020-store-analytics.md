@@ -1,10 +1,14 @@
 # TRACKER-0020: Store Analytics Page
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0083
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0020-store-analytics.md`
 - **Task:** `docs/tasks/TASK-0020-store-analytics.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0083-business-intelligence.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

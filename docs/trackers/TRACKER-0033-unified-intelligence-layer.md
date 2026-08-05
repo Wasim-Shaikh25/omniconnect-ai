@@ -1,10 +1,14 @@
 # TRACKER-0033: Unified Intelligence Layer (OmniConnect 2.0)
 
-- **Status:** Done
+- **Status:** Superseded — see REQ-0089
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0033-unified-intelligence-layer.md`
 - **Task:** `docs/tasks/TASK-0033-unified-intelligence-layer.md`
 - **Last updated:** 2026-07-29
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/trackers/TRACKER-0089-intelligence-layer.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 

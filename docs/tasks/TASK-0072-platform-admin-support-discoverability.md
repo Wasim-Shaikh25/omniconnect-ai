@@ -1,12 +1,16 @@
 # TASK-0072: Implement Platform Admin, Support and Discoverability Completeness
 
-- **Status:** Todo
+- **Status:** Superseded — see REQ-0087
 - **Owner:** Platform / Frontend
 - **Requirement:** `docs/requirements/REQ-0072-platform-admin-support-discoverability.md`
 - **Tracker:** `docs/trackers/TRACKER-0072-platform-admin-support-discoverability.md`
 - **Module(s):** `users`, `organizations`, `auth`, `support`, presentation shell
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Admin suspend/delete/force-reset, organization suspension, integration health surface, support discoverability, global search.
 - **Last updated:** 2026-07-31
+
+> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
+> - `docs/tasks/TASK-0087-super-admin-panel.md`
+> Retained for historical reference only. Do not use for new implementation.
 
 ## 1. Summary
 
