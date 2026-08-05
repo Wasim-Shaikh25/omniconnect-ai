@@ -24,6 +24,8 @@ export interface AccountRepository {
   restoreAccount(id: string): Promise<AccountRecord | null>;
   updatePassword(input: { id: string; passwordHash: string }): Promise<AccountRecord | null>;
   updateEmail(id: string, email: string): Promise<AccountRecord | null>;
+  updatePhone(id: string, phone: string): Promise<AccountRecord | null>;
+  setPhoneVerified(id: string, phoneVerified: Date): Promise<AccountRecord | null>;
   bumpTokenVersion(id: string): Promise<AccountRecord | null>;
   setEmailVerified(id: string, emailVerified: Date): Promise<AccountRecord | null>;
   create(input: {
@@ -58,7 +60,7 @@ export interface VerificationRequestRepository {
   findByTokenHash(tokenHash: string): Promise<VerificationRequestRecord | null>;
   consume(id: string): Promise<void>;
   incrementAttempts(id: string): Promise<void>;
-  countRecentByTarget(target: string, purpose: string, since: Date): Promise<number>;
+  countRecentByTarget(target: string, purpose: string, since: Date, opts?: { consumed?: "all" | "unconsumed" }): Promise<number>;
 }
 
 /** Persistence port for short-lived verification codes (MFA, password reset). */

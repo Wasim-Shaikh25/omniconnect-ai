@@ -10,6 +10,8 @@ export interface SessionUser {
   role: Role;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
+  phone: string | null;
+  phoneVerified: Date | null;
   userId: string | null;
   projectId: string | null;
 }
@@ -21,6 +23,8 @@ function toSessionUser(row: {
   role: string;
   isSuperAdmin: boolean;
   emailVerified: Date | null;
+  phone: string | null;
+  phoneVerified: Date | null;
   userId: string | null;
   projectId: string | null;
 }): SessionUser {
@@ -32,6 +36,8 @@ function toSessionUser(row: {
     role,
     isSuperAdmin: row.isSuperAdmin,
     emailVerified: row.emailVerified,
+    phone: row.phone,
+    phoneVerified: row.phoneVerified,
     userId: row.userId,
     projectId: row.projectId,
   };
@@ -67,6 +73,8 @@ async function loadFreshUser(
       role: true,
       isSuperAdmin: true,
       emailVerified: true,
+      phone: true,
+      phoneVerified: true,
       userId: true,
       projectId: true,
       tokenVersion: true,

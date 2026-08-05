@@ -84,7 +84,7 @@ Ninth and final batch of REQ-0091. Added a `TransformersEmbeddingProvider` adapt
 
 # TASK-0091-B: Profile Inspector server action + UI
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Related:** `docs/requirements/REQ-0085-profile-reel-inspector.md`
@@ -136,7 +136,7 @@ Wire the `inspector` adapters (`makeMetaProfileFetcher`, `makeOpenRouterProfileN
 
 # TASK-0091-C: Plan-limit gating for AI-powered profile narration
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Related:** `docs/requirements/REQ-0085-profile-reel-inspector.md`

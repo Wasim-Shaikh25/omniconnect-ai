@@ -1,16 +1,16 @@
 # TASK-0070: Implement Identity and Account Self-Service
 
-- **Status:** Superseded — see REQ-0076
+- **Status:** In Progress (Package E done; Package F/G next)
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Tracker:** `docs/trackers/TRACKER-0070-identity-account-self-service.md`
 - **Module(s):** `auth`, `users`, `organizations`, `notifications`, `shared/security`
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Email verification, confirm password, in-app password/email change, phone verification, session management, super-admin reconciliation, registration bot protection.
-- **Last updated:** 2026-08-01
+- **Last updated:** 2026-08-05
 
-> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
-> - `docs/tasks/TASK-0076-auth-registration-overhaul.md`
-> Retained for historical reference only. Do not use for new implementation.
+> **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2 and are
+> now retained as the implementation guide. Package E/F/G are being completed on top of the V2
+> `User`/`Workspace`/`Project` model.
 
 ## 1. Summary
 
@@ -201,7 +201,10 @@ Both flows live behind `getCurrentUser()`.
 **Files:** `src/modules/notifications/domain/sms-sender.ts` (port),
 `src/modules/notifications/infrastructure/console-sms.ts`,
 `src/modules/notifications/infrastructure/twilio-sms.ts`,
-`src/modules/users/application/verify-phone.ts`, `src/app/settings/account/page.tsx`
+`src/modules/auth/application/phone-verification.ts`,
+`src/modules/auth/presentation/actions.ts` (`requestPhoneVerificationAction`, `verifyPhoneAction`, `removePhoneAction`),
+`src/components/phone-verification-form.tsx`,
+`src/app/settings/account/page.tsx`
 
 ```typescript
 // port — infrastructure implements it, application depends only on this

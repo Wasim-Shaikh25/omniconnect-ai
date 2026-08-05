@@ -1,14 +1,13 @@
 # TRACKER-0070: Identity and Account Self-Service Completeness
 
-- **Status:** Superseded — see REQ-0076
+- **Status:** In Progress (Package E done; Packages F/G next)
 - **Owner:** Auth / Frontend
 - **Requirement:** `docs/requirements/REQ-0070-identity-account-self-service.md`
 - **Task:** `docs/tasks/TASK-0070-identity-account-self-service.md`
-- **Last updated:** 2026-08-01
+- **Last updated:** 2026-08-05
 
-> **⚠️ SUPERSEDED (Platform V2)** — replaced by:
-> - `docs/trackers/TRACKER-0076-auth-registration-overhaul.md`
-> Retained for historical reference only. Do not use for new implementation.
+> **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2.
+> Package E/F/G are being completed on top of the V2 `User`/`Workspace`/`Project` model.
 
 ## 1. Summary
 
@@ -68,13 +67,13 @@ bot protection.
 - [x] Tests: wrong current password, session invalidation, old-address notice, token reuse.
 
 ### Package E — Phone verification
-- [ ] `SmsSender` port defined.
-- [ ] Console sender implemented.
-- [ ] Twilio sender implemented behind the port.
-- [ ] OTP issue/verify with expiry, attempt cap, and send-rate limits.
-- [ ] Add/verify/replace/remove UI shipped; hidden when no provider is configured.
-- [ ] Test: OTP body and phone number never appear in logs.
-- [ ] Tests: expiry, attempt cap, replay, rate limit.
+- [x] `SmsSender` port defined.
+- [x] Console sender implemented.
+- [x] Twilio sender implemented behind the port.
+- [x] OTP issue/verify with expiry, attempt cap, and send-rate limits.
+- [x] Add/verify/remove UI shipped; hidden when `SMS_PROVIDER=disabled`.
+- [x] Test: OTP body and phone number never appear in logs.
+- [x] Tests: expiry, attempt cap, replay, rate limit.
 
 ### Package F — Session management
 - [ ] Minimal vs full session-list decision recorded.

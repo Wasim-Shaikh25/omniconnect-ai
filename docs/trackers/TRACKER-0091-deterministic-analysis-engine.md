@@ -1,6 +1,6 @@
 # TRACKER-0091: Deterministic Analysis Engine
 
-- **Status:** In Progress (Batch 11)
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0091-deterministic-analysis-engine.md`
 - **Task:** `docs/tasks/TASK-0091-deterministic-analysis-engine.md`
@@ -128,7 +128,7 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] `docs/specs/current-state.md` updated.
 - [x] PR created and merged.
 
-### Batch 11 — Plan-limit gating for AI-powered profile narration (In Progress)
+### Batch 11 — Plan-limit gating for AI-powered profile narration (merged)
 - [x] `inspectProfileAction` imports `aiUsageGuard` from the `ai` public barrel.
 - [x] `makeNarrator(userId)` is async and asserts AI-reply quota before using OpenRouter.
 - [x] Deterministic narrator remains the fallback when `OPENROUTER_API_KEY` is unset.
@@ -136,12 +136,11 @@ Progress tracker for REQ-0091: Deterministic Analysis Engine with AI Narration.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 - [x] `docs/tasks/TASK-0091-deterministic-analysis-engine.md` updated.
-
-### Next
-- [ ] REQ-0070 Packages E–G (phone verification, session management, super-admin reconciliation, dead settings links).
+- [x] `docs/trackers/TRACKER-0091-deterministic-analysis-engine.md` updated.
+- [x] PR created and merged.
 
 ## 3. Acceptance Criteria
 
-- [ ] Batch 9 acceptance criteria from TASK-0091 met.
-- [ ] All verification steps above pass.
-- [ ] Full REQ-0091 acceptance criteria met.
+- [x] Batch 9 acceptance criteria from TASK-0091 met.
+- [x] All verification steps above pass.
+- [x] Full REQ-0091 acceptance criteria met.

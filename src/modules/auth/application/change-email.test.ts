@@ -45,6 +45,8 @@ describe("change-email service", () => {
       }),
       bumpTokenVersion: vi.fn(async () => null),
       setEmailVerified: vi.fn(async () => null),
+      updatePhone: vi.fn(async () => null),
+      setPhoneVerified: vi.fn(async () => null),
       create: vi.fn(),
     };
     const hasher: PasswordHasher = {

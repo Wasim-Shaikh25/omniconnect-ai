@@ -285,6 +285,13 @@ Core tables (see `prisma/schema.prisma` for full model):
   rate-limited; it bumps `tokenVersion` and re-issues the current session's JWT. Email change sends
   a confirmation link to the new address and a notice to the old; it only takes effect after the
   new address is confirmed, bumps `tokenVersion`, and writes an `AuditLog` entry.
+- Phone verification (`REQ-0070` Package E): `auth` exposes a `PhoneVerificationService`
+  behind the `SmsSender` port. `ConsoleSmsSender` logs only a redacted destination; `TwilioSmsSender`
+  sends via the Twilio REST API. OTPs are 6 digits, expire in 10 minutes, allow 5 attempts, and are
+  rate-limited to 3 sends/hour/number. `/settings/account` shows a phone-verification card when
+  `SMS_PROVIDER` is not `disabled`; users can add, verify, and remove a phone number. `User.phone`
+  and `User.phoneVerified` are updated only on successful verification; the plaintext OTP is never
+  stored or logged.
 - `User.phoneVerified` and the `VerificationRequest` table are in place; `dateOfBirth` remains
   omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
   `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.

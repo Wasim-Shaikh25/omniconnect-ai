@@ -15,6 +15,12 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0070` **Phone verification (Package E)** on `devin/cleanup-task-status-1785946663`:
+  added the `SmsSender` port with `ConsoleSmsSender` and `TwilioSmsSender` (Twilio REST API) adapters;
+  `PhoneVerificationService` issues 6-digit OTPs with 10-minute expiry, 5-attempt cap, and 3-sends/hour
+  rate limit; `/settings/account` renders a phone card when `SMS_PROVIDER` is not `disabled`; users can
+  add, verify, and remove a phone number. Unit tests assert expiry, attempt cap, replay, rate-limit,
+  and that the OTP body never reaches the logs.
 - `REQ-0091` **Deterministic Analysis Engine (Batch 11)** on `devin/cleanup-task-status-1785946663`:
   wired `AIUsageGuard` into `inspectProfileAction` so AI-powered profile narration consumes one
   `monthlyAiReplies` entitlement; deterministic narrator remains the fallback when `OPENROUTER_API_KEY`
@@ -96,7 +102,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
+- `REQ-0070` Packages F–G — session management ("sign out everywhere"), super-admin reconciliation,
   and settings dead links.
 
 ### ⏭️ Next

@@ -40,12 +40,12 @@ export class PrismaVerificationRequestRepository implements VerificationRequestR
     });
   }
 
-  async countRecentByTarget(target: string, purpose: string, since: Date): Promise<number> {
+  async countRecentByTarget(target: string, purpose: string, since: Date, opts?: { consumed?: "all" | "unconsumed" }): Promise<number> {
     return prisma.verificationRequest.count({
       where: {
         target,
         purpose,
-        consumedAt: null,
+        consumedAt: opts?.consumed === "all" ? undefined : null,
         createdAt: { gte: since },
       },
     });

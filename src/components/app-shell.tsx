@@ -63,6 +63,8 @@ function sessionUserFromClient(raw: unknown): SessionUser | null {
     role: isRole(u.role) ? (u.role as Role) : "USER",
     isSuperAdmin: typeof u.isSuperAdmin === "boolean" ? u.isSuperAdmin : false,
     emailVerified: u.emailVerified instanceof Date ? u.emailVerified : null,
+    phone: typeof u.phone === "string" ? u.phone : null,
+    phoneVerified: u.phoneVerified instanceof Date ? u.phoneVerified : null,
     userId: typeof u.userId === "string" ? u.userId : null,
     projectId: typeof u.projectId === "string" ? u.projectId : null,
   };

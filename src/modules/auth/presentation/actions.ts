@@ -15,6 +15,7 @@ import {
   emailVerificationService,
   changePasswordService,
   changeEmailService,
+  phoneVerificationService,
 } from "../infrastructure/container";
 import { signIn, signOut, RateLimitAuthError, unstable_update } from "../infrastructure/auth";
 import { requireUser } from "../infrastructure/session";
@@ -381,4 +382,62 @@ export async function requestEmailChangeAction(
   return { ok: true, message: "Check your new email address to confirm the change." };
 }
 
+const requestPhoneVerificationSchema = z.object({
+  phone: z.string().min(1),
+});
 
+export async function requestPhoneVerificationAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const parsed = requestPhoneVerificationSchema.safeParse({
+    phone: formData.get("phone"),
+  });
+  if (!parsed.success) return { error: "Enter a valid phone number." };
+
+  const result = await phoneVerificationService.request(user.id, parsed.data.phone);
+  return result.success
+    ? { ok: true, message: "A verification code has been sent to your phone." }
+    : { error: result.error };
+}
+
+const verifyPhoneSchema = z.object({
+  code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code."),
+});
+
+export async function verifyPhoneAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const parsed = verifyPhoneSchema.safeParse({ code: formData.get("code") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid code." };
+
+  const result = await phoneVerificationService.verify(user.id, parsed.data.code);
+  if (!result.success) return { error: result.error };
+
+  try {
+    await unstable_update({});
+  } catch {
+    // Session refresh is best-effort; the phone number is already persisted.
+  }
+
+  return { ok: true, message: "Your phone number has been verified." };
+}
+
+export async function removePhoneAction(
+  _prev: ActionState,
+  _formData: FormData,
+): Promise<ActionState> {
+  void _prev;
+  void _formData;
+  const user = await requireUser();
+  const result = await phoneVerificationService.remove(user.id);
+  if (!result.success) return { error: result.error };
+
+  try {
+    await unstable_update({});
+  } catch {
+    // Session refresh is best-effort.
+  }
+
+  return { ok: true, message: "Your phone number has been removed." };
+}

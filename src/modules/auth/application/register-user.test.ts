@@ -15,6 +15,8 @@ describe("register-user use-case", () => {
       updateEmail: vi.fn(async () => null),
       bumpTokenVersion: vi.fn(async () => null),
       setEmailVerified: vi.fn(async () => null),
+      updatePhone: vi.fn(async () => null),
+      setPhoneVerified: vi.fn(async () => null),
       create: vi.fn(async (input) => {
         const account: AccountRecord = {
           id: `user-${accounts.length + 1}`,

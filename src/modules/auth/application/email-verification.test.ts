@@ -57,6 +57,8 @@ describe("email-verification service", () => {
         if (account) account = { ...account, emailVerified };
         return account;
       }),
+      updatePhone: vi.fn(async () => null),
+      setPhoneVerified: vi.fn(async () => null),
       create: vi.fn(),
     };
     const sent: { to: string; subject: string }[] = [];

@@ -57,6 +57,8 @@ function makeUser(role: SessionUser["role"], projectId: string | null, id = "use
     role,
     isSuperAdmin: false,
     emailVerified: new Date(),
+    phone: null,
+    phoneVerified: null,
     userId: "org-1",
     projectId,
   };
