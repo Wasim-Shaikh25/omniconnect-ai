@@ -15,6 +15,14 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0091` **Deterministic Analysis Engine (Batch 1)** on `devin/deterministic-analysis-1785938129`:
+  closed `AnalysisSpec` vocabulary, `validateSpec`, `UnsupportedOperationError`, and a safe
+  `AnalysisEngine` dispatcher (`makeAnalysisEngine`); pure deterministic `single_post_analysis`
+  operation with engagement-score/percentile/z-score/verdict evidence; refactored
+  `analyze-media.ts` to compute `single_post_analysis` against the project's `MediaPost` baseline
+  before asking the LLM to narrate `whyItWorked`/storyboard/suggestions; new `@/modules/analytics/pure`
+  public barrel for side-effect-free analytics exports. Unit tests added for stats, single-post
+  analysis, the engine, and `analyze-media`.
 - `REQ-0076`–`0090` **Platform V2 Rewrite** — Owner/tenant mapping hotfix merged via PR #127.
   Canonical `User.userId`/`projectId` loaded from DB, onboarding sets owner `userId` to self, and
   owner/staff checks use `user.userId === user.id` with `isStaff()`.
@@ -38,13 +46,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-_None — last batch is on `devin/ai-usage-tracking-1785936345` pending review._
+- `REQ-0091` **Deterministic Analysis Engine (Batch 2)** — deterministic `best_time`/`top_n`/
+  `compare_period` operations, local MiniLM `EmbeddingProvider` and `OperationResolver`, and
+  `generate-trends.ts` sourcing `predictedEngagementScore`/`predictedRevenue`/`bestTimeToPost`
+  from deterministic engines instead of the LLM.
 
 ### ⏭️ Next
 
-- `REQ-0091` **Deterministic Analysis Engine** — AnalysisSpec vocabulary + safe engine so numbers
-  are computed by code and the LLM narrates only; modifies `analyze-media.ts` and
-  `generate-trends.ts` to stop the LLM inventing metrics.
 - `REQ-0070` Packages E–G — phone verification, session management, super-admin reconciliation,
   and settings dead links.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live

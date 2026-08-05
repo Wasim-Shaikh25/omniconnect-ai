@@ -1,0 +1,14 @@
+/**
+ * Pure, side-effect-free analytics exports.
+ *
+ * This barrel is safe to import in unit tests and client bundles because it
+ * does not load presentation actions or Next.js server-only modules.
+ */
+
+export type { AnalysisOperation, MetricName, AnalysisSpec, AnalysisResult } from "./domain/analysis";
+export { UnsupportedOperationError, validateSpec } from "./domain/analysis";
+export type { AnalysisContext } from "./application/analysis-engine";
+export { makeAnalysisEngine } from "./application/analysis-engine";
+export { singlePostAnalysis } from "./application/operations/single-post-analysis";
+export { engagementScore, percentileRank, zScore, topN, correlation, mean, stdDev } from "./application/operations/stats";
+export type { ScoredPost } from "./application/operations/stats";

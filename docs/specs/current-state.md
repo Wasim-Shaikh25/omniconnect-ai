@@ -188,7 +188,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 2. `attributeOrdersToMedia` attributes orders to the most recent media within a 7-day window.
 3. Returns `MarketingPerformanceView` with `dataQuality` (`live`/`partial`/`simulated`) badge.
 4. Project-scoped analytics pages (`/stores/[projectId]/analytics/content`, `/trends`, `/reports`, `/recommendations`) list `MediaPost`, `TrendSnapshot`, `Report`, and `ContentRecommendation` records and trigger `syncMediaCatalog`, `searchTrendingHashtags`, `generateReport`, and `createContentRecommendation` actions.
-5. Per-post detail page runs `analyzeMedia` to produce `whyItWorked` and a slide-by-slide storyboard.
+5. Per-post detail page runs `analyzeMedia`, which now computes `single_post_analysis` deterministically (engagement score, percentile, z-score, verdict) against a baseline of the project's other `MediaPost` records. The LLM receives the computed `AnalysisResult` and is allowed to narrate `whyItWorked`, suggest improvements, and generate the slide-by-slide storyboard, but it cannot invent new numbers.
+6. A reusable `AnalysisEngine` (`makeAnalysisEngine`) interprets a closed `AnalysisSpec` vocabulary (`single_post_analysis`, `top_n`, `compare_period`, `anomaly_check`, `cohort_trend`, `attribution_breakdown`, `best_time`, `correlation`, `profile_quality`) with pure deterministic operations. Unknown operations are rejected (`UnsupportedOperationError`).
 
 ---
 
