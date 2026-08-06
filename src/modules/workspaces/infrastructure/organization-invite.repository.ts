@@ -87,7 +87,7 @@ export class PrismaOrganizationInviteRepository
     teamSeats: number | null,
     now?: Date,
   ): Promise<CreateInviteResult> {
-    const maxAttempts = 3;
+    const maxAttempts = 5;
     let attempt = 0;
 
     while (true) {
@@ -140,6 +140,10 @@ export class PrismaOrganizationInviteRepository
         const isSerializationFailure =
           error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
         if (isSerializationFailure && attempt < maxAttempts) {
+          // Exponential backoff with jitter so concurrent retries don't all
+          // re-enter the transaction at the same instant.
+          const delay = 2 ** (attempt - 1) * 25 + Math.floor(Math.random() * 50);
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
         throw error;
