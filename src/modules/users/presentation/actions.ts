@@ -220,6 +220,7 @@ export async function suspendUserAction(
   });
 
   revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
   return { ok: true, user };
 }
 
@@ -246,6 +247,7 @@ export async function banUserAction(
   });
 
   revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
   return { ok: true, user };
 }
 

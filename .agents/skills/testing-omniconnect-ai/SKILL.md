@@ -104,6 +104,12 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   ```
   Remove the test files from `public/` after the test.
 - After submitting `/onboarding` the session may briefly land on `/login` with an empty main area because `unstable_update` does not refresh the JWT `tokenVersion` immediately. Navigating to `/login` or refreshing usually resolves it.
+- REQ-0087 super admin panel gotchas:
+  - Super admin login requires an MFA code. With `EMAIL_PROVIDER=console` the code is redacted in logs; insert a known code directly into the `MfaCode` table and pass it in the credentials form.
+  - The `/api/auth/session` endpoint does **not** check `suspendedAt`/`banned`; it only refreshes role/userId/projectId from the DB. Suspended/banned users' existing sessions stay valid for client-side and middleware checks until the JWT expires, even though `getCurrentUser`-based server components block them.
+  - `suspendUserAction`/`banUserAction` may fail to update the UI after the first toggle because the client form's hidden `suspended`/`banned` values may not re-render correctly with `useActionState`, and the `revalidatePath("/admin/users")` call does not revalidate `/admin/users/[id]` detail pages.
+  - The status actions call `auditCommands.create`, but if the audit write fails (or is skipped) no `AuditLog` row appears; verify `AuditLog` directly when testing status toggles.
+  - For headless Chrome, `browser_console` may not connect; use `Ctrl+L` to focus the address bar and type URLs directly, or POST to `/api/auth/callback/credentials` with CSRF and credentials.
 
 ## Cross-tenant regression-test rule
 

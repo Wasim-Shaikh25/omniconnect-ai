@@ -221,8 +221,19 @@ export const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = typeof token.id === "string" ? token.id : "";
+      if (session.user && typeof token.id === "string") {
+        const fresh = await accounts.findById(token.id);
+        if (
+          !fresh ||
+          fresh.suspendedAt ||
+          fresh.banned ||
+          (typeof token.tokenVersion === "number" &&
+            fresh.tokenVersion !== token.tokenVersion)
+        ) {
+          return { expires: new Date(0).toISOString() };
+        }
+
+        session.user.id = token.id;
         session.user.role = isRole(token.role)
           ? (token.role as Role)
           : "USER";
