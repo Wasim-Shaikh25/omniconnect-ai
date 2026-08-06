@@ -4,13 +4,13 @@ description: Dynamic E-Commerce Adapters
 
 # REQ-0078: Dynamic E-Commerce Adapters
 
-- **Status:** Draft
+- **Status:** Implemented (scaffold); full dynamic connector generation and hardcoded connector removal remain queued.
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0078-dynamic-ecommerce-adapters.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0078-dynamic-ecommerce-adapters.md`
 - **Supersedes:** `REQ-0002-ecommerce-connector.md` (hardcoded connectors → dynamic config mapping)
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -39,13 +39,13 @@ Replace hardcoded e-commerce connectors (Shopify, WooCommerce, BigCommerce) with
 
 ## 5. Acceptance Criteria
 
-- [ ] `AdapterConfigMapping` interface defined with endpoints for all `EcommerceConnector` methods.
-- [ ] `ConfigInterpreter` implements `EcommerceConnector` using only the config mapping.
-- [ ] AI generates valid config from API documentation via OpenRouter.
-- [ ] Generated config validated against schema before storage.
-- [ ] Connection test UI: user enters credentials → system tests getProducts/fetchStoreInfo.
-- [ ] Hardcoded shopify/woocommerce/bigcommerce connector files deleted.
-- [ ] Config mapping stored encrypted in `GeneratedAdapter` model.
+- [x] `AdapterConfigMapping` interface defined with endpoints for all `EcommerceConnector` methods.
+- [x] `ConfigInterpreter` scaffold implements `EcommerceConnector`; runtime HTTP execution queued for later.
+- [ ] AI generates valid config from API documentation via OpenRouter (queued).
+- [ ] Generated config validated against schema before storage (queued).
+- [ ] Connection test UI: user enters credentials → system tests getProducts/fetchStoreInfo (queued).
+- [ ] Hardcoded shopify/woocommerce/bigcommerce connector files deleted after dynamic adapters are wired.
+- [ ] Config mapping stored encrypted in `GeneratedAdapter` model (queued).
 
 ## 6. Scope & Dependencies
 

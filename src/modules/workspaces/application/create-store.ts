@@ -32,6 +32,18 @@ export function makeCreateStore(deps: {
     return PLAN_LIMITS[plan].maxStores;
   }
 
+  async function resolveMaxProjects(plan: Plan): Promise<number | null> {
+    const config = await deps.planConfigs.findByPlan(plan);
+    if (config && !config.isDefault) return config.maxProjects;
+    return PLAN_LIMITS[plan].maxProjects;
+  }
+
+  function stricterLimit(a: number | null, b: number | null): number | null {
+    if (a === null) return b;
+    if (b === null) return a;
+    return Math.min(a, b);
+  }
+
   return async function createStore(
     raw: CreateStoreInput,
   ): Promise<Result<StoreRecord, OrganizationNotFoundError | StoreLimitError>> {
@@ -40,13 +52,15 @@ export function makeCreateStore(deps: {
     const org = await deps.organizations.findById(input.userId);
     if (!org) return err(new OrganizationNotFoundError(input.userId));
 
-    // Billing enforcement: respect the plan's store limit.
+    // Billing enforcement: respect both the store and project plan limits.
     const maxStores = await resolveMaxStores(org.plan);
+    const maxProjects = await resolveMaxProjects(org.plan);
+    const projectLimit = stricterLimit(maxStores, maxProjects);
     const existing = await deps.stores.listByOrganization(input.userId);
-    if (!isWithinLimit(maxStores, existing.length)) {
+    if (!isWithinLimit(projectLimit, existing.length)) {
       return err(
         new StoreLimitError(
-          `Your ${org.plan} plan allows up to ${maxStores} store(s). Upgrade to add more.`,
+          `Your ${org.plan} plan allows up to ${projectLimit} store(s). Upgrade to add more.`,
         ),
       );
     }
@@ -58,7 +72,7 @@ export function makeCreateStore(deps: {
         provider: input.provider,
         domain: input.domain ?? null,
       },
-      maxStores,
+      projectLimit,
     );
 
     await eventBus.publish(

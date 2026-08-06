@@ -2,7 +2,7 @@
  * Public routes that bypass the session check in the NextAuth middleware.
  * Keeping this in a separate file lets tests assert the list without loading NextAuth.
  */
-export const PUBLIC_PATHS = [
+const PUBLIC_PATHS_EXACT = [
   "/",
   "/login",
   "/register",
@@ -10,20 +10,29 @@ export const PUBLIC_PATHS = [
   "/reset-password",
   "/verify-email",
   "/pricing",
+  "/api/health",
+  "/api/ready",
+  "/favicon.ico",
+  "/manifest.webmanifest",
+];
+
+const PUBLIC_PATHS_PREFIX = [
   "/api/auth",
+  "/_next",
+  "/share",
   "/api/meta/webhook",
   "/api/stripe/webhook",
   "/api/shopify/webhooks",
-  "/api/health",
-  "/api/ready",
-  "/_next",
-  "/favicon.ico",
-  "/manifest.webmanifest",
-  "/share",
 ];
 
+export const PUBLIC_PATHS = [...PUBLIC_PATHS_EXACT, ...PUBLIC_PATHS_PREFIX];
+
 export function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const exactMatch = PUBLIC_PATHS_EXACT.includes(pathname);
+  const prefixMatch = PUBLIC_PATHS_PREFIX.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+  return exactMatch || prefixMatch;
 }
 
 export type RouteAuthorization =

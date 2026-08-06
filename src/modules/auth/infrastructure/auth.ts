@@ -76,7 +76,7 @@ const providers: NextAuthConfig["providers"] = [
         account.tokenVersion = restored.tokenVersion;
       }
 
-      if (env.REQUIRE_EMAIL_VERIFICATION && !account.emailVerified) {
+      if (env.ENABLE_EMAIL_OTP && !account.emailVerified) {
         throw new UnverifiedEmailError();
       }
 

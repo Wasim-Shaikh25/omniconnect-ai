@@ -90,6 +90,16 @@ const envSchema = z.object({
     .default("true")
     .transform((v) => v === "true"),
 
+  ENABLE_EMAIL_OTP: z
+    .enum(["true", "false"])
+    .default(() => (process.env.REQUIRE_EMAIL_VERIFICATION === "false" ? "false" : "true"))
+    .transform((v) => v === "true"),
+
+  ENABLE_MOBILE_OTP: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
+
   TURNSTILE_SITE_KEY: z.string().optional(),
   TURNSTILE_SECRET_KEY: z.string().optional(),
 

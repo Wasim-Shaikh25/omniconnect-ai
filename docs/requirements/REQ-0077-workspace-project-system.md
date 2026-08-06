@@ -4,13 +4,13 @@ description: Workspace & Project System
 
 # REQ-0077: Workspace & Project System
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0077-workspace-project-system.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0077-workspace-project-system.md`
 - **Supersedes:** `REQ-0011-users-organizations-stores.md`
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -38,13 +38,13 @@ Replace Organization/Store hierarchy with User → Workspace → Project. A Work
 
 ## 5. Acceptance Criteria
 
-- [ ] Workspace model in Prisma with `userId`, `name`, timestamps.
-- [ ] Project model with `workspaceId`, `metaAccountId`, `metaAccessToken`, timestamps.
-- [ ] Create workspace checks `user.plan.maxWorkspaces` against existing count.
-- [ ] Create project checks `user.plan.maxProjects` against total across ALL workspaces.
-- [ ] Auto-create default AIConfiguration when a project is created.
-- [ ] Workspace/project selector UI in sidebar.
-- [ ] Plan limit error messages include plan name and upgrade CTA.
+- [x] Workspace model in Prisma with `userId`, `name`, timestamps.
+- [x] Project model with `workspaceId`, `metaAccountId`, `metaAccessToken`, timestamps.
+- [x] Create workspace checks `user.plan.maxWorkspaces` against existing count (implicit default workspace is created once and reused).
+- [x] Create project checks `user.plan.maxProjects` against total across ALL workspaces.
+- [x] Auto-create default AIConfiguration when a project is created.
+- [x] Workspace/project selector UI in sidebar.
+- [x] Plan limit error messages include plan name and upgrade CTA.
 
 ## 6. Scope & Dependencies
 

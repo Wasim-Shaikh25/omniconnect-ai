@@ -51,6 +51,7 @@ export {
   updateProfileAction,
   changeUserRoleAction,
   changeUserStoreAction,
+  switchProjectAction,
   listAllUsersAction,
   toggleUserSuperAdminAction,
   suspendUserAction,
@@ -61,5 +62,5 @@ export {
   impersonateUserAction,
   exitImpersonationAction,
 } from "./presentation/actions";
-export type { ProfileActionState } from "./presentation/actions";
+export type { ProfileActionState, SwitchProjectState } from "./presentation/actions";
 export { registerUsersSubscribers } from "./infrastructure/subscribers";

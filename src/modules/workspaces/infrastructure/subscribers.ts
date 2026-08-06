@@ -12,11 +12,10 @@ const onUserRegistered: EventHandler = async (event) => {
   const { userId, email, autoProvisionOrganization } =
     event.payload as UserRegisteredPayload;
 
-  // Credentials registrations intentionally do not auto-provision, so the
-  // user is routed to `/onboarding` to create the workspace explicitly.
+  // Allow explicit opt-out (used by legacy invite flows that set userId manually).
   if (autoProvisionOrganization === false) return;
 
-  // Idempotency: an OAuth user should only be linked to their own tenant once.
+  // Idempotency: an OAuth/credentials user should only be provisioned once.
   const existing = await prisma.user.findUnique({
     where: { id: userId },
     select: { userId: true },
@@ -27,13 +26,23 @@ const onUserRegistered: EventHandler = async (event) => {
   }
 
   const localPart = email.split("@")[0] ?? "My";
+  const workspaceName = `${localPart}'s Workspace`;
+
+  const existingWorkspace = await prisma.workspace.findFirst({
+    where: { userId, isDefault: true },
+  });
+  if (!existingWorkspace) {
+    await prisma.workspace.create({
+      data: { userId, name: workspaceName, isDefault: true },
+    });
+  }
 
   // The owner User is its own tenant. The `users` subscriber will persist `userId`.
   await eventBus.publish(
     new OrganizationCreated(userId, {
       userId,
       ownerUserId: userId,
-      name: `${localPart}'s Organization`,
+      name: workspaceName,
     }),
   );
   logger.info("organizations.provisioned", { userId });

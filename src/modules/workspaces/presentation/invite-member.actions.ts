@@ -94,6 +94,9 @@ export async function registerWithInviteAction(
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     phone: formData.get("phone") || undefined,
+    companyName: formData.get("companyName") || undefined,
+    age: formData.get("age") || undefined,
+    gender: formData.get("gender") || undefined,
   };
 
   const parsed = registerUserSchema.safeParse(raw);
@@ -125,7 +128,7 @@ export async function registerWithInviteAction(
     assignedStoreId = projectId;
   }
 
-  const emailVerified = env.REQUIRE_EMAIL_VERIFICATION ? null : new Date();
+  const emailVerified = env.ENABLE_EMAIL_OTP ? null : new Date();
   const registerResult = await registerUser(parsed.data, {
     userId: invite.userId,
     role: invite.role,
@@ -148,7 +151,7 @@ export async function registerWithInviteAction(
     return { error: acceptResult.error.message };
   }
 
-  if (env.REQUIRE_EMAIL_VERIFICATION) {
+  if (env.ENABLE_EMAIL_OTP) {
     await emailVerificationService.issue(registerResult.value.id, registerResult.value.email, "signup");
     return { ok: true, message: "Check your email to verify your account before signing in." };
   }

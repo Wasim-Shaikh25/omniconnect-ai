@@ -56,12 +56,12 @@ describe("change-password service", () => {
     const result = await service.change({
       userId: "user-1",
       currentPassword: "current-password",
-      newPassword: "new-password-123",
+      newPassword: "NewPass123!",
     });
 
     expect(result.ok).toBe(true);
     expect(hasher.compare).toHaveBeenCalledWith("current-password", "hash");
-    expect(accounts.updatePassword).toHaveBeenCalledWith({ id: "user-1", passwordHash: "hashed-new-password-123" });
+    expect(accounts.updatePassword).toHaveBeenCalledWith({ id: "user-1", passwordHash: "hashed-NewPass123!" });
     expect(getAccount().tokenVersion).toBe(2);
   });
 
@@ -71,7 +71,7 @@ describe("change-password service", () => {
     const result = await service.change({
       userId: "user-1",
       currentPassword: "wrong",
-      newPassword: "new-password-123",
+      newPassword: "NewPass123!",
     });
 
     expect(result.ok).toBe(false);
@@ -100,7 +100,7 @@ describe("change-password service", () => {
     const result = await service.change({
       userId: "user-1",
       currentPassword: "current-password",
-      newPassword: "new-password-123",
+      newPassword: "NewPass123!",
     });
 
     expect(result.ok).toBe(false);

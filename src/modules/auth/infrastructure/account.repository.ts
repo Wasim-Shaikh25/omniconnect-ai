@@ -1,4 +1,5 @@
 import { prisma } from "@/shared/database";
+import { Gender } from "@prisma/client";
 import { AccountRecord, AccountRepository } from "../application/ports";
 import { Role } from "../domain/role";
 
@@ -147,6 +148,9 @@ export class PrismaAccountRepository implements AccountRepository {
     isSuperAdmin?: boolean;
     userId?: string | null;
     projectId?: string | null;
+    companyName?: string | null;
+    age?: number | null;
+    gender?: string | null;
   }): Promise<AccountRecord> {
     const user = await prisma.user.create({
       data: {
@@ -159,6 +163,9 @@ export class PrismaAccountRepository implements AccountRepository {
         isSuperAdmin: input.isSuperAdmin ?? false,
         userId: input.userId ?? null,
         projectId: input.projectId ?? null,
+        companyName: input.companyName ?? null,
+        age: input.age ?? null,
+        gender: (input.gender as Gender) ?? null,
       },
     });
     return mapUser(user);

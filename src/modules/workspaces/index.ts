@@ -70,6 +70,7 @@ export {
   createStoreAction,
   completeOnboardingAction,
   listAllOrganizationsAction,
+  listMyStoresAction,
 } from "./presentation/actions";
 export {
   checkStoreAccess,
