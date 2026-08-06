@@ -45,7 +45,7 @@ Build the Meta Growth Engine pillar: content publishing via Instagram Content Pu
 - [x] Content calendar UI: visual grid preview and drag-to-reschedule for scheduled posts.
 - [x] Hashtag intelligence: AI scores competition, reach, relevance for suggested tags.
 - [x] Best time to post: returns day/hour/score based on follower online times + post history.
-- [ ] Rate limiting: respect 200 calls/hr Instagram Graph API limit.
+- [x] Rate limiting: respect 200 calls/hr Instagram Graph API limit.
 
 ## 6. Scope & Dependencies
 

@@ -26,6 +26,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [x] T-058: Hashtag intelligence (Meta API + AI scoring).
 - [x] T-059: Best time to post (Insights API + AI correlation).
 - [x] T-069: Content calendar UI — visual grid, drag-to-reschedule (P1).
+- [x] T-070: Graph API rate limiting — 200 calls/hour per project.
 - [ ] T-071: Trending reels/audio analysis — AI niche pattern detection (P2).
 
 ### Verification
@@ -43,4 +44,4 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- T-023, T-024, T-025, T-058, T-059, and T-069 completed on `devin/req-0079-hashtag-besttime-calendar-1786001674`. Post-merge review fixes applied on `devin/fix-content-publishing-review-1786000600`: missing `access_token` on `media_publish`, `TIMEOUT` handling, and friendly validation errors. Rate limiting (T-070) remains open.
+- T-023, T-024, T-025, T-058, T-059, T-069, and T-070 completed on the respective feature branches. Post-merge review fixes applied on `devin/fix-content-publishing-review-1786000600`: missing `access_token` on `media_publish`, `TIMEOUT` handling, and friendly validation errors. T-021 (Meta OAuth), T-022 (WhatsApp), and T-071 (trending reels) remain open.
