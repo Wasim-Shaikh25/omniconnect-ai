@@ -220,12 +220,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-None.
+- `REQ-0087` **Super Admin Panel — Batch 2** on `devin/req-0087-batch2-impersonation-1785989634`:
+  impersonation flow with audit log, exit-impersonation UI, and session-callback support.
 
 ### ⏭️ Next
 
-- `REQ-0087` **Super Admin Panel — Batch 2** — impersonation with audit log, plan CRUD/feature-limit matrix,
-  payment/refund tooling, system coupons, adapter library.
+- `REQ-0087` **Super Admin Panel — Batch 3** — plan CRUD/feature-limit matrix, payment/refund tooling,
+  system coupons, adapter library.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).

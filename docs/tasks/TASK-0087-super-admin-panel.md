@@ -40,7 +40,7 @@ List all generated adapters. Validation status. Approve/flag for review.
 
 ## 4. Subtasks
 
-- [~] T-063: User management (list, view, search/filter/pagination, suspend/ban). Impersonation pending.
+- [x] T-063: User management (list, view, search/filter/pagination, suspend/ban). Impersonation pending.
 - [ ] T-064: Plan management (CRUD)
 - [ ] T-065: Payment management (Stripe)
 - [ ] T-066: System coupons
