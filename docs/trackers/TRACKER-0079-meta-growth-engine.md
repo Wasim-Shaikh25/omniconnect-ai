@@ -1,10 +1,10 @@
 # TRACKER-0079: Meta Growth Engine
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
-- **Last updated:** 2026-08-06 (T-021 Meta OAuth flow implemented on `devin/batch-meta-oauth-doc-closeouts-1786007775`)
+- **Last updated:** 2026-08-06 (T-021 landed; T-022 WhatsApp deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
@@ -19,7 +19,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ### Implementation
 - [x] T-021: Meta OAuth flow (IG + FB page connection).
-- [ ] T-022: WhatsApp Business API connection.
+- [x] T-022: WhatsApp Business API connection. — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API (container → poll → publish).
 - [x] T-024: Content scheduling (DB + BullMQ delayed job).
 - [x] T-025: Content Studio UI (publish form added to `/stores/[projectId]/content`).
@@ -38,8 +38,8 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 

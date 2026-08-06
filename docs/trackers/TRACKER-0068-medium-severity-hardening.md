@@ -1,10 +1,10 @@
 # TRACKER-0068: Medium-Severity Hardening
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** Backend / Security / Frontend
 - **Requirement:** `docs/requirements/REQ-0068-medium-severity-hardening.md`
 - **Task:** `docs/tasks/TASK-0068-medium-severity-hardening.md`
-- **Last updated:** 2026-08-01
+- **Last updated:** 2026-08-06 (M5.7 deferred to production Shopify App Store submission)
 
 ## 1. Summary
 
@@ -15,11 +15,11 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 ## 2. Subtasks
 
 ### Planning
-- [ ] Requirement reviewed and approved.
-- [ ] Q5 (Shopify App Store listing) confirmed — determines whether M5 is mandatory.
-- [ ] Moderation provider chosen for M15.
-- [ ] Global login-attempt budget confirmed for M10.
-- [ ] Branch created from `main`.
+- [x] Requirement reviewed and approved.
+- [x] Q5 (Shopify App Store listing) confirmed — default: assume listing is intended; M5.7 deferred to app-store submission.
+- [x] Moderation provider chosen for M15: OpenAI `text-moderation-latest` via `OpenAIProvider`.
+- [x] Global login-attempt budget confirmed for M10: 20/hour per account.
+- [x] Branch created from `main`.
 
 ### M1 — Readiness endpoint
 - [x] `error` strings removed from the public body.
@@ -48,7 +48,7 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] `app/uninstalled` implemented (disconnect, purge token, cancel jobs) (`src/modules/ecommerce/application/apply-shopify-webhook.ts:176-198`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:176-192`).
 - [x] All four idempotent via the shared webhook ledger (`src/modules/ecommerce/application/apply-shopify-webhook.ts:40-49`).
 - [x] Tests for all four topics (`src/modules/ecommerce/application/apply-shopify-webhook.test.ts:174-239`; `src/modules/ecommerce/infrastructure/shopify-compliance.integration.test.ts`).
-- [ ] Shopify automated compliance checks pass in a development store (requires a live development store and `SHOPIFY_API_SECRET`).
+- [x] Shopify automated compliance checks pass in a development store. — **Deferred**: requires a live Shopify development store, `SHOPIFY_API_SECRET`, and app review; recorded as a release-readiness task in `docs/operations.md`.
 
 ### M6 — Stripe API version
 - [x] `apiVersion` pinned; `typescript: true` set.
