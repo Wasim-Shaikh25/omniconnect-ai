@@ -33,18 +33,17 @@ export async function publishScheduledPost(
       });
       const queue = await getQueue(CONTENT_SCHEDULE_QUEUE);
       try {
-        await queue.remove(scheduledPostId);
-      } catch {
-        // ignore — the job may not exist in the queue anymore
-      }
-      try {
+        // The active job ID cannot be removed/replaced in BullMQ, so schedule a new job.
+        const retryJobId = `${scheduledPostId}-retry-${Date.now()}`;
         await queue.add(
           "publish-scheduled-post",
           { scheduledPostId },
-          { jobId: scheduledPostId, delay: remainingMs },
+          { jobId: retryJobId, delay: remainingMs },
         );
+        await scheduledPostRepository.update(scheduledPostId, { jobId: retryJobId });
         logger.info("content.publishScheduledPost.requeued", {
           scheduledPostId,
+          retryJobId,
           remainingMs,
         });
       } catch (error) {
