@@ -343,15 +343,37 @@ All notable changes to **OmniConnect AI** are documented here.
   function-calling schema for `createCoupon`, `injectCoupon`, `sendMessage`, `queryAnalytics`,
   and `generateDashboard`.
 
+### ✅ Done
+
+- `REQ-0079` **Meta Growth Engine — Meta OAuth flow (T-021)** on `devin/batch-meta-oauth-doc-closeouts-1786007775`:
+  added `getMetaOAuthUrl`, `exchangeMetaOAuthCode`, and `fetchInstagramAccount` in
+  `src/modules/meta/infrastructure/meta-oauth.ts`; new `GET /api/meta/auth` and `GET /api/meta/callback`
+  route handlers exchange the short-lived code for a long-lived user token, resolve the connected
+  Facebook Page and its Instagram Business account, and persist the page access token (encrypted at
+  rest) on the `Project` row. Added `MetaConnectionCard` to `/stores/[projectId]/settings` with a
+  Connect/Reconnect button. Unit tests added in `src/modules/meta/infrastructure/meta-oauth.test.ts`.
+
+- `REQ-0090` **Cleanup & Migration closeout** on `devin/batch-meta-oauth-doc-closeouts-1786007775`:
+  verified all Phase 1 acceptance criteria are met (old Organization/Store/Staff/StoreIntegration
+  models removed, `src/modules/organizations/` deleted, product CRUD and standalone orders view
+  removed, direct OpenAI imports replaced by `OpenRouterProvider`, queries migrated to
+  user/workspace/project scope, all quality gates passing). Updated the requirement to reflect that
+  hardcoded connector files were replaced by `EcommerceConnector` provider implementations rather than
+  deleted, and promoted status to `Implemented`.
+
+- `REQ-0070` **Identity/Account Self-Service task sync** on `devin/batch-meta-oauth-doc-closeouts-1786007775`:
+  aligned `TASK-0070` and `TRACKER-0070` with the implemented state; recorded the F.2 decision to use
+  minimal session management (bump `tokenVersion` on sensitive changes) and marked the optional
+  full `UserSession` list (F.3) as N/A.
+
 ### 🚧 In Progress
 
-- `REQ-0080 / REQ-0069 / REQ-0085` **Batch closeout** on `devin/batch-0085-0080-0070-1786007108`:
-  mobile PWA messaging UI, navigation reachability verification, and profile-inspector task closeout.
+- Batch `devin/batch-meta-oauth-doc-closeouts-1786007775` is PR-ready; no further in-progress items.
 
 ### ⏭️ Next
 
 - `REQ-0080` **Unified Messaging Board** — WhatsApp Business API connection (T-078).
-- `REQ-0079` **Meta Growth Engine** — Meta OAuth flow (T-021) and WhatsApp Business API connection (T-022).
+- `REQ-0079` **Meta Growth Engine** — WhatsApp Business API connection (T-022).
 - `REQ-0069` **L5 Fly.io memory sizing** — measure SSR + AI generation RSS in production and record
   the ADR (post-launch ops task).
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live

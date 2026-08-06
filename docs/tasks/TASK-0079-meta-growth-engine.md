@@ -6,7 +6,7 @@
 - **Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
 - **Module(s):** content (new), meta
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Content publishing, scheduling, hashtag intelligence, best-time-to-post.
-- **Last updated:** 2026-08-06 (T-071 trending reels/audio analysis batch complete on `devin/req-0079-trending-reels-1786006431`)
+- **Last updated:** 2026-08-06 (T-021 Meta OAuth flow implemented on `devin/batch-meta-oauth-doc-closeouts-1786007775`)
 
 ## 1. Summary
 
@@ -21,8 +21,14 @@ Content publishing via Instagram Content Publishing API (two-step container flow
 
 ## 3. Implementation Plan
 
-### Step 1 — Meta OAuth Flow
+### Step 1 — Meta OAuth Flow ✅
 Connect Instagram Business/Creator account + Facebook Page via Graph API OAuth.
+
+- Added `getMetaOAuthUrl`, `exchangeMetaOAuthCode`, and `fetchInstagramAccount` in
+  `src/modules/meta/infrastructure/meta-oauth.ts`.
+- Added `GET /api/meta/auth` and `GET /api/meta/callback` route handlers.
+- Added `MetaConnectionCard` on `/stores/[projectId]/settings` with Connect/Reconnect button.
+- Token is encrypted at rest via `PrismaMetaIntegrationRepository.connect`.
 
 ### Step 2 — Content Publishing API
 Two-step: create media container → poll until FINISHED → publish. Support photo, carousel, Reel, Story.
@@ -41,7 +47,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 4. Subtasks
 
-- [ ] T-021: Meta OAuth flow
+- [x] T-021: Meta OAuth flow
 - [ ] T-022: WhatsApp Business API connection
 - [x] T-023: Content Publishing API
 - [x] T-024: Content scheduling
@@ -59,6 +65,6 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 6. Notes / Blockers
 
-- T-023, T-024, T-058, T-059, T-069, T-070, and T-071 completed on the respective feature branches. T-021 (Meta OAuth) and T-022 (WhatsApp) remain open.
+- T-021, T-023, T-024, T-058, T-059, T-069, T-070, and T-071 completed on the respective feature branches. T-022 (WhatsApp) remains open.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.
