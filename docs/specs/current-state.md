@@ -102,7 +102,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume, and `sendMessage` use-case for outbound `HUMAN`/`AI` replies. |
 | `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
-| `content` | Content ideation (`generateContentIdeas`) and Instagram publishing orchestration (`publishMedia`) behind the `MetaService` port. |
+| `content` | Content ideation (`generateContentIdeas`), Instagram publishing (`publishMedia`), and scheduling (`ScheduledPost` + delayed `publish-scheduled-post` queue job) behind the `MetaService` port. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
 | `support` | Support tickets, admin triage, system logs. The `/admin/*` pages (users, health, logs, tickets, coupons, organizations, AI usage) are super-admin-only and live under `src/app/admin`. `/support` is authenticated-only and not in `publicPaths`. |
@@ -123,6 +123,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `ChatSession` / `ChatMessage` — assistant chat history per project/user; separate from customer `Conversation`/`Message`; messages carry `role` (`system` | `user` | `assistant` | `tool`) and optional `toolCalls`/`toolCallId`.
 - `Follower` / `Campaign` — first-follower campaign tracking.
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
+- `ScheduledPost` — pending/published/failed/cancelled Instagram posts with `scheduledAt`, `mediaUrls`, and the dispatched `jobId`.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
 - `PlanConfig` — optional per-plan feature-limit overrides; `planConfigService.resolveLimits(plan)` falls back to the hardcoded `PLAN_LIMITS` when no override exists.

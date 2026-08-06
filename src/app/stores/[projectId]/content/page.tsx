@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
 import { ContentStudioForms } from "@/components/content-studio-forms";
 import { PublishPostForm } from "@/components/publish-post-form";
-import { publishMediaAction } from "@/modules/content";
+import {
+  publishMediaAction,
+  schedulePostAction,
+} from "@/modules/content";
+import { listScheduledPosts } from "@/modules/content/server";
 
 export default async function ContentStudioPage({
   params,
@@ -24,6 +28,7 @@ export default async function ContentStudioPage({
   const { store } = access;
 
   const products = await ecommerceQueries.listProducts(projectId, 100);
+  const scheduled = await listScheduledPosts(projectId);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -41,8 +46,39 @@ export default async function ContentStudioPage({
 
       <section className="mb-8 rounded-lg border p-6">
         <h2 className="mb-4 text-lg font-semibold">Publish to Instagram</h2>
-        <PublishPostForm action={publishMediaAction} projectId={projectId} />
+        <PublishPostForm action={publishMediaAction} projectId={projectId} mode="publish" />
       </section>
+
+      <section className="mb-8 rounded-lg border p-6">
+        <h2 className="mb-4 text-lg font-semibold">Schedule to Instagram</h2>
+        <PublishPostForm
+          action={schedulePostAction}
+          projectId={projectId}
+          mode="schedule"
+          submitLabel="Schedule"
+        />
+      </section>
+
+      {scheduled.length > 0 && (
+        <section className="mb-8 rounded-lg border p-6">
+          <h2 className="mb-4 text-lg font-semibold">Scheduled posts</h2>
+          <ul className="space-y-3">
+            {scheduled.map((post) => (
+              <li key={post.id} className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <p className="font-medium">{post.mediaType}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {post.scheduledAt.toLocaleString()} · {post.status}
+                  </p>
+                </div>
+                {post.externalId && (
+                  <span className="text-sm text-green-600">Published {post.externalId}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <ContentNextBestAction projectId={projectId} />
 

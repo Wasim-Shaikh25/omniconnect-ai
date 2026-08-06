@@ -4,6 +4,7 @@ import { logger, initSentry } from "@/shared/observability";
 import { ensureSubscribers } from "@/server/subscribers";
 import { startBullMQWorker } from "@/shared/queue/worker";
 import { EVENTS_QUEUE } from "@/shared/events/queue-event-bus";
+import { CONTENT_SCHEDULE_QUEUE } from "@/modules/content";
 import { startWebhookRetention } from "./retention";
 import { startAbandonedCartSweep } from "./abandoned-carts";
 
@@ -18,6 +19,7 @@ logger.info("worker.starting", { redisConfigured: Boolean(env.REDIS_URL) });
 startIntelligenceWorker();
 if (env.REDIS_URL) {
   startBullMQWorker(EVENTS_QUEUE);
+  startBullMQWorker(CONTENT_SCHEDULE_QUEUE);
 }
 startWebhookRetention();
 startAbandonedCartSweep();

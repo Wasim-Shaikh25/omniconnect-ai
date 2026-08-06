@@ -59,6 +59,8 @@ model User {
   maxAiCallsPerDay        Int        @default(20) // cached plan limit
   profileInspectionsToday   Int        @default(0)
   profileInspectionsResetAt DateTime?
+  contentSchedulesThisMonth   Int        @default(0)
+  contentSchedulesResetAt     DateTime?
   tokenVersion            Int        @default(0)
   deletedAt               DateTime?
   deletedReason           String?
@@ -244,6 +246,7 @@ model Project {
   brandDeals BrandDeal[]
   dashboardShares DashboardShare[]
   attributionLinks AttributionLink[]
+  scheduledPosts ScheduledPost[]
 }
 
 model OrganizationInvite {
@@ -849,6 +852,28 @@ model DashboardShare {
 
   @@index([token])
   @@index([projectId, createdAt])
+}
+
+model ScheduledPost {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId        String
+  caption       String?
+  mediaType     String
+  mediaUrls     String[]
+  status        String   @default("SCHEDULED") // SCHEDULED, PUBLISHED, FAILED, CANCELLED
+  scheduledAt   DateTime
+  publishedAt   DateTime?
+  externalId    String?
+  jobId         String?
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId, status, scheduledAt])
+  @@index([userId, status, createdAt])
+  @@index([scheduledAt, status])
 }
 
 // ── notifications ───────────────────────────────────────────────────────────

@@ -5,7 +5,11 @@ import { z } from "zod";
 import { requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import type { TrendIdea } from "@/modules/ai";
-import { generateContentIdeas, publishMedia } from "../infrastructure/container";
+import {
+  generateContentIdeas,
+  publishMedia,
+  schedulePost,
+} from "../infrastructure/container";
 
 export interface GenerateContentIdeasState {
   error?: string;
@@ -18,6 +22,7 @@ export interface ContentActionState {
   ok?: boolean;
   message?: string;
   externalId?: string;
+  scheduledPostId?: string;
 }
 
 const generateContentIdeasSchema = z.object({
@@ -40,8 +45,20 @@ const publishMediaActionSchema = z.object({
   mediaUrls: z.string().url(),
 });
 
-async function assertStoreInOrg(userId: string | null, projectId: string): Promise<boolean> {
-  if (!userId) return false;
+const schedulePostActionSchema = z.object({
+  projectId: z.string().min(1),
+  caption: z.string().max(2200).optional(),
+  mediaType: z.enum(["IMAGE", "VIDEO", "REEL", "CAROUSEL", "STORY"] as const),
+  mediaUrls: z.string().url(),
+  scheduledAt: z.coerce.date(),
+});
+
+function tenantUserId(user: { id: string; userId: string | null }): string {
+  return user.userId ?? user.id;
+}
+
+async function assertStoreInOrg(user: { id: string; userId: string | null }, projectId: string): Promise<boolean> {
+  const userId = tenantUserId(user);
   const overview = await organizationQueries.getOrganizationOverview(userId);
   return overview?.stores.some((s) => s.id === projectId) ?? false;
 }
@@ -66,7 +83,7 @@ export async function generateContentIdeasAction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
-  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
+  if (!(await assertStoreInOrg(user, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -77,7 +94,7 @@ export async function generateContentIdeasAction(
   try {
     const { ideas, evidence } = await generateContentIdeas({
       projectId: parsed.data.projectId,
-      userId: user.userId ?? undefined,
+      userId: tenantUserId(user),
       caption: parsed.data.caption ?? null,
       hashtags: hashtagList,
       mediaType: parsed.data.mediaType,
@@ -112,7 +129,7 @@ export async function publishMediaAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
+  if (!(await assertStoreInOrg(user, parsed.data.projectId))) {
     return { error: "Store not found in your organization." };
   }
 
@@ -144,6 +161,60 @@ export async function publishMediaAction(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to publish media";
+    return { error: message };
+  }
+}
+
+export async function schedulePostAction(
+  _prev: ContentActionState,
+  formData: FormData,
+): Promise<ContentActionState> {
+  const user = await requireRole("USER");
+  const rawMediaUrls = formData.getAll("mediaUrls").map((v) => String(v));
+  const parsed = schedulePostActionSchema.safeParse({
+    projectId: formData.get("projectId"),
+    caption: formData.get("caption") || undefined,
+    mediaType: formData.get("mediaType"),
+    mediaUrls: rawMediaUrls.length ? rawMediaUrls[0] : undefined,
+    scheduledAt: formData.get("scheduledAt"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (!(await assertStoreInOrg(user, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const mediaUrls = rawMediaUrls.filter(
+    (url) => url.length > 0 && z.string().url().safeParse(url).success,
+  );
+  if (mediaUrls.length === 0) {
+    return { error: "At least one valid media URL is required." };
+  }
+
+  try {
+    const result = await schedulePost({
+      projectId: parsed.data.projectId,
+      userId: tenantUserId(user),
+      caption: parsed.data.caption?.trim(),
+      mediaType: parsed.data.mediaType,
+      mediaUrls,
+      scheduledAt: parsed.data.scheduledAt,
+    });
+
+    if (!result.ok) {
+      return { error: result.error.message };
+    }
+
+    revalidatePath(`/stores/${parsed.data.projectId}/content`);
+    return {
+      ok: true,
+      message: `Scheduled for ${result.value.scheduledAt.toLocaleString()}.`,
+      scheduledPostId: result.value.id,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to schedule post";
     return { error: message };
   }
 }
