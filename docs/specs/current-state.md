@@ -192,7 +192,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 4. `ai.generateReply` now also respects `AIConfiguration.channelSettings` for the conversation's channel: if the channel is disabled or the current time is outside the configured `businessHoursStart..businessHoursEnd`, it returns an empty reply and does not call the LLM.
 5. AI reply appended; `metaService.sendMessage` attempted.
 6. Staff can `takeOver` to set `HUMAN_ACTIVE`; `resumeAI` flips back.
-7. When a conversation is `HUMAN_ACTIVE`, the conversation detail page shows a `ConversationMessageForm` that appends a `HUMAN` message and calls `MetaService.sendMessage` for `INSTAGRAM`/`FACEBOOK` channels (tenant-guarded via `sendConversationMessageAction`).
+7. When a conversation is `HUMAN_ACTIVE`, the conversation detail page shows a `ConversationMessageForm` that appends a `HUMAN` message and calls `MetaService.sendMessage` for `INSTAGRAM`/`FACEBOOK` channels (tenant-guarded via `sendConversationMessageAction`). The use-case returns `{ message, delivered }`; the action shows a green confirmation when delivery succeeds and an amber warning when the outbound provider fails, so staff are not misled by a persisted message that never reached the customer.
 
 ### 8.6 Analytics
 1. `getMarketingPerformance(projectId)` fetches live Meta page/media/audience insights and Shopify orders.

@@ -24,6 +24,10 @@ All notable changes to **OmniConnect AI** are documented here.
   from `AIConfiguration` and returns an empty reply without calling the LLM when the channel is disabled
   or the current time is outside the configured business hours. Unit tests added for `sendMessage` and
   `generateReply` channel gating. WhatsApp webhook/sender remains deferred.
+- **fix(conversations):** `makeSendMessage` now returns `{ message, delivered }` so the action and UI can
+  distinguish a persisted message from a successful channel delivery; the form shows an amber warning
+  "Saved, but delivery to the channel failed" when `MetaService.sendMessage` throws, instead of a green
+  "Message sent." confirmation.
 
 - `REQ-0089` **Intelligence Layer — plan-tier gating** on `devin/req-0089-intelligence-layer-1785995189`:
   added `canUseIntelligenceFeature(plan, feature)` in `intelligence/domain/access.ts` with unit tests;
