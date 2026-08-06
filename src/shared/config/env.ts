@@ -48,7 +48,7 @@ const envSchema = z.object({
 
   META_APP_ID: z.string().optional(),
   META_APP_SECRET: z.string().optional(),
-  META_REDIRECT_URI: z.string().url().optional().default("http://localhost:3000/api/meta/callback"),
+  META_REDIRECT_URI: z.string().url().optional(),
   META_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
 
   S3_ENDPOINT: z.string().optional(),

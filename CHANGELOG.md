@@ -88,6 +88,14 @@ All notable changes to **OmniConnect AI** are documented here.
   `pollContainerStatus` also use the `Authorization` header. Polling short-circuits on any status other than
   `FINISHED` (`ERROR` or `TIMEOUT`), and `makePublishMedia` uses `safeParse` so users see friendly validation
   messages (e.g., for more than 10 carousel slides) instead of a raw Zod JSON dump.
+- `REQ-0079` **Meta OAuth review fixes** on `devin/fix-content-publishing-review-1786000600`:
+  `/api/meta/auth` now generates a signed, random-nonce `state` and stores the nonce in an `HttpOnly`
+  `meta_oauth_state` cookie; `/api/meta/callback` verifies the state against the cookie before accepting the
+  `projectId`, preventing CSRF account-linking. The access token is sent via the `Authorization: Bearer` header,
+  `fetchGraph` no longer logs URLs or raw response bodies (only status and a sanitized error code), the redirect
+  URI falls back to `APP_URL` rather than a hardcoded `localhost` default, `exchangeMetaOAuthCode` uses POST
+  form bodies, and `fetchInstagramAccount` no longer falls back to a Facebook Page id when no Instagram
+  Business account is linked.
 - `REQ-0079` **Content Scheduling review fixes** on `devin/fix-content-scheduling-review-1786001674`:
   fixed timezone handling by converting the `datetime-local` value to an ISO UTC string on the client and storing
   the browser's IANA timezone in `ScheduledPost.scheduledAtTimezone`; rejected missing/empty schedule times

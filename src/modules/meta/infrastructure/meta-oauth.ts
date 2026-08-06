@@ -1,3 +1,4 @@
+import { createHmac, randomBytes } from "crypto";
 import { env } from "@/shared/config";
 import { logger } from "@/shared/observability";
 import { z } from "zod";
@@ -29,16 +30,86 @@ export interface MetaOAuthAccount {
   pageName?: string;
 }
 
+export interface MetaOAuthState {
+  projectId: string;
+  nonce: string;
+}
+
+function signingKey(): string {
+  return env.NEXTAUTH_SECRET ?? env.ENCRYPTION_KEY ?? "";
+}
+
+function getMetaRedirectUri(): string {
+  if (env.META_REDIRECT_URI) return env.META_REDIRECT_URI;
+  if (!env.APP_URL) throw new Error("APP_URL is required to derive the Meta OAuth redirect URI.");
+  const base = env.APP_URL.replace(/\/$/, "");
+  return `${base}/api/meta/callback`;
+}
+
+function base64UrlEncode(input: string): string {
+  return Buffer.from(input, "utf8")
+    .toString("base64url");
+}
+
+function base64UrlDecode(input: string): string {
+  return Buffer.from(input, "base64url").toString("utf8");
+}
+
+export function generateMetaOAuthNonce(): string {
+  return randomBytes(16).toString("hex");
+}
+
+export function createMetaOAuthState(projectId: string, nonce: string): string {
+  const key = signingKey();
+  if (!key) throw new Error("NEXTAUTH_SECRET or ENCRYPTION_KEY is required to sign the OAuth state.");
+  const payload = `${projectId}|${nonce}`;
+  const signature = createHmac("sha256", key).update(payload).digest("base64url");
+  const state = {
+    p: base64UrlEncode(projectId),
+    n: base64UrlEncode(nonce),
+    s: signature,
+  };
+  return Buffer.from(JSON.stringify(state)).toString("base64url");
+}
+
+export function verifyMetaOAuthState(state: string, nonce: string): string | null {
+  const key = signingKey();
+  if (!key) return null;
+  try {
+    const raw = base64UrlDecode(state);
+    const parsed = JSON.parse(raw) as { p: string; n: string; s: string };
+    if (base64UrlDecode(parsed.n) !== nonce) return null;
+    const projectId = base64UrlDecode(parsed.p);
+    const expected = createHmac("sha256", key).update(`${projectId}|${nonce}`).digest("base64url");
+    if (!timingSafeEqual(parsed.s, expected)) return null;
+    return projectId;
+  } catch {
+    return null;
+  }
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < ab.length; i++) {
+    mismatch |= ab[i]! ^ bb[i]!;
+  }
+  return mismatch === 0;
+}
+
 /**
- * Builds the Facebook Login OAuth URL for a project. The project id is carried
- * in `state` and must be verified in the callback handler.
+ * Builds the Facebook Login OAuth URL for a project. The `state` parameter must
+ * be a value created with `createMetaOAuthState` and bound to the user's session
+ * (e.g. via a cookie) so the callback can verify it.
  */
-export function getMetaOAuthUrl(projectId: string): string {
+export function getMetaOAuthUrl(projectId: string, state: string): string {
   const clientId = env.META_APP_ID;
   if (!clientId) {
     throw new Error("META_APP_ID is not configured.");
   }
-  const redirectUri = encodeURIComponent(env.META_REDIRECT_URI);
+  const redirectUri = encodeURIComponent(getMetaRedirectUri());
   const scope = encodeURIComponent(
     [
       "instagram_basic",
@@ -49,8 +120,8 @@ export function getMetaOAuthUrl(projectId: string): string {
       "whatsapp_business_messaging",
     ].join(","),
   );
-  const state = encodeURIComponent(projectId);
-  return `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}&response_type=code`;
+  const encodedState = encodeURIComponent(state);
+  return `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirectUri}&state=${encodedState}&scope=${scope}&response_type=code`;
 }
 
 async function fetchGraph<T>(
@@ -61,8 +132,18 @@ async function fetchGraph<T>(
   const res = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
   if (!res.ok) {
     const text = await res.text();
-    logger.warn("meta.oauth.graphError", { status: res.status, url, body: text });
-    throw new Error(`Meta OAuth graph error ${res.status}: ${text}`);
+    let parsed: { error?: { message?: string; code?: number }; error_description?: string } | undefined;
+    try {
+      parsed = JSON.parse(text) as typeof parsed;
+    } catch {
+      // leave as undefined
+    }
+    logger.warn("meta.oauth.graphError", {
+      status: res.status,
+      code: parsed?.error?.code,
+      message: parsed?.error?.message,
+    });
+    throw new Error(`Meta OAuth graph error ${res.status}`);
   }
   const json = await res.json();
   if (schema) return schema.parse(json);
@@ -72,7 +153,8 @@ async function fetchGraph<T>(
 /**
  * Exchanges a short-lived code for a long-lived user access token, then resolves
  * the first connected Facebook Page that has an Instagram Business account.
- * Falls back to the first Page when no Instagram account is linked.
+ * Returns `null` when the user has Pages but none of them are linked to an
+ * Instagram Business account.
  */
 export async function exchangeMetaOAuthCode(
   code: string,
@@ -83,18 +165,31 @@ export async function exchangeMetaOAuthCode(
     throw new Error("META_APP_ID and META_APP_SECRET are required for Meta OAuth.");
   }
 
-  const redirectUri = encodeURIComponent(env.META_REDIRECT_URI);
-  const tokenUrl =
-    `${GRAPH_API_BASE}/oauth/access_token?` +
-    `client_id=${clientId}&redirect_uri=${redirectUri}&client_secret=${clientSecret}&code=${encodeURIComponent(code)}`;
+  const redirectUri = getMetaRedirectUri();
 
-  const shortLived = await fetchGraph(tokenUrl, { method: "GET" }, tokenResponseSchema);
+  const tokenParams = new URLSearchParams();
+  tokenParams.set("client_id", clientId);
+  tokenParams.set("redirect_uri", redirectUri);
+  tokenParams.set("client_secret", clientSecret);
+  tokenParams.set("code", code);
 
-  const longLivedUrl =
-    `${GRAPH_API_BASE}/oauth/access_token?` +
-    `grant_type=fb_exchange_token&client_id=${clientId}&client_secret=${clientSecret}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`;
+  const shortLived = await fetchGraph(
+    `${GRAPH_API_BASE}/oauth/access_token`,
+    { method: "POST", body: tokenParams.toString() },
+    tokenResponseSchema,
+  );
 
-  const longLived = await fetchGraph(longLivedUrl, { method: "GET" }, tokenResponseSchema);
+  const longLivedParams = new URLSearchParams();
+  longLivedParams.set("grant_type", "fb_exchange_token");
+  longLivedParams.set("client_id", clientId);
+  longLivedParams.set("client_secret", clientSecret);
+  longLivedParams.set("fb_exchange_token", shortLived.access_token);
+
+  const longLived = await fetchGraph(
+    `${GRAPH_API_BASE}/oauth/access_token`,
+    { method: "POST", body: longLivedParams.toString() },
+    tokenResponseSchema,
+  );
 
   return { accessToken: longLived.access_token };
 }
@@ -106,14 +201,18 @@ export async function exchangeMetaOAuthCode(
 export async function fetchInstagramAccount(
   userAccessToken: string,
 ): Promise<MetaOAuthAccount | null> {
-  const url =
-    `${GRAPH_API_BASE}/me/accounts?` +
-    `fields=id,name,access_token,instagram_business_account&access_token=${encodeURIComponent(userAccessToken)}`;
+  const url = new URL(`${GRAPH_API_BASE}/me/accounts`);
+  url.searchParams.set("fields", "id,name,access_token,instagram_business_account");
 
-  const pages = await fetchGraph(url, { method: "GET" }, accountsResponseSchema);
-  if (pages.data.length === 0) return null;
+  const pages = await fetchGraph(
+    url.toString(),
+    { method: "GET", headers: { authorization: `Bearer ${userAccessToken}` } },
+    accountsResponseSchema,
+  );
 
-  const withInstagram = pages.data.find((p) => p.instagram_business_account?.id && p.access_token);
+  const withInstagram = pages.data.find(
+    (p) => p.instagram_business_account?.id && p.access_token,
+  );
   if (withInstagram) {
     return {
       pageId: withInstagram.id,
@@ -123,13 +222,5 @@ export async function fetchInstagramAccount(
     };
   }
 
-  const first = pages.data.find((p) => p.access_token);
-  if (!first) return null;
-
-  return {
-    pageId: first.id,
-    pageName: first.name,
-    pageAccessToken: first.access_token!,
-    accountId: first.id,
-  };
+  return null;
 }
