@@ -235,13 +235,23 @@ All notable changes to **OmniConnect AI** are documented here.
   `/admin/adapters` lists all `EcommerceConnection` rows with provider, status, last sync, and actions to
   approve/flag or validate the adapter connection against the live connector.
 
+### ✅ Done
+
+- `REQ-0081` **AI Assistant & Tools — Batch 1** on `devin/req-0081-batch1-chat-sessions-tools-1785993500`:
+  added `ChatSession` / `ChatMessage` Prisma models and migration, `PrismaChatSessionRepository`,
+  `ChatAssistantService` with create/list/rename/delete, `sendChatMessageAction`, and a new
+  `POST /api/chat/stream` SSE endpoint backed by `OpenRouterProvider.stream`. Added `AI_TOOLS`
+  function-calling schema for `createCoupon`, `injectCoupon`, `sendMessage`, `queryAnalytics`,
+  and `generateDashboard`.
+
 ### 🚧 In Progress
 
 None.
 
 ### ⏭️ Next
 
-- `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
+- `REQ-0081` **AI Assistant & Tools — Batch 2** — tool executor with guardrails, real-time
+  coupon create/inject/send flow, and full-screen chat UI.
 - `REQ-0089` **Intelligence Layer** — daily brief, marketing brain, next best action, signal detection.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).

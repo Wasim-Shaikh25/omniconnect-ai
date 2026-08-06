@@ -31,9 +31,11 @@ import { makeAnalyzeMedia } from "../application/analyze-media";
 import { makeCreateContentIdea } from "../application/create-content-idea";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
 import { makeBrainMemoryService } from "../application/brain-memory";
+import { makeChatAssistantService } from "../application/chat";
 import { env } from "@/shared/config";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { PrismaBrainMemoryRepository } from "./brain-memory.repository";
+import { PrismaChatSessionRepository } from "./chat-session.repository";
 import { OpenRouterProvider } from "./openrouter.provider";
 import { PrismaTokenUsageRepository } from "./token-usage.repository";
 import { makeWorkspaceContext } from "./workspace-context";
@@ -41,6 +43,7 @@ import { makeWorkspaceContext } from "./workspace-context";
 export const aiConfigurationRepository = new PrismaAIConfigurationRepository();
 const brainMemoryRepository = new PrismaBrainMemoryRepository();
 const tokenUsageRepository = new PrismaTokenUsageRepository();
+export const chatSessionRepository = new PrismaChatSessionRepository();
 export const aiProvider = new OpenRouterProvider(
   {
     apiKey: env.OPENROUTER_API_KEY ?? "",
@@ -70,6 +73,11 @@ export const aiQueries = {
 export const generateWelcome = makeGenerateWelcome({
   aiProvider,
   aiConfigurationRepository,
+});
+
+export const chatAssistant = makeChatAssistantService({
+  sessions: chatSessionRepository,
+  aiProvider,
 });
 
 export const generateReply = makeGenerateReply({

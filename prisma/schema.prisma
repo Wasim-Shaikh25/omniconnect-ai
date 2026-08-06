@@ -581,6 +581,34 @@ model Message {
   @@index([conversationId, createdAt(sort: Desc)])
 }
 
+// Chat sessions/messages for the AI assistant (separate from customer conversations).
+model ChatSession {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatMessage[]
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role       String   // system | user | assistant | tool
+  content    String
+  toolCalls  Json?    // assistant tool_calls payload
+  toolCallId String?
+  createdAt  DateTime @default(now())
+
+  @@index([sessionId, createdAt(sort: Desc)])
+}
+
 model Cart {
   id             String    @id @default(cuid())
   projectId        String

@@ -1,6 +1,6 @@
 # TRACKER-0081: AI Assistant & Tools
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0081-ai-assistant-tools.md`
 - **Task:** `docs/tasks/TASK-0081-ai-assistant-tools.md`
@@ -18,9 +18,9 @@ Progress tracker for REQ-0081: AI Assistant & Tools.
 - [ ] Branch created.
 
 ### Implementation
-- [ ] T-039: Chat session management (CRUD).
-- [ ] T-040: AI chat endpoint (streaming + tool calling).
-- [ ] T-041: AI tool definitions (5 tools).
+- [x] T-039: Chat session management (CRUD).
+- [x] T-040: AI chat endpoint (streaming + tool calling).
+- [x] T-041: AI tool definitions (5 tools).
 - [ ] T-042: Tool executor with guardrail enforcement.
 - [ ] T-043: Real-time coupon flow (create → inject → send).
 - [ ] T-044: Chat UI (full-screen, streaming, markdown).

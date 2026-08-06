@@ -1,6 +1,6 @@
 # TASK-0081: AI Assistant & Tools
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0081-ai-assistant-tools.md`
 - **Tracker:** `docs/trackers/TRACKER-0081-ai-assistant-tools.md`
@@ -42,9 +42,9 @@ Full-screen chat, message bubbles, streaming text, markdown rendering, session s
 
 ## 4. Subtasks
 
-- [ ] T-039: Chat session management
-- [ ] T-040: AI chat endpoint (streaming + tools)
-- [ ] T-041: AI tool definitions
+- [x] T-039: Chat session management
+- [x] T-040: AI chat endpoint (streaming + tools)
+- [x] T-041: AI tool definitions
 - [ ] T-042: Tool executor with guardrails
 - [ ] T-043: Real-time coupon flow
 - [ ] T-044: Chat UI

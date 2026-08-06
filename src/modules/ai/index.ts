@@ -41,6 +41,9 @@ export { buildSystemPrompt } from "./application/build-system-prompt";
 export type { SystemPromptContext } from "./application/build-system-prompt";
 export { defaultAIConfigurationRecord } from "./application/ai-config";
 export type { BrainMemoryService } from "./application/brain-memory";
+export type { ChatAssistantService, SendChatMessageInput, SendChatMessageResult } from "./application/chat";
+export { AI_TOOLS } from "./domain/tools";
+export type { AIToolName } from "./domain/tools";
 export type { GenerateWelcome } from "./application/generate-welcome";
 export type {
   GeneratedCaption,
@@ -96,7 +99,16 @@ export {
   askBusinessBrainAction,
   extractKnowledgeBaseFiles,
 } from "./presentation/actions";
+export {
+  createChatSessionAction,
+  listChatSessionsAction,
+  getChatSessionAction,
+  sendChatMessageAction,
+  renameChatSessionAction,
+  deleteChatSessionAction,
+} from "./presentation/chat-actions";
 export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState, AskBusinessBrainState, ExtractKnowledgeState } from "./presentation/actions";
+export type { ChatActionState } from "./presentation/chat-actions";
 export { resolveOperation } from "./application/operation-resolver";
 export type { ResolveResult, ResolvedOperation, UnsupportedOperation, OperationExemplar } from "./application/operation-resolver";
 export { queryAnalytics } from "./application/query-analytics";

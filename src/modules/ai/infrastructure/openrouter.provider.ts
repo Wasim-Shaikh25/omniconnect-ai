@@ -2,7 +2,12 @@ import { logger, redactValue, withSpan } from "@/shared/observability";
 import type { AIMessage, AICompletionConfig, AIProvider, TokenUsageRepository } from "../application/ports";
 import { wrapUserMessage, escapePromptDelimiters } from "../domain/prompt-safety";
 import type { ContentModerator, ModerationResult } from "../application/content-moderation";
-import { OpenRouterClient, type OpenRouterConfig, type OpenRouterMessage } from "./openrouter-client";
+import {
+  OpenRouterClient,
+  type OpenRouterConfig,
+  type OpenRouterMessage,
+  type OpenRouterResponse,
+} from "./openrouter-client";
 
 const MAX_USER_CONTENT_LENGTH = 4000;
 
@@ -155,6 +160,46 @@ export class OpenRouterProvider implements AIProvider, ContentModerator {
       },
       { attributes: { model: config.model } },
     );
+  }
+
+  async *stream(messages: AIMessage[], config: AICompletionConfig): AsyncIterable<string> {
+    if (!this.config.apiKey) {
+      logger.info("ai.openrouter.skipped", { reason: "no-api-key" });
+      yield config.fallback ?? buildDevReply(messages);
+      return;
+    }
+
+    const model = validateModel(config.model);
+    const safeMessages = sanitize(messages);
+    const guardedMessages = addSystemInstructionIfMissing(safeMessages);
+
+    try {
+      const generator = this.client.streamChat({
+        model,
+        messages: toOpenRouterMessages(guardedMessages),
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+
+      let result: OpenRouterResponse | undefined;
+      while (true) {
+        const { done, value } = await generator.next();
+        if (done) {
+          result = value as OpenRouterResponse | undefined;
+          break;
+        }
+        if (typeof value === "string") yield value;
+      }
+
+      if (result?.usage) {
+        await this.recordUsage(result, model, config);
+      }
+    } catch (error) {
+      logger.error("ai.openrouter.streamFailed", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      yield config.fallback ?? DEFAULT_REPLY;
+    }
   }
 
   private async recordUsage(
