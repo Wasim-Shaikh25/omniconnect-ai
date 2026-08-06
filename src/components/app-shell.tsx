@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   BarChart3,
+  Bot,
   Brain,
   Building2,
   CalendarDays,
@@ -139,7 +140,10 @@ export function AppShell({ children }: AppShellProps) {
     },
     {
       label: "Create",
-      items: [{ href: "/business-brain", label: "Marketing Brain", icon: Brain }],
+      items: [
+        { href: "/business-brain", label: "Marketing Brain", icon: Brain },
+        { href: "/chat", label: "AI Chat", icon: Bot },
+      ],
     },
     {
       label: "Engage",

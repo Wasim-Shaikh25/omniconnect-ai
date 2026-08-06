@@ -66,7 +66,7 @@ export async function createChatSessionAction(
     userId: user.userId,
     title: parsed.data.title,
   });
-  revalidatePath(`/stores/${parsed.data.projectId}/business-brain`);
+  revalidatePath("/chat");
   return { ok: true, session };
 }
 
@@ -134,7 +134,7 @@ export async function sendChatMessageAction(
       config,
       brandName: user.name ?? undefined,
     });
-    revalidatePath(`/stores/${parsed.data.projectId}/business-brain`);
+    revalidatePath("/chat");
     return { ok: true, message: result.message.content };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to send message" };
@@ -163,7 +163,7 @@ export async function renameChatSessionAction(
 
   const updated = await chatAssistant.renameSession(parsed.data.sessionId, parsed.data.title);
   if (!updated) return { error: "Session not found" };
-  revalidatePath(`/stores/${session.projectId}/business-brain`);
+  revalidatePath("/chat");
   return { ok: true, session: updated };
 }
 
@@ -185,6 +185,6 @@ export async function deleteChatSessionAction(
   }
 
   await chatAssistant.deleteSession(parsed.data.id);
-  revalidatePath(`/stores/${session.projectId}/business-brain`);
+  revalidatePath("/chat");
   return { ok: true };
 }

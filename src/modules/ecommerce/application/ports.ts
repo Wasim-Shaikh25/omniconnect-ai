@@ -111,6 +111,8 @@ export interface CouponRecord {
   usageCount: number;
   revenueAttributed: number | null;
   lastUsedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CouponRepository {

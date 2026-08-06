@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logger } from "@/shared/observability";
 import { getCurrentUser, requireVerifiedEmail } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import { aiConfigurationRepository, chatAssistant } from "@/modules/ai/server";
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      let hasError = false;
       try {
         for await (const chunk of chatAssistant.streamMessage({
           sessionId: parsed.data.sessionId,
@@ -75,12 +77,28 @@ export async function POST(request: Request) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk }) }\n\n`));
         }
 
-        await chatAssistant.saveAssistantMessage(parsed.data.sessionId, fullText);
+        if (fullText.trim()) {
+          await chatAssistant.saveAssistantMessage(parsed.data.sessionId, fullText);
+        }
       } catch (error) {
+        hasError = true;
         const message = error instanceof Error ? error.message : "Stream failed";
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: message }) }\n\n`));
+        if (fullText.trim()) {
+          try {
+            await chatAssistant.saveAssistantMessage(parsed.data.sessionId, fullText);
+          } catch (saveError) {
+            logger.error("chat.stream.saveFailed", {
+              error: saveError instanceof Error ? saveError.message : "unknown",
+            });
+          }
+        }
       } finally {
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        if (hasError || !fullText.trim()) {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        } else {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        }
         controller.close();
       }
     },

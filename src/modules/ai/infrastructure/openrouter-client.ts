@@ -325,18 +325,26 @@ function parseStreamChunk(value: unknown): {
   content: string;
   finishResponse: OpenRouterResponse | null;
 } {
-  const parsed = parseOpenRouterResponse(value);
-
-  if (parsed.choices.length === 0) {
-    return { content: "", finishResponse: parsed.usage ? parsed : null };
+  if (typeof value !== "object" || value === null) {
+    return { content: "", finishResponse: null };
   }
 
-  const delta = parsed.choices[0]!.message;
-  const content = typeof delta.content === "string" ? delta.content : "";
+  const obj = value as Record<string, unknown>;
+  const choices = Array.isArray(obj.choices) ? (obj.choices as unknown[]) : [];
+  const first =
+    choices.length > 0 && typeof choices[0] === "object" && choices[0] !== null
+      ? (choices[0] as Record<string, unknown>)
+      : undefined;
 
-  // When finish_reason is present, the chunk usually carries the final usage.
-  const isFinished = parsed.choices[0]!.finish_reason !== null;
-  const finishResponse = isFinished || parsed.usage ? parsed : null;
+  const deltaObj =
+    first && typeof first.delta === "object" && first.delta !== null
+      ? (first.delta as Record<string, unknown>)
+      : {};
+
+  const content = typeof deltaObj.content === "string" ? deltaObj.content : "";
+
+  const isFinished = typeof first?.finish_reason === "string";
+  const finishResponse = isFinished || obj.usage ? parseOpenRouterResponse(value) : null;
 
   return { content, finishResponse };
 }

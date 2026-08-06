@@ -16,6 +16,7 @@ export type {
   ProjectConfig,
   ConversionEventSink,
 } from "./application/ports";
+export type { CreateAttributionLink, CreateLinkInput } from "./application/create-link";
 
 // Use-cases
 export {

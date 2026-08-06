@@ -15,6 +15,19 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0081` **AI Assistant & Tools — Batch 2** on `devin/req-0081-batch2-tools-coupon-ui-1786020000`:
+  implemented the `ToolExecutor` with guardrail enforcement from `AIConfiguration.enabledSkills` and
+  `salesRules`; added `completeWithToolCalls` to the `AIProvider` contract and implemented it in
+  `OpenRouterProvider`; the chat assistant now runs a tool loop for `createCoupon`, `injectCoupon`,
+  `sendMessage`, `queryAnalytics`, and `generateDashboard`. Real-time coupon flow supports creating a
+  coupon, pushing it to the connected e-commerce platform, generating an attribution checkout link, and
+  sending it to a customer. Fixed PR #159 streaming delta parsing (empty/partial replies were being saved),
+  `AI_TOOLS` domain/infrastructure type leak, and `updateTitle` crash on a deleted session.
+  Added a full-screen chat UI at `/chat` with message bubbles, streaming replies, basic markdown rendering,
+  and a session history sidebar with create/rename/delete. Also fixed `sendChatMessageAction` message
+  duplication in the tool loop and `ChatMessageRecord.toolCalls` typing.
+
+
 - `REQ-0087` **Super Admin Panel — Batch 1 (user management + system health)** on `devin/req-0087-super-admin-panel-1785984848`:
   added `User.suspendedAt` and `User.banned` columns with migration; auth `authorize()` and `getCurrentUser()`
   reject suspended/banned accounts; `UserProfile` includes `plan` and moderation state; super-admin `/admin/users`
@@ -246,12 +259,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-None.
+- `REQ-0081` **AI Assistant & Tools — Batch 2** on `devin/req-0081-batch2-tools-coupon-ui-1786020000`:
+  tool executor with guardrails, real-time coupon create/inject/send flow, and full-screen chat UI.
 
 ### ⏭️ Next
 
-- `REQ-0081` **AI Assistant & Tools — Batch 2** — tool executor with guardrails, real-time
-  coupon create/inject/send flow, and full-screen chat UI.
 - `REQ-0089` **Intelligence Layer** — daily brief, marketing brain, next best action, signal detection.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).

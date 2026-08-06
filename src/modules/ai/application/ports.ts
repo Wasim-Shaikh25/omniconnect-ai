@@ -5,6 +5,7 @@ import type {
   EscalationRules,
   ModelOverrides,
 } from "../domain/ai-config";
+import type { AIToolDefinition, AIToolCall } from "../domain/tools";
 
 export interface AIConfigurationRecord {
   projectId: string;
@@ -36,8 +37,10 @@ export interface AIConfigurationRepository {
 }
 
 export interface AIMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
+  toolCalls?: { id: string; type: "function"; function: { name: string; arguments: string } }[];
+  toolCallId?: string;
 }
 
 export interface AICompletionConfig {
@@ -45,10 +48,20 @@ export interface AICompletionConfig {
   fallback?: string;
   operation?: string;
   metadata?: Record<string, unknown>;
+  tools?: AIToolDefinition[];
+}
+
+export interface AICompletionResult {
+  content: string;
+  toolCalls?: AIToolCall[];
 }
 
 export interface AIProvider {
   complete(messages: AIMessage[], config: AICompletionConfig): Promise<string>;
+  completeWithToolCalls?(
+    messages: AIMessage[],
+    config: AICompletionConfig,
+  ): Promise<AICompletionResult>;
   stream?(messages: AIMessage[], config: AICompletionConfig): AsyncIterable<string>;
 }
 
@@ -137,7 +150,7 @@ export interface ChatMessageRecord {
   sessionId: string;
   role: "system" | "user" | "assistant" | "tool";
   content: string;
-  toolCalls: Record<string, unknown> | null;
+  toolCalls: AIToolCall[] | null;
   toolCallId: string | null;
   createdAt: Date;
 }

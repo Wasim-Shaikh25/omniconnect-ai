@@ -1,5 +1,6 @@
 import type {
   AICompletionConfig,
+  AICompletionResult,
   AIConfigurationRecord,
   AIMessage,
   AIProvider,
@@ -8,8 +9,12 @@ import type {
   ChatSessionRepository,
 } from "./ports";
 import { buildSystemPrompt } from "./build-system-prompt";
+import { AI_TOOLS } from "../domain/tools";
+import type { AIToolName } from "../domain/tools";
+import type { ToolCall, ToolExecutor } from "./tool-executor";
 
 const MAX_HISTORY = 20;
+const MAX_TOOL_ITERATIONS = 3;
 
 export interface SendChatMessageInput {
   sessionId: string;
@@ -43,6 +48,7 @@ export interface ChatAssistantService {
 export function makeChatAssistantService(deps: {
   sessions: ChatSessionRepository;
   aiProvider: AIProvider;
+  toolExecutor: ToolExecutor;
 }): ChatAssistantService {
   return {
     async createSession(input) {
@@ -84,14 +90,21 @@ export function makeChatAssistantService(deps: {
         model: input.config.model,
         operation: "chat",
         metadata: { projectId: input.projectId, userId: input.userId },
+        tools: AI_TOOLS,
       };
 
-      const text = await deps.aiProvider.complete(messages, completionConfig);
+      const finalText = await runToolLoop(
+        deps.aiProvider,
+        deps.toolExecutor,
+        messages,
+        completionConfig,
+        input,
+      );
 
       const message = await deps.sessions.addMessage({
         sessionId: input.sessionId,
         role: "assistant",
-        content: text,
+        content: finalText,
         toolCalls: null,
         toolCallId: null,
       });
@@ -144,6 +157,91 @@ export function makeChatAssistantService(deps: {
   };
 }
 
+async function runToolLoop(
+  aiProvider: AIProvider,
+  toolExecutor: ToolExecutor,
+  messages: AIMessage[],
+  config: AICompletionConfig,
+  input: SendChatMessageInput,
+): Promise<string> {
+  const complete: (
+    m: AIMessage[],
+    c: AICompletionConfig,
+  ) => Promise<AICompletionResult> =
+    aiProvider.completeWithToolCalls?.bind(aiProvider) ??
+    (async (m: AIMessage[], c: AICompletionConfig) => ({
+      content: await aiProvider.complete(m, c),
+    }));
+
+  let iteration = 0;
+
+  while (iteration < MAX_TOOL_ITERATIONS) {
+    iteration++;
+    const result = await complete(messages, config);
+
+    if (!result.toolCalls || result.toolCalls.length === 0) {
+      return result.content;
+    }
+
+    messages.push({
+      role: "assistant",
+      content: result.content || "",
+      toolCalls: result.toolCalls.map((t) => ({
+        id: t.id,
+        type: t.type,
+        function: { name: t.function.name, arguments: t.function.arguments },
+      })),
+    });
+
+    for (const call of result.toolCalls) {
+      const toolCall = parseToolCall(call);
+      const toolResult = toolCall
+        ? await toolExecutor.execute(toolCall, {
+            projectId: input.projectId,
+            userId: input.userId,
+            config: input.config,
+          })
+        : { ok: false, error: "Invalid tool call from model." };
+
+      messages.push({
+        role: "tool",
+        content: JSON.stringify(toolResult),
+        toolCallId: call.id,
+      });
+    }
+  }
+
+  return "I'm still thinking; please ask me to continue.";
+}
+
+function parseToolCall(call: {
+  id: string;
+  type: "function";
+  function: { name: string; arguments: string };
+}): ToolCall | null {
+  let args: Record<string, unknown> = {};
+  try {
+    const parsed = JSON.parse(call.function.arguments);
+    args = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return null;
+  }
+
+  const name = call.function.name as AIToolName;
+  const validNames: AIToolName[] = [
+    "createCoupon",
+    "injectCoupon",
+    "sendMessage",
+    "queryAnalytics",
+    "generateDashboard",
+  ];
+  if (!validNames.includes(name)) {
+    return null;
+  }
+
+  return { id: call.id, name, arguments: args };
+}
+
 function buildChatMessages(
   input: SendChatMessageInput,
   sessionMessages: ChatMessageRecord[],
@@ -155,7 +253,12 @@ function buildChatMessages(
 
   return [
     { role: "system", content: systemPrompt },
-    ...history.map((m) => ({ role: m.role as AIMessage["role"], content: m.content })),
+    ...history.map((m) => ({
+      role: m.role as AIMessage["role"],
+      content: m.content,
+      ...(m.toolCalls ? { toolCalls: m.toolCalls } : {}),
+      ...(m.toolCallId ? { toolCallId: m.toolCallId } : {}),
+    })),
     { role: "user", content: input.content },
   ];
 }

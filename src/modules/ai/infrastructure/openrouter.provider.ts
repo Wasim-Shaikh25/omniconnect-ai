@@ -1,5 +1,12 @@
 import { logger, redactValue, withSpan } from "@/shared/observability";
-import type { AIMessage, AICompletionConfig, AIProvider, TokenUsageRepository } from "../application/ports";
+import type {
+  AIMessage,
+  AICompletionConfig,
+  AICompletionResult,
+  AIProvider,
+  TokenUsageRepository,
+} from "../application/ports";
+import type { AIToolCall, AIToolDefinition } from "../domain/tools";
 import { wrapUserMessage, escapePromptDelimiters } from "../domain/prompt-safety";
 import type { ContentModerator, ModerationResult } from "../application/content-moderation";
 import {
@@ -69,7 +76,23 @@ function sanitizeOutput(content: string): string {
 }
 
 function toOpenRouterMessages(messages: AIMessage[]): OpenRouterMessage[] {
-  return messages.map((m) => ({ role: m.role, content: m.content }));
+  return messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+    ...(m.toolCalls ? { tool_calls: m.toolCalls } : {}),
+    ...(m.toolCallId ? { tool_call_id: m.toolCallId } : {}),
+  }));
+}
+
+function toOpenRouterTools(tools: AIToolDefinition[]): import("./openrouter-client").OpenRouterTool[] {
+  return tools.map((tool) => ({
+    type: tool.type,
+    function: {
+      name: tool.function.name,
+      description: tool.function.description,
+      parameters: tool.function.parameters as Record<string, unknown>,
+    },
+  }));
 }
 
 function addSystemInstructionIfMissing(messages: AIMessage[]): AIMessage[] {
@@ -156,6 +179,64 @@ export class OpenRouterProvider implements AIProvider, ContentModerator {
             error: error instanceof Error ? error.message : "unknown",
           });
           return config.fallback ?? DEFAULT_REPLY;
+        }
+      },
+      { attributes: { model: config.model } },
+    );
+  }
+
+  async completeWithToolCalls(
+    messages: AIMessage[],
+    config: AICompletionConfig,
+  ): Promise<AICompletionResult> {
+    return withSpan(
+      "ai.openrouter.completeWithToolCalls",
+      async (span) => {
+        span.setAttribute("model", config.model);
+
+        if (!this.config.apiKey) {
+          logger.info("ai.openrouter.skipped", { reason: "no-api-key" });
+          return { content: config.fallback ?? buildDevReply(messages) };
+        }
+
+        const model = validateModel(config.model);
+        const safeMessages = sanitize(messages);
+        const guardedMessages = addSystemInstructionIfMissing(safeMessages);
+
+        try {
+          const response = await this.client.chat({
+            model,
+            messages: toOpenRouterMessages(guardedMessages),
+            tools: config.tools ? toOpenRouterTools(config.tools) : undefined,
+            temperature: 0.7,
+            max_tokens: 500,
+          });
+
+          await this.recordUsage(response, model, config);
+
+          const message = response.choices[0]?.message;
+          const toolCalls = message?.tool_calls;
+          if (toolCalls && toolCalls.length > 0) {
+            return {
+              content: message.content ?? "",
+              toolCalls: toolCalls.map((t): AIToolCall => ({
+                id: t.id,
+                type: t.type,
+                function: {
+                  name: t.function.name,
+                  arguments: t.function.arguments,
+                },
+              })),
+            };
+          }
+
+          const content = message?.content?.trim();
+          return { content: content || config.fallback || DEFAULT_REPLY };
+        } catch (error) {
+          logger.error("ai.openrouter.requestFailed", {
+            error: error instanceof Error ? error.message : "unknown",
+          });
+          return { content: config.fallback ?? DEFAULT_REPLY };
         }
       },
       { attributes: { model: config.model } },
