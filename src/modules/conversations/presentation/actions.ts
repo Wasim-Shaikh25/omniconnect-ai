@@ -13,6 +13,7 @@ export interface ConversationActionState {
   error?: string;
   ok?: boolean;
   message?: string;
+  delivered?: boolean;
 }
 
 export async function getUnifiedInboxAction(
@@ -130,19 +131,25 @@ export async function sendConversationMessageAction(
   }
 
   try {
-    await sendMessage({
+    const result = await sendMessage({
       conversationId,
       projectId,
       sender: "HUMAN",
       content,
     });
+    revalidatePath(`/stores/${projectId}/conversations/${conversationId}`);
+    revalidatePath(`/stores/${projectId}/conversations`);
+    revalidatePath("/inbox");
+    if (result.delivered) {
+      return { ok: true, message: "Message sent." };
+    }
+    return {
+      ok: true,
+      delivered: false,
+      message: "Saved, but delivery to the channel failed. The customer may not see it yet.",
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to send message";
     return { error: message };
   }
-
-  revalidatePath(`/stores/${projectId}/conversations/${conversationId}`);
-  revalidatePath(`/stores/${projectId}/conversations`);
-  revalidatePath("/inbox");
-  return { ok: true, message: "Message sent." };
 }

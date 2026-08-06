@@ -45,8 +45,13 @@ export function ConversationMessageForm({
         <Button type="submit" disabled={pending} className="w-full sm:w-auto">
           {pending ? "Sending…" : "Send message"}
         </Button>
-        {state?.ok && (
+        {state?.ok && state?.delivered !== false && (
           <p className="text-sm text-green-600">{state.message}</p>
+        )}
+        {state?.ok && state?.delivered === false && (
+          <p className="text-sm text-amber-600" role="status">
+            {state.message}
+          </p>
         )}
         {state?.error && (
           <p className="text-sm text-destructive" role="alert">
