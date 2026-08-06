@@ -15,6 +15,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 1** on `devin/req-0078-dynamic-adapters-batch1-1786085000`:
+  implemented the safe HTTP `ConfigInterpreter` (`buildUrl`, `buildHeaders`, `extractPath`, `mapFields`, `interpolate`)
+  so an `AdapterConfigMapping` can execute every `EcommerceConnector` method without arbitrary code;
+  added a Zod validation schema for `AdapterConfigMapping`;
+  added `OpenRouterAdapterGenerator` that converts API documentation text into a validated config via
+  the public `AIProvider` port;
+  added `testAdapterConfigAction` to exercise `fetchStoreInfo` + `getProducts` with user credentials and
+  tenant-guarded project access. UI persistence and hardcoded connector removal queued for Batch 2.
+
 - `REQ-0076`, `REQ-0077`, `REQ-0067`, `REQ-0078`, `REQ-0075` **Remaining V2 foundation batch** on `devin/features-branch-remaining-5req-1786011015`:
   - `REQ-0076` Auth & Registration Overhaul: registration accepts `companyName`, `age`, and `gender`;
     password policy now requires lowercase, uppercase, number, and special character; email and
@@ -404,20 +413,16 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- No active in-progress items; backlog reduced to 5 feature requirements.
+- No active in-progress items; the latest batch is in PR #176 review.
 
 ### ⏭️ Next
 
-- `REQ-0076` **Authentication & Registration Overhaul** — remaining registration fields, OTP env toggles,
-  auto-workspace creation, and RBAC alignment.
-- `REQ-0077` **Workspace & Project System** — workspace/project selector UI in the sidebar and default
-  AIConfiguration auto-creation on project creation.
-- `REQ-0078` **Dynamic E-Commerce Adapters** — `AdapterConfigMapping` + `ConfigInterpreter` safe executor,
-  AI config generation, and adapter library UI.
-- `REQ-0067` **Release blockers (critical/high)** — `ProcessedWebhookEvent` ledger, Stripe subscription
-  lifecycle, bootstrap/super-admin reconciliation, and end-to-end staging verification.
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 2** — connection UI, `GeneratedAdapter` model for
+  encrypted persistence, and deletion of hardcoded Shopify/WooCommerce/BigCommerce connectors.
 - `REQ-0075` **Release engineering / DR / observability** — GitHub Environments, Fly.io staging/prod
   approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
+- `REQ-0067` **Release blockers (staging verification)** — end-to-end staging run, browser login on a
+  proxied deployment, and final §1.6 release-condition sign-off.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

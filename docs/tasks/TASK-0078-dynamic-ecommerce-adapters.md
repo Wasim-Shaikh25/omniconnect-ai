@@ -1,6 +1,6 @@
 # TASK-0078: Dynamic E-Commerce Adapters
 
-- **Status:** In Progress
+- **Status:** In Progress (Batch 1 complete; Batch 2 queued)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0078-dynamic-ecommerce-adapters.md`
 - **Tracker:** `docs/trackers/TRACKER-0078-dynamic-ecommerce-adapters.md`
@@ -49,9 +49,9 @@ Remove `shopify.connector.ts`, `woocommerce.connector.ts`, `bigcommerce.connecto
 ## 4. Subtasks
 
 - [x] T-027: AdapterConfigMapping interface + validation schema
-- [x] T-028: ConfigInterpreter scaffold (safe HTTP executor queued)
-- [ ] T-029: AI adapter generation via OpenRouter (queued)
-- [ ] T-030: Adapter validation against EcommerceConnector (queued)
+- [x] T-028: ConfigInterpreter safe HTTP executor runtime
+- [x] T-029: AI adapter generation via OpenRouter
+- [x] T-030: Adapter validation against EcommerceConnector (test action)
 - [ ] T-031: E-commerce connection UI (queued)
 - [ ] T-037: Delete hardcoded connectors (queued after interpreter is wired)
 
