@@ -97,13 +97,13 @@ export class GraphApiMetaService implements MetaService {
         try {
           const creationId = await this.createMediaContainer(accountId, token, input);
           const status = await this.pollContainerStatus(creationId, accountId, token);
-          if (status === "ERROR") {
-            logger.warn("meta.publishMedia.containerError", { projectId, creationId });
+          if (status !== "FINISHED") {
+            logger.warn("meta.publishMedia.containerNotReady", { projectId, creationId, status });
             return null;
           }
 
           const publishRes = await fetch(
-            `${GRAPH_API_BASE}/${accountId}/media_publish?creation_id=${creationId}`,
+            `${GRAPH_API_BASE}/${accountId}/media_publish?creation_id=${creationId}&access_token=${token}`,
             withTimeout({ method: "POST" }),
           );
           if (!publishRes.ok) {

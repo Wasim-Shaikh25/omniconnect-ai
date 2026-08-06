@@ -23,6 +23,15 @@ All notable changes to **OmniConnect AI** are documented here.
   and the `PublishPostForm` UI on `/stores/[projectId]/content`. Unit tests added for `publish-media.ts`.
   Scheduling and a `ScheduledPost` persistence model are the next step (T-024).
 
+- `REQ-0079` **Content Publishing API review fixes** on `devin/fix-content-publishing-review-1786000600`:
+  added the missing `access_token` query parameter to the final `media_publish` Graph API call in
+  `GraphApiMetaService.publishMedia`; changed the polling check to short-circuit on any status other than
+  `FINISHED` (`ERROR` or `TIMEOUT`) so long-processing media does not trigger a premature publish attempt;
+  and replaced the throwing `publishMediaSchema.parse` in `makePublishMedia` with `safeParse` so users see
+  a friendly validation message (e.g., for more than 10 carousel slides) instead of a raw Zod JSON dump.
+
+### In Progress
+
 - `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
   added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`
   message and routes `INSTAGRAM`/`FACEBOOK` replies through `MetaService.sendMessage`; wired it in the

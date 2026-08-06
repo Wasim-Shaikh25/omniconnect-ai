@@ -43,4 +43,5 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- T-023 complete; T-024 (content scheduling + persistence) and T-058/T-059 are next.
+- T-023 complete. Post-merge review fixes applied on `devin/fix-content-publishing-review-1786000600`: missing `access_token` on `media_publish`, `TIMEOUT` handling, and friendly validation errors.
+- T-024 (content scheduling + persistence) and T-058/T-059 are next.

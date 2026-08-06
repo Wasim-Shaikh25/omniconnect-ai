@@ -60,25 +60,29 @@ describe("makePublishMedia", () => {
     expect(result.error.message).toContain("Failed to publish");
   });
 
-  it("rejects invalid media URLs", async () => {
+  it("returns a friendly error for invalid media URLs", async () => {
     const { publish } = makeSut();
-    await expect(
-      publish({
-        projectId: "store-1",
-        mediaType: "IMAGE",
-        mediaUrls: ["not-a-url"],
-      }),
-    ).rejects.toThrow();
+    const result = await publish({
+      projectId: "store-1",
+      mediaType: "IMAGE",
+      mediaUrls: ["not-a-url"],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.message).toContain("valid, publicly reachable URL");
   });
 
-  it("rejects more than 10 media URLs", async () => {
+  it("returns a friendly error for more than 10 media URLs", async () => {
     const { publish } = makeSut();
-    await expect(
-      publish({
-        projectId: "store-1",
-        mediaType: "CAROUSEL",
-        mediaUrls: Array.from({ length: 11 }, (_, i) => `https://example.com/img${i}.jpg`),
-      }),
-    ).rejects.toThrow();
+    const result = await publish({
+      projectId: "store-1",
+      mediaType: "CAROUSEL",
+      mediaUrls: Array.from({ length: 11 }, (_, i) => `https://example.com/img${i}.jpg`),
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.message).toContain("up to 10");
   });
 });
