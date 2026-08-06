@@ -23,14 +23,24 @@ type Action = (
 interface PublishPostFormProps {
   action: Action;
   projectId: string;
+  mode?: "publish" | "schedule";
+  submitLabel?: string;
 }
 
-export function PublishPostForm({ action, projectId }: PublishPostFormProps) {
+export function PublishPostForm({
+  action,
+  projectId,
+  mode = "publish",
+  submitLabel,
+}: PublishPostFormProps) {
   const [state, formAction, pending] = useActionState(action, {});
   const [mediaType, setMediaType] = useState("IMAGE");
   const [urls, setUrls] = useState<string[]>([""]);
 
   const isCarousel = mediaType === "CAROUSEL";
+  const isSchedule = mode === "schedule";
+  const buttonLabel =
+    submitLabel ?? (isSchedule ? "Schedule" : "Publish now");
 
   function updateUrl(index: number, value: string) {
     setUrls((prev) => {
@@ -118,9 +128,22 @@ export function PublishPostForm({ action, projectId }: PublishPostFormProps) {
         )}
       </div>
 
+      {isSchedule && (
+        <div className="space-y-1.5">
+          <Label htmlFor="scheduledAt">Schedule date and time</Label>
+          <Input
+            id="scheduledAt"
+            name="scheduledAt"
+            type="datetime-local"
+            required
+            disabled={pending}
+          />
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-2">
         <Button type="submit" disabled={pending}>
-          {pending ? "Publishing…" : "Publish now"}
+          {pending ? (isSchedule ? "Scheduling…" : "Publishing…") : buttonLabel}
         </Button>
         {state?.ok && (
           <p className="text-sm text-green-600">{state.message}</p>

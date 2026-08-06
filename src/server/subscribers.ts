@@ -11,6 +11,7 @@ import { registerSocialSubscribers } from "@/modules/social";
 import { registerGrowthSubscribers } from "@/modules/growth/bootstrap";
 import { registerIntelligenceSubscribers } from "@/modules/intelligence/bootstrap";
 import { registerAttributionSubscribers } from "@/modules/attribution";
+import { registerContentJobHandlers } from "@/modules/content/server";
 
 /**
  * App composition root for event subscribers.
@@ -40,4 +41,5 @@ export function ensureSubscribers(): void {
   registerGrowthSubscribers(eventBus);
   registerIntelligenceSubscribers(eventBus);
   registerAttributionSubscribers(eventBus);
+  registerContentJobHandlers();
 }

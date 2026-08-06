@@ -18,13 +18,22 @@ export type {
   GenerateContentIdeas,
 } from "./application/generate-content-ideas";
 export type { PublishMedia, PublishMediaInput } from "./application/publish-media";
+export type { SchedulePost, SchedulePostInput } from "./application/schedule-post";
+export type {
+  ScheduledPostRecord,
+  ScheduledPostRepository,
+  ScheduledPostStatus,
+} from "./application/ports";
 
 // Presentation
 export {
   generateContentIdeasAction,
   publishMediaAction,
+  schedulePostAction,
 } from "./presentation/actions";
 export type {
   GenerateContentIdeasState,
   ContentActionState,
 } from "./presentation/actions";
+
+export { CONTENT_SCHEDULE_QUEUE } from "./infrastructure/queue";
