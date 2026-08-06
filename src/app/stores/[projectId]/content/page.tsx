@@ -6,6 +6,8 @@ import { ecommerceQueries } from "@/modules/ecommerce";
 import { Button } from "@/components/ui/button";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
 import { ContentStudioForms } from "@/components/content-studio-forms";
+import { PublishPostForm } from "@/components/publish-post-form";
+import { publishMediaAction } from "@/modules/content";
 
 export default async function ContentStudioPage({
   params,
@@ -36,6 +38,11 @@ export default async function ContentStudioPage({
           <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
+
+      <section className="mb-8 rounded-lg border p-6">
+        <h2 className="mb-4 text-lg font-semibold">Publish to Instagram</h2>
+        <PublishPostForm action={publishMediaAction} projectId={projectId} />
+      </section>
 
       <ContentNextBestAction projectId={projectId} />
 

@@ -1,9 +1,9 @@
 /**
  * Content module — public barrel.
  *
- * Owns content ideation domain events and the server action that surfaces
- * AI-generated content ideas to the Content Studio. The actual AI generation
- * is delegated to the `ai` module's public server barrel.
+ * Owns content ideation, publishing, and scheduling orchestration. AI ideation
+ * is delegated to the `ai` module; Meta Graph API calls are delegated to the
+ * `meta` module through its public `MetaService` port.
  */
 export const MODULE_NAME = "content" as const;
 
@@ -17,7 +17,14 @@ export type {
   GenerateContentIdeasResult,
   GenerateContentIdeas,
 } from "./application/generate-content-ideas";
+export type { PublishMedia, PublishMediaInput } from "./application/publish-media";
 
 // Presentation
-export { generateContentIdeasAction } from "./presentation/actions";
-export type { GenerateContentIdeasState } from "./presentation/actions";
+export {
+  generateContentIdeasAction,
+  publishMediaAction,
+} from "./presentation/actions";
+export type {
+  GenerateContentIdeasState,
+  ContentActionState,
+} from "./presentation/actions";

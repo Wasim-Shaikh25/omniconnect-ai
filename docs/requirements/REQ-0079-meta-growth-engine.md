@@ -4,7 +4,7 @@ description: Meta Growth Engine
 
 # REQ-0079: Meta Growth Engine
 
-- **Status:** Draft
+- **Status:** In Progress
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
@@ -38,8 +38,8 @@ Build the Meta Growth Engine pillar: content publishing via Instagram Content Pu
 
 ## 5. Acceptance Criteria
 
-- [ ] Content publishing: create media container → poll until FINISHED → publish.
-- [ ] Support photo, carousel, Reel, Story media types.
+- [x] Content publishing: create media container → poll until FINISHED → publish.
+- [x] Support photo, carousel, Reel, Story media types.
 - [ ] Scheduled posts stored in DB with BullMQ delayed job.
 - [ ] Content Studio UI with caption editor, hashtag suggestions, visual calendar.
 - [ ] Hashtag intelligence: AI scores competition, reach, relevance for suggested tags.

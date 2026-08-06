@@ -1,6 +1,6 @@
 # TASK-0079: Meta Growth Engine
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
@@ -43,9 +43,9 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 - [ ] T-021: Meta OAuth flow
 - [ ] T-022: WhatsApp Business API connection
-- [ ] T-023: Content Publishing API
+- [x] T-023: Content Publishing API
 - [ ] T-024: Content scheduling
-- [ ] T-025: Content Studio UI
+- [x] T-025: Content Studio UI (publish form integrated on `/stores/[projectId]/content`)
 - [ ] T-058: Hashtag intelligence
 - [ ] T-059: Best time to post
 - [ ] T-069: Content calendar UI — visual grid preview, drag-to-reschedule (P1)
@@ -54,10 +54,11 @@ Insights API `online_followers` + historical post performance → AI correlation
 ## 5. Acceptance Criteria
 
 - [ ] Matches REQ-0079 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 
+- T-023 completed. T-024 (scheduled posts persistence + BullMQ delayed job) is next.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.
