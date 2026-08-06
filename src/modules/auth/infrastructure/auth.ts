@@ -182,7 +182,7 @@ export const authConfig: NextAuthConfig = {
   pages: { signIn: "/login" },
   providers,
   callbacks: {
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.userId =
@@ -214,6 +214,13 @@ export const authConfig: NextAuthConfig = {
         return refreshed;
       }
       if (trigger === "update" && typeof token.id === "string") {
+        const update = session as { user?: { impersonatedUserId?: string | null } } | undefined;
+        const impersonatedUserId = update?.user?.impersonatedUserId;
+        if (impersonatedUserId === null) {
+          delete token.impersonatedUserId;
+        } else if (typeof impersonatedUserId === "string") {
+          token.impersonatedUserId = impersonatedUserId;
+        }
         const refreshed = await refreshTokenFromDb(token);
         if (!refreshed) return token;
         return refreshed;
@@ -222,35 +229,68 @@ export const authConfig: NextAuthConfig = {
     },
     async session({ session, token }) {
       if (session.user && typeof token.id === "string") {
-        const fresh = await accounts.findById(token.id);
+        const admin = await accounts.findById(token.id);
         if (
-          !fresh ||
-          fresh.suspendedAt ||
-          fresh.banned ||
+          !admin ||
+          admin.suspendedAt ||
+          admin.banned ||
           (typeof token.tokenVersion === "number" &&
-            fresh.tokenVersion !== token.tokenVersion)
+            admin.tokenVersion !== token.tokenVersion)
         ) {
           return { expires: new Date(0).toISOString() };
         }
 
-        session.user.id = token.id;
-        session.user.role = isRole(token.role)
-          ? (token.role as Role)
-          : "USER";
-        session.user.userId =
-          typeof token.userId === "string" ? token.userId : null;
-        session.user.isSuperAdmin =
-          typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
-        session.user.emailVerified =
-          token.emailVerified instanceof Date
-            ? token.emailVerified
-            : typeof token.emailVerified === "string"
-              ? new Date(token.emailVerified)
-              : null;
-        session.user.projectId =
-          typeof token.projectId === "string" ? token.projectId : null;
-        session.user.tokenVersion =
-          typeof token.tokenVersion === "number" ? token.tokenVersion : 0;
+        if (typeof token.impersonatedUserId === "string") {
+          const target = await accounts.findById(token.impersonatedUserId);
+          if (!target || target.suspendedAt || target.banned) {
+            return { expires: new Date(0).toISOString() };
+          }
+
+          session.user.id = target.id;
+          session.user.email = target.email;
+          session.user.name = target.name;
+          session.user.role = isRole(target.role)
+            ? (target.role as Role)
+            : "USER";
+          session.user.isSuperAdmin = target.isSuperAdmin;
+          session.user.emailVerified = target.emailVerified;
+          session.user.userId =
+            typeof target.userId === "string" ? target.userId : null;
+          session.user.projectId =
+            typeof target.projectId === "string" ? target.projectId : null;
+          session.user.phone = target.phone;
+          session.user.phoneVerified = target.phoneVerified;
+          session.user.suspendedAt = target.suspendedAt ?? null;
+          session.user.banned = target.banned ?? false;
+          session.user.tokenVersion = target.tokenVersion;
+          session.user.impersonatedBy = token.id;
+          session.user.isImpersonating = true;
+        } else {
+          session.user.id = token.id;
+          session.user.role = isRole(token.role)
+            ? (token.role as Role)
+            : "USER";
+          session.user.userId =
+            typeof token.userId === "string" ? token.userId : null;
+          session.user.isSuperAdmin =
+            typeof token.isSuperAdmin === "boolean" ? token.isSuperAdmin : false;
+          session.user.emailVerified =
+            token.emailVerified instanceof Date
+              ? token.emailVerified
+              : typeof token.emailVerified === "string"
+                ? new Date(token.emailVerified)
+                : null;
+          session.user.projectId =
+            typeof token.projectId === "string" ? token.projectId : null;
+          session.user.phone = admin.phone;
+          session.user.phoneVerified = admin.phoneVerified;
+          session.user.suspendedAt = admin.suspendedAt ?? null;
+          session.user.banned = admin.banned ?? false;
+          session.user.tokenVersion =
+            typeof token.tokenVersion === "number" ? token.tokenVersion : 0;
+          session.user.impersonatedBy = null;
+          session.user.isImpersonating = false;
+        }
       }
       return session;
     },

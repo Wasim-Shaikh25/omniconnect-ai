@@ -22,6 +22,11 @@ All notable changes to **OmniConnect AI** are documented here.
   new `/admin/users/[id]` detail page; new `/admin/health` dashboard shows user counts, 24h errors, BullMQ queue
   depth, and AI token usage/cost for 24h/7d/all-time via `aiQueries.summarizeTokenUsageTotal`. `TokenUsageRepository`
   gained `summarizeTotal`; `QueueService` gained `getJobCounts`.
+- `REQ-0087` **Super Admin Panel — Batch 2 (impersonation)** on `devin/req-0087-batch2-impersonation-1785989634`:
+  super admins can impersonate a non-super-admin user from `/admin/users/[id]`; the JWT stores `impersonatedUserId`
+  and the `session` callback swaps the session to the target user (`isImpersonating`, `impersonatedBy`);
+  `AppShell` displays an impersonation banner with an exit button; `exitImpersonationAction` returns the admin to their
+  own session and writes `IMPERSONATION_ENDED` audit log entries. Admin `/admin*` routes are blocked while impersonating.
 - `REQ-0082` + `REQ-0088` **Knowledge-base upload + Stripe billing lifecycle** on `devin/remaining-followups-0082-0088-1786060200`:
   added `AIConfiguration.productKnowledge` and `User.stripeCustomerId` columns with migrations;
   `extractKnowledgeBaseFiles` server action extracts PDF (via `pdfjs-dist`), Markdown, and text files
@@ -224,8 +229,8 @@ None.
 
 ### ⏭️ Next
 
-- `REQ-0087` **Super Admin Panel — Batch 2** — impersonation with audit log, plan CRUD/feature-limit matrix,
-  payment/refund tooling, system coupons, adapter library.
+- `REQ-0087` **Super Admin Panel — Batch 3** — plan CRUD/feature-limit matrix, payment/refund tooling,
+  system coupons, adapter library.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).

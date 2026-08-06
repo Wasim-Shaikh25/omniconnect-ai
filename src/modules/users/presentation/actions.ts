@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser, requireRole, requireSuperAdmin } from "@/modules/auth";
+import { requireUser, requireRole, requireSuperAdmin, unstable_update, getCurrentUser } from "@/modules/auth";
 import { tenantGuard } from "@/modules/workspaces";
 import { updateProfileSchema } from "../application/update-profile";
 import { changeRoleSchema } from "../application/change-role";
@@ -278,6 +278,75 @@ export async function deleteAccountAction(
   }
   const reason = typeof reasonRaw === "string" ? reasonRaw : undefined;
   await deleteAccountService.deleteAccount(user.id, reason);
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function impersonateUserAction(
+  _prev: { error?: string; ok?: boolean },
+  formData: FormData,
+): Promise<{ error?: string; ok?: boolean }> {
+  const admin = await requireSuperAdmin();
+  const userId = formData.get("userId");
+  if (typeof userId !== "string" || !userId) {
+    return { error: "User ID is required" };
+  }
+  if (userId === admin.id) {
+    return { error: "You cannot impersonate yourself" };
+  }
+
+  const target = await userRepository.findById(userId);
+  if (!target) return { error: "User not found" };
+  if (target.suspendedAt || target.banned) {
+    return { error: "Cannot impersonate a suspended or banned user" };
+  }
+  if (target.isSuperAdmin) {
+    return { error: "Cannot impersonate another super admin" };
+  }
+
+  await unstable_update({ user: { impersonatedUserId: target.id } });
+
+  await auditCommands.create({
+    userId: target.id,
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: "IMPERSONATION_STARTED",
+    resource: "User",
+    resourceId: target.id,
+    details: `Admin ${admin.email} started impersonating ${target.email}`,
+  });
+
+  revalidatePath("/admin/users");
+  return { ok: true };
+}
+
+export async function exitImpersonationAction(
+  _prev: { error?: string; ok?: boolean },
+  formData: FormData,
+): Promise<{ error?: string; ok?: boolean }> {
+  void formData;
+  const user = await getCurrentUser();
+  if (!user?.isImpersonating || typeof user.impersonatedBy !== "string") {
+    return { error: "Not currently impersonating" };
+  }
+
+  const admin = await userRepository.findById(user.impersonatedBy);
+  if (!admin?.isSuperAdmin) {
+    return { error: "Forbidden" };
+  }
+
+  await auditCommands.create({
+    userId: user.id,
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: "IMPERSONATION_ENDED",
+    resource: "User",
+    resourceId: user.id,
+    details: `Admin ${admin.email} stopped impersonating ${user.email}`,
+  });
+
+  await unstable_update({ user: { impersonatedUserId: null } });
+
   revalidatePath("/");
   return { ok: true };
 }
