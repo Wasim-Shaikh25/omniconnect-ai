@@ -4,7 +4,7 @@ description: Super Admin Panel
 
 # REQ-0087: Super Admin Panel
 
-- **Status:** Draft
+- **Status:** Approved
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0087-super-admin-panel.md`

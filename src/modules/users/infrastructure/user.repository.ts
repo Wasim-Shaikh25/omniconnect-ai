@@ -1,10 +1,12 @@
 import { prisma } from "@/shared/database";
+import { Prisma, Plan } from "@prisma/client";
 import type { Role } from "@/modules/auth";
 import { PaginationInput, paginatedResult, toSkip } from "@/shared/kernel";
 import {
   ExportRequestRecord,
   UserProfile,
   UserProfileRepository,
+  UserListFilter,
 } from "../application/ports";
 
 type PrismaUser = {
@@ -14,7 +16,10 @@ type PrismaUser = {
   image: string | null;
   role: string;
   isSuperAdmin: boolean;
+  plan: string;
   projectId: string | null;
+  suspendedAt: Date | null;
+  banned: boolean;
   deletedAt: Date | null;
 };
 
@@ -28,8 +33,11 @@ function toProfile(user: PrismaUser): UserProfile {
     image: user.image,
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
+    plan: user.plan,
     userId: user.id,
     projectId: user.projectId,
+    suspendedAt: user.suspendedAt,
+    banned: user.banned,
   };
 }
 
@@ -95,8 +103,24 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     );
   }
 
-  async listAll(pagination?: PaginationInput) {
-    const where = notDeleted;
+  async listAll(pagination?: PaginationInput, filter?: UserListFilter) {
+    const where: Prisma.UserWhereInput = { deletedAt: null };
+    if (filter?.search) {
+      const search = filter.search;
+      where.OR = [
+        { email: { contains: search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    if (filter?.role) where.role = filter.role;
+    if (filter?.isSuperAdmin !== undefined) where.isSuperAdmin = filter.isSuperAdmin;
+    if (filter?.plan) where.plan = filter.plan as Plan;
+    if (filter?.status === "suspended") where.suspendedAt = { not: null };
+    if (filter?.status === "banned") where.banned = true;
+    if (filter?.status === "active") {
+      where.suspendedAt = null;
+      where.banned = false;
+    }
     const effectivePagination = pagination ?? { page: 1, limit: 100 };
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -118,6 +142,25 @@ export class PrismaUserProfileRepository implements UserProfileRepository {
     const user = await prisma.user.update({
       where: { id, ...notDeleted },
       data: { isSuperAdmin, tokenVersion: { increment: 1 } },
+    });
+    return toProfile(user);
+  }
+
+  async setSuspended(id: string, suspended: boolean): Promise<UserProfile> {
+    const user = await prisma.user.update({
+      where: { id, ...notDeleted },
+      data: {
+        suspendedAt: suspended ? new Date() : null,
+        tokenVersion: { increment: 1 },
+      },
+    });
+    return toProfile(user);
+  }
+
+  async setBanned(id: string, banned: boolean): Promise<UserProfile> {
+    const user = await prisma.user.update({
+      where: { id, ...notDeleted },
+      data: { banned, tokenVersion: { increment: 1 } },
     });
     return toProfile(user);
   }

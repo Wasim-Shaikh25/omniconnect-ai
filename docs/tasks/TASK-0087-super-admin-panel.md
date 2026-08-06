@@ -1,6 +1,6 @@
 # TASK-0087: Super Admin Panel
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0087-super-admin-panel.md`
 - **Tracker:** `docs/trackers/TRACKER-0087-super-admin-panel.md`
@@ -40,17 +40,17 @@ List all generated adapters. Validation status. Approve/flag for review.
 
 ## 4. Subtasks
 
-- [ ] T-063: User management (list, view, impersonate, suspend)
+- [~] T-063: User management (list, view, search/filter/pagination, suspend/ban). Impersonation pending.
 - [ ] T-064: Plan management (CRUD)
 - [ ] T-065: Payment management (Stripe)
 - [ ] T-066: System coupons
-- [ ] T-067: System health dashboard
+- [x] T-067: System health dashboard
 
 ## 5. Acceptance Criteria
 
 - [ ] Matches REQ-0087 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

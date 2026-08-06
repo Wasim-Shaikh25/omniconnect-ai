@@ -14,9 +14,19 @@ export interface Job<T = unknown> {
 
 export type JobHandler<T = unknown> = (job: Job<T>) => Promise<void> | void;
 
+export interface JobCounts {
+  waiting: number;
+  active: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+  paused: number;
+}
+
 export interface QueueService {
   add<T>(name: string, data: T, opts?: JobOptions): Promise<string>;
   getFailedCount(): Promise<number>;
+  getJobCounts(): Promise<JobCounts>;
   close(): Promise<void>;
 }
 

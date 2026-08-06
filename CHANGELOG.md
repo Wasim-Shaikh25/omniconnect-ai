@@ -15,6 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0087` **Super Admin Panel — Batch 1 (user management + system health)** on `devin/req-0087-super-admin-panel-1785984848`:
+  added `User.suspendedAt` and `User.banned` columns with migration; auth `authorize()` and `getCurrentUser()`
+  reject suspended/banned accounts; `UserProfile` includes `plan` and moderation state; super-admin `/admin/users`
+  page supports search, role/superAdmin/plan/status filters, pagination, and suspend/ban toggle actions with audit logs;
+  new `/admin/users/[id]` detail page; new `/admin/health` dashboard shows user counts, 24h errors, BullMQ queue
+  depth, and AI token usage/cost for 24h/7d/all-time via `aiQueries.summarizeTokenUsageTotal`. `TokenUsageRepository`
+  gained `summarizeTotal`; `QueueService` gained `getJobCounts`.
 - `REQ-0082` + `REQ-0088` **Knowledge-base upload + Stripe billing lifecycle** on `devin/remaining-followups-0082-0088-1786060200`:
   added `AIConfiguration.productKnowledge` and `User.stripeCustomerId` columns with migrations;
   `extractKnowledgeBaseFiles` server action extracts PDF (via `pdfjs-dist`), Markdown, and text files
@@ -217,8 +224,9 @@ None.
 
 ### ⏭️ Next
 
+- `REQ-0087` **Super Admin Panel — Batch 2** — impersonation with audit log, plan CRUD/feature-limit matrix,
+  payment/refund tooling, system coupons, adapter library.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
-- `REQ-0087` **Super Admin Panel** — user list/impersonate, plan management, system health dashboard.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

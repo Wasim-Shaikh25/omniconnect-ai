@@ -15,6 +15,8 @@ function mapUser(user: {
   role: string;
   isSuperAdmin: boolean;
   tokenVersion: number;
+  suspendedAt: Date | null;
+  banned: boolean;
   deletedAt: Date | null;
 }): AccountRecord {
   return {
@@ -30,6 +32,8 @@ function mapUser(user: {
     role: user.role as Role,
     isSuperAdmin: user.isSuperAdmin,
     tokenVersion: user.tokenVersion,
+    suspendedAt: user.suspendedAt,
+    banned: user.banned,
     deletedAt: user.deletedAt,
   };
 }

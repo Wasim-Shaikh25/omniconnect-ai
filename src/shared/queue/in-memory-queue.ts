@@ -1,7 +1,7 @@
 import { logger } from "@/shared/observability";
 import { randomId } from "@/shared/security/random";
 import { jobRegistry } from "./registry";
-import type { Job, JobOptions, QueueService } from "./types";
+import type { Job, JobCounts, JobOptions, QueueService } from "./types";
 
 export class InMemoryQueue implements QueueService {
   private jobs: Job<unknown>[] = [];
@@ -12,6 +12,17 @@ export class InMemoryQueue implements QueueService {
 
   async getFailedCount(): Promise<number> {
     return 0;
+  }
+
+  async getJobCounts(): Promise<JobCounts> {
+    return {
+      waiting: this.jobs.length,
+      active: this.processing ? 1 : 0,
+      completed: 0,
+      failed: 0,
+      delayed: 0,
+      paused: 0,
+    };
   }
 
   async add<T>(name: string, data: T, opts?: JobOptions): Promise<string> {

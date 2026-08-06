@@ -168,4 +168,34 @@ export class PrismaTokenUsageRepository implements TokenUsageRepository {
       cost: row.cost === 0 ? null : Number(row.cost.toFixed(6)),
     }));
   }
+
+  async summarizeTotal(options?: { start?: Date; end?: Date; userId?: string; projectId?: string }) {
+    const result = await prisma.tokenUsage.aggregate({
+      where: {
+        createdAt: {
+          gte: options?.start,
+          lte: options?.end,
+        },
+        userId: options?.userId,
+        projectId: options?.projectId,
+      },
+      _sum: {
+        promptTokens: true,
+        completionTokens: true,
+        totalTokens: true,
+        cost: true,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    return {
+      requests: result._count.id,
+      promptTokens: result._sum.promptTokens ?? 0,
+      completionTokens: result._sum.completionTokens ?? 0,
+      totalTokens: result._sum.totalTokens ?? 0,
+      cost: decimalToNumber(result._sum.cost) ?? 0,
+    };
+  }
 }

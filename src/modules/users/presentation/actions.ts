@@ -15,6 +15,8 @@ import {
   userRepository,
   dataExportService,
   deleteAccountService,
+  setUserSuspended,
+  setUserBanned,
 } from "../infrastructure/container";
 
 export interface ProfileActionState {
@@ -147,12 +149,26 @@ function parsePagination(
   };
 }
 
-export async function listAllUsersAction(
-  page?: string | number,
-  limit?: string | number,
-) {
+export async function listAllUsersAction(options?: {
+  page?: string | number;
+  limit?: string | number;
+  search?: string;
+  role?: string;
+  isSuperAdmin?: string;
+  plan?: string;
+  status?: string;
+}) {
   await requireSuperAdmin();
-  return listAllUsers(parsePagination(page, limit));
+  const filter: import("../application/ports").UserListFilter = {};
+  if (options?.search) filter.search = options.search;
+  if (options?.role === "USER" || options?.role === "SUPER_ADMIN") filter.role = options.role;
+  if (options?.isSuperAdmin === "true") filter.isSuperAdmin = true;
+  if (options?.isSuperAdmin === "false") filter.isSuperAdmin = false;
+  if (options?.plan) filter.plan = options.plan;
+  if (options?.status === "active" || options?.status === "suspended" || options?.status === "banned") {
+    filter.status = options.status;
+  }
+  return listAllUsers(parsePagination(options?.page, options?.limit), filter);
 }
 
 export async function toggleUserSuperAdminAction(
@@ -178,6 +194,60 @@ export async function toggleUserSuperAdminAction(
   });
 
   revalidatePath("/admin/users");
+  return { ok: true, user };
+}
+
+export async function suspendUserAction(
+  _prev: { error?: string; ok?: boolean },
+  formData: FormData,
+) {
+  const admin = await requireSuperAdmin();
+  const userId = formData.get("userId");
+  const suspendedRaw = formData.get("suspended");
+  if (typeof userId !== "string" || !userId) return { error: "User ID is required" };
+  const suspended = suspendedRaw === "true";
+
+  const user = await setUserSuspended(userId, suspended);
+
+  await auditCommands.create({
+    userId: admin.userId ?? null,
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: suspended ? "USER_SUSPENDED" : "USER_UNSUSPENDED",
+    resource: "User",
+    resourceId: userId,
+    details: `User ${suspended ? "suspended" : "unsuspended"}`,
+  });
+
+  revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
+  return { ok: true, user };
+}
+
+export async function banUserAction(
+  _prev: { error?: string; ok?: boolean },
+  formData: FormData,
+) {
+  const admin = await requireSuperAdmin();
+  const userId = formData.get("userId");
+  const bannedRaw = formData.get("banned");
+  if (typeof userId !== "string" || !userId) return { error: "User ID is required" };
+  const banned = bannedRaw === "true";
+
+  const user = await setUserBanned(userId, banned);
+
+  await auditCommands.create({
+    userId: admin.userId ?? null,
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: banned ? "USER_BANNED" : "USER_UNBANNED",
+    resource: "User",
+    resourceId: userId,
+    details: `User ${banned ? "banned" : "unbanned"}`,
+  });
+
+  revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
   return { ok: true, user };
 }
 

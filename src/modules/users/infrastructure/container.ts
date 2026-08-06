@@ -41,8 +41,19 @@ export async function listOrganizationUsers(
   return users.listByOrganization(userId, pagination);
 }
 
-export async function listAllUsers(pagination?: PaginationInput) {
-  return users.listAll(pagination);
+export async function listAllUsers(
+  pagination?: PaginationInput,
+  filter?: Parameters<typeof users.listAll>[1],
+) {
+  return users.listAll(pagination, filter);
+}
+
+export async function setUserSuspended(id: string, suspended: boolean): Promise<UserProfile> {
+  return users.setSuspended(id, suspended);
+}
+
+export async function setUserBanned(id: string, banned: boolean): Promise<UserProfile> {
+  return users.setBanned(id, banned);
 }
 
 export async function countOrganizationUsers(userId: string) {

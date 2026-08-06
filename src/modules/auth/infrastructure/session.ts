@@ -14,6 +14,8 @@ export interface SessionUser {
   phoneVerified: Date | null;
   userId: string | null;
   projectId: string | null;
+  suspendedAt?: Date | null;
+  banned?: boolean;
 }
 
 function toSessionUser(row: {
@@ -27,6 +29,8 @@ function toSessionUser(row: {
   phoneVerified: Date | null;
   userId: string | null;
   projectId: string | null;
+  suspendedAt?: Date | null;
+  banned?: boolean;
 }): SessionUser {
   const role = isRole(row.role) ? (row.role as Role) : "USER";
   return {
@@ -40,6 +44,8 @@ function toSessionUser(row: {
     phoneVerified: row.phoneVerified,
     userId: row.userId,
     projectId: row.projectId,
+    suspendedAt: row.suspendedAt,
+    banned: row.banned,
   };
 }
 
@@ -55,6 +61,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const fresh = await loadFreshUser(user.id);
   if (!fresh) return null;
   if (user.tokenVersion !== fresh.tokenVersion) return null;
+  if (fresh.suspendedAt || fresh.banned) return null;
   const { tokenVersion, ...sessionUser } = fresh;
   void tokenVersion;
 
@@ -77,6 +84,8 @@ async function loadFreshUser(
       phoneVerified: true,
       userId: true,
       projectId: true,
+      suspendedAt: true,
+      banned: true,
       tokenVersion: true,
     },
   });
