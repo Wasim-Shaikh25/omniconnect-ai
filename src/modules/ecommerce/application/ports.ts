@@ -268,3 +268,27 @@ export interface AdapterConfigGenerator {
     projectId?: string | null;
   }): Promise<AdapterConfigMapping>;
 }
+
+export interface GeneratedAdapterRecord {
+  id: string;
+  projectId: string;
+  platformName: string;
+  config: AdapterConfigMapping;
+  credentials: Record<string, string>;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GeneratedAdapterRepository {
+  upsert(input: {
+    projectId: string;
+    platformName: string;
+    config: AdapterConfigMapping;
+    credentials: Record<string, string>;
+  }): Promise<GeneratedAdapterRecord>;
+
+  findByProject(projectId: string): Promise<GeneratedAdapterRecord | null>;
+
+  delete(projectId: string): Promise<void>;
+}

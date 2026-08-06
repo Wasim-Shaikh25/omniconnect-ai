@@ -4,7 +4,7 @@ description: Dynamic E-Commerce Adapters
 
 # REQ-0078: Dynamic E-Commerce Adapters
 
-- **Status:** In Progress; Batch 1 (runtime, AI generation, validation) complete; Batch 2 (connection UI, encrypted persistence, hardcoded connector deletion) queued.
+- **Status:** In Progress; Batch 2 (connection UI, encrypted persistence, WooCommerce/BigCommerce deletion) complete; Shopify migration queued for Batch 3.
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0078-dynamic-ecommerce-adapters.md`
@@ -44,9 +44,11 @@ Replace hardcoded e-commerce connectors (Shopify, WooCommerce, BigCommerce) with
 - [x] AI generates valid config from API documentation via OpenRouter.
 - [x] Generated config validated against schema before storage.
 - [x] Connection test action: user enters credentials → system tests getProducts/fetchStoreInfo.
-- [ ] Connection test UI queued for Batch 2.
-- [ ] Hardcoded shopify/woocommerce/bigcommerce connector files deleted after dynamic adapters are wired.
-- [ ] Config mapping stored encrypted in `GeneratedAdapter` model (queued).
+- [x] Connection test UI on `/stores/[projectId]/integrations/adapter`.
+- [x] `GeneratedAdapter` model + repository; config mapping stored with credentials encrypted.
+- [x] `IntegrationConnectorFactory` resolves `ConfigInterpreter` from stored generated adapter.
+- [x] Hardcoded WooCommerce and BigCommerce connector files deleted.
+- [ ] Shopify connector migrated to a dynamic mapping and deleted (deferred until `ConfigInterpreter` supports two-step coupon creation).
 
 ## 6. Scope & Dependencies
 

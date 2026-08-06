@@ -419,14 +419,21 @@ All notable changes to **OmniConnect AI** are documented here.
   `/support` routing, and AI prompt-injection hardening are implemented; M5.7 Shopify App Store automated
   compliance checks are **deferred** to production app-store submission.
 
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 2** on `devin/req-0078-dynamic-adapters-batch2-1786086000`:
+  new `/stores/[projectId]/integrations/adapter` UI for AI-generated `AdapterConfigMapping`,
+  `GeneratedAdapter` model with encrypted credential persistence, `IntegrationConnectorFactory` dynamic
+  `ConfigInterpreter` resolution, and removal of the WooCommerce/BigCommerce hardcoded connectors.
+  Shopify connector migration is **deferred** to Batch 3 until `ConfigInterpreter` supports two-step coupon
+  creation.
+
 ### 🚧 In Progress
 
-- No active in-progress items; the latest batch is in PR #176 review.
+- No active in-progress items.
 
 ### ⏭️ Next
 
-- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 2** — connection UI, `GeneratedAdapter` model for
-  encrypted persistence, and deletion of hardcoded Shopify/WooCommerce/BigCommerce connectors.
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 3** — Shopify connector migration to a dynamic
+  `AdapterConfigMapping` and deletion of `shopify.connector.ts` once two-step coupon creation is supported.
 - `REQ-0075` **Release engineering / DR / observability** — GitHub Environments, Fly.io staging/prod
   approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
 - `REQ-0067` **Release blockers (staging verification)** — end-to-end staging run, browser login on a

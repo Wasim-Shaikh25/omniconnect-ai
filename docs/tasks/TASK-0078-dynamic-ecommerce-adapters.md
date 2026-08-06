@@ -1,6 +1,6 @@
 # TASK-0078: Dynamic E-Commerce Adapters
 
-- **Status:** In Progress (Batch 1 complete; Batch 2 queued)
+- **Status:** In Progress (Batch 2: connection UI, GeneratedAdapter persistence, WooCommerce/BigCommerce deletion complete; Shopify migration queued)
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0078-dynamic-ecommerce-adapters.md`
 - **Tracker:** `docs/trackers/TRACKER-0078-dynamic-ecommerce-adapters.md`
@@ -44,7 +44,8 @@ Paste API docs URL → AI generates config → enter credentials → validate �
 
 ### Step 6 — Delete Hardcoded Connectors
 
-Remove `shopify.connector.ts`, `woocommerce.connector.ts`, `bigcommerce.connector.ts`.
+- [x] Remove `woocommerce.connector.ts` and `bigcommerce.connector.ts`.
+- [ ] Migrate `shopify.connector.ts` to a `ConfigInterpreter` mapping that supports two-step coupon creation; then remove the class.
 
 ## 4. Subtasks
 
@@ -52,8 +53,10 @@ Remove `shopify.connector.ts`, `woocommerce.connector.ts`, `bigcommerce.connecto
 - [x] T-028: ConfigInterpreter safe HTTP executor runtime
 - [x] T-029: AI adapter generation via OpenRouter
 - [x] T-030: Adapter validation against EcommerceConnector (test action)
-- [ ] T-031: E-commerce connection UI (queued)
-- [ ] T-037: Delete hardcoded connectors (queued after interpreter is wired)
+- [x] T-031: E-commerce connection UI (`/stores/[projectId]/integrations/adapter`)
+- [x] T-032: `GeneratedAdapter` model + repository with encrypted credentials
+- [x] T-037: Delete WooCommerce and BigCommerce hardcoded connectors
+- [ ] T-038: Migrate Shopify connector to dynamic mapping and delete `shopify.connector.ts`
 
 ## 5. Acceptance Criteria
 

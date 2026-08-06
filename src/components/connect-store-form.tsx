@@ -22,62 +22,36 @@ export function ConnectStoreForm({
   projectId,
   provider,
 }: ConnectStoreFormProps) {
-  const [state, formAction, pending] = useActionState<
-    EcommerceActionState,
-    FormData
-  >(action, {});
+  const [state, formAction, pending] = useActionState<EcommerceActionState, FormData>(
+    action,
+    {},
+  );
 
-  const isWooCommerce = provider === "WOOCOMMERCE";
-  const isBigCommerce = provider === "BIGCOMMERCE";
   const isShopify = provider === "SHOPIFY";
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="provider" value={provider} />
-      {isShopify && (
-        <div className="space-y-2">
-          <Label htmlFor="shopDomain">Shop domain</Label>
-          <Input
-            id="shopDomain"
-            name="shopDomain"
-            placeholder="my-shop.myshopify.com"
-          />
-        </div>
-      )}
-      {isWooCommerce && (
-        <div className="space-y-2">
-          <Label htmlFor="shopDomain">WooCommerce base URL</Label>
-          <Input
-            id="shopDomain"
-            name="shopDomain"
-            placeholder="https://my-store.com"
-          />
-          <Label htmlFor="consumerKey">Consumer key</Label>
-          <Input id="consumerKey" name="consumerKey" type="password" />
-          <Label htmlFor="consumerSecret">Consumer secret</Label>
-          <Input id="consumerSecret" name="consumerSecret" type="password" />
-        </div>
-      )}
-      {isBigCommerce && (
-        <div className="space-y-2">
-          <Label htmlFor="storeHash">Store hash</Label>
-          <Input id="storeHash" name="storeHash" placeholder="abc123" />
-        </div>
-      )}
+      <div className="space-y-2">
+        <Label htmlFor="shopDomain">Shop domain</Label>
+        <Input
+          id="shopDomain"
+          name="shopDomain"
+          placeholder={
+            isShopify ? "my-shop.myshopify.com" : "https://my-store.com"
+          }
+        />
+      </div>
       <div className="space-y-2">
         <Label htmlFor="accessToken">
-          {isWooCommerce
-            ? "Admin API token (optional)"
-            : isBigCommerce
-              ? "X-Auth-Token"
-              : "Admin API access token"}
+          {isShopify ? "Admin API access token" : "Admin API token"}
         </Label>
         <Input
           id="accessToken"
           name="accessToken"
           type="password"
-          placeholder={isBigCommerce ? "Access token" : "shpat_…"}
+          placeholder={isShopify ? "shpat_…" : "Access token"}
         />
       </div>
       <p className="text-xs text-muted-foreground">

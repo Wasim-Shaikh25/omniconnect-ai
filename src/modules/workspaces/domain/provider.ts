@@ -1,8 +1,6 @@
 /** Supported eCommerce providers. Mirrors the Prisma `EcommerceProvider` enum. */
 export const ECOMMERCE_PROVIDERS = [
   "SHOPIFY",
-  "WOOCOMMERCE",
-  "BIGCOMMERCE",
   "MAGENTO",
   "WIX",
   "CUSTOM",

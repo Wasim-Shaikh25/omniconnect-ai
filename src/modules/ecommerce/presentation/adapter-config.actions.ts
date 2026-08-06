@@ -4,7 +4,10 @@ import { z } from "zod";
 import { requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import { adapterConfigGenerator } from "../infrastructure/ai-adapter-generator";
-import { testAdapterConfig } from "../infrastructure/container";
+import {
+  testAdapterConfig,
+  saveGeneratedAdapter,
+} from "../infrastructure/container";
 import { validateAdapterConfigMapping } from "../infrastructure/adapter-config-schema";
 
 export type AdapterConfigActionState =
@@ -139,4 +142,102 @@ function isRecordOfStrings(value: unknown): value is Record<string, string> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const record = value as Record<string, unknown>;
   return Object.values(record).every((v) => typeof v === "string");
+}
+
+const saveSchema = z.object({
+  projectId: z.string().min(1),
+  platformName: z.string().min(1),
+  config: z.string().min(1),
+  credentials: z.string().min(1),
+});
+
+export async function saveAdapterConfigAction(
+  _prev: AdapterConfigActionState,
+  formData: FormData,
+): Promise<AdapterConfigActionState> {
+  const user = await requireRole("USER");
+
+  const raw: Record<string, unknown> = {};
+  formData.forEach((value, key) => {
+    raw[key] = value;
+  });
+
+  const parsed = saveSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  let config: unknown;
+  let credentials: unknown;
+  try {
+    config = JSON.parse(parsed.data.config);
+    credentials = JSON.parse(parsed.data.credentials);
+  } catch {
+    return { error: "Config or credentials are not valid JSON." };
+  }
+
+  let validatedConfig;
+  try {
+    validatedConfig = validateAdapterConfigMapping(config);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? `Invalid adapter config: ${error.message}`
+          : "Invalid adapter config",
+    };
+  }
+
+  if (!isRecordOfStrings(credentials)) {
+    return { error: "Credentials must be a flat JSON object of strings." };
+  }
+
+  try {
+    const saved = await saveGeneratedAdapter({
+      projectId: parsed.data.projectId,
+      platformName: parsed.data.platformName,
+      config: validatedConfig,
+      credentials,
+    });
+    if (!saved.ok) {
+      return { error: "Failed to save adapter configuration." };
+    }
+    return {
+      ok: true,
+      valid: true,
+      storeName: validatedConfig.platformName,
+    };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to save adapter configuration",
+    };
+  }
+}
+
+export async function connectAdapterAction(
+  _prev: AdapterConfigActionState,
+  formData: FormData,
+): Promise<AdapterConfigActionState> {
+  const user = await requireRole("USER");
+  const projectId = formData.get("projectId");
+  if (
+    !projectId ||
+    typeof projectId !== "string" ||
+    !(await assertStoreInOrg(user.userId, projectId))
+  ) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const testResult = await testAdapterConfigAction(_prev, formData);
+  if (!testResult?.ok || !testResult?.valid) return testResult;
+
+  const saveResult = await saveAdapterConfigAction(_prev, formData);
+  return saveResult;
 }

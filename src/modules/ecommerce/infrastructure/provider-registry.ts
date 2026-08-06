@@ -6,43 +6,24 @@ import type {
 } from "../domain/connector";
 import { MockConnector } from "./providers/mock.connector";
 import { ShopifyConnector } from "./providers/shopify.connector";
-import { WooCommerceConnector } from "./providers/woocommerce.connector";
-import { BigCommerceConnector } from "./providers/bigcommerce.connector";
 
 /**
  * Provider registry — the single place that maps a provider + credentials to a
  * concrete connector. Callers depend on `EcommerceConnector`, never a provider.
  *
- * When live credentials are missing we fall back to the Mock connector so the
- * app is fully usable in local/dev. Only the provider name is logged — never
- * the credentials.
+ * Shopify remains as a built-in reference connector; new/custom platforms should
+ * use a generated `AdapterConfigMapping` via `IntegrationConnectorFactory`.
+ * WooCommerce and BigCommerce have been removed in favor of dynamic adapters.
  */
 export function getConnector(
   provider: EcommerceProvider,
   credentials: ConnectorCredentials,
 ): EcommerceConnector {
-  const { shopDomain, accessToken, refreshToken, metadata } = credentials;
+  const { shopDomain, accessToken, refreshToken } = credentials;
 
   if (provider === "SHOPIFY" && shopDomain && accessToken) {
     logger.info("ecommerce.connector.resolved", { provider: "SHOPIFY" });
     return new ShopifyConnector(shopDomain, accessToken, refreshToken);
-  }
-
-  if (provider === "WOOCOMMERCE" && shopDomain) {
-    const consumerKey = metadata?.consumerKey;
-    const consumerSecret = metadata?.consumerSecret;
-    if (consumerKey && consumerSecret) {
-      logger.info("ecommerce.connector.resolved", { provider: "WOOCOMMERCE" });
-      return new WooCommerceConnector(shopDomain, consumerKey, consumerSecret);
-    }
-  }
-
-  if (provider === "BIGCOMMERCE" && accessToken) {
-    const storeHash = metadata?.storeHash ?? shopDomain;
-    if (storeHash) {
-      logger.info("ecommerce.connector.resolved", { provider: "BIGCOMMERCE" });
-      return new BigCommerceConnector(storeHash, accessToken);
-    }
   }
 
   logger.info("ecommerce.connector.resolved", {
