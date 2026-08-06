@@ -28,14 +28,15 @@ function configAsRecord(
 }
 
 function toRecord(i: PrismaIntegration): IntegrationRecord {
+  const config = configAsRecord(i.config);
   return {
     id: i.id,
     projectId: i.projectId,
     provider: i.provider,
     shopDomain: i.baseUrl,
-    scopes: null,
+    scopes: typeof config?.scopes === "string" ? config.scopes : null,
     connectedAt: i.createdAt,
-    metadata: configAsRecord(i.config),
+    metadata: config,
     isActive: i.isActive,
     lastSyncAt: i.lastSyncAt,
   };

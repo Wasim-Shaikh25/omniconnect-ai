@@ -59,6 +59,7 @@ export function ConnectAdapterForm({
       const initial = Object.fromEntries(fields.map((f) => [f.key, ""]));
       setCredentials(initial);
       setCredentialsJson(JSON.stringify(initial, null, 2));
+      setCredentialsError(null);
     }
     return result;
   }, undefined);
