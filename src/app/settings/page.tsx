@@ -13,6 +13,7 @@ import { RoleSelectForm } from "@/components/role-select-form";
 import { StoreSelectForm } from "@/components/store-select-form";
 import { InviteMemberForm } from "@/components/invite-member-form";
 import { TeamActionButton } from "@/components/team-action-button";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   inviteOrganizationMemberAction,
@@ -49,15 +50,18 @@ export default async function SettingsPage() {
       : [];
 
   return (
-    <main className="container mx-auto max-w-3xl px-4 py-8">
-      <header className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Account settings</h1>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Settings"
+          description="Manage your account and workspace settings"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Settings" },
+          ]}
+        />
 
-      <div className="mt-8 space-y-6">
+        <div className="section space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Account</CardTitle>
@@ -192,7 +196,8 @@ export default async function SettingsPage() {
             </div>
           </>
         )}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

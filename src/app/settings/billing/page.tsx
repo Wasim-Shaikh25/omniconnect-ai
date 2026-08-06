@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries, organizationUsage, PLAN_FEATURES, Plan, parsePlan, PlanLimits, billingService } from "@/modules/workspaces";
 import type { InvoiceRecord } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PricingCards } from "@/components/pricing-cards";
 import { ManageSubscriptionButton } from "./manage-subscription-button";
 import { env } from "@/shared/config/env";
+import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 function formatCurrency(amount: number, currency: string): string {
   const major = amount / 100;
@@ -92,40 +94,42 @@ export default async function BillingPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Billing</h1>
-          <p className="text-sm text-muted-foreground">
-            Subscription and plan management.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/settings">Back to settings</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Billing"
+          description="Subscription and plan management"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Settings", href: "/settings" },
+            { label: "Billing" },
+          ]}
+        />
 
-      {params.success && (
-        <Alert className="mb-6 border-green-600/20 bg-green-600/10">
-          <AlertTitle>Payment successful</AlertTitle>
-          <AlertDescription>
-            Your plan will update shortly once Stripe confirms the subscription.
-          </AlertDescription>
-        </Alert>
-      )}
+        {params.success && (
+          <Alert className="section mb-6 border-green-600/20 bg-green-600/10">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-600">Payment successful</AlertTitle>
+            <AlertDescription className="text-green-600">
+              Your plan will update shortly once Stripe confirms the subscription.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {params.canceled && (
-        <Alert className="mb-6" variant="destructive">
-          <AlertTitle>Payment canceled</AlertTitle>
-          <AlertDescription>
-            You can try again whenever you are ready.
-          </AlertDescription>
-        </Alert>
-      )}
+        {params.canceled && (
+          <Alert className="section mb-6 border-red-600/20 bg-red-600/10">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertTitle className="text-red-600">Payment canceled</AlertTitle>
+            <AlertDescription className="text-red-600">
+              You can try again whenever you are ready.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Current plan</CardTitle>
+        <div className="section space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Current plan</CardTitle>
           <CardDescription>
             {overview ? `Organization: ${overview.name}` : "No organization found"}
           </CardDescription>
@@ -145,7 +149,7 @@ export default async function BillingPage({
       </Card>
 
       {planLimits && (
-        <Card className="mb-8">
+        <Card>
           <CardHeader>
             <CardTitle>Plan limits</CardTitle>
             <CardDescription>Your current entitlement and usage.</CardDescription>
@@ -175,7 +179,7 @@ export default async function BillingPage({
       )}
 
       {!stripeConfigured && (
-        <Alert className="mb-6" variant="destructive">
+        <Alert variant="destructive">
           <AlertTitle>Payments not configured</AlertTitle>
           <AlertDescription>
             Stripe keys are missing. Add STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY,
@@ -185,7 +189,7 @@ export default async function BillingPage({
       )}
 
       {invoices.length > 0 && (
-        <Card className="mb-8">
+        <Card>
           <CardHeader>
             <CardTitle>Invoice history</CardTitle>
             <CardDescription>Recent payments for your subscription.</CardDescription>
@@ -217,13 +221,18 @@ export default async function BillingPage({
         </Card>
       )}
 
-      <h2 className="mb-4 text-xl font-semibold">Upgrade</h2>
-      <PricingCards currentPlan={currentPlan} showFree={false} />
+        </div>
 
-      <p className="mt-6 text-sm text-muted-foreground">
-        Questions? Visit the <Link href="/help" className="underline">Help center</Link> or review
-        the <Link href="/pricing" className="underline">pricing page</Link>.
-      </p>
-    </main>
+        <div className="section">
+          <h2 className="section-title">Upgrade your plan</h2>
+          <PricingCards currentPlan={currentPlan} showFree={false} />
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          Questions? Visit the <Link href="/help" className="underline">Help center</Link> or review
+          the <Link href="/pricing" className="underline">pricing page</Link>.
+        </p>
+      </div>
+    </div>
   );
 }
