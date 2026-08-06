@@ -3,6 +3,7 @@ import type { Role } from "@/modules/auth";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { EcommerceProvider } from "../domain/provider";
 import { Plan } from "../domain/plan";
+import type { PlanLimits } from "../domain/plan";
 import type { InviteStatus } from "../domain/invite";
 
 export interface OrganizationRecord {
@@ -54,6 +55,24 @@ export interface OrganizationRepository {
    * A `null` limit means unlimited.
    */
   incrementProfileInspections(id: string, limit: number | null): Promise<boolean>;
+}
+
+export type PlanConfigInput = PlanLimits & {
+  plan: Plan;
+  priceMonthlyCents?: number;
+  isDefault?: boolean;
+};
+
+export interface PlanConfigRecord extends PlanConfigInput {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PlanConfigRepository {
+  list(): Promise<PlanConfigRecord[]>;
+  findByPlan(plan: Plan): Promise<PlanConfigRecord | null>;
+  upsert(input: PlanConfigInput): Promise<PlanConfigRecord>;
 }
 
 export interface StoreRepository {

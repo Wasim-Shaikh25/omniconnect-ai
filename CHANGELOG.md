@@ -223,15 +223,26 @@ All notable changes to **OmniConnect AI** are documented here.
   `/stores/[projectId]`. `generate-reply` now selects `modelOverrides.reply` and serializes guardrails
   into the prompt. PDF/MD knowledge-base file upload is still open.
 
+### ✅ Done
+
+- `REQ-0087` **Super Admin Panel — Batch 3 (plan CRUD, payment refunds, adapter library)** on `devin/req-0087-batch3-plan-payments-adapters-1785991741`:
+  added `PlanConfig` Prisma model and migration; `planConfigService` with DB-driven plan limits that
+  fall back to `PLAN_LIMITS`; updated `createStore`, `inviteMember`, and `organizationUsage` to resolve
+  limits from `PlanConfig`; new `/admin/plans` page with editable feature-limits and pricing per tier.
+  Extended `PaymentGateway`/`BillingService` with `createRefund` and `paymentIntentId` on invoices;
+  new `/admin/payments` page lists paid invoices across organizations and lets super admins issue refunds.
+  Added `IntegrationRepository.findAll`/`findById`/`updateStatus` and an `AdapterLibraryService`;
+  `/admin/adapters` lists all `EcommerceConnection` rows with provider, status, last sync, and actions to
+  approve/flag or validate the adapter connection against the live connector.
+
 ### 🚧 In Progress
 
 None.
 
 ### ⏭️ Next
 
-- `REQ-0087` **Super Admin Panel — Batch 3** — plan CRUD/feature-limit matrix, payment/refund tooling,
-  system coupons, adapter library.
 - `REQ-0081` **AI Assistant & Tools** — chat assistant, content generation, reply automation tools.
+- `REQ-0089` **Intelligence Layer** — daily brief, marketing brain, next best action, signal detection.
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

@@ -8,7 +8,7 @@ import type { OrganizationRepository, OrganizationRecord } from "./ports";
 import type { SaaSCouponRepository, SaaSCouponRecord } from "./saas-coupon";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import { makeBillingService, type BillingService, BillingSignatureError } from "./billing";
-import type { CheckoutSessionInput, PaymentGateway, InvoiceRecord } from "./payment-gateway";
+import type { CheckoutSessionInput, PaymentGateway, InvoiceRecord, RefundInput, RefundResult } from "./payment-gateway";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
 const STARTER_PRICE = "price_1_starter";
@@ -215,6 +215,10 @@ class FakePaymentGateway implements PaymentGateway {
 
   listInvoices(_customerId: string): Promise<InvoiceRecord[]> {
     return Promise.resolve([]);
+  }
+
+  createRefund(_input: RefundInput): Promise<RefundResult> {
+    return Promise.resolve({ refundId: "ref_1", amount: _input.amount ?? 1000, status: "succeeded" });
   }
 }
 

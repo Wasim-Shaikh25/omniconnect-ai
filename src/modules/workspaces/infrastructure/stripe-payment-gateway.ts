@@ -8,6 +8,8 @@ import {
   PortalSessionInput,
   PortalSessionResult,
   InvoiceRecord,
+  RefundInput,
+  RefundResult,
 } from "../application/payment-gateway";
 
 const planToPriceId: Record<Plan, string | undefined> = {
@@ -86,7 +88,22 @@ export class StripePaymentGateway implements PaymentGateway {
       pdfUrl: invoice.invoice_pdf ?? null,
       periodStart: invoice.period_start ?? null,
       periodEnd: invoice.period_end ?? null,
+      paymentIntentId: typeof invoice.payment_intent === "string" ? invoice.payment_intent : null,
     }));
+  }
+
+  async createRefund(input: RefundInput): Promise<RefundResult> {
+    const refund = await this.client.refunds.create({
+      payment_intent: input.paymentIntentId,
+      amount: input.amount,
+      reason: input.reason ? "requested_by_customer" : undefined,
+      metadata: { reason: input.reason ?? "" },
+    });
+    return {
+      refundId: refund.id,
+      amount: refund.amount,
+      status: refund.status ?? "pending",
+    };
   }
 
   constructWebhookEvent(

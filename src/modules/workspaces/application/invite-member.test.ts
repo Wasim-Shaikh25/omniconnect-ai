@@ -169,6 +169,11 @@ class InMemoryInvites implements OrganizationInviteRepository {
 function makeSut(userCount = 0) {
   const organizations = new InMemoryOrganizations();
   const invites = new InMemoryInvites();
+  const planConfigs = {
+    list: async () => [],
+    findByPlan: async () => null,
+    upsert: async (input: { plan: Plan }) => ({ id: "pc-1", ...input, createdAt: new Date(), updatedAt: new Date() } as unknown as Awaited<ReturnType<import("./ports").PlanConfigRepository["upsert"]>>),
+  } as unknown as import("./ports").PlanConfigRepository;
   invites.userCount = userCount;
   const emails: { email: string; token: string }[] = [];
   const emailInputs: Parameters<Parameters<typeof makeInviteMember>[0]["sendInviteEmail"]>[0][] = [];
@@ -178,6 +183,7 @@ function makeSut(userCount = 0) {
   const inviteMember = makeInviteMember({
     organizations,
     invites,
+    planConfigs,
     sendInviteEmail: (input) => {
       emails.push({ email: input.email, token: input.token });
       emailInputs.push(input);

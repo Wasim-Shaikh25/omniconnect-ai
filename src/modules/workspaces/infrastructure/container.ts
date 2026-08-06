@@ -17,7 +17,9 @@ import { PrismaOrganizationRepository } from "./organization.repository";
 import { PrismaStoreRepository } from "./store.repository";
 import { PrismaSaaSCouponRepository } from "./saas-coupon.repository";
 import { PrismaOrganizationInviteRepository } from "./organization-invite.repository";
+import { PrismaPlanConfigRepository } from "./plan-config.repository";
 import { StripePaymentGateway } from "./stripe-payment-gateway";
+import { makePlanConfigService } from "../application/plan-config";
 import { setUserOrganization } from "@/modules/users";
 import { createEmailSender } from "@/shared/email";
 import { env } from "@/shared/config";
@@ -38,6 +40,7 @@ function createPaymentGateway() {
 const paymentGateway = createPaymentGateway();
 const saasCouponRepository = new PrismaSaaSCouponRepository();
 const inviteRepository = new PrismaOrganizationInviteRepository();
+const planConfigRepository = new PrismaPlanConfigRepository();
 const processedEvents = new PrismaProcessedEventsRepository();
 const emailSender = createEmailSender();
 
@@ -75,14 +78,14 @@ export const createOrganization = makeCreateOrganization({
   organizations,
   setUserOrganization,
 });
-export const createStore = makeCreateStore({ organizations, stores });
+export const createStore = makeCreateStore({ organizations, stores, planConfigs: planConfigRepository });
 export const updateStore = makeUpdateStore({ stores });
 export const organizationQueries = makeOrganizationQueries({
   organizations,
   stores,
   invites: inviteRepository,
 });
-export const organizationUsage = makeOrganizationUsageService({ organizations });
+export const organizationUsage = makeOrganizationUsageService({ organizations, planConfigs: planConfigRepository });
 export const tenantGuard = makeTenantGuard({ queries: organizationQueries });
 export const billingService = paymentGateway
   ? makeBillingService({ organizations, paymentGateway, coupons: saasCouponRepository, processedEvents })
@@ -94,6 +97,7 @@ export { saasCouponRepository };
 export const inviteMember = makeInviteMember({
   organizations,
   invites: inviteRepository,
+  planConfigs: planConfigRepository,
   sendInviteEmail,
   generateToken: generateInviteToken,
   now: () => new Date(),
@@ -114,5 +118,7 @@ export const acceptOrganizationInvite = makeAcceptInvite({
   invites: inviteRepository,
   now: () => new Date(),
 });
+
+export const planConfigService = makePlanConfigService({ planConfigs: planConfigRepository });
 
 

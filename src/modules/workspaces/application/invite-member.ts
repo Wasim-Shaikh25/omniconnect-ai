@@ -1,12 +1,13 @@
 import { z } from "zod";
 import type { Role } from "@/modules/auth";
 import { Result, ok, err } from "@/shared/kernel";
-import { Plan, planLimits } from "../domain/plan";
+import { Plan, PLAN_LIMITS } from "../domain/plan";
 import { OrganizationNotFoundError, SeatLimitError } from "../domain/errors";
 import type {
   OrganizationInviteRecord,
   OrganizationInviteRepository,
   OrganizationRepository,
+  PlanConfigRepository,
 } from "./ports";
 
 export const inviteMemberSchema = z.object({
@@ -20,6 +21,7 @@ export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
 export interface InviteMemberDependencies {
   organizations: OrganizationRepository;
   invites: OrganizationInviteRepository;
+  planConfigs: PlanConfigRepository;
   sendInviteEmail(input: {
     email: string;
     token: string;
@@ -37,6 +39,12 @@ export interface InviteMemberResult {
 const INVITE_TTL_DAYS = 7;
 
 export function makeInviteMember(deps: InviteMemberDependencies) {
+  async function resolveTeamSeats(plan: Plan): Promise<number | null> {
+    const config = await deps.planConfigs.findByPlan(plan);
+    if (config && !config.isDefault) return config.teamSeats;
+    return PLAN_LIMITS[plan].teamSeats;
+  }
+
   return async function inviteMember(
     input: InviteMemberInput & { userId: string; createdByUserId: string },
   ): Promise<Result<InviteMemberResult, OrganizationNotFoundError | SeatLimitError | Error>> {
@@ -62,7 +70,7 @@ export function makeInviteMember(deps: InviteMemberDependencies) {
       return err(new Error("An invite is already pending for this email."));
     }
 
-    const { teamSeats } = planLimits(organization.plan as Plan);
+    const teamSeats = await resolveTeamSeats(organization.plan as Plan);
     const token = deps.generateToken();
     const expiresAt = new Date(deps.now());
     expiresAt.setDate(expiresAt.getDate() + INVITE_TTL_DAYS);

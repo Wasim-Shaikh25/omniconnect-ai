@@ -263,6 +263,25 @@ model OrganizationInvite {
   @@index([userId, status])
 }
 
+model PlanConfig {
+  id                        String   @id @default(cuid())
+  plan                      String   @unique // FREE, PRO, BUSINESS
+  maxWorkspaces             Int?
+  maxProjects               Int?
+  monthlyAiReplies          Int?
+  maxProfileInspectionsPerDay Int?
+  teamSeats                 Int?
+  maxStores                 Int?
+  maxCompetitors            Int?
+  maxAttributionLinksPerMonth Int?
+  maxContentSchedulesPerMonth Int?
+  allowedModels             String[] @default([])
+  priceMonthlyCents         Int      @default(0)
+  isDefault                 Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
 model EcommerceConnection {
   id           String   @id @default(cuid())
   projectId    String
