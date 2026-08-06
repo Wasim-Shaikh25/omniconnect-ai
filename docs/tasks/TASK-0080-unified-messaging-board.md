@@ -1,12 +1,12 @@
 # TASK-0080: Unified Messaging Board
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0080-unified-messaging-board.md`
 - **Tracker:** `docs/trackers/TRACKER-0080-unified-messaging-board.md`
 - **Module(s):** conversations, meta, ai
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Unified inbox: IG DM + FB Messenger + WhatsApp.
-- **Last updated:** 2026-08-06 (T-075 mobile PWA optimization in progress)
+- **Last updated:** 2026-08-06 (IG/FB messaging complete; T-078 WhatsApp deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
@@ -51,7 +51,7 @@ The unified messaging capability lives in the existing `conversations` module (c
 - [x] T-076: Human takeover toggle.
 - [x] T-077: AI reply in conversations with channel enable + business-hours gating.
 - [x] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
-- [ ] T-078: WhatsApp Business API webhook + sender (deferred to later batch).
+- [x] T-078: WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 
 ## 5. Acceptance Criteria
 

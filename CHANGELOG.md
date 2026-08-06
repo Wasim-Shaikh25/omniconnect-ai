@@ -366,18 +366,41 @@ All notable changes to **OmniConnect AI** are documented here.
   minimal session management (bump `tokenVersion` on sensitive changes) and marked the optional
   full `UserSession` list (F.3) as N/A.
 
+- `REQ-0080` **Unified Messaging Board closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  Instagram DM + Facebook Messenger manual replies and AI auto-reply gating are in production; T-078
+  WhatsApp Business API webhook + sender is **deferred** to post-Meta-Business-verification.
+
+- `REQ-0079` **Meta Growth Engine closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  content publishing, scheduling, hashtag intelligence, best-time-to-post, trending reels/audio analysis,
+  Graph API rate limiting, and Meta Login OAuth are in production; T-022 WhatsApp Business API connection
+  is **deferred** to post-Meta-Business-verification.
+
+- `REQ-0069` **Low-severity findings closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  event census, navigation reachability, log-level gating, Fly.io machine policy, and case-insensitive
+  escalation marker are implemented; L5 memory sizing is **deferred** to post-launch ops traffic.
+
+- `REQ-0068` **Medium-severity hardening closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  readiness endpoint, telemetry, inbox query bounds, Shopify GDPR webhooks, Stripe API version pinning,
+  HTTP status correctness, accessibility, encryption key rotation, login throttling, admin page guards,
+  `/support` routing, and AI prompt-injection hardening are implemented; M5.7 Shopify App Store automated
+  compliance checks are **deferred** to production app-store submission.
+
 ### 🚧 In Progress
 
-- Batch `devin/batch-meta-oauth-doc-closeouts-1786007775` is PR-ready; no further in-progress items.
+- No active in-progress items; backlog reduced to 5 feature requirements.
 
 ### ⏭️ Next
 
-- `REQ-0080` **Unified Messaging Board** — WhatsApp Business API connection (T-078).
-- `REQ-0079` **Meta Growth Engine** — WhatsApp Business API connection (T-022).
-- `REQ-0069` **L5 Fly.io memory sizing** — measure SSR + AI generation RSS in production and record
-  the ADR (post-launch ops task).
-- `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
-  development store and `SHOPIFY_API_SECRET`).
+- `REQ-0076` **Authentication & Registration Overhaul** — remaining registration fields, OTP env toggles,
+  auto-workspace creation, and RBAC alignment.
+- `REQ-0077` **Workspace & Project System** — workspace/project selector UI in the sidebar and default
+  AIConfiguration auto-creation on project creation.
+- `REQ-0078` **Dynamic E-Commerce Adapters** — `AdapterConfigMapping` + `ConfigInterpreter` safe executor,
+  AI config generation, and adapter library UI.
+- `REQ-0067` **Release blockers (critical/high)** — `ProcessedWebhookEvent` ledger, Stripe subscription
+  lifecycle, bootstrap/super-admin reconciliation, and end-to-end staging verification.
+- `REQ-0075` **Release engineering / DR / observability** — GitHub Environments, Fly.io staging/prod
+  approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

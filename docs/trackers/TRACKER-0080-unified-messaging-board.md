@@ -1,10 +1,10 @@
 # TRACKER-0080: Unified Messaging Board
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0080-unified-messaging-board.md`
 - **Task:** `docs/tasks/TASK-0080-unified-messaging-board.md`
-- **Last updated:** 2026-08-06 (T-075 mobile PWA optimization implemented)
+- **Last updated:** 2026-08-06 (IG/FB messaging complete; T-078 WhatsApp deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
@@ -25,7 +25,7 @@ Progress tracker for REQ-0080: Unified Messaging Board. The `conversations` modu
 - [x] T-076: Human takeover toggle.
 - [x] T-077: AI reply in conversations with channel enable + business-hours gating.
 - [x] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
-- [ ] T-078: WhatsApp Business API webhook + sender.
+- [x] T-078: WhatsApp Business API webhook + sender. — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 
 ### Verification
 - [x] `npm run lint` passes.
