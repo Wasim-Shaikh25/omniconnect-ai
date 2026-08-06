@@ -5,6 +5,7 @@ import type {
   ChatMessageRecord,
   ChatSessionRepository,
 } from "../application/ports";
+import type { AIToolCall } from "../domain/tools";
 
 function toMessageRecord(row: {
   id: string;
@@ -20,13 +21,33 @@ function toMessageRecord(row: {
     sessionId: row.sessionId,
     role: row.role as ChatMessageRecord["role"],
     content: row.content,
-    toolCalls:
-      typeof row.toolCalls === "object" && row.toolCalls !== null
-        ? (row.toolCalls as Record<string, unknown>)
-        : null,
+    toolCalls: safeToolCalls(row.toolCalls),
     toolCallId: row.toolCallId,
     createdAt: row.createdAt,
   };
+}
+
+function safeToolCalls(value: unknown): AIToolCall[] | null {
+  if (!Array.isArray(value)) return null;
+  const calls: AIToolCall[] = [];
+  for (const item of value) {
+    if (
+      item &&
+      typeof item === "object" &&
+      "id" in item &&
+      typeof item.id === "string" &&
+      "function" in item &&
+      item.function &&
+      typeof item.function === "object" &&
+      "name" in item.function &&
+      typeof item.function.name === "string" &&
+      "arguments" in item.function &&
+      typeof item.function.arguments === "string"
+    ) {
+      calls.push(item as AIToolCall);
+    }
+  }
+  return calls.length > 0 ? calls : null;
 }
 
 function toSessionRecord(row: {
@@ -94,11 +115,18 @@ export class PrismaChatSessionRepository implements ChatSessionRepository {
   }
 
   async updateTitle(id: string, title: string): Promise<ChatSessionRecord | null> {
-    const row = await prisma.chatSession.update({
-      where: { id },
-      data: { title, updatedAt: new Date() },
-    });
-    return row ? toSessionRecord(row) : null;
+    try {
+      const row = await prisma.chatSession.update({
+        where: { id },
+        data: { title, updatedAt: new Date() },
+      });
+      return row ? toSessionRecord(row) : null;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async delete(id: string): Promise<void> {

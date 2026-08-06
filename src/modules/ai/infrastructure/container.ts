@@ -4,9 +4,11 @@ import {
   conversationCommands,
   conversationQueries,
 } from "@/modules/conversations";
-import { ecommerceQueries } from "@/modules/ecommerce";
+import { ecommerceQueries, generateCoupon } from "@/modules/ecommerce";
+import { createAttributionLink } from "@/modules/attribution";
 import { organizationQueries, organizationUsage } from "@/modules/workspaces";
 import { notificationQueries } from "@/modules/notifications";
+import { queryAnalytics } from "@/modules/analytics/server";
 import { auditCommands } from "@/modules/users";
 import { metaService } from "@/modules/meta/server";
 import {
@@ -32,6 +34,7 @@ import { makeCreateContentIdea } from "../application/create-content-idea";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
 import { makeBrainMemoryService } from "../application/brain-memory";
 import { makeChatAssistantService } from "../application/chat";
+import { makeToolExecutor } from "../application/tool-executor";
 import { env } from "@/shared/config";
 import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { PrismaBrainMemoryRepository } from "./brain-memory.repository";
@@ -75,9 +78,26 @@ export const generateWelcome = makeGenerateWelcome({
   aiConfigurationRepository,
 });
 
+export const toolExecutor = makeToolExecutor({
+  generateCoupon,
+  getCouponById: ecommerceQueries.getCouponById,
+  getTodaySpend: async (projectId: string) => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const coupons = await ecommerceQueries.listCoupons(projectId, { limit: 1000 });
+    return coupons
+      .filter((c) => c.createdAt >= startOfDay)
+      .reduce((sum, c) => sum + c.discountPct, 0);
+  },
+  createAttributionLink,
+  sendMessage: metaService.sendMessage.bind(metaService),
+  queryAnalytics,
+});
+
 export const chatAssistant = makeChatAssistantService({
   sessions: chatSessionRepository,
   aiProvider,
+  toolExecutor,
 });
 
 export const generateReply = makeGenerateReply({

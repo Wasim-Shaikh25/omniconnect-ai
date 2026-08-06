@@ -1,6 +1,44 @@
-import type { OpenRouterTool } from "../infrastructure/openrouter-client";
+/**
+ * Provider-agnostic function-calling tool definitions for the AI assistant.
+ *
+ * This file lives in the pure domain layer and intentionally does not import
+ * infrastructure types. Adapters in `infrastructure/` map `AIToolDefinition`
+ * to vendor-specific schemas such as OpenRouter's tool format.
+ */
 
-export const AI_TOOLS: OpenRouterTool[] = [
+export interface AIToolParameter {
+  type: string;
+  description?: string;
+  enum?: string[];
+  items?: { type: string };
+  required?: boolean;
+}
+
+export interface AIToolFunction {
+  name: string;
+  description: string;
+  parameters: {
+    type: "object";
+    properties: Record<string, AIToolParameter>;
+    required?: string[];
+  };
+}
+
+export interface AIToolDefinition {
+  type: "function";
+  function: AIToolFunction;
+}
+
+export interface AIToolCall {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
+export const AI_TOOLS: AIToolDefinition[] = [
   {
     type: "function",
     function: {

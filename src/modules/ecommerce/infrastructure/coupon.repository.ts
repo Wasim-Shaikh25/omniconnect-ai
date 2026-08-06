@@ -14,6 +14,8 @@ type PrismaCoupon = {
   usageCount: number;
   revenueAttributed: Prisma.Decimal | null;
   lastUsedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 function toRecord(c: PrismaCoupon): CouponRecord {
@@ -28,6 +30,8 @@ function toRecord(c: PrismaCoupon): CouponRecord {
     usageCount: c.usageCount,
     revenueAttributed: c.revenueAttributed ? c.revenueAttributed.toNumber() : null,
     lastUsedAt: c.lastUsedAt,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
   };
 }
 

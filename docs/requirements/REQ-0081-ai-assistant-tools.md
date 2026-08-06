@@ -4,7 +4,7 @@ description: AI Assistant & Tools
 
 # REQ-0081: AI Assistant & Tools
 
-- **Status:** Draft
+- **Status:** In Review
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0081-ai-assistant-tools.md`
@@ -40,14 +40,14 @@ ChatGPT-style AI assistant with OpenRouter function calling. Five AI tools: crea
 
 ## 5. Acceptance Criteria
 
-- [ ] ChatSession + ChatMessage models in database.
-- [ ] AI chat endpoint with streaming responses via OpenRouter.
-- [ ] createCoupon tool respects maxDiscountPct and dailyBudget from AIConfiguration.
-- [ ] injectCoupon pushes coupon to e-commerce platform via dynamic adapter.
-- [ ] sendMessage respects autoSend flag (send immediately or suggest-only).
-- [ ] queryAnalytics returns structured data from business metrics.
-- [ ] generateDashboard returns JSON schema rendered by DynamicDashboard component.
-- [ ] Chat UI with session sidebar, streaming, markdown rendering.
+- [x] ChatSession + ChatMessage models in database.
+- [x] AI chat endpoint with streaming responses via OpenRouter.
+- [x] createCoupon tool respects maxDiscountPct and dailyBudget from AIConfiguration.
+- [x] injectCoupon pushes coupon to e-commerce platform via dynamic adapter.
+- [x] sendMessage respects autoSend flag (send immediately or suggest-only).
+- [x] queryAnalytics returns structured data from business metrics.
+- [x] generateDashboard returns JSON schema rendered by DynamicDashboard component.
+- [x] Chat UI with session sidebar, streaming, markdown rendering.
 
 ## 6. Scope & Dependencies
 

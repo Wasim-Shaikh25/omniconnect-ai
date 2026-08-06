@@ -109,6 +109,7 @@ export {
 } from "./presentation/chat-actions";
 export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState, AskBusinessBrainState, ExtractKnowledgeState } from "./presentation/actions";
 export type { ChatActionState } from "./presentation/chat-actions";
+export type { ChatSessionRecord, ChatMessageRecord } from "./application/ports";
 export { resolveOperation } from "./application/operation-resolver";
 export type { ResolveResult, ResolvedOperation, UnsupportedOperation, OperationExemplar } from "./application/operation-resolver";
 export { queryAnalytics } from "./application/query-analytics";

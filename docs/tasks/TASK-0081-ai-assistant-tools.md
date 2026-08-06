@@ -6,7 +6,7 @@
 - **Tracker:** `docs/trackers/TRACKER-0081-ai-assistant-tools.md`
 - **Module(s):** ai, coupons, ecommerce, messaging, analytics
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — AI assistant with function calling tools and coupon flow.
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -45,16 +45,17 @@ Full-screen chat, message bubbles, streaming text, markdown rendering, session s
 - [x] T-039: Chat session management
 - [x] T-040: AI chat endpoint (streaming + tools)
 - [x] T-041: AI tool definitions
-- [ ] T-042: Tool executor with guardrails
-- [ ] T-043: Real-time coupon flow
-- [ ] T-044: Chat UI
-- [ ] T-045: Chat history sidebar
+- [x] T-042: Tool executor with guardrails
+- [x] T-043: Real-time coupon flow
+- [x] T-044: Chat UI
+- [x] T-045: Chat history sidebar
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0081 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0081 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated.
 
 ## 6. Notes / Blockers
 
