@@ -2,7 +2,7 @@
 
 - **Status:** Living document
 - **Owner:** Devin
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 - **Changelog:** `CHANGELOG.md`
 - **Product charter:** `docs/requirements/REQ-0061-product-charter.md`
 
@@ -96,7 +96,8 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits (`PlanConfig` DB overrides with `PLAN_LIMITS` fallback), team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons, adapter library (super-admin list/validate/approve generated adapters). |
 | `meta` | Meta Graph API client, inbound webhook verification, outbound messaging. |
-| `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence, `ChatSession`/`ChatMessage` assistant chat, `AI_TOOLS` function-calling definitions, and `POST /api/chat/stream` SSE endpoint. |
+| `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence, `ChatSession`/`ChatMessage` assistant chat, `AI_TOOLS` function-calling definitions, `BusinessBrain` / `askBusinessBrainAction`, and `POST /api/chat/stream` SSE endpoint. |
+| `intelligence` | Marketing Brain (`updateMarketingMemory`, `generateDailyBrief`), Next Best Action (`recommendationService`), predictions, hypotheses, business learnings, goal planning, and plan-tier access rules (`canUseIntelligenceFeature`). |
 | `coupons` | First-follower and DM campaign coupon orchestration. |
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume. |
@@ -112,7 +113,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 
 Core tables (see `prisma/schema.prisma` for full model):
 
-- `User` — authentication, RBAC role (`USER` | `SUPER_ADMIN`), `userId` (owning-tenant id), `projectId` (selected active project), plan/subscription fields, AI quota counters, `suspendedAt`/`banned` moderation flags, `deletedAt`, `tokenVersion`.
+- `User` — authentication, RBAC role (`USER` | `SUPER_ADMIN`), `userId` (owning-tenant id), `projectId` (selected active project), `plan` (`FREE` | `PRO` | `BUSINESS`), subscription fields, AI quota counters, `suspendedAt`/`banned` moderation flags, `deletedAt`, `tokenVersion`.
 - `Workspace` — tenant boundary; owned by a `userId`; carries plan/subscription metadata.
 - `Project` — a connected e-commerce or Meta source (replaces `Store`); `workspaceId`, `provider`, `domain`, `archivedAt`/`deletedAt` for soft lifecycle.
 - `EcommerceConnection` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest; `projectId` scoped; `isActive` and `lastSyncAt` exposed to super admins through the adapter library.
@@ -133,7 +134,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 ## 7. Authentication and Authorization
 
 - **NextAuth v5 JWT strategy** with `tokenVersion` invalidation.
-- `getCurrentUser()` loads the canonical DB record including `userId`/`projectId` and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions. Accounts with `suspendedAt` or `banned` are rejected at both `authorize()` (login) and `getCurrentUser()` (session refresh).
+- `getCurrentUser()` loads the canonical DB record including `userId`/`projectId`/`plan` and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions. Accounts with `suspendedAt` or `banned` are rejected at both `authorize()` (login) and `getCurrentUser()` (session refresh).
 - Super admins can impersonate a non-super-admin user from `/admin/users/:id`; the session temporarily becomes the target user (`isImpersonating`, `impersonatedBy`), the admin's `/admin` access is blocked while impersonating, and `IMPERSONATION_STARTED`/`IMPERSONATION_ENDED` events are written to `AuditLog`. The `AppShell` shows an exit banner that returns the admin to `/admin/users`.
 - `tenantGuard.assertStoreAccess(user, projectId)` enforces: owners (`user.userId === user.id`) access any project in their workspace; staff (`user.userId` points to the owner) are pinned to `user.projectId`; super-admins bypass.
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
@@ -223,6 +224,7 @@ Core tables (see `prisma/schema.prisma` for full model):
    - `inspectProfileAction` consumes a daily profile inspection.
    - `trackCompetitorAction` blocks new tracked accounts beyond `maxCompetitors`.
    - `createAttributionLinkAction` blocks new links beyond `maxAttributionLinksPerMonth` for the current project.
+   - Intelligence features are gated by `canUseIntelligenceFeature(plan, feature)` in `intelligence/domain/access.ts`: Free users see `dailyBrief` only; Pro users get `marketingBrain`, `nextBestAction`, `signalDetection`, `hypotheses`, and `businessLearnings`; Business adds `predictions`. The gate is enforced in `intelligence` read/mutating server actions, `askBusinessBrainAction`, and the `business-brain` and `daily-marketing` pages.
 5. `PlanConfig` lets super admins override `PLAN_LIMITS` per plan from `/admin/plans`; `planConfigService.resolveLimits(plan)` merges stored overrides and falls back to defaults so existing behavior is preserved when no row exists.
 6. `/settings/billing` displays the current plan, a `PLAN_LIMITS` matrix with store usage progress, and `PricingCards` for upgrades. Stripe checkout and webhook lifecycle remain in `api/stripe/*` and `billingService`; `/admin/payments` lists paid invoices across organizations and lets super admins issue refunds through `BillingService.refundPayment`.
 7. The adapter library at `/admin/adapters` lists every `EcommerceConnection` with provider, project, status, last sync, and actions to approve/flag or validate the live connection.

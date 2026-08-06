@@ -63,6 +63,7 @@ function makeUser(role: SessionUser["role"], projectId: string | null, id = "use
     phoneVerified: null,
     userId: "org-1",
     projectId,
+    plan: "FREE",
   };
 }
 

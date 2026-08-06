@@ -14,6 +14,7 @@ export interface SessionUser {
   phoneVerified: Date | null;
   userId: string | null;
   projectId: string | null;
+  plan: string;
   suspendedAt?: Date | null;
   banned?: boolean;
   impersonatedBy?: string | null;
@@ -31,6 +32,7 @@ function toSessionUser(row: {
   phoneVerified: Date | null;
   userId: string | null;
   projectId: string | null;
+  plan: string;
   suspendedAt?: Date | null;
   banned?: boolean;
 }): SessionUser {
@@ -46,6 +48,7 @@ function toSessionUser(row: {
     phoneVerified: row.phoneVerified,
     userId: row.userId,
     projectId: row.projectId,
+    plan: row.plan,
     suspendedAt: row.suspendedAt,
     banned: row.banned,
   };
@@ -89,6 +92,7 @@ async function loadFreshUser(
       phoneVerified: true,
       userId: true,
       projectId: true,
+      plan: true,
       suspendedAt: true,
       banned: true,
       tokenVersion: true,

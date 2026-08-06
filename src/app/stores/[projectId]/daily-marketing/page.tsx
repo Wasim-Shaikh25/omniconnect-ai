@@ -4,6 +4,7 @@ import { checkStoreAccess } from "@/modules/workspaces";
 import {
   updateMarketingMemory,
   generateDailyBrief,
+  canUseIntelligenceFeature,
   type DailyBriefSection,
 } from "@/modules/intelligence";
 import { TodayFeed } from "@/components/today-feed";
@@ -69,6 +70,7 @@ export default async function DailyMarketingPage({
     redirect("/login");
   }
 
+  const hasProAccess = canUseIntelligenceFeature(user.plan, "nextBestAction");
   const memory = await updateMarketingMemory(user.userId, projectId);
   const brief = await generateDailyBrief(user.userId, projectId, memory);
 
@@ -87,9 +89,11 @@ export default async function DailyMarketingPage({
             Today&apos;s priorities for {store.name}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/business-brain">Ask Marketing Brain</Link>
-        </Button>
+        {hasProAccess && (
+          <Button asChild variant="outline" size="sm">
+            <Link href="/business-brain">Ask Marketing Brain</Link>
+          </Button>
+        )}
       </header>
 
       <section className="mb-8">
@@ -129,40 +133,44 @@ export default async function DailyMarketingPage({
         </div>
       </section>
 
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-medium">Actions</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          <TodayFeed projectId={projectId} />
-          <RecommendationsPanel projectId={projectId} />
-        </div>
-      </section>
+      {hasProAccess && (
+        <>
+          <section className="mb-8">
+            <h2 className="mb-3 text-lg font-medium">Actions</h2>
+            <div className="grid gap-6 md:grid-cols-2">
+              <TodayFeed projectId={projectId} />
+              <RecommendationsPanel projectId={projectId} />
+            </div>
+          </section>
 
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-medium">Opportunities</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          <ProductPromotionCard
-            productScores={memory.productScores}
-            projectId={projectId}
-          />
-          <DmOpportunityCard patterns={memory.dmPatterns} projectId={projectId} />
-          <CommentInsightCard
-            patterns={memory.commentPatterns}
-            projectId={projectId}
-          />
-        </div>
-      </section>
+          <section className="mb-8">
+            <h2 className="mb-3 text-lg font-medium">Opportunities</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <ProductPromotionCard
+                productScores={memory.productScores}
+                projectId={projectId}
+              />
+              <DmOpportunityCard patterns={memory.dmPatterns} projectId={projectId} />
+              <CommentInsightCard
+                patterns={memory.commentPatterns}
+                projectId={projectId}
+              />
+            </div>
+          </section>
 
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-medium">Market Signals</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          <CompetitorAlertCard
-            changes={memory.competitorChanges}
-            projectId={projectId}
-          />
-          <TrendingHashtagCard hashtags={memory.trendingHashtags} />
-          <BestTimeCard time={brief.bestPostingTime} />
-        </div>
-      </section>
+          <section className="mb-8">
+            <h2 className="mb-3 text-lg font-medium">Market Signals</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <CompetitorAlertCard
+                changes={memory.competitorChanges}
+                projectId={projectId}
+              />
+              <TrendingHashtagCard hashtags={memory.trendingHashtags} />
+              <BestTimeCard time={brief.bestPostingTime} />
+            </div>
+          </section>
+        </>
+      )}
     </main>
   );
 }

@@ -4,13 +4,13 @@ description: Intelligence Layer
 
 # REQ-0089: Intelligence Layer
 
-- **Status:** Draft
+- **Status:** Approved
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0089-intelligence-layer.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0089-intelligence-layer.md`
 - **Supersedes:** `REQ-0033-unified-intelligence-layer.md`, `REQ-0065-remaining-intelligence-completion.md`
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -41,14 +41,14 @@ Keep and expand all existing intelligence features. Business analysis is a compe
 
 ## 5. Acceptance Criteria
 
-- [ ] Daily Brief: generated on schedule, covers key metrics + trends + action items.
-- [ ] Marketing Brain: persistent context stored per project, updated after each campaign.
-- [ ] Next Best Action: ranked recommendations with confidence scores.
-- [ ] Signal Detection: anomaly detection for engagement, sales, follower changes.
-- [ ] Predictions: forecasts with confidence intervals.
-- [ ] Hypotheses: AI-generated, tracked over time with validation status.
-- [ ] Business Learnings: accumulated, searchable, referenced in AI replies.
-- [ ] Intelligence features gated by plan tier.
+- [x] Daily Brief: generated on schedule, covers key metrics + trends + action items.
+- [x] Marketing Brain: persistent context stored per project, updated after each campaign.
+- [x] Next Best Action: ranked recommendations with confidence scores.
+- [x] Signal Detection: anomaly detection for engagement, sales, follower changes.
+- [x] Predictions: forecasts with confidence intervals.
+- [x] Hypotheses: AI-generated, tracked over time with validation status.
+- [x] Business Learnings: accumulated, searchable, referenced in AI replies.
+- [x] Intelligence features gated by plan tier.
 
 ## 6. Scope & Dependencies
 

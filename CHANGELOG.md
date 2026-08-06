@@ -15,6 +15,19 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0089` **Intelligence Layer — plan-tier gating** on `devin/req-0089-intelligence-layer-1785995189`:
+  added `canUseIntelligenceFeature(plan, feature)` in `intelligence/domain/access.ts` with unit tests;
+  added `plan` to `SessionUser` so all pages/actions can read the current plan without an extra DB call;
+  gated `askBusinessBrainAction`, `getRecommendationsAction`, `getPredictionsAction`, `getHypothesesAction`,
+  `getBusinessLearningAction`, `getTodayActionsAction`, `getGoalsAction`, `getBusinessBrainContextAction`,
+  and the mutating actions `createGoalAction`, `createGoalAutomationAction`, `createGoalPlanWorkflowAction`,
+  `launchGoalPlanWorkflowAction`, `approveRecommendationAction`, `executeActionPlanAction`,
+  `completeDailyActionAction`, and `skipDailyActionAction`.
+  Free users see `dailyBrief` only; Pro users unlock Marketing Brain, Next Best Action, Signal Detection,
+  Hypotheses, and Business Learnings; Business adds `predictions`. The `/business-brain` page shows an
+  upgrade card for Free users and the `/stores/[projectId]/daily-marketing` page hides Actions,
+  Opportunities, and Market Signals for Free users.
+
 - `REQ-0081` **AI Assistant & Tools — Batch 2** on `devin/req-0081-batch2-tools-coupon-ui-1786020000`:
   implemented the `ToolExecutor` with guardrail enforcement from `AIConfiguration.enabledSkills` and
   `salesRules`; added `completeWithToolCalls` to the `AIProvider` contract and implemented it in
