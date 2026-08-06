@@ -43,4 +43,4 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- T-023, T-024, T-025, T-058, T-059, and T-069 completed on `devin/req-0079-hashtag-besttime-calendar-1786001674`. Rate limiting (T-070) remains open.
+- T-023, T-024, T-025, T-058, T-059, T-069, and T-070 (Graph API rate limiting) completed on `devin/req-0079-graph-api-rate-limiting-1786065200`. Remaining: T-021 (Meta OAuth), T-022 (WhatsApp), T-071 (trending reels).

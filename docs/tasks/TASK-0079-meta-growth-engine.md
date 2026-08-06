@@ -59,6 +59,6 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 6. Notes / Blockers
 
-- T-023, T-024, T-058, T-059, and T-069 completed on `devin/req-0079-hashtag-besttime-calendar-1786001674`. T-021 (Meta OAuth), T-022 (WhatsApp), and T-070 (Graph API rate limiting) remain open.
+- T-023, T-024, T-058, T-059, T-069, and T-070 completed on the respective feature branches. T-021 (Meta OAuth), T-022 (WhatsApp), and T-071 (trending reels) remain open.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.
