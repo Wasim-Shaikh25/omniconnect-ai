@@ -21,7 +21,14 @@ All notable changes to **OmniConnect AI** are documented here.
   and `media_publish`. Supports `IMAGE`, `VIDEO`, `REEL`, `CAROUSEL`, and `STORY` media types. Added
   `makePublishMedia` in the `content` module, `publishMediaAction` tenant-guarded through `organizationQueries`,
   and the `PublishPostForm` UI on `/stores/[projectId]/content`. Unit tests added for `publish-media.ts`.
-  Scheduling and a `ScheduledPost` persistence model are the next step (T-024).
+
+- `REQ-0079` **Meta Growth Engine — Content Scheduling (T-024)** on `devin/req-0079-content-scheduling-1785999995`:
+  added the `ScheduledPost` Prisma model + migration; `schedulePost` use-case enforces the plan's
+  `maxContentSchedulesPerMonth` and either enqueues a delayed `publish-scheduled-post` job or publishes
+  immediately when the scheduled time is in the past. `InMemoryQueue` now supports `delay` for local/test runs;
+  the BullMQ worker (`src/jobs/worker.ts`) starts a `content-schedule` worker. The `PublishPostForm` UI adds a
+  schedule picker and a scheduled-posts list on `/stores/[projectId]/content`. Unit tests added for
+  `schedule-post.ts`. Next up in REQ-0079: hashtag intelligence (T-058) and best-time-to-post (T-059).
 
 - `REQ-0079` **Content Publishing API review fixes** on `devin/fix-content-publishing-review-1786000600`:
   added the missing `access_token` query parameter to the final `media_publish` Graph API call in

@@ -4,6 +4,8 @@ export interface JobOptions {
   backoff?: { type: "exponential" | "fixed"; delay: number };
   removeOnComplete?: number;
   removeOnFail?: boolean;
+  /** Delay in milliseconds before the job becomes eligible for processing. */
+  delay?: number;
 }
 
 export interface Job<T = unknown> {

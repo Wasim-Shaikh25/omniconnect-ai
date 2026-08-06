@@ -33,9 +33,19 @@ export class InMemoryQueue implements QueueService {
     }
     this.jobIds.add(id);
     const job: Job<T> = { id, name, data };
-    this.jobs.push(job);
-    logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });
-    setImmediate(() => this.processNext());
+
+    const delay = opts?.delay ?? 0;
+    if (delay > 0) {
+      logger.info("queue.inMemory.delayed", { queue: this.name, jobId: id, jobName: name, delay });
+      setTimeout(() => {
+        this.jobs.push(job);
+        this.processNext();
+      }, delay);
+    } else {
+      this.jobs.push(job);
+      logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });
+      setImmediate(() => this.processNext());
+    }
     return id;
   }
 

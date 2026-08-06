@@ -6,7 +6,7 @@
 - **Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
 - **Module(s):** content (new), meta
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Content publishing, scheduling, hashtag intelligence, best-time-to-post.
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -44,7 +44,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 - [ ] T-021: Meta OAuth flow
 - [ ] T-022: WhatsApp Business API connection
 - [x] T-023: Content Publishing API
-- [ ] T-024: Content scheduling
+- [x] T-024: Content scheduling
 - [x] T-025: Content Studio UI (publish form integrated on `/stores/[projectId]/content`)
 - [ ] T-058: Hashtag intelligence
 - [ ] T-059: Best time to post
@@ -59,6 +59,6 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 6. Notes / Blockers
 
-- T-023 completed. T-024 (scheduled posts persistence + BullMQ delayed job) is next.
+- T-023 and T-024 completed. T-058/T-059 (hashtag intelligence, best time to post) are next.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.

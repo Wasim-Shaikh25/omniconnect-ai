@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
-- **Last updated:** 2026-08-06
+- **Last updated:** 2026-08-06 (T-024 done)
 
 ## 1. Summary
 
@@ -21,7 +21,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [ ] T-021: Meta OAuth flow (IG + FB page connection).
 - [ ] T-022: WhatsApp Business API connection.
 - [x] T-023: Content Publishing API (container → poll → publish).
-- [ ] T-024: Content scheduling (DB + BullMQ delayed job).
+- [x] T-024: Content scheduling (DB + BullMQ delayed job).
 - [x] T-025: Content Studio UI (publish form added to `/stores/[projectId]/content`).
 - [ ] T-058: Hashtag intelligence (Meta API + AI scoring).
 - [ ] T-059: Best time to post (Insights API + AI correlation).
@@ -43,5 +43,5 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- T-023 complete. Post-merge review fixes applied on `devin/fix-content-publishing-review-1786000600`: missing `access_token` on `media_publish`, `TIMEOUT` handling, and friendly validation errors.
-- T-024 (content scheduling + persistence) and T-058/T-059 are next.
+- T-023 and T-024 complete. Post-merge review fixes applied on `devin/fix-content-publishing-review-1786000600`: missing `access_token` on `media_publish`, `TIMEOUT` handling, and friendly validation errors.
+- T-058/T-059 (hashtag intelligence, best time to post) are next.
