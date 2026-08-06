@@ -39,7 +39,7 @@ export class InMemoryQueue implements QueueService {
 
     const requestedDelay = opts?.delay ?? 0;
     if (requestedDelay > 0) {
-      this.scheduleDelayed(job, requestedDelay);
+      this.scheduleDelayed(id, job, requestedDelay);
     } else {
       this.jobs.push(job);
       logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });
@@ -48,28 +48,28 @@ export class InMemoryQueue implements QueueService {
     return id;
   }
 
-  private scheduleDelayed(job: Job<unknown>, remainingMs: number): void {
+  private scheduleDelayed(id: string, job: Job<unknown>, remainingMs: number): void {
     const delay = Math.min(remainingMs, MAX_TIMEOUT_MS);
     logger.info("queue.inMemory.delayed", {
       queue: this.name,
-      jobId: job.id,
+      jobId: id,
       jobName: job.name,
       delay,
       remainingMs,
     });
 
     const timer = setTimeout(() => {
-      this.timersById.delete(job.id as string);
+      this.timersById.delete(id);
       const nextRemaining = remainingMs - MAX_TIMEOUT_MS;
       if (nextRemaining > 0) {
-        this.scheduleDelayed(job, nextRemaining);
+        this.scheduleDelayed(id, job, nextRemaining);
       } else {
         this.jobs.push(job);
         this.processNext();
       }
     }, delay);
 
-    this.timersById.set(job.id as string, timer);
+    this.timersById.set(id, timer);
   }
 
   private async processNext(): Promise<void> {

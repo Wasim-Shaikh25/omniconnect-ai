@@ -25,6 +25,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [x] T-023b: Content Publishing API review fixes — `access_token` sent in `Authorization` header, `media_publish` URL built with `URL`, polling short-circuits on non-`FINISHED` statuses, and carousel validation returns friendly messages.
 - [x] T-024: Content scheduling (DB + BullMQ delayed job).
 - [x] T-024b: Content scheduling review fixes — timezone validation, `InMemoryQueue` re-arming for long delays, premature publish guard, and timer cleanup.
+- [x] T-024c: Content scheduling review follow-up — re-enqueue or short-sleep `publishScheduledPost` when invoked early; consistent time-zone label; remove `as string` casts from `InMemoryQueue`.
 - [x] T-025: Content Studio UI (publish form added to `/stores/[projectId]/content`).
 - [x] T-058: Hashtag intelligence (Meta API + AI scoring).
 - [x] T-059: Best time to post (Insights API + AI correlation).

@@ -14,11 +14,11 @@ export function formatInTimeZone(
   date: Date,
   timeZone: string | null | undefined,
   locale = "en-US",
-): string {
+): { formatted: string; zone: string } {
   const zone = isValidTimeZone(timeZone) ? timeZone : "UTC";
   try {
-    return date.toLocaleString(locale, { timeZone: zone });
+    return { formatted: date.toLocaleString(locale, { timeZone: zone }), zone };
   } catch {
-    return date.toLocaleString(locale, { timeZone: "UTC" });
+    return { formatted: date.toLocaleString(locale, { timeZone: "UTC" }), zone: "UTC" };
   }
 }
