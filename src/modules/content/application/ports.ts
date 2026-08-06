@@ -36,7 +36,7 @@ export interface ScheduledPostRepository {
   update(
     id: string,
     data: Partial<
-      Pick<ScheduledPostRecord, "status" | "externalId" | "errorMessage" | "publishedAt" | "jobId">
+      Pick<ScheduledPostRecord, "status" | "externalId" | "errorMessage" | "publishedAt" | "jobId" | "scheduledAt" | "scheduledAtTimezone">
     >,
   ): Promise<ScheduledPostRecord | null>;
   listByProject(projectId: string, limit?: number): Promise<ScheduledPostRecord[]>;

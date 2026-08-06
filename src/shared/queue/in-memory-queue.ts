@@ -10,6 +10,7 @@ export class InMemoryQueue implements QueueService {
   private processing = false;
   private jobIds = new Set<string>();
   private timers: NodeJS.Timeout[] = [];
+  private timersById = new Map<string, NodeJS.Timeout>();
 
   constructor(private name: string) {}
 
@@ -46,10 +47,12 @@ export class InMemoryQueue implements QueueService {
         logger.info("queue.inMemory.delayed", { queue: this.name, jobId: id, jobName: name, delay });
       }
       const timer = setTimeout(() => {
+        this.timersById.delete(id);
         this.jobs.push(job);
         this.processNext();
       }, delay);
       this.timers.push(timer);
+      this.timersById.set(id, timer);
     } else {
       this.jobs.push(job);
       logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });
@@ -80,11 +83,24 @@ export class InMemoryQueue implements QueueService {
     }
   }
 
+  async remove(id: string): Promise<void> {
+    const timer = this.timersById.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this.timersById.delete(id);
+      const index = this.timers.indexOf(timer);
+      if (index >= 0) this.timers.splice(index, 1);
+    }
+    this.jobIds.delete(id);
+    this.jobs = this.jobs.filter((j) => j.id !== id);
+  }
+
   async close(): Promise<void> {
     for (const timer of this.timers) {
       clearTimeout(timer);
     }
     this.timers = [];
+    this.timersById.clear();
     this.jobs = [];
   }
 }

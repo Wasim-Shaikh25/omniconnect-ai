@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { ContentNextBestAction } from "@/components/content-next-best-action";
 import { ContentStudioForms } from "@/components/content-studio-forms";
 import { PublishPostForm } from "@/components/publish-post-form";
+import { HashtagIntelligence } from "@/components/hashtag-intelligence";
+import { ContentBestTime } from "@/components/content-best-time";
+import { ContentCalendar } from "@/components/content-calendar";
 import {
   publishMediaAction,
   schedulePostAction,
 } from "@/modules/content";
 import { listScheduledPosts } from "@/modules/content/server";
+import { getContentCalendarForStore } from "@/modules/analytics/server";
 
 export default async function ContentStudioPage({
   params,
@@ -29,6 +33,7 @@ export default async function ContentStudioPage({
 
   const products = await ecommerceQueries.listProducts(projectId, 100);
   const scheduled = await listScheduledPosts(projectId);
+  const calendar = await getContentCalendarForStore(projectId, products).catch(() => []);
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
@@ -79,6 +84,32 @@ export default async function ContentStudioPage({
           </ul>
         </section>
       )}
+
+      <HashtagIntelligence projectId={projectId} />
+
+      <ContentBestTime projectId={projectId} />
+
+      <ContentCalendar
+        projectId={projectId}
+        slots={calendar.map((s) => ({
+          date: s.date.toISOString().slice(0, 10),
+          hour: s.hour,
+          dayOfWeek: s.dayOfWeek,
+          format: s.format,
+          suggestedCaption: s.suggestedCaption,
+          suggestedHashtags: s.suggestedHashtags,
+          productNames: s.productNames,
+          reason: s.reason,
+        }))}
+        scheduled={scheduled.map((post) => ({
+          id: post.id,
+          mediaType: post.mediaType,
+          caption: post.caption,
+          status: post.status,
+          scheduledAt: post.scheduledAt.toISOString(),
+          scheduledAtTimezone: post.scheduledAtTimezone,
+        }))}
+      />
 
       <ContentNextBestAction projectId={projectId} />
 
