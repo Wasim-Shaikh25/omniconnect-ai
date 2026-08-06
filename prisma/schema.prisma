@@ -59,8 +59,6 @@ model User {
   maxAiCallsPerDay        Int        @default(20) // cached plan limit
   profileInspectionsToday   Int        @default(0)
   profileInspectionsResetAt DateTime?
-  contentSchedulesThisMonth   Int        @default(0)
-  contentSchedulesResetAt     DateTime?
   tokenVersion            Int        @default(0)
   deletedAt               DateTime?
   deletedReason           String?
@@ -868,6 +866,7 @@ model ScheduledPost {
   externalId    String?
   jobId         String?
   errorMessage  String?
+  scheduledAtTimezone String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

@@ -50,7 +50,12 @@ const schedulePostActionSchema = z.object({
   caption: z.string().max(2200).optional(),
   mediaType: z.enum(["IMAGE", "VIDEO", "REEL", "CAROUSEL", "STORY"] as const),
   mediaUrls: z.string().url(),
-  scheduledAt: z.coerce.date(),
+  scheduledAt: z
+    .string()
+    .min(1, "Please choose a schedule date and time.")
+    .datetime("Please choose a valid schedule date and time.")
+    .transform((v) => new Date(v)),
+  scheduledAtTimezone: z.string().max(120).optional(),
 });
 
 function tenantUserId(user: { id: string; userId: string | null }): string {
@@ -177,6 +182,7 @@ export async function schedulePostAction(
     mediaType: formData.get("mediaType"),
     mediaUrls: rawMediaUrls.length ? rawMediaUrls[0] : undefined,
     scheduledAt: formData.get("scheduledAt"),
+    scheduledAtTimezone: formData.get("scheduledAtTimezone") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -201,6 +207,7 @@ export async function schedulePostAction(
       mediaType: parsed.data.mediaType,
       mediaUrls,
       scheduledAt: parsed.data.scheduledAt,
+      scheduledAtTimezone: parsed.data.scheduledAtTimezone,
     });
 
     if (!result.ok) {
@@ -208,9 +215,11 @@ export async function schedulePostAction(
     }
 
     revalidatePath(`/stores/${parsed.data.projectId}/content`);
+    const timeZone = result.value.scheduledAtTimezone ?? "UTC";
+    const formatted = result.value.scheduledAt.toLocaleString("en-US", { timeZone });
     return {
       ok: true,
-      message: `Scheduled for ${result.value.scheduledAt.toLocaleString()}.`,
+      message: `Scheduled for ${formatted} (${timeZone}).`,
       scheduledPostId: result.value.id,
     };
   } catch (error) {
