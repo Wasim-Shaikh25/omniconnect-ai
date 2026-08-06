@@ -8,6 +8,7 @@ import { makeDeleteCoupon } from "../application/delete-coupon";
 import { makeEcommerceQueries } from "../application/queries";
 import { makeDetectCommerceInsights } from "../application/detect-insights";
 import { makeAbandonedCartSweep } from "../application/abandoned-cart-sweep";
+import { makeAdapterLibraryService } from "../application/adapter-library";
 import { eventBus } from "@/shared/events";
 import { auditCommands } from "@/modules/users";
 import { PrismaIntegrationRepository } from "./integration.repository";
@@ -54,3 +55,4 @@ export const ecommerceQueries = makeEcommerceQueries({
 });
 export const detectCommerceInsights = makeDetectCommerceInsights({ ecommerce: ecommerceQueries });
 export const abandonedCartSweep = makeAbandonedCartSweep({ carts, eventBus });
+export const adapterLibrary = makeAdapterLibraryService({ integrations, connectorResolver: connectors });

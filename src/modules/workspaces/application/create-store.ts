@@ -3,9 +3,14 @@ import { eventBus } from "@/shared/events";
 import { Result, ok, err } from "@/shared/kernel";
 import { ECOMMERCE_PROVIDERS } from "../domain/provider";
 import { OrganizationNotFoundError, StoreLimitError } from "../domain/errors";
-import { planLimits, isWithinLimit } from "../domain/plan";
+import { isWithinLimit, Plan, PLAN_LIMITS } from "../domain/plan";
 import { StoreCreated } from "../domain/events";
-import { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
+import {
+  OrganizationRepository,
+  PlanConfigRepository,
+  StoreRecord,
+  StoreRepository,
+} from "./ports";
 
 export const createStoreSchema = z.object({
   userId: z.string().min(1),
@@ -19,7 +24,14 @@ export type CreateStoreInput = z.infer<typeof createStoreSchema>;
 export function makeCreateStore(deps: {
   organizations: OrganizationRepository;
   stores: StoreRepository;
+  planConfigs: PlanConfigRepository;
 }) {
+  async function resolveMaxStores(plan: Plan): Promise<number | null> {
+    const config = await deps.planConfigs.findByPlan(plan);
+    if (config && !config.isDefault) return config.maxStores;
+    return PLAN_LIMITS[plan].maxStores;
+  }
+
   return async function createStore(
     raw: CreateStoreInput,
   ): Promise<Result<StoreRecord, OrganizationNotFoundError | StoreLimitError>> {
@@ -29,7 +41,7 @@ export function makeCreateStore(deps: {
     if (!org) return err(new OrganizationNotFoundError(input.userId));
 
     // Billing enforcement: respect the plan's store limit.
-    const { maxStores } = planLimits(org.plan);
+    const maxStores = await resolveMaxStores(org.plan);
     const existing = await deps.stores.listByOrganization(input.userId);
     if (!isWithinLimit(maxStores, existing.length)) {
       return err(

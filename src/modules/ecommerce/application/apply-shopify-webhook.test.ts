@@ -23,6 +23,9 @@ function makeDeps() {
     upsertEcommerce: vi.fn(),
     findEcommerceByStore: vi.fn(),
     findCredentialsByStore: vi.fn(),
+    findAll: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+    findById: vi.fn().mockResolvedValue(null),
+    updateStatus: vi.fn().mockResolvedValue(null),
   };
   const products: ProductRepository = {
     upsertMany: vi.fn().mockResolvedValue(1),

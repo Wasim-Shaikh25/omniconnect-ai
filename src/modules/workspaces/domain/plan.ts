@@ -17,6 +17,8 @@ export function parsePlan(value: string | null | undefined): Plan {
  * Keep in sync with the marketing copy in PLAN_FEATURES below.
  */
 export interface PlanLimits {
+  maxWorkspaces: number | null;
+  maxProjects: number | null;
   maxStores: number | null;
   monthlyAiReplies: number | null;
   teamSeats: number | null;
@@ -29,6 +31,8 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   [Plan.FREE]: {
+    maxWorkspaces: 1,
+    maxProjects: 1,
     maxStores: 1,
     monthlyAiReplies: 50,
     teamSeats: 1,
@@ -39,6 +43,8 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     allowedModels: ["openai/gpt-4o-mini"],
   },
   [Plan.PRO]: {
+    maxWorkspaces: null,
+    maxProjects: 10,
     maxStores: 3,
     monthlyAiReplies: 500,
     teamSeats: 3,
@@ -49,6 +55,8 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     allowedModels: ["openai/gpt-4o-mini", "openai/gpt-4o", "anthropic/claude-3-haiku"],
   },
   [Plan.BUSINESS]: {
+    maxWorkspaces: null,
+    maxProjects: null,
     maxStores: null,
     monthlyAiReplies: null,
     teamSeats: null,

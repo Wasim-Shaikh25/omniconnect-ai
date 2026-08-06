@@ -13,6 +13,8 @@ type PrismaIntegration = {
   provider: string;
   baseUrl: string | null;
   config: Prisma.JsonValue | null;
+  isActive: boolean;
+  lastSyncAt: Date | null;
   createdAt: Date;
 };
 
@@ -34,6 +36,8 @@ function toRecord(i: PrismaIntegration): IntegrationRecord {
     scopes: null,
     connectedAt: i.createdAt,
     metadata: configAsRecord(i.config),
+    isActive: i.isActive,
+    lastSyncAt: i.lastSyncAt,
   };
 }
 
@@ -66,6 +70,7 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       config,
       projectId: input.projectId,
       isActive: true,
+      lastSyncAt: new Date(),
     };
 
     const saved = existing
@@ -123,5 +128,40 @@ export class PrismaIntegrationRepository implements IntegrationRepository {
       refreshToken: await decryptString(found.refreshToken),
       metadata: configAsRecord(found.config),
     };
+  }
+
+  async findAll(options?: {
+    provider?: string;
+    isActive?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ items: IntegrationRecord[]; total: number }> {
+    const where: Prisma.EcommerceConnectionWhereInput = {};
+    if (options?.provider) where.provider = { equals: options.provider, mode: "insensitive" };
+    if (typeof options?.isActive === "boolean") where.isActive = options.isActive;
+
+    const [items, total] = await Promise.all([
+      prisma.ecommerceConnection.findMany({
+        where,
+        skip: options?.offset ?? 0,
+        take: options?.limit ?? 100,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.ecommerceConnection.count({ where }),
+    ]);
+    return { items: items.map(toRecord), total };
+  }
+
+  async findById(id: string): Promise<IntegrationRecord | null> {
+    const found = await prisma.ecommerceConnection.findUnique({ where: { id } });
+    return found ? toRecord(found) : null;
+  }
+
+  async updateStatus(id: string, isActive: boolean): Promise<IntegrationRecord | null> {
+    const found = await prisma.ecommerceConnection.update({
+      where: { id },
+      data: { isActive },
+    });
+    return found ? toRecord(found) : null;
   }
 }

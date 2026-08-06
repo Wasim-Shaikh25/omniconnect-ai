@@ -14,6 +14,8 @@ export interface IntegrationRecord {
   scopes: string | null;
   connectedAt: Date;
   metadata: Record<string, unknown> | null;
+  isActive: boolean;
+  lastSyncAt: Date | null;
 }
 
 export interface IntegrationRepository {
@@ -40,6 +42,14 @@ export interface IntegrationRepository {
     refreshToken: string | null;
     metadata: Record<string, unknown> | null;
   } | null>;
+
+  /** List all adapter connections, optionally filtered by provider or status. */
+  findAll(options?: { provider?: string; isActive?: boolean; limit?: number; offset?: number }): Promise<{ items: IntegrationRecord[]; total: number }>;
+
+  findById(id: string): Promise<IntegrationRecord | null>;
+
+  /** Approve or flag an adapter for review. */
+  updateStatus(id: string, isActive: boolean): Promise<IntegrationRecord | null>;
 }
 
 export interface ProductRecord {

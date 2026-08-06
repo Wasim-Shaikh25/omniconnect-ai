@@ -4,7 +4,7 @@ description: Super Admin Panel
 
 # REQ-0087: Super Admin Panel
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0087-super-admin-panel.md`
@@ -40,12 +40,12 @@ Platform-level admin panel for SUPER_ADMIN role. Sections: Users (view, imperson
 
 ## 5. Acceptance Criteria
 
-- [ ] Super admin routes protected by SUPER_ADMIN role check.
-- [ ] User list with search, filter, and pagination.
-- [ ] Impersonation: temporary session as another user with audit log.
-- [ ] Plan CRUD with feature limit matrix.
-- [ ] System health dashboard: API calls, queue depth, error rate, AI token usage.
-- [ ] Adapter library: list generated adapters with validation status.
+- [x] Super admin routes protected by SUPER_ADMIN role check.
+- [x] User list with search, filter, and pagination.
+- [x] Impersonation: temporary session as another user with audit log.
+- [x] Plan CRUD with feature limit matrix.
+- [x] System health dashboard: API calls, queue depth, error rate, AI token usage.
+- [x] Adapter library: list generated adapters with validation status.
 
 ## 6. Scope & Dependencies
 

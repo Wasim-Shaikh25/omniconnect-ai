@@ -93,8 +93,8 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 |--------|------|
 | `auth` | User credentials, sessions, password reset, MFA, super-admin OTP, role checks. |
 | `users` | User profile, organization membership, role changes, store assignment, GDPR export/delete. |
-| `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits, team invites. |
-| `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons. |
+| `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits (`PlanConfig` DB overrides with `PLAN_LIMITS` fallback), team invites. |
+| `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons, adapter library (super-admin list/validate/approve generated adapters). |
 | `meta` | Meta Graph API client, inbound webhook verification, outbound messaging. |
 | `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence with daily and total summaries. |
 | `coupons` | First-follower and DM campaign coupon orchestration. |
@@ -115,13 +115,14 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `User` — authentication, RBAC role (`USER` | `SUPER_ADMIN`), `userId` (owning-tenant id), `projectId` (selected active project), plan/subscription fields, AI quota counters, `suspendedAt`/`banned` moderation flags, `deletedAt`, `tokenVersion`.
 - `Workspace` — tenant boundary; owned by a `userId`; carries plan/subscription metadata.
 - `Project` — a connected e-commerce or Meta source (replaces `Store`); `workspaceId`, `provider`, `domain`, `archivedAt`/`deletedAt` for soft lifecycle.
-- `EcommerceConnection` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest; `projectId` scoped.
+- `EcommerceConnection` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest; `projectId` scoped; `isActive` and `lastSyncAt` exposed to super admins through the adapter library.
 - `Product` / `Order` / `Customer` / `Coupon` — synced from e-commerce connectors; `externalId` + `projectId` uniqueness.
 - `Conversation` / `Message` — DM/comment threads; status `AI_ACTIVE` or `HUMAN_ACTIVE`.
 - `Follower` / `Campaign` — first-follower campaign tracking.
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
+- `PlanConfig` — optional per-plan feature-limit overrides; `planConfigService.resolveLimits(plan)` falls back to the hardcoded `PLAN_LIMITS` when no override exists.
 - `AttributionLink` — checkout URL with coupon auto-apply, UTM tags, short code, clicks, conversions, and attributed revenue; linked to `Project` and `Coupon`.
 - `ProcessedWebhookEvent` — provider-scoped idempotency ledger for Stripe, Shopify, and Meta webhooks; pruned after 30 days.
 - `ExportRequest` — GDPR data-export jobs.
@@ -221,7 +222,9 @@ Core tables (see `prisma/schema.prisma` for full model):
    - `inspectProfileAction` consumes a daily profile inspection.
    - `trackCompetitorAction` blocks new tracked accounts beyond `maxCompetitors`.
    - `createAttributionLinkAction` blocks new links beyond `maxAttributionLinksPerMonth` for the current project.
-5. `/settings/billing` displays the current plan, a `PLAN_LIMITS` matrix with store usage progress, and `PricingCards` for upgrades. Stripe checkout and webhook lifecycle remain in `api/stripe/*` and `billingService`.
+5. `PlanConfig` lets super admins override `PLAN_LIMITS` per plan from `/admin/plans`; `planConfigService.resolveLimits(plan)` merges stored overrides and falls back to defaults so existing behavior is preserved when no row exists.
+6. `/settings/billing` displays the current plan, a `PLAN_LIMITS` matrix with store usage progress, and `PricingCards` for upgrades. Stripe checkout and webhook lifecycle remain in `api/stripe/*` and `billingService`; `/admin/payments` lists paid invoices across organizations and lets super admins issue refunds through `BillingService.refundPayment`.
+7. The adapter library at `/admin/adapters` lists every `EcommerceConnection` with provider, project, status, last sync, and actions to approve/flag or validate the live connection.
 
 ---
 

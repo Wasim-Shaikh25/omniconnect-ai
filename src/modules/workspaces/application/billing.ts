@@ -6,7 +6,7 @@ import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-even
 import { Plan, isPlan } from "../domain/plan";
 import { OrganizationRepository } from "./ports";
 import { SaaSCouponRepository } from "./saas-coupon";
-import { CheckoutSessionInput, PaymentGateway, PortalSessionInput, PortalSessionResult, InvoiceRecord } from "./payment-gateway";
+import { CheckoutSessionInput, PaymentGateway, PortalSessionInput, PortalSessionResult, InvoiceRecord, RefundInput, RefundResult } from "./payment-gateway";
 
 export class BillingSignatureError extends Error {
   constructor(message: string) {
@@ -26,6 +26,7 @@ export interface BillingService {
   createCheckoutSession(input: CheckoutSessionInput): Promise<{ url: string | null }>;
   createPortalSession(input: PortalSessionInput): Promise<PortalSessionResult>;
   listInvoices(customerId: string): Promise<InvoiceRecord[]>;
+  refundPayment(input: RefundInput): Promise<RefundResult>;
   fulfillCheckout(payload: string | Buffer, signature: string): Promise<void>;
 }
 
@@ -55,6 +56,10 @@ export function makeBillingService(deps: {
 
     async listInvoices(customerId: string) {
       return deps.paymentGateway.listInvoices(customerId);
+    },
+
+    async refundPayment(input: RefundInput) {
+      return deps.paymentGateway.createRefund(input);
     },
 
     async fulfillCheckout(payload, signature) {

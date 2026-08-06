@@ -87,7 +87,9 @@ export {
   ecommerceQueries,
   detectCommerceInsights,
   abandonedCartSweep,
+  adapterLibrary,
 } from "./infrastructure/container";
+export type { AdapterLibraryService, AdapterValidationResult } from "./application/adapter-library";
 
 // Presentation
 export {
@@ -100,3 +102,9 @@ export {
   bulkDeleteCouponsAction,
 } from "./presentation/actions";
 export type { EcommerceActionState } from "./presentation/actions";
+export {
+  listAdaptersAction,
+  toggleAdapterAction,
+  validateAdapterAction,
+} from "./presentation/adapter-library.actions";
+export type { AdapterLibraryActionState } from "./presentation/adapter-library.actions";

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { makeCreateStore } from "./create-store";
 import { StoreLimitError } from "../domain/errors";
 import { Plan } from "../domain/plan";
-import type { OrganizationRepository, StoreRecord, StoreRepository } from "./ports";
+import type { OrganizationRepository, PlanConfigInput, PlanConfigRepository, StoreRecord, StoreRepository } from "./ports";
 
 function makeOrgRepo(plan: Plan): OrganizationRepository {
   return {
@@ -36,11 +36,20 @@ function makeStoreRepo(count: number): StoreRepository {
   } as unknown as StoreRepository;
 }
 
+function makePlanConfigRepo(): PlanConfigRepository {
+  return {
+    list: async () => [],
+    findByPlan: async () => null,
+    upsert: async (input: PlanConfigInput) => ({ id: "pc-1", ...input, createdAt: new Date(), updatedAt: new Date() } as unknown as Awaited<ReturnType<PlanConfigRepository["upsert"]>>),
+  } as unknown as PlanConfigRepository;
+}
+
 describe("createStore billing enforcement", () => {
   it("blocks creating a second store on the FREE plan", async () => {
     const createStore = makeCreateStore({
       organizations: makeOrgRepo(Plan.FREE),
       stores: makeStoreRepo(1),
+      planConfigs: makePlanConfigRepo(),
     });
     const result = await createStore({ userId: "org-1", name: "Second", provider: "SHOPIFY" });
     expect(result.ok).toBe(false);
@@ -51,6 +60,7 @@ describe("createStore billing enforcement", () => {
     const createStore = makeCreateStore({
       organizations: makeOrgRepo(Plan.BUSINESS),
       stores: makeStoreRepo(25),
+      planConfigs: makePlanConfigRepo(),
     });
     const result = await createStore({ userId: "org-1", name: "Another", provider: "SHOPIFY" });
     expect(result.ok).toBe(true);

@@ -1,9 +1,29 @@
-import { OrganizationRepository } from "./ports";
-import { Plan, planLimits, PlanLimits, isWithinLimit } from "../domain/plan";
+import { OrganizationRepository, PlanConfigRepository } from "./ports";
+import { Plan, PlanLimits, isWithinLimit, PLAN_LIMITS } from "../domain/plan";
 
 export function makeOrganizationUsageService(deps: {
   organizations: OrganizationRepository;
+  planConfigs: PlanConfigRepository;
 }) {
+  async function resolveLimits(plan: Plan): Promise<PlanLimits> {
+    const config = await deps.planConfigs.findByPlan(plan);
+    if (config && !config.isDefault) {
+      return {
+        maxWorkspaces: config.maxWorkspaces,
+        maxProjects: config.maxProjects,
+        maxStores: config.maxStores,
+        monthlyAiReplies: config.monthlyAiReplies,
+        teamSeats: config.teamSeats,
+        maxProfileInspectionsPerDay: config.maxProfileInspectionsPerDay,
+        maxCompetitors: config.maxCompetitors,
+        maxAttributionLinksPerMonth: config.maxAttributionLinksPerMonth,
+        maxContentSchedulesPerMonth: config.maxContentSchedulesPerMonth,
+        allowedModels: config.allowedModels,
+      };
+    }
+    return PLAN_LIMITS[plan];
+  }
+
   return {
     /**
      * Attempt to consume one AI reply for the organization.
@@ -13,7 +33,7 @@ export function makeOrganizationUsageService(deps: {
     async consumeAIReply(userId: string): Promise<boolean> {
       const org = await deps.organizations.findById(userId);
       if (!org) return false;
-      const { monthlyAiReplies } = planLimits(org.plan as Plan);
+      const { monthlyAiReplies } = await resolveLimits(org.plan as Plan);
       return deps.organizations.incrementAIReplies(userId, monthlyAiReplies);
     },
 
@@ -25,7 +45,7 @@ export function makeOrganizationUsageService(deps: {
     async consumeProfileInspection(userId: string): Promise<boolean> {
       const org = await deps.organizations.findById(userId);
       if (!org) return false;
-      const { maxProfileInspectionsPerDay } = planLimits(org.plan as Plan);
+      const { maxProfileInspectionsPerDay } = await resolveLimits(org.plan as Plan);
       return deps.organizations.incrementProfileInspections(userId, maxProfileInspectionsPerDay);
     },
 
@@ -40,7 +60,7 @@ export function makeOrganizationUsageService(deps: {
     ): Promise<{ allowed: boolean; limit: number | null }> {
       const org = await deps.organizations.findById(userId);
       if (!org) return { allowed: false, limit: null };
-      const limits = planLimits(org.plan as Plan);
+      const limits = await resolveLimits(org.plan as Plan);
       const limit = limits[limitKey];
       const numericLimit = typeof limit === "number" ? limit : null;
       return { allowed: isWithinLimit(numericLimit, currentUsage), limit: numericLimit };
@@ -52,7 +72,7 @@ export function makeOrganizationUsageService(deps: {
     async getPlanLimits(userId: string): Promise<PlanLimits | null> {
       const org = await deps.organizations.findById(userId);
       if (!org) return null;
-      return planLimits(org.plan as Plan);
+      return resolveLimits(org.plan as Plan);
     },
   };
 }
