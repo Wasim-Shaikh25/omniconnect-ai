@@ -160,7 +160,7 @@ export interface ChatSessionRepository {
   findById(id: string): Promise<(ChatSessionRecord & { messages: ChatMessageRecord[] }) | null>;
   listByProject(projectId: string, limit?: number): Promise<ChatSessionRecord[]>;
   updateTitle(id: string, title: string): Promise<ChatSessionRecord | null>;
-  delete(id: string): Promise<void>;
+  delete(id: string, projectId: string): Promise<void>;
   addMessage(input: Omit<ChatMessageRecord, "id" | "createdAt">): Promise<ChatMessageRecord>;
 }
 

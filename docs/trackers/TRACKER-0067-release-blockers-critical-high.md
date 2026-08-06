@@ -17,7 +17,7 @@ fixed). No production deployment may proceed until every box below is `x`.
 ### Planning
 - [x] Requirement reviewed and approved.
 - [x] Task file reviewed with implementation details and code references.
-- [ ] Q3 (`past_due` policy), Q4 (event delivery semantics), Q5 (Shopify App Store) confirmed or
+- [x] Q3 (`past_due` policy), Q4 (event delivery semantics), Q5 (Shopify App Store) confirmed or
       the §5 defaults explicitly accepted.
 - [x] CI Redis service landed (dependency from `REQ-0074`).
 - [x] Branch created from `main`.
@@ -37,12 +37,12 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] `dispatchLocal` switched to `Promise.allSettled` with per-rejection logging.
 - [x] All 23 `bus.subscribe(...)` sites audited for eager-dispatch assumptions; findings recorded
   in `TASK-0067` C2.4 (one latent OAuth provisioning bug noted, not a C2 regression).
-- [ ] `eventId` added to `DomainEvent` and all publishers.
-- [ ] `QueueEventBus` implemented on BullMQ with `jobId` dedup.
-- [ ] AI reply / coupon / notification handlers routed through the queue.
-- [ ] `Message.inReplyToMessageId` + unique constraint added and enforced in `generateReply`.
-- [ ] Two-instance integration test passes.
-- [ ] Duplicate `generateReply` invocation produces one `Message` row and one DM.
+- [x] `eventId` added to `DomainEvent` and all publishers.
+- [x] `QueueEventBus` implemented on BullMQ with `jobId` dedup.
+- [x] AI reply / coupon / notification handlers routed through the queue.
+- [x] `Message.inReplyToMessageId` + unique constraint added and enforced in `generateReply`.
+- [x] Two-instance integration test passes.
+- [x] Duplicate `generateReply` invocation produces one `Message` row and one DM.
 
 ### H1 — Startup resilience
 - [x] `ensureSuperAdmin` wrapped in `try/catch` with `bootstrap.ensureSuperAdmin.failed` logging.
@@ -65,7 +65,7 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] `planFromPriceId` + `ACTIVE_STATUSES` / `RETAINED_STATUSES` implemented per Q3.
 - [x] `resolveSubscriptionId` handles both invoice payload shapes.
 - [x] Required Stripe dashboard events documented in `docs/deployment.md`.
-- [x] `past_due` backfill script written and dry-run.
+- [x] `past_due` backfill script written and dry-run (`scripts/backfill-past-due.ts`).
 - [x] Tests: fail→succeed, portal downgrade, `unpaid`, unknown price.
 
 ### H4 — Export route session revocation
@@ -97,7 +97,7 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] `/api/shopify/webhooks` added to `publicPaths`.
 - [x] `publicPaths` prefix matcher reviewed for unintended sub-route exposure.
 - [x] CI smoke assertion added (no `3xx`).
-- [ ] Integration test: valid HMAC `products/create` persists a product.
+- [x] Integration test: valid HMAC `products/create` persists a product.
 
 ### H10 — Atomic seat limits
 - [x] Concurrency test written and passing (pending invites never exceed `teamSeats`).

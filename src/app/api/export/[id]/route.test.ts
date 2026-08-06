@@ -49,6 +49,22 @@ describe("GET /api/export/[id]", () => {
     expect(mockGetExportRequest).toHaveBeenCalledWith("export-1", owner.id);
   });
 
+  it("returns 401 when the session tokenVersion is stale", async () => {
+    mockGetCurrentUser.mockResolvedValue(null);
+    mockGetExportRequest.mockResolvedValue(null);
+
+    const response = await GET(requestFor("export-stale"), { params: Promise.resolve({ id: "export-stale" }) });
+    expect(response.status).toBe(401);
+  });
+
+  it("returns 401 when the user is soft-deleted", async () => {
+    mockGetCurrentUser.mockResolvedValue(null);
+    mockGetExportRequest.mockResolvedValue(null);
+
+    const response = await GET(requestFor("export-deleted"), { params: Promise.resolve({ id: "export-deleted" }) });
+    expect(response.status).toBe(401);
+  });
+
   it("returns 200 with Cache-Control: no-store, private for a valid completed export", async () => {
     const user = { id: "user-1", email: "user@example.com" };
     const exportRequest = {

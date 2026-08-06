@@ -120,7 +120,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `EcommerceConnection` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest; `projectId` scoped; `isActive` and `lastSyncAt` exposed to super admins through the adapter library.
 - `Product` / `Order` / `Customer` / `Coupon` — synced from e-commerce connectors; `externalId` + `projectId` uniqueness.
 - `Conversation` / `Message` — DM/comment threads; status `AI_ACTIVE` or `HUMAN_ACTIVE`.
-- `ChatSession` / `ChatMessage` — assistant chat history per project/user; separate from customer `Conversation`/`Message`; messages carry `role` (`system` | `user` | `assistant` | `tool`) and optional `toolCalls`/`toolCallId`.
+- `ChatSession` / `ChatMessage` — assistant chat history per project/user; separate from customer `Conversation`/`Message`; messages carry `role` (`system` | `user` | `assistant` | `tool`) and optional `toolCalls`/`toolCallId`. `ChatSessionRepository.delete` is scoped by `projectId` to enforce tenant isolation at the database level.
 - `Follower` / `Campaign` — first-follower campaign tracking.
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
 - `ScheduledPost` — pending/published/failed/cancelled Instagram posts with `scheduledAt` (UTC), `scheduledAtTimezone` (browser IANA zone for display), `mediaUrls`, and the dispatched `jobId`.
