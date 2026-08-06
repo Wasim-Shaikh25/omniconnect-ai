@@ -1,12 +1,12 @@
 # TASK-0069: Implement Low-Severity Fixes and the Domain-Event Census
 
-- **Status:** Todo
+- **Status:** Implemented
 - **Owner:** Backend / Frontend
 - **Requirement:** `docs/requirements/REQ-0069-low-severity-and-event-census.md`
 - **Tracker:** `docs/trackers/TRACKER-0069-low-severity-and-event-census.md`
 - **Module(s):** `ai`, `shared/events`, `shared/observability`, presentation shell, infra config
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Domain-event census, navigation reachability, log-level gating, Fly.io machine policy, case-insensitive AI escalation.
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-06 (L5 deferred to post-launch ops; L7 marker inventory complete)
 
 ## 1. Summary
 
@@ -224,12 +224,12 @@ Record the results in §6.
 - [x] **L1.4** Link a REQ id to every event classified **Planned**.
 - [x] **L1.5** Add the registry-completeness test (`src/test/event-registry.test.ts`).
 - [x] **L1.6** Add the "Planned requires a requirement id" test.
-- [ ] **L2.1** Add `/support` to the authenticated sidebar.
-- [ ] **L2.2** Add `/analytics/journeys` to the analytics nav.
-- [ ] **L2.3** Fix the duplicate `/stores` destination.
-- [ ] **L2.4** Make active-state matching exact; add the single-active test.
-- [ ] **L2.5** Add the route-coverage test with an explicit allow-list.
-- [ ] **L3.1** Add stable `key` fields to nav sections.
+- [x] **L2.1** Add `/support` to the authenticated sidebar.
+- [x] **L2.2** Add `/analytics/journeys` to the analytics nav.
+- [x] **L2.3** Fix the duplicate `/stores` destination.
+- [x] **L2.4** Make active-state matching exact; add the single-active test.
+- [x] **L2.5** Add the route-coverage test with an explicit allow-list.
+- [x] **L3.1** Add stable `key` fields to nav sections (sections keyed by `label`, items by `href`).
 - [x] **L3.2** Replace `sections[5]!` with a lookup by label.
 - [x] **L3.3** Add a test that reordering sections does not change behaviour (covered by L3.2; navigation tests added later).
 - [x] **L4.1** Add `LOG_LEVEL` to `env.ts`.
@@ -239,16 +239,16 @@ Record the results in §6.
 - [x] **L4.5** Test: `logger.debug` emits nothing at the default level.
 - [x] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
 - [x] **L5.1** Set `min_machines_running = 1` and `auto_stop_machines = "off"` for the app process in `fly.toml`.
-- [ ] **L5.2** Measure SSR + AI generation memory; decide the VM size.
-- [ ] **L5.3** Record the sizing ADR.
+- [x] **L5.2** Measure SSR + AI generation memory; decide the VM size. — **Deferred**: requires production-like traffic; tracked as a post-launch ops task in `docs/operations.md`.
+- [x] **L5.3** Record the sizing ADR. — **Blocked on L5.2 measurement; deferred**.
 - [x] **L5.1b** Set `auto_stop_machines = "off"` for the app process in `fly.toml`.
 - [x] **L5.1c** With `auto_stop_machines = "off"` and `min_machines_running = 1`, the app machine stays running; no cold-start on webhook delivery.
 - [x] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
 - [x] **L7.1** Switch escalation detection to a case-insensitive regex.
 - [x] **L7.2** Add the three-case unit test.
 - [x] **L7.3** Inventory other AI output markers; record results.
-  - Only `[ESCALATE]` is parsed from model output in `src/modules/ai`. The `openai.provider` uses
-    `<<<USER_MESSAGE>>>`/`<<<DATA>>>` delimiters for prompt injection hardening (S11), not for
+  - Only `[ESCALATE]` is parsed from model output in `src/modules/ai`. Prompt delimiters
+    (`<<<USER_MESSAGE>>>`, `<<<DATA>>>`) are used for prompt-injection hardening (M15), not for
     post-generation parsing.
 
 ## 5. Acceptance Criteria

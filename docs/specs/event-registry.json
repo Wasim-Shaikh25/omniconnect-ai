@@ -759,9 +759,11 @@
       "name": "StoreCreated",
       "module": "organizations",
       "file": "modules/organizations/domain/events.ts",
-      "status": "Planned",
+      "status": "Live",
       "reqId": "REQ-0011",
-      "subscribers": []
+      "subscribers": [
+        "modules/ai/infrastructure/subscribers.ts"
+      ]
     },
     {
       "name": "CommentHidden",

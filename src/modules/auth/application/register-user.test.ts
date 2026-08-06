@@ -51,8 +51,8 @@ describe("register-user use-case", () => {
     const result = await registerUser({
       email: "new@example.com",
       name: "New User",
-      password: "password123",
-      confirmPassword: "password123",
+      password: "ValidPass123!",
+      confirmPassword: "ValidPass123!",
       phone: undefined,
     });
 
@@ -61,13 +61,13 @@ describe("register-user use-case", () => {
     expect(result.value.isExisting).toBe(false);
     expect(result.value.email).toBe("new@example.com");
     expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ email: "new@example.com" }));
-    expect(hasher.hash).toHaveBeenCalledWith("password123");
+    expect(hasher.hash).toHaveBeenCalledWith("ValidPass123!");
   });
 
   it("returns existing user without creating a new account", async () => {
     const { registerUser, repository } = makeSut();
-    await registerUser({ email: "existing@example.com", password: "password123", confirmPassword: "password123", phone: undefined });
-    const result = await registerUser({ email: "existing@example.com", password: "password123", confirmPassword: "password123", phone: undefined });
+    await registerUser({ email: "existing@example.com", password: "ValidPass123!", confirmPassword: "ValidPass123!", phone: undefined });
+    const result = await registerUser({ email: "existing@example.com", password: "ValidPass123!", confirmPassword: "ValidPass123!", phone: undefined });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -78,7 +78,7 @@ describe("register-user use-case", () => {
   it("rejects mismatched confirm password", () => {
     const result = registerUserSchema.safeParse({
       email: "test@example.com",
-      password: "password123",
+      password: "ValidPass123!",
       confirmPassword: "different",
     });
     expect(result.success).toBe(false);
@@ -87,8 +87,8 @@ describe("register-user use-case", () => {
   it("rejects an invalid phone number", () => {
     const result = registerUserSchema.safeParse({
       email: "test@example.com",
-      password: "password123",
-      confirmPassword: "password123",
+      password: "ValidPass123!",
+      confirmPassword: "ValidPass123!",
       phone: "not-a-phone",
     });
     expect(result.success).toBe(false);
@@ -97,8 +97,8 @@ describe("register-user use-case", () => {
   it("accepts a valid E.164 phone number", () => {
     const result = registerUserSchema.safeParse({
       email: "test@example.com",
-      password: "password123",
-      confirmPassword: "password123",
+      password: "ValidPass123!",
+      confirmPassword: "ValidPass123!",
       phone: "+447700900123",
     });
     expect(result.success).toBe(true);

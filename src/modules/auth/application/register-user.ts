@@ -7,10 +7,12 @@ import { Role } from "../domain/role";
 import { UserRegistered } from "../domain/events";
 import { AccountRepository, PasswordHasher } from "./ports";
 
+export const GENDER_VALUES = ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"] as const;
+
 export const registerUserSchema = z
   .object({
     email: z.string().email(),
-    name: z.string().min(1).max(120).optional(),
+    name: z.string().min(2).max(100).optional(),
     password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
     phone: z
@@ -19,13 +21,16 @@ export const registerUserSchema = z
         message: "Use international format, e.g. +447700900123",
       })
       .optional(),
+    companyName: z.string().min(1).max(120).optional(),
+    age: z.coerce.number().int().min(13).max(120).optional(),
+    gender: z.enum(GENDER_VALUES).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   })
   .refine((data) => isPasswordValid(data.password), {
-    message: `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters`,
+    message: `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters and include uppercase, lowercase, number, and special characters`,
     path: ["password"],
   })
   .transform((data) => ({
@@ -34,7 +39,7 @@ export const registerUserSchema = z
     email: data.email.toLowerCase().trim(),
   }));
 
-export type RegisterUserInput = z.infer<typeof registerUserSchema>;
+export type RegisterUserInput = z.input<typeof registerUserSchema>;
 
 export interface RegisteredUser {
   id: string;
@@ -83,6 +88,9 @@ export function makeRegisterUser(deps: {
       emailVerified,
       userId: options?.userId ?? null,
       projectId: options?.projectId ?? null,
+      companyName: input.companyName ?? null,
+      age: input.age ?? null,
+      gender: input.gender ?? null,
     });
 
     await deps.eventBus.publish(
@@ -90,7 +98,7 @@ export function makeRegisterUser(deps: {
         userId: account.id,
         email: account.email,
         role: account.role,
-        autoProvisionOrganization: false,
+        autoProvisionOrganization: true,
       }),
     );
 

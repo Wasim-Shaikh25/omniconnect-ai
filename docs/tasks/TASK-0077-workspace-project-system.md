@@ -1,12 +1,12 @@
 # TASK-0077: Workspace & Project System
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0077-workspace-project-system.md`
 - **Tracker:** `docs/trackers/TRACKER-0077-workspace-project-system.md`
 - **Module(s):** workspaces (new), billing
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Workspace/Project hierarchy with plan enforcement.
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -39,17 +39,17 @@ Workspace dropdown → Project dropdown in sidebar. Store selected workspace/pro
 
 ## 4. Subtasks
 
-- [ ] T-002: Create Workspace/Project/EcommerceConnection Prisma models
-- [ ] T-014: Workspace CRUD + plan limits
-- [ ] T-015: Project CRUD + plan limits
-- [ ] T-020: Workspace/project selector UI
+- [x] T-002: Create Workspace/Project/EcommerceConnection Prisma models
+- [x] T-014: Workspace CRUD + plan limits (implicit default workspace)
+- [x] T-015: Project CRUD + plan limits
+- [x] T-020: Workspace/project selector UI
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0077 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0077 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 
-- Depends on REQ-0090 (Organization/Store cleanup) completing first.
+- REQ-0090 cleanup is complete; workspace/project models are in `prisma/schema.prisma`.

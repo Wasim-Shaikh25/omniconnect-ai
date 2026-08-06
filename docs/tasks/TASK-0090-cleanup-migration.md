@@ -1,12 +1,12 @@
 # TASK-0090: Cleanup & Migration
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0090-cleanup-migration.md`
 - **Tracker:** `docs/trackers/TRACKER-0090-cleanup-migration.md`
 - **Module(s):** all (cross-cutting)
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Delete old Org/Store/Staff models, hardcoded connectors, overscoped features.
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06 (acceptance criteria verified and closed)
 
 ## 1. Summary
 

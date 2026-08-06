@@ -68,7 +68,7 @@ export default async function IntegrationsPage({
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base">eCommerce</CardTitle>
-              <CardDescription>Shopify or Mock connector</CardDescription>
+              <CardDescription>Shopify, custom adapter, or Mock</CardDescription>
             </div>
             <span
               className={`rounded-full px-2 py-1 text-xs font-medium ${
@@ -109,9 +109,16 @@ export default async function IntegrationsPage({
                 No eCommerce store connected yet.
               </p>
             )}
-            <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${projectId}`}>Manage connection</Link>
-            </Button>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/stores/${projectId}`}>Manage connection</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/stores/${projectId}/integrations/adapter`}>
+                  Custom adapter
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

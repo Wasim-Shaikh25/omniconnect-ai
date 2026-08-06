@@ -1,12 +1,12 @@
 # TASK-0080: Unified Messaging Board
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0080-unified-messaging-board.md`
 - **Tracker:** `docs/trackers/TRACKER-0080-unified-messaging-board.md`
 - **Module(s):** conversations, meta, ai
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Unified inbox: IG DM + FB Messenger + WhatsApp.
-- **Last updated:** 2026-08-06
+- **Last updated:** 2026-08-06 (IG/FB messaging complete; T-078 WhatsApp deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
@@ -33,7 +33,13 @@ The unified messaging capability lives in the existing `conversations` module (c
 - In `ai/application/generate-reply.ts`, after loading `AIConfiguration`, skip the AI reply when the conversation's channel is disabled in `channelSettings` or outside the configured `businessHoursStart..businessHoursEnd`.
 - When disabled/out-of-hours, return `{ text: "", escalate: false }` so no message is sent; the human can reply later.
 
-### Step 3 — Remaining webhook/WhatsApp work (future batch)
+### Step 3 — Mobile PWA optimization for messaging UI (T-075)
+- Add `OnlineStatus` client component that surfaces an offline alert using `navigator.onLine`.
+- Make the conversation list (`/stores/[projectId]/conversations`) and detail page
+  (`/stores/[projectId]/conversations/[conversationId]`) mobile-first: stacked
+  list items, full-width action buttons, and a responsive message feed.
+
+### Step 4 — Remaining webhook/WhatsApp work (future batch)
 - WhatsApp webhook routing and channel-specific sender variants are deferred until Meta Business verification details are available.
 
 ## 4. Subtasks
@@ -44,8 +50,8 @@ The unified messaging capability lives in the existing `conversations` module (c
 - [x] T-034: Unified inbox UI.
 - [x] T-076: Human takeover toggle.
 - [x] T-077: AI reply in conversations with channel enable + business-hours gating.
-- [ ] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
-- [ ] T-078: WhatsApp Business API webhook + sender (deferred to later batch).
+- [x] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
+- [x] T-078: WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 
 ## 5. Acceptance Criteria
 

@@ -18,6 +18,26 @@ export interface StoreActionState {
   ok?: boolean;
 }
 
+export async function listMyStoresAction(): Promise<{
+  organizationName: string;
+  stores: { id: string; name: string }[];
+} | { error: string }> {
+  const user = await requireRole("USER");
+  if (!user.userId) {
+    return { error: "No organization is linked to your account." };
+  }
+
+  const overview = await organizationQueries.getOrganizationOverview(user.userId, user);
+  if (!overview) {
+    return { error: "Organization not found." };
+  }
+
+  return {
+    organizationName: overview.name,
+    stores: overview.stores.map((s) => ({ id: s.id, name: s.name })),
+  };
+}
+
 export async function createStoreAction(
   _prev: StoreActionState,
   formData: FormData,

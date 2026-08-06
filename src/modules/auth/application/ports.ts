@@ -48,6 +48,9 @@ export interface AccountRepository {
     isSuperAdmin?: boolean;
     userId?: string | null;
     projectId?: string | null;
+    companyName?: string | null;
+    age?: number | null;
+    gender?: string | null;
   }): Promise<AccountRecord>;
 }
 

@@ -54,6 +54,9 @@ export async function registerAction(
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     phone: formData.get("phone") || undefined,
+    companyName: formData.get("companyName") || undefined,
+    age: formData.get("age") || undefined,
+    gender: formData.get("gender") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -68,7 +71,7 @@ export async function registerAction(
     return { error: "Bot verification failed. Please try again." };
   }
 
-  const emailVerified = env.REQUIRE_EMAIL_VERIFICATION ? null : new Date();
+  const emailVerified = env.ENABLE_EMAIL_OTP ? null : new Date();
   const result = await registerUser(parsed.data, { emailVerified });
   if (!result.ok) return { error: result.error.message };
 
@@ -80,7 +83,7 @@ export async function registerAction(
     };
   }
 
-  if (env.REQUIRE_EMAIL_VERIFICATION) {
+  if (env.ENABLE_EMAIL_OTP) {
     await emailVerificationService.issue(result.value.id, result.value.email, "signup");
     return {
       ok: true,
@@ -152,7 +155,7 @@ export async function loginAction(
     return { mfaRequired: true, message: "A verification code was sent to your email and phone (if configured)." };
   }
 
-  if (env.REQUIRE_EMAIL_VERIFICATION && !account.emailVerified) {
+  if (env.ENABLE_EMAIL_OTP && !account.emailVerified) {
     return {
       unverified: true,
       email,
@@ -399,6 +402,10 @@ export async function requestPhoneVerificationAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  if (!env.ENABLE_MOBILE_OTP) {
+    return { error: "Phone verification is not enabled." };
+  }
+
   const user = await requireUser();
   const parsed = requestPhoneVerificationSchema.safeParse({
     phone: formData.get("phone"),
@@ -416,6 +423,10 @@ const verifyPhoneSchema = z.object({
 });
 
 export async function verifyPhoneAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!env.ENABLE_MOBILE_OTP) {
+    return { error: "Phone verification is not enabled." };
+  }
+
   const user = await requireUser();
   const parsed = verifyPhoneSchema.safeParse({ code: formData.get("code") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid code." };

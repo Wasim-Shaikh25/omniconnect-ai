@@ -48,6 +48,7 @@ const envSchema = z.object({
 
   META_APP_ID: z.string().optional(),
   META_APP_SECRET: z.string().optional(),
+  META_REDIRECT_URI: z.string().url().optional().default("http://localhost:3000/api/meta/callback"),
   META_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
 
   S3_ENDPOINT: z.string().optional(),
@@ -87,6 +88,16 @@ const envSchema = z.object({
   REQUIRE_EMAIL_VERIFICATION: z
     .enum(["true", "false"])
     .default("true")
+    .transform((v) => v === "true"),
+
+  ENABLE_EMAIL_OTP: z
+    .enum(["true", "false"])
+    .default(() => (process.env.REQUIRE_EMAIL_VERIFICATION === "false" ? "false" : "true"))
+    .transform((v) => v === "true"),
+
+  ENABLE_MOBILE_OTP: z
+    .enum(["true", "false"])
+    .default("false")
     .transform((v) => v === "true"),
 
   TURNSTILE_SITE_KEY: z.string().optional(),

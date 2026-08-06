@@ -51,7 +51,7 @@ Username input, results dashboard with confidence labels, top content grid, grow
 
 - [x] Matches REQ-0085 acceptance criteria.
 - [x] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

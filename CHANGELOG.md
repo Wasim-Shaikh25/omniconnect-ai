@@ -15,6 +15,58 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 1** on `devin/req-0078-dynamic-adapters-batch1-1786085000`:
+  implemented the safe HTTP `ConfigInterpreter` (`buildUrl`, `buildHeaders`, `extractPath`, `mapFields`, `interpolate`)
+  so an `AdapterConfigMapping` can execute every `EcommerceConnector` method without arbitrary code;
+  added a Zod validation schema for `AdapterConfigMapping`;
+  added `OpenRouterAdapterGenerator` that converts API documentation text into a validated config via
+  the public `AIProvider` port;
+  added `testAdapterConfigAction` to exercise `fetchStoreInfo` + `getProducts` with user credentials and
+  tenant-guarded project access. UI persistence and hardcoded connector removal queued for Batch 2.
+
+- `REQ-0067` **Release blockers — remaining tests and hardening** on `devin/req-0067-release-blockers-c2-tests-1786083000`:
+  - added `src/shared/events/redis-event-bus.integration.test.ts` proving two `RedisEventBus` instances on one Redis each dispatch a published event exactly once;
+  - added `src/modules/ecommerce/application/apply-shopify-webhook.integration.test.ts` proving a valid HMAC `products/create` payload persists a product and `x-shopify-webhook-id` deduplication works;
+  - added route-level regression tests for `/api/export/[id]` covering stale `tokenVersion` and soft-deleted users returning `401`;
+  - added `generate-reply` idempotency unit test asserting duplicate invocations reuse the existing AI `Message` and do not call the provider or send a second DM;
+  - hardened `ChatSessionRepository.delete` to scope by `projectId` and updated `ChatAssistantService.deleteSession` / `deleteChatSessionAction` signatures accordingly (H5.6 delete-site inventory);
+  - added `scripts/backfill-past-due.ts` to reconcile organizations stuck in `past_due` against live Stripe subscription status (H3.6).
+
+- `REQ-0076`, `REQ-0077`, `REQ-0067`, `REQ-0078`, `REQ-0075` **Remaining V2 foundation batch** on `devin/features-branch-remaining-5req-1786011015`:
+  - `REQ-0076` Auth & Registration Overhaul: registration accepts `companyName`, `age`, and `gender`;
+    password policy now requires lowercase, uppercase, number, and special character; email and
+    mobile OTP are gated by `ENABLE_EMAIL_OTP` and `ENABLE_MOBILE_OTP`; social login buttons are
+    hidden when provider credentials are absent; default workspace auto-provisioning on registration.
+  - `REQ-0077` Workspace & Project System: added `ProjectSwitcher` in the app shell,
+    `switchProjectAction`, and `listMyStoresAction`; `createStore` enforces the stricter of
+    `maxStores`/`maxProjects`; default `AIConfiguration` is auto-created on `StoreCreated` via the
+    `ai` module subscriber.
+  - `REQ-0067` Release blockers: H1 startup resilience (super-admin seed is best-effort),
+    H9 Shopify webhook public-path prefix matching so `/api/shopify/webhooks` is not caught by
+    NextAuth redirects, and H10 atomic seat-limit enforcement counting members by `userId`.
+  - `REQ-0078` Dynamic E-Commerce Adapters: defined `AdapterConfigMapping` and the `ConfigInterpreter`
+    scaffold implementing `EcommerceConnector`; exported from the `ecommerce` barrel.
+  - `REQ-0075` Release engineering: documented rollback/backups/deploy topology in
+    `docs/operations.md` and aligned CI/workflow artifacts.
+
+- `REQ-0080` **Mobile PWA optimization for messaging UI (T-075)** on `devin/batch-0085-0080-0070-1786007108`:
+  added `OnlineStatus` (`src/components/online-status.tsx`) to show an offline alert on the
+  conversations list and detail pages, made conversation list items stack with full-width action
+  buttons on small screens, and improved the message feed with sender-aligned bubbles and
+  `break-words`. `ConversationTakeoverButton` and `ConversationMessageForm` buttons now span the
+  full width on mobile and shrink to auto on larger screens.
+
+- `REQ-0069` **Navigation reachability hardening (L2/L3)** on `devin/batch-0085-0080-0070-1786007108`:
+  verified `/support` and `/analytics/journeys` are present in the authenticated sidebar, no two
+  nav entries share a destination, active-state matching is exact (`pathname === item.href`), and
+  the admin item is injected by section label (`Account`) with an explicit `if` check. Updated
+  `TASK-0069` and `TRACKER-0069` to reflect completion; `L5.2/L5.3` memory sizing remains a
+  post-launch ops task.
+
+- `REQ-0085` **Profile & Reel Inspector closeout** on `devin/batch-0085-0080-0070-1786007108`:
+  marked the `CHANGELOG.md updated` checkbox in `TASK-0085` and updated `TRACKER-0085` last-updated;
+  the feature was already implemented and the existing `CHANGELOG.md` entry was confirmed present.
+
 - `REQ-0079` **Meta Growth Engine — Content Publishing API** on `devin/req-0079-content-publishing-1786062600`:
   added `MetaService.publishMedia` to the `meta` port and implemented it in `GraphApiMetaService` with the
   full Instagram Content Publishing API flow: create media container, poll `status_code` until `FINISHED`,
@@ -331,18 +383,74 @@ All notable changes to **OmniConnect AI** are documented here.
   function-calling schema for `createCoupon`, `injectCoupon`, `sendMessage`, `queryAnalytics`,
   and `generateDashboard`.
 
+### ✅ Done
+
+- `REQ-0079` **Meta Growth Engine — Meta OAuth flow (T-021)** on `devin/batch-meta-oauth-doc-closeouts-1786007775`:
+  added `getMetaOAuthUrl`, `exchangeMetaOAuthCode`, and `fetchInstagramAccount` in
+  `src/modules/meta/infrastructure/meta-oauth.ts`; new `GET /api/meta/auth` and `GET /api/meta/callback`
+  route handlers exchange the short-lived code for a long-lived user token, resolve the connected
+  Facebook Page and its Instagram Business account, and persist the page access token (encrypted at
+  rest) on the `Project` row. Added `MetaConnectionCard` to `/stores/[projectId]/settings` with a
+  Connect/Reconnect button. Unit tests added in `src/modules/meta/infrastructure/meta-oauth.test.ts`.
+
+- `REQ-0090` **Cleanup & Migration closeout** on `devin/batch-meta-oauth-doc-closeouts-1786007775`:
+  verified all Phase 1 acceptance criteria are met (old Organization/Store/Staff/StoreIntegration
+  models removed, `src/modules/organizations/` deleted, product CRUD and standalone orders view
+  removed, direct OpenAI imports replaced by `OpenRouterProvider`, queries migrated to
+  user/workspace/project scope, all quality gates passing). Updated the requirement to reflect that
+  hardcoded connector files were replaced by `EcommerceConnector` provider implementations rather than
+  deleted, and promoted status to `Implemented`.
+
+- `REQ-0070` **Identity/Account Self-Service task sync** on `devin/batch-meta-oauth-doc-closeouts-1786007775`:
+  aligned `TASK-0070` and `TRACKER-0070` with the implemented state; recorded the F.2 decision to use
+  minimal session management (bump `tokenVersion` on sensitive changes) and marked the optional
+  full `UserSession` list (F.3) as N/A.
+
+- `REQ-0080` **Unified Messaging Board closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  Instagram DM + Facebook Messenger manual replies and AI auto-reply gating are in production; T-078
+  WhatsApp Business API webhook + sender is **deferred** to post-Meta-Business-verification.
+
+- `REQ-0079` **Meta Growth Engine closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  content publishing, scheduling, hashtag intelligence, best-time-to-post, trending reels/audio analysis,
+  Graph API rate limiting, and Meta Login OAuth are in production; T-022 WhatsApp Business API connection
+  is **deferred** to post-Meta-Business-verification.
+
+- `REQ-0069` **Low-severity findings closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  event census, navigation reachability, log-level gating, Fly.io machine policy, and case-insensitive
+  escalation marker are implemented; L5 memory sizing is **deferred** to post-launch ops traffic.
+
+- `REQ-0068` **Medium-severity hardening closeout** on `devin/closeout-deferred-requirements-1786070000`:
+  readiness endpoint, telemetry, inbox query bounds, Shopify GDPR webhooks, Stripe API version pinning,
+  HTTP status correctness, accessibility, encryption key rotation, login throttling, admin page guards,
+  `/support` routing, and AI prompt-injection hardening are implemented; M5.7 Shopify App Store automated
+  compliance checks are **deferred** to production app-store submission.
+
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 2** on `devin/req-0078-dynamic-adapters-batch2-1786086000`:
+  new `/stores/[projectId]/integrations/adapter` UI for AI-generated `AdapterConfigMapping`,
+  `GeneratedAdapter` model with encrypted credential persistence, `IntegrationConnectorFactory` dynamic
+  `ConfigInterpreter` resolution, and removal of the WooCommerce/BigCommerce hardcoded connectors.
+
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 3** on `devin/req-0078-shopify-adapter-mapping-1786018026`:
+  `ConfigInterpreter` now supports multi-step endpoints with variable extraction and optional lookup
+  matching, the built-in Shopify mapping implements two-step coupon creation and price-rule disable, and
+  `shopify.connector.ts` has been deleted. Shopify stores resolve through the same `ConfigInterpreter` safe
+  executor as dynamically generated adapters.
+
+- `REQ-0067` **H10 seat-limit retry hardening** on `devin/fix-seat-limit-concurrency-1786017547`:
+  `PrismaOrganizationInviteRepository.createWithinSeatLimit` now retries Postgres `P2034` serialization
+  failures 5 times with exponential backoff + jitter, eliminating the flaky CI concurrency failure on the
+  `teamSeats + 5` parallel invite integration test.
+
 ### 🚧 In Progress
 
-- `REQ-0081` **AI Assistant & Tools — Batch 2** on `devin/req-0081-batch2-tools-coupon-ui-1786020000`:
-  tool executor with guardrails, real-time coupon create/inject/send flow, and full-screen chat UI.
+- No active in-progress items.
 
 ### ⏭️ Next
 
-- `REQ-0080` **Unified Messaging Board** — WhatsApp Business API connection (T-078) and mobile PWA
-  improvements (T-075).
-- `REQ-0079` **Meta Growth Engine** — Meta OAuth flow (T-021) and WhatsApp Business API connection (T-022).
-- `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
-  development store and `SHOPIFY_API_SECRET`).
+- `REQ-0075` **Release engineering / DR / observability** — GitHub Environments, Fly.io staging/prod
+  approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
+- `REQ-0067` **Release blockers (staging verification)** — end-to-end staging run, browser login on a
+  proxied deployment, and final §1.6 release-condition sign-off.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

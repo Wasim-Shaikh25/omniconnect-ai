@@ -4,13 +4,13 @@ description: Dynamic E-Commerce Adapters
 
 # REQ-0078: Dynamic E-Commerce Adapters
 
-- **Status:** Draft
+- **Status:** Implemented; Batch 3 (Shopify migration, multi-step `ConfigInterpreter`, hardcoded `shopify.connector.ts` deleted) complete.
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0078-dynamic-ecommerce-adapters.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0078-dynamic-ecommerce-adapters.md`
 - **Supersedes:** `REQ-0002-ecommerce-connector.md` (hardcoded connectors → dynamic config mapping)
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -39,13 +39,16 @@ Replace hardcoded e-commerce connectors (Shopify, WooCommerce, BigCommerce) with
 
 ## 5. Acceptance Criteria
 
-- [ ] `AdapterConfigMapping` interface defined with endpoints for all `EcommerceConnector` methods.
-- [ ] `ConfigInterpreter` implements `EcommerceConnector` using only the config mapping.
-- [ ] AI generates valid config from API documentation via OpenRouter.
-- [ ] Generated config validated against schema before storage.
-- [ ] Connection test UI: user enters credentials → system tests getProducts/fetchStoreInfo.
-- [ ] Hardcoded shopify/woocommerce/bigcommerce connector files deleted.
-- [ ] Config mapping stored encrypted in `GeneratedAdapter` model.
+- [x] `AdapterConfigMapping` interface defined with endpoints for all `EcommerceConnector` methods.
+- [x] `ConfigInterpreter` scaffold implements `EcommerceConnector`; runtime HTTP execution implemented.
+- [x] AI generates valid config from API documentation via OpenRouter.
+- [x] Generated config validated against schema before storage.
+- [x] Connection test action: user enters credentials → system tests getProducts/fetchStoreInfo.
+- [x] Connection test UI on `/stores/[projectId]/integrations/adapter`.
+- [x] `GeneratedAdapter` model + repository; config mapping stored with credentials encrypted.
+- [x] `IntegrationConnectorFactory` resolves `ConfigInterpreter` from stored generated adapter.
+- [x] Hardcoded WooCommerce and BigCommerce connector files deleted.
+- [x] Shopify connector migrated to a dynamic mapping and `shopify.connector.ts` deleted; `ConfigInterpreter` now supports multi-step endpoints, variable extraction, and optional lookup matching.
 
 ## 6. Scope & Dependencies
 

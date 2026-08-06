@@ -4,13 +4,13 @@ description: Unified Messaging Board
 
 # REQ-0080: Unified Messaging Board
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0080-unified-messaging-board.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0080-unified-messaging-board.md`
 - **Supersedes:** `REQ-0016-unified-inbox.md`, `REQ-0008-human-takeover.md`
-- **Last updated:** 2026-08-06
+- **Last updated:** 2026-08-06 (IG/FB messaging complete; T-078 WhatsApp deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
@@ -48,8 +48,8 @@ One inbox for Instagram DM, Facebook Messenger, and WhatsApp. The existing `conv
 - [x] Human takeover flag stops AI replies on that conversation.
 - [x] Unified inbox UI with channel badges and filter.
 - [x] Manual human reply form from the conversation detail page.
-- [ ] WhatsApp Business API webhook + sender (deferred).
-- [ ] Mobile PWA optimization for messaging UI (P2).
+- [x] WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
+- [x] Mobile PWA optimization for messaging UI (P2).
 
 ## 6. Scope & Dependencies
 

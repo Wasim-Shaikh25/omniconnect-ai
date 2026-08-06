@@ -10,6 +10,7 @@ import {
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
 import { ConversationMessageForm } from "@/components/conversation-message-form";
 import { ConversationContext, ConversationNextBestAction } from "@/components/conversation-context";
+import { OnlineStatus } from "@/components/online-status";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,14 +41,15 @@ export default async function ConversationDetailPage({
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="flex items-center justify-between">
+      <OnlineStatus />
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">{store.name}</h1>
           <p className="text-sm text-muted-foreground">
             {detail.conversation.channel} · {detail.conversation.externalId ?? "—"}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
           <Link href={`/stores/${projectId}/conversations`}>
             Back to conversations
           </Link>
@@ -109,14 +111,14 @@ export default async function ConversationDetailPage({
                     key={m.id}
                     className={`flex flex-col rounded p-3 text-sm ${
                       m.sender === "CUSTOMER"
-                        ? "bg-muted"
+                        ? "mr-auto max-w-[85%] bg-muted sm:max-w-[75%]"
                         : m.sender === "AI"
-                          ? "bg-primary/10"
-                          : "bg-amber-50"
+                          ? "ml-auto max-w-[85%] bg-primary/10 text-right sm:max-w-[75%]"
+                          : "ml-auto max-w-[85%] bg-amber-50 text-right sm:max-w-[75%]"
                     }`}
                   >
                     <span className="font-medium">{m.sender}</span>
-                    <span className="text-muted-foreground">{m.content}</span>
+                    <span className="break-words">{m.content}</span>
                   </li>
                 ))}
               </ul>

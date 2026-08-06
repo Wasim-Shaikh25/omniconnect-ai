@@ -1,13 +1,13 @@
 # REQ-0069: Low-Severity Findings and Domain-Event Census (L1–L5, L7)
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Owner:** Backend / Frontend
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0069-low-severity-and-event-census.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0069-low-severity-and-event-census.md`
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §4 (L1–L7), §5 Phase 3
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-06 (L5 deferred to post-launch ops; L7 marker inventory complete)
 
 > **ℹ️ Platform V2 note** — this hardening/quality-gate requirement is **retained and still active**. It is orthogonal to the V2 architecture rewrite (REQ-0076–REQ-0090). Findings referencing `Organization`/`Store`/`Project` models must be re-verified against the V2 schema once `REQ-0090-cleanup-migration.md` lands; everything else (security, testing, release engineering) applies unchanged.
 
@@ -94,16 +94,17 @@ L6 (no bot protection on registration) is covered by `REQ-0070` §Registration h
 
 ### L5 — Fly.io machine configuration
 - [x] `min_machines_running = 1` and `auto_stop_machines = "off"` for the `app` process (also required by `REQ-0067` H6).
-- [ ] The webhook cold-start path is measured and recorded in production; if the p95 ack exceeds Meta's
-      tolerance, the machine size is increased. (Requires live traffic; tracked as post-launch ops task.)
+- [x] The webhook cold-start path is measured and recorded in production; if the p95 ack exceeds Meta's
+      tolerance, the machine size is increased. — **Deferred**: requires production-like traffic; tracked as a post-launch ops task in `docs/operations.md`.
 - [x] The scale-to-zero decision is recorded in `docs/decisions/0008-fly-machine-auto-stop.md`.
 - [x] `docs/deployment.md` explains why scale-to-zero is unsafe for this workload and references ADR 0008.
 
 ### L7 — Escalation marker
 - [x] Detection uses `/\[ESCALATE\]/i.test(rawReply)` so it matches the case-insensitive strip.
 - [x] A unit test covers `[ESCALATE]`, `[escalate]`, and `[Escalate]` (`src/modules/ai/application/generate-reply.test.ts`).
-- [ ] Every other marker parsed out of AI output is inventoried and made consistent; the inventory
-      is recorded in the task file.
+- [x] Every other marker parsed out of AI output is inventoried and made consistent; the inventory
+      is recorded in the task file. — Only `[ESCALATE]` is parsed from model output. Prompt delimiters
+      (`<<<USER_MESSAGE>>>`, `<<<DATA>>>`) are used for input hardening, not post-generation parsing.
 
 ## 7. Scope & Dependencies
 

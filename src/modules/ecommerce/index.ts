@@ -19,6 +19,13 @@ export type {
   ConnectorCoupon,
   StoreInfo,
 } from "./domain/connector";
+export type {
+  AdapterConfigMapping,
+  AuthType,
+  CredentialField,
+  EndpointMapping,
+  PaginationConfig,
+} from "./domain/adapter-config";
 export {
   EcommerceError,
   ProviderNotSupportedError,
@@ -74,6 +81,10 @@ export { executeEcommerceAction } from "./application/action-handlers";
 
 // Provider registry (implement-and-register to add providers)
 export { getConnector } from "./infrastructure/provider-registry";
+export {
+  ConfigInterpreter,
+  ConfigInterpreterNotImplementedError,
+} from "./infrastructure/config-interpreter";
 
 // Use-cases + queries (composed)
 export {
@@ -108,3 +119,10 @@ export {
   validateAdapterAction,
 } from "./presentation/adapter-library.actions";
 export type { AdapterLibraryActionState } from "./presentation/adapter-library.actions";
+export {
+  generateAdapterConfigAction,
+  testAdapterConfigAction,
+  saveAdapterConfigAction,
+  connectAdapterAction,
+} from "./presentation/adapter-config.actions";
+export type { AdapterConfigActionState } from "./presentation/adapter-config.actions";

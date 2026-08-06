@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
-- **Last updated:** 2026-08-06 (T-071 trending reels/audio analysis batch complete on `devin/req-0079-trending-reels-1786006431`)
+- **Last updated:** 2026-08-06 (T-021 landed; T-022 WhatsApp deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
@@ -44,4 +44,4 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- All actionable subtasks complete. T-022 (WhatsApp) deferred to post-launch. T-023b review fixes merged in PR #165.
+- T-021, T-023, T-023b, T-024, T-025, T-058, T-059, T-069, T-070 (Graph API rate limiting), and T-071 (trending reels/audio analysis) completed on respective feature branches. T-022 (WhatsApp) is deferred to post-Meta-Business-verification.

@@ -56,10 +56,36 @@ export function AuthForm({
         {inviteToken && <input type="hidden" name="inviteToken" value={inviteToken} />}
         {inviteStoreId && <input type="hidden" name="projectId" value={inviteStoreId} />}
         {isRegister && (
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" placeholder="Jane Doe" autoComplete="name" />
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" name="name" placeholder="Jane Doe" autoComplete="name" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company / brand name</Label>
+              <Input id="companyName" name="companyName" placeholder="Acme Inc." />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="age">Age</Label>
+                <Input id="age" name="age" type="number" min={13} max={120} placeholder="25" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <select
+                  id="gender"
+                  name="gender"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">Prefer not to say</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                  <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+                </select>
+              </div>
+            </div>
+          </>
         )}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>

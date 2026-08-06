@@ -10,7 +10,7 @@ description: Meta Growth Engine
 - **Related Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
 - **Supersedes:** Portions of `REQ-0003-meta-integration.md`, `REQ-0018-content-studio-mvp.md`
-- **Last updated:** 2026-08-06
+- **Last updated:** 2026-08-06 (T-021 Meta OAuth flow landed; T-022 WhatsApp Business API connection deferred to post-Meta-Business-verification)
 
 ## 1. Summary
 
