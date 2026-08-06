@@ -84,7 +84,25 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - PDF extraction uses `pdfjs-dist/legacy/build/pdf.mjs`; the worker path must resolve to an absolute file path on disk. `createRequire(import.meta.url).resolve` inside a Next.js RSC/server action can return a webpack internal module id such as `(rsc)/./node_modules/...`, producing an invalid `file://(rsc)/...` URL. A reliable fix is to derive `__dirname` from `fileURLToPath(import.meta.url)` and use `path.resolve(__dirname, "../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")`.
   - Product sync dispatches `ProductsSynced` through the in-memory queue when `REDIS_URL` is unset; `AIConfiguration.productKnowledge` is populated by the `onProductsSynced` subscriber.
   - `/settings/billing` renders the Free plan, plan limits, and a "Payments not configured" alert when Stripe keys are absent; the **Manage subscription** button is disabled.
-  - For headless Chrome file uploads, `fetch` to a local CORS server may be blocked; construct PDF `File` objects from a base64 data URI and a `Uint8Array` instead.
+  - For headless Chrome file uploads, `fetch` to a local CORS server may be blocked. A reliable workaround is to place test files in `public/` temporarily, read them with a synchronous `XMLHttpRequest` using `overrideMimeType('text/plain; charset=x-user-defined')` to keep raw bytes, then build a `File` and assign it via `DataTransfer`:
+  ```js
+  function fetchFile(url, name, type) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    xhr.send();
+    const raw = xhr.response;
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i) & 0xff;
+    return new File([bytes], name, { type });
+  }
+  const input = document.querySelector('input[type="file"]');
+  const dt = new DataTransfer();
+  dt.items.add(fetchFile('/kb-test.pdf', 'kb-test.pdf', 'application/pdf'));
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  ```
+  Remove the test files from `public/` after the test.
 - After submitting `/onboarding` the session may briefly land on `/login` with an empty main area because `unstable_update` does not refresh the JWT `tokenVersion` immediately. Navigating to `/login` or refreshing usually resolves it.
 
 ## Cross-tenant regression-test rule
