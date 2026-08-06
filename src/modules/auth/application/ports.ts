@@ -13,6 +13,8 @@ export interface AccountRecord {
   role: Role;
   isSuperAdmin: boolean;
   tokenVersion: number;
+  suspendedAt?: Date | null;
+  banned?: boolean;
   deletedAt: Date | null;
 }
 

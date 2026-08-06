@@ -86,6 +86,11 @@ const providers: NextAuthConfig["providers"] = [
         if (!codeValid) return null;
       }
 
+      if (account.suspendedAt || account.banned) {
+        logger.warn("auth.blocked", { email, suspended: !!account.suspendedAt, banned: account.banned });
+        return null;
+      }
+
       return {
         id: account.id,
         email: account.email,

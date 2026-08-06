@@ -19,7 +19,7 @@ export { updateProfileSchema } from "./application/update-profile";
 export type { UpdateProfileInput } from "./application/update-profile";
 export { changeRoleSchema } from "./application/change-role";
 export type { ChangeRoleInput } from "./application/change-role";
-export type { UserProfile, ExportRequestRecord } from "./application/ports";
+export type { UserProfile, ExportRequestRecord, UserListFilter } from "./application/ports";
 export type {
   AuditLogRecord,
   CreateAuditLogInput,
@@ -37,6 +37,8 @@ export {
   countOrganizationUsers,
   updateProfile,
   setUserOrganization,
+  setUserSuspended,
+  setUserBanned,
   auditQueries,
   auditCommands,
   dataExportService,
@@ -51,6 +53,8 @@ export {
   changeUserStoreAction,
   listAllUsersAction,
   toggleUserSuperAdminAction,
+  suspendUserAction,
+  banUserAction,
   requestDataExportAction,
   listDataExportsAction,
   deleteAccountAction,

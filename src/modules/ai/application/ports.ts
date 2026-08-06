@@ -97,6 +97,19 @@ export interface TokenUsageRepository {
       cost: number | null;
     }>
   >;
+
+  summarizeTotal(options?: {
+    start?: Date;
+    end?: Date;
+    userId?: string;
+    projectId?: string;
+  }): Promise<{
+    requests: number;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    cost: number;
+  }>;
 }
 
 export interface AssistantService {

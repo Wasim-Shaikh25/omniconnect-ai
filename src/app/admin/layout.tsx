@@ -41,6 +41,9 @@ export default async function AdminLayout({
           <Link href="/admin/ai-usage" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
             AI Usage
           </Link>
+          <Link href="/admin/health" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
+            Health
+          </Link>
         </nav>
       </header>
       {children}

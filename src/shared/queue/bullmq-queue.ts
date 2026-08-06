@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import Redis from "ioredis";
 import { logger } from "@/shared/observability";
-import type { QueueService, JobOptions } from "./types";
+import type { QueueService, JobOptions, JobCounts } from "./types";
 
 export class BullMQQueue implements QueueService {
   private queue: Queue;
@@ -23,6 +23,18 @@ export class BullMQQueue implements QueueService {
 
   async getFailedCount(): Promise<number> {
     return this.queue.getFailedCount();
+  }
+
+  async getJobCounts(): Promise<JobCounts> {
+    const counts = await this.queue.getJobCounts();
+    return {
+      waiting: counts.waiting ?? 0,
+      active: counts.active ?? 0,
+      completed: counts.completed ?? 0,
+      failed: counts.failed ?? 0,
+      delayed: counts.delayed ?? 0,
+      paused: counts.paused ?? 0,
+    };
   }
 
   async close(): Promise<void> {

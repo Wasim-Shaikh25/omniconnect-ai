@@ -96,14 +96,14 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits, team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons. |
 | `meta` | Meta Graph API client, inbound webhook verification, outbound messaging. |
-| `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`. |
+| `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence with daily and total summaries. |
 | `coupons` | First-follower and DM campaign coupon orchestration. |
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume. |
 | `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
-| `support` | Support tickets, admin triage, system logs. `/support` is authenticated-only and not in `publicPaths`. |
+| `support` | Support tickets, admin triage, system logs. The `/admin/*` pages (users, health, logs, tickets, coupons, organizations, AI usage) are super-admin-only and live under `src/app/admin`. `/support` is authenticated-only and not in `publicPaths`. |
 | `attribution` | UTM/coupon checkout links, order → conversion attribution, Meta CAPI purchase events. |
 
 ---
@@ -112,7 +112,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 
 Core tables (see `prisma/schema.prisma` for full model):
 
-- `User` — authentication, RBAC role (`USER` | `SUPER_ADMIN`), `userId` (owning-tenant id), `projectId` (selected active project), plan/subscription fields, AI quota counters, `deletedAt`, `tokenVersion`.
+- `User` — authentication, RBAC role (`USER` | `SUPER_ADMIN`), `userId` (owning-tenant id), `projectId` (selected active project), plan/subscription fields, AI quota counters, `suspendedAt`/`banned` moderation flags, `deletedAt`, `tokenVersion`.
 - `Workspace` — tenant boundary; owned by a `userId`; carries plan/subscription metadata.
 - `Project` — a connected e-commerce or Meta source (replaces `Store`); `workspaceId`, `provider`, `domain`, `archivedAt`/`deletedAt` for soft lifecycle.
 - `EcommerceConnection` — OAuth/API tokens for Shopify/Meta; `accessToken`/`refreshToken` encrypted at rest; `projectId` scoped.
@@ -131,7 +131,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 ## 7. Authentication and Authorization
 
 - **NextAuth v5 JWT strategy** with `tokenVersion` invalidation.
-- `getCurrentUser()` loads the canonical DB record including `userId`/`projectId` and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions.
+- `getCurrentUser()` loads the canonical DB record including `userId`/`projectId` and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions. Accounts with `suspendedAt` or `banned` are rejected at both `authorize()` (login) and `getCurrentUser()` (session refresh).
 - `tenantGuard.assertStoreAccess(user, projectId)` enforces: owners (`user.userId === user.id`) access any project in their workspace; staff (`user.userId` points to the owner) are pinned to `user.projectId`; super-admins bypass.
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
 - Store pages use `checkStoreAccess(projectId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(projectId)` wrapper remains for server actions that need throwing semantics.

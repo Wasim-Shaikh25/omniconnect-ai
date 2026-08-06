@@ -18,8 +18,19 @@ export interface UserProfile {
   image: string | null;
   role: Role;
   isSuperAdmin: boolean;
+  plan: string;
   userId: string | null;
   projectId: string | null;
+  suspendedAt: Date | null;
+  banned: boolean;
+}
+
+export interface UserListFilter {
+  search?: string;
+  role?: Role;
+  isSuperAdmin?: boolean;
+  plan?: string;
+  status?: "active" | "suspended" | "banned";
 }
 
 export interface UserProfileRepository {
@@ -32,9 +43,11 @@ export interface UserProfileRepository {
   setRole(id: string, role: Role): Promise<UserProfile>;
   setStore(id: string, projectId: string | null): Promise<UserProfile>;
   listByOrganization(userId: string, pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
-  listAll(pagination?: PaginationInput): Promise<PaginatedResult<UserProfile>>;
+  listAll(pagination?: PaginationInput, filter?: UserListFilter): Promise<PaginatedResult<UserProfile>>;
   countByOrganization(userId: string): Promise<number>;
   setSuperAdmin(id: string, isSuperAdmin: boolean): Promise<UserProfile>;
+  setSuspended(id: string, suspended: boolean): Promise<UserProfile>;
+  setBanned(id: string, banned: boolean): Promise<UserProfile>;
   removeFromOrganization(id: string): Promise<UserProfile>;
   requestDataExport(userId: string): Promise<ExportRequestRecord>;
   listExportRequests(userId: string, limit?: number): Promise<ExportRequestRecord[]>;

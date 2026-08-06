@@ -62,6 +62,9 @@ export const aiQueries = {
   summarizeTokenUsageByDay: (options?: Parameters<
     typeof tokenUsageRepository.summarizeByDay
   >[0]) => tokenUsageRepository.summarizeByDay(options),
+  summarizeTokenUsageTotal: (options?: Parameters<
+    typeof tokenUsageRepository.summarizeTotal
+  >[0]) => tokenUsageRepository.summarizeTotal(options),
 };
 
 export const generateWelcome = makeGenerateWelcome({
