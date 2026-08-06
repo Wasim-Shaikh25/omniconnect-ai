@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0080-unified-messaging-board.md`
 - **Task:** `docs/tasks/TASK-0080-unified-messaging-board.md`
-- **Last updated:** 2026-08-06
+- **Last updated:** 2026-08-06 (T-075 mobile PWA optimization implemented)
 
 ## 1. Summary
 
@@ -24,7 +24,7 @@ Progress tracker for REQ-0080: Unified Messaging Board. The `conversations` modu
 - [x] T-034: Unified inbox UI.
 - [x] T-076: Human takeover toggle.
 - [x] T-077: AI reply in conversations with channel enable + business-hours gating.
-- [ ] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
+- [x] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
 - [ ] T-078: WhatsApp Business API webhook + sender.
 
 ### Verification

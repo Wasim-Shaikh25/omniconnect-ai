@@ -49,7 +49,7 @@ One inbox for Instagram DM, Facebook Messenger, and WhatsApp. The existing `conv
 - [x] Unified inbox UI with channel badges and filter.
 - [x] Manual human reply form from the conversation detail page.
 - [ ] WhatsApp Business API webhook + sender (deferred).
-- [ ] Mobile PWA optimization for messaging UI (P2).
+- [x] Mobile PWA optimization for messaging UI (P2).
 
 ## 6. Scope & Dependencies
 

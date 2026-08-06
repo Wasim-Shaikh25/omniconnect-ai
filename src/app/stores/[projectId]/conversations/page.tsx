@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PaginationControls, ListSearch } from "@/components/pagination-controls";
+import { OnlineStatus } from "@/components/online-status";
 import type { PaginationInput } from "@/shared/kernel";
 
 function parsePagination(
@@ -49,12 +50,13 @@ export default async function ConversationsPage({
 
   return (
     <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="flex items-center justify-between">
+      <OnlineStatus />
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">{store.name}</h1>
           <p className="text-sm text-muted-foreground">Conversations</p>
         </div>
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
           <Link href={`/stores/${projectId}`}>Back to store</Link>
         </Button>
       </header>
@@ -77,9 +79,9 @@ export default async function ConversationsPage({
                 {conversations.map((c) => (
                   <li
                     key={c.id}
-                    className="flex items-center justify-between py-3 text-sm"
+                    className="flex flex-col gap-2 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div>
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">{c.channel}</span>
                       <span className="ml-2 text-muted-foreground">
                         {c.externalId ?? "—"}
@@ -94,7 +96,7 @@ export default async function ConversationsPage({
                         {c.status}
                       </span>
                     </div>
-                    <Button asChild variant="outline" size="sm">
+                    <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                       <Link href={`/stores/${projectId}/conversations/${c.id}`}>
                         View
                       </Link>

@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0085-profile-reel-inspector.md`
 - **Task:** `docs/tasks/TASK-0085-profile-reel-inspector.md`
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06 (CHANGELOG closeout)
 
 ## 1. Summary
 
