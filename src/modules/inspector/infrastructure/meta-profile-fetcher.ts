@@ -105,7 +105,10 @@ export function makeMetaProfileFetcher(config: MetaProfileFetcherConfig): Profil
       const body = (await fetchJson(url, fetchImpl, projectId, config.consumeGraphApiCall)) as { data?: Array<{ text?: string }> };
       return (body.data ?? []).map((c) => ({ text: c.text ?? "" }));
     } catch (error) {
-      if (error instanceof ProfileNotFoundError) {
+      if (
+        error instanceof ProfileNotFoundError ||
+        (error instanceof Error && error.name === "MetaRateLimitError")
+      ) {
         return [];
       }
       throw error;
