@@ -430,6 +430,14 @@ All notable changes to **OmniConnect AI** are documented here.
   `shopify.connector.ts` has been deleted. Shopify stores resolve through the same `ConfigInterpreter` safe
   executor as dynamically generated adapters.
 
+- `REQ-0078` **Adapter wizard review fixes** on `devin/review-fixes-adapter-1786019200`:
+  `makeSaveGeneratedAdapter` now also upserts an `EcommerceConnection` row with `provider: "CUSTOM"` so
+  the store is marked connected after the adapter wizard succeeds; `ConnectAdapterForm` no longer swallows
+  partial JSON in the credentials text area, instead keeping a typed raw JSON string and parsing only when
+  valid; and `IntegrationConnectorFactory`/`getConnector` raise `ProviderNotSupportedError` for legacy
+  `WOOCOMMERCE`/`BIGCOMMERCE` rows instead of silently routing them to the Mock connector and wiping real
+  catalog data.
+
 - `REQ-0067` **H10 seat-limit retry hardening** on `devin/fix-seat-limit-concurrency-1786017547`:
   `PrismaOrganizationInviteRepository.createWithinSeatLimit` now retries Postgres `P2034` serialization
   failures 5 times with exponential backoff + jitter, eliminating the flaky CI concurrency failure on the

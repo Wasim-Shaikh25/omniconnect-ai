@@ -44,6 +44,8 @@ export function ConnectAdapterForm({
 }: ConnectAdapterFormProps) {
   const [config, setConfig] = useState<AdapterConfigMapping | null>(null);
   const [credentials, setCredentials] = useState<Record<string, string>>({});
+  const [credentialsJson, setCredentialsJson] = useState<string>("{}");
+  const [credentialsError, setCredentialsError] = useState<string | null>(null);
 
   const [generateState, generateFormAction, generatePending] = useActionState<
     AdapterConfigActionState,
@@ -54,7 +56,9 @@ export function ConnectAdapterForm({
       const generatedConfig = result.config as AdapterConfigMapping;
       setConfig(generatedConfig);
       const fields = generatedConfig.credentialSchema?.fields ?? [];
-      setCredentials(Object.fromEntries(fields.map((f) => [f.key, ""])));
+      const initial = Object.fromEntries(fields.map((f) => [f.key, ""]));
+      setCredentials(initial);
+      setCredentialsJson(JSON.stringify(initial, null, 2));
     }
     return result;
   }, undefined);
@@ -130,10 +134,11 @@ export function ConnectAdapterForm({
                     required
                     value={credentials[field.key] ?? ""}
                     onChange={(e) =>
-                      setCredentials((prev) => ({
-                        ...prev,
-                        [field.key]: e.target.value,
-                      }))
+                      setCredentials((prev) => {
+                        const next = { ...prev, [field.key]: e.target.value };
+                        setCredentialsJson(JSON.stringify(next, null, 2));
+                        return next;
+                      })
                     }
                   />
                 </div>
@@ -143,19 +148,30 @@ export function ConnectAdapterForm({
                 <Label htmlFor="credentials">Credentials JSON</Label>
                 <Textarea
                   id="credentials"
-                  name="credentials"
                   placeholder='{"accessToken": "..."}'
                   rows={4}
                   required
-                  value={JSON.stringify(credentials, null, 2)}
+                  value={credentialsJson}
                   onChange={(e) => {
+                    setCredentialsJson(e.target.value);
                     try {
-                      setCredentials(JSON.parse(e.target.value));
+                      const parsed = JSON.parse(e.target.value);
+                      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                        setCredentials(parsed as Record<string, string>);
+                        setCredentialsError(null);
+                      } else {
+                        setCredentialsError("Credentials must be a JSON object.");
+                      }
                     } catch {
-                      /* ignore partial JSON */
+                      setCredentialsError("Invalid JSON.");
                     }
                   }}
                 />
+                {credentialsError && (
+                  <p className="text-sm text-destructive" role="alert">
+                    {credentialsError}
+                  </p>
+                )}
               </div>
             )}
             <Button type="submit" disabled={testPending} variant="secondary">

@@ -71,4 +71,4 @@ export const adapterLibrary = makeAdapterLibraryService({ integrations, connecto
 export const testAdapterConfig = makeTestAdapterConfig({
   buildConnector: (config, credentials) => new ConfigInterpreter(config, credentials),
 });
-export const saveGeneratedAdapter = makeSaveGeneratedAdapter({ generatedAdapters });
+export const saveGeneratedAdapter = makeSaveGeneratedAdapter({ generatedAdapters, integrations });

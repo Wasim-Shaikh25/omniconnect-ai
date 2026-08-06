@@ -26,6 +26,7 @@ Progress tracker for REQ-0078: Dynamic E-Commerce Adapters.
 - [x] T-032: `GeneratedAdapter` model + repository with encrypted credentials.
 - [x] T-037: Delete WooCommerce and BigCommerce hardcoded connectors.
 - [x] T-038: Migrate Shopify connector to dynamic mapping and delete `shopify.connector.ts`.
+- [x] T-038b: Adapter wizard review fixes — `saveGeneratedAdapter` upserts an `EcommerceConnection` so the store is marked connected; `ConnectAdapterForm` JSON credentials box accepts partial/typed input; legacy WooCommerce/BigCommerce rows raise `ProviderNotSupportedError` instead of silently falling back to the Mock connector.
 
 ### Verification
 - [x] `npm run lint` passes.
