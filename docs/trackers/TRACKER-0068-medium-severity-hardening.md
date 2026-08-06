@@ -48,7 +48,7 @@ page-level guard. M5 blocks a public Shopify App Store listing.
 - [x] `app/uninstalled` implemented (disconnect, purge token, cancel jobs) (`src/modules/ecommerce/application/apply-shopify-webhook.ts:176-198`; `src/modules/ecommerce/infrastructure/shopify-compliance.repository.ts:176-192`).
 - [x] All four idempotent via the shared webhook ledger (`src/modules/ecommerce/application/apply-shopify-webhook.ts:40-49`).
 - [x] Tests for all four topics (`src/modules/ecommerce/application/apply-shopify-webhook.test.ts:174-239`; `src/modules/ecommerce/infrastructure/shopify-compliance.integration.test.ts`).
-- [x] Shopify automated compliance checks pass in a development store. — **Deferred**: requires a live Shopify development store, `SHOPIFY_API_SECRET`, and app review; recorded as a release-readiness task in `docs/operations.md`.
+- [d] Shopify automated compliance checks pass in a development store. — **Deferred**: requires a live Shopify development store, `SHOPIFY_API_SECRET`, and app review; recorded as a release-readiness task in `docs/operations.md`.
 
 ### M6 — Stripe API version
 - [x] `apiVersion` pinned; `typescript: true` set.

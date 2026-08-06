@@ -25,7 +25,7 @@ export function OnlineStatus() {
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Offline</AlertTitle>
       <AlertDescription>
-        You are currently offline. Replies will be queued and sent once the connection is restored.
+        You are currently offline. Replies cannot be sent until the connection is restored.
       </AlertDescription>
     </Alert>
   );
