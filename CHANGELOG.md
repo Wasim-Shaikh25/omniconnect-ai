@@ -443,6 +443,13 @@ All notable changes to **OmniConnect AI** are documented here.
   failures 5 times with exponential backoff + jitter, eliminating the flaky CI concurrency failure on the
   `teamSeats + 5` parallel invite integration test.
 
+- `REQ-0079` **Content scheduling review fixes** on `devin/review-fixes-scheduling-1786019300`:
+  `scheduledAtTimezone` is now validated with `isValidTimeZone` in the Zod schemas and falls back to UTC
+  when formatting (`formatInTimeZone`); `InMemoryQueue` re-arms its `setTimeout` for delays beyond
+  `MAX_TIMEOUT_MS` instead of capping and firing early, and it cleans up fired timers to avoid unbounded
+  growth; `publishScheduledPost` defensively skips when the post's `scheduledAt` is still more than 5
+  seconds in the future.
+
 ### 🚧 In Progress
 
 - No active in-progress items.
