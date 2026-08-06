@@ -24,3 +24,12 @@ export class MetaNotConnectedError extends MetaError {
     super(`Store has no Meta connection: ${projectId}`);
   }
 }
+
+export class MetaRateLimitError extends MetaError {
+  public readonly resetAt: number;
+  constructor(resetAt: number) {
+    super(`Instagram Graph API rate limit exceeded. Retry after ${new Date(resetAt).toISOString()}.`);
+    this.resetAt = resetAt;
+    this.name = new.target.name;
+  }
+}

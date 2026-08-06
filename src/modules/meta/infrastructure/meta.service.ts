@@ -1,7 +1,9 @@
 import crypto from "crypto";
 import { env } from "@/shared/config";
 import { logger, withSpan } from "@/shared/observability";
+import { rateLimit, type RateLimitResult, type RateLimitStore } from "@/shared/security/rate-limit";
 import type { ConnectorOrder } from "@/modules/ecommerce";
+import { MetaRateLimitError } from "../domain/errors";
 import type {
   MetaIntegrationRepository,
   MetaMediaItem,
@@ -18,6 +20,8 @@ import type {
 
 const GRAPH_API_BASE = "https://graph.facebook.com/v21.0";
 const REQUEST_TIMEOUT_MS = 15000;
+const GRAPH_API_HOURLY_LIMIT = 200;
+const GRAPH_API_WINDOW_MS = 60 * 60 * 1000;
 
 function withTimeout(init: RequestInit = {}): RequestInit {
   return { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) };
@@ -29,7 +33,33 @@ function withTimeout(init: RequestInit = {}): RequestInit {
  * Meta app. Tokens are read from infrastructure and never logged.
  */
 export class GraphApiMetaService implements MetaService {
-  constructor(private readonly integrations: MetaIntegrationRepository) {}
+  constructor(
+    private readonly integrations: MetaIntegrationRepository,
+    private readonly rateLimitStore?: RateLimitStore,
+  ) {}
+
+  private async consumeRateLimit(projectId: string): Promise<RateLimitResult> {
+    const result = await rateLimit({
+      key: `meta:graph:${projectId}`,
+      limit: GRAPH_API_HOURLY_LIMIT,
+      windowMs: GRAPH_API_WINDOW_MS,
+      store: this.rateLimitStore,
+    });
+    if (!result.allowed) {
+      logger.warn("meta.rateLimit.exceeded", { projectId, resetAt: result.resetAt });
+      throw new MetaRateLimitError(result.resetAt);
+    }
+    return result;
+  }
+
+  private async graphApiFetch(
+    projectId: string,
+    input: RequestInfo,
+    init?: RequestInit,
+  ): Promise<Response> {
+    await this.consumeRateLimit(projectId);
+    return fetch(input, init);
+  }
 
   async sendMessage(input: {
     projectId: string;
@@ -39,16 +69,17 @@ export class GraphApiMetaService implements MetaService {
     return withSpan(
       "meta.sendMessage",
       async () => {
-        const token = await this.integrations.findAccessToken(input.projectId);
+        const projectId = input.projectId;
+        const token = await this.integrations.findAccessToken(projectId);
         if (!token || !env.META_APP_ID) {
           logger.info("meta.sendMessage.skipped", {
-            projectId: input.projectId,
+            projectId,
             reason: "not-configured",
           });
           return;
         }
 
-        const res = await fetch(`${GRAPH_API_BASE}/me/messages`, withTimeout({
+        const res = await this.graphApiFetch(projectId, `${GRAPH_API_BASE}/me/messages`, withTimeout({
           method: "POST",
           headers: {
             "content-type": "application/json",
@@ -95,14 +126,14 @@ export class GraphApiMetaService implements MetaService {
         }
 
         try {
-          const creationId = await this.createMediaContainer(accountId, token, input);
-          const status = await this.pollContainerStatus(creationId, accountId, token);
+          const creationId = await this.createMediaContainer(projectId, accountId, token, input);
+          const status = await this.pollContainerStatus(projectId, creationId, accountId, token);
           if (status === "ERROR") {
             logger.warn("meta.publishMedia.containerError", { projectId, creationId });
             return null;
           }
 
-          const publishRes = await fetch(
+          const publishRes = await this.graphApiFetch(projectId, 
             `${GRAPH_API_BASE}/${accountId}/media_publish?creation_id=${creationId}`,
             withTimeout({ method: "POST" }),
           );
@@ -154,7 +185,7 @@ export class GraphApiMetaService implements MetaService {
       const url = new URL(`${GRAPH_API_BASE}/ig_hashtag_search`);
       url.searchParams.set("user_id", integration.accountId);
       url.searchParams.set("q", query);
-      const res = await fetch(url.toString(), withTimeout({
+      const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
@@ -198,7 +229,7 @@ export class GraphApiMetaService implements MetaService {
     url.searchParams.set("limit", String(limit));
 
     try {
-      const res = await fetch(url.toString(), withTimeout({
+      const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
@@ -232,7 +263,7 @@ export class GraphApiMetaService implements MetaService {
     url.searchParams.set("limit", String(Math.min(limit, 25)));
 
     try {
-      const res = await fetch(url.toString(), withTimeout({
+      const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
@@ -244,7 +275,7 @@ export class GraphApiMetaService implements MetaService {
       const items = rows.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
       await Promise.all(
         items.map(async (item) => {
-          const insights = await this.fetchMediaInsights(item.externalId, token);
+          const insights = await this.fetchMediaInsights(projectId, item.externalId, token);
           item.metrics = { ...item.metrics, ...insights };
         }),
       );
@@ -275,7 +306,7 @@ export class GraphApiMetaService implements MetaService {
         try {
           const accountUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
           accountUrl.searchParams.set("fields", "username,followers_count,media_count");
-          const accountRes = await fetch(accountUrl.toString(), withTimeout({
+          const accountRes = await this.graphApiFetch(projectId, accountUrl.toString(), withTimeout({
             headers: { authorization: `Bearer ${token}` },
           }));
           const account: unknown = accountRes.ok ? await accountRes.json() : {};
@@ -289,7 +320,7 @@ export class GraphApiMetaService implements MetaService {
           insightsUrl.searchParams.set("since", String(since));
           insightsUrl.searchParams.set("until", String(until));
 
-          const insightsRes = await fetch(insightsUrl.toString(), withTimeout({
+          const insightsRes = await this.graphApiFetch(projectId, insightsUrl.toString(), withTimeout({
             headers: { authorization: `Bearer ${token}` },
           }));
           const insights: unknown = insightsRes.ok ? await insightsRes.json() : {};
@@ -336,7 +367,7 @@ export class GraphApiMetaService implements MetaService {
         url.searchParams.set("period", "lifetime");
 
         try {
-          const res = await fetch(url.toString(), withTimeout({
+          const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
             headers: { authorization: `Bearer ${token}` },
           }));
           if (!res.ok) {
@@ -389,6 +420,7 @@ export class GraphApiMetaService implements MetaService {
   }
 
   private async fetchMediaInsights(
+    projectId: string,
     mediaId: string,
     token: string,
   ): Promise<Partial<MetaMediaMetrics>> {
@@ -397,7 +429,7 @@ export class GraphApiMetaService implements MetaService {
     url.searchParams.set("period", "lifetime");
 
     try {
-      const res = await fetch(url.toString(), withTimeout({
+      const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
         headers: { authorization: `Bearer ${token}` },
       }));
       if (!res.ok) {
@@ -464,7 +496,7 @@ export class GraphApiMetaService implements MetaService {
         );
 
         try {
-          const res = await fetch(url.toString(), withTimeout({
+          const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
             headers: { authorization: `Bearer ${token}` },
           }));
           if (!res.ok) {
@@ -538,7 +570,7 @@ export class GraphApiMetaService implements MetaService {
     };
 
     try {
-      const res = await fetch(`${GRAPH_API_BASE}/${pixelId}/events`, withTimeout({
+      const res = await this.graphApiFetch(projectId, `${GRAPH_API_BASE}/${pixelId}/events`, withTimeout({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
@@ -557,6 +589,7 @@ export class GraphApiMetaService implements MetaService {
   }
 
   private async createMediaContainer(
+    projectId: string,
     accountId: string,
     token: string,
     input: PublishMediaInput,
@@ -572,7 +605,7 @@ export class GraphApiMetaService implements MetaService {
         childParams.set("access_token", token);
         childParams.set(isVideo ? "video_url" : "image_url", url);
         if (isVideo) childParams.set("media_type", "VIDEO");
-        const childRes = await fetch(
+        const childRes = await this.graphApiFetch(projectId, 
           `${GRAPH_API_BASE}/${accountId}/media?${childParams.toString()}`,
           withTimeout({ method: "POST" }),
         );
@@ -586,7 +619,7 @@ export class GraphApiMetaService implements MetaService {
       parentParams.set("children", childIds.join(","));
       parentParams.set("access_token", token);
       if (caption) parentParams.set("caption", caption);
-      const parentRes = await fetch(
+      const parentRes = await this.graphApiFetch(projectId, 
         `${GRAPH_API_BASE}/${accountId}/media?${parentParams.toString()}`,
         withTimeout({ method: "POST" }),
       );
@@ -629,7 +662,7 @@ export class GraphApiMetaService implements MetaService {
 
     if (caption) params.set("caption", caption);
 
-    const res = await fetch(
+    const res = await this.graphApiFetch(projectId, 
       `${GRAPH_API_BASE}/${accountId}/media?${params.toString()}`,
       withTimeout({ method: "POST" }),
     );
@@ -641,6 +674,7 @@ export class GraphApiMetaService implements MetaService {
   }
 
   private async pollContainerStatus(
+    projectId: string,
     creationId: string,
     _accountId: string,
     token: string,
@@ -651,7 +685,7 @@ export class GraphApiMetaService implements MetaService {
       if (attempt > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
-      const res = await fetch(
+      const res = await this.graphApiFetch(projectId, 
         `${GRAPH_API_BASE}/${creationId}?fields=status_code&access_token=${token}`,
         withTimeout(),
       );

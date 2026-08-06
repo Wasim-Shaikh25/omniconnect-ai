@@ -95,7 +95,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `users` | User profile, organization membership, role changes, store assignment, GDPR export/delete. |
 | `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits (`PlanConfig` DB overrides with `PLAN_LIMITS` fallback), team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons, adapter library (super-admin list/validate/approve generated adapters). |
-| `meta` | Meta Graph API client, inbound webhook verification, outbound messaging, and Instagram Content Publishing API (`publishMedia` with container → poll → publish). |
+| `meta` | Meta Graph API client with per-project 200 calls/hour rate limiting, inbound webhook verification, outbound messaging, and Instagram Content Publishing API (`publishMedia` with container → poll → publish). |
 | `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence, `ChatSession`/`ChatMessage` assistant chat, `AI_TOOLS` function-calling definitions, `BusinessBrain` / `askBusinessBrainAction`, and `POST /api/chat/stream` SSE endpoint. |
 | `intelligence` | Marketing Brain (`updateMarketingMemory`, `generateDailyBrief`), Next Best Action (`recommendationService`), predictions, hypotheses, business learnings, goal planning, and plan-tier access rules (`canUseIntelligenceFeature`). |
 | `coupons` | First-follower and DM campaign coupon orchestration. |

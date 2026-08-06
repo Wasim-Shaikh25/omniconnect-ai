@@ -30,6 +30,7 @@ export {
   InvalidSignatureError,
   UnknownAccountError,
   MetaNotConnectedError,
+  MetaRateLimitError,
 } from "./domain/errors";
 
 // Application — schemas and types

@@ -45,6 +45,11 @@ All notable changes to **OmniConnect AI** are documented here.
   (client, drag-to-reschedule) wired to `getContentCalendarForStore`. Added `makeReschedulePost` use-case,
   `reschedulePostAction`, and `QueueService.remove(jobId)` so delayed jobs can be cancelled and re-enqueued.
   Unit tests added for `hashtag-intelligence.ts` and `reschedule-post.ts`.
+- `REQ-0079` **Graph API rate limiting** on `devin/req-0079-graph-api-rate-limiting-1786065200`:
+  added `MetaRateLimitError` and a per-project 200 calls/hour fixed-window limit to every outbound
+  `graph.facebook.com` request made by `GraphApiMetaService`. Uses the shared `rateLimit` helper with
+  `RateLimitStore` (Redis in production, in-memory fallback in dev/tests) keyed by `meta:graph:<projectId>`.
+  Unit tests added in `src/modules/meta/infrastructure/meta.service.test.ts`.
 
 - `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
   added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`
