@@ -16,6 +16,8 @@ export interface SessionUser {
   projectId: string | null;
   suspendedAt?: Date | null;
   banned?: boolean;
+  impersonatedBy?: string | null;
+  isImpersonating?: boolean;
 }
 
 function toSessionUser(row: {
@@ -64,6 +66,9 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   if (fresh.suspendedAt || fresh.banned) return null;
   const { tokenVersion, ...sessionUser } = fresh;
   void tokenVersion;
+
+  sessionUser.impersonatedBy = user.impersonatedBy ?? null;
+  sessionUser.isImpersonating = !!user.isImpersonating;
 
   return sessionUser;
 }

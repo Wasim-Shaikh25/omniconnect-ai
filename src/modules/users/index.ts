@@ -58,6 +58,8 @@ export {
   requestDataExportAction,
   listDataExportsAction,
   deleteAccountAction,
+  impersonateUserAction,
+  exitImpersonationAction,
 } from "./presentation/actions";
 export type { ProfileActionState } from "./presentation/actions";
 export { registerUsersSubscribers } from "./infrastructure/subscribers";

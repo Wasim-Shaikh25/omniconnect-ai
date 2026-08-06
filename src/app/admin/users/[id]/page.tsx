@@ -3,6 +3,7 @@ import { requireSuperAdmin } from "@/modules/auth";
 import { getUserProfile } from "@/modules/users";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserStatusButtons } from "@/components/user-status-buttons";
+import { ImpersonateUserButton } from "@/components/impersonate-user-button";
 
 interface AdminUserDetailPageProps {
   params: Promise<{ id: string }>;
@@ -49,8 +50,9 @@ export default async function AdminUserDetailPage({ params }: AdminUserDetailPag
             <p className="font-medium">{user.projectId ?? "—"}</p>
           </div>
         </div>
-        <div className="pt-2">
+        <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center">
           <UserStatusButtons userId={user.id} suspendedAt={user.suspendedAt} banned={user.banned} />
+          <ImpersonateUserButton userId={user.id} />
         </div>
       </CardContent>
     </Card>

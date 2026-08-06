@@ -18,8 +18,7 @@ Progress tracker for REQ-0087: Super Admin Panel.
 - [x] Branch created.
 
 ### Implementation
-- [x] T-063: User management (list, view, search/filter/pagination, suspend/ban).
-- [~] T-063: User management — impersonation in progress (Batch 2).
+- [x] T-063: User management (list, view, search/filter/pagination, suspend/ban, impersonation with audit log).
 - [ ] T-064: Plan management (CRUD plans, feature limits).
 - [ ] T-065: Payment management (Stripe refunds, discounts).
 - [ ] T-066: System coupons for subscriptions.

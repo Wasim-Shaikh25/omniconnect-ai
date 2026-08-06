@@ -11,6 +11,13 @@ declare module "next-auth" {
       userId: string | null;
       projectId: string | null;
       tokenVersion: number;
+      phone: string | null;
+      phoneVerified: Date | null;
+      suspendedAt: Date | null;
+      banned: boolean;
+      impersonatedBy: string | null;
+      isImpersonating: boolean;
+      impersonatedUserId: string | null;
     } & DefaultSession["user"];
   }
 
@@ -33,5 +40,6 @@ declare module "next-auth/jwt" {
     userId?: string | null;
     projectId?: string | null;
     tokenVersion?: number;
+    impersonatedUserId?: string | null;
   }
 }

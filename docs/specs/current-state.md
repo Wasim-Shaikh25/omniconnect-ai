@@ -132,6 +132,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 
 - **NextAuth v5 JWT strategy** with `tokenVersion` invalidation.
 - `getCurrentUser()` loads the canonical DB record including `userId`/`projectId` and verifies `tokenVersion`; password/role/super-admin changes invalidate existing sessions. Accounts with `suspendedAt` or `banned` are rejected at both `authorize()` (login) and `getCurrentUser()` (session refresh).
+- Super admins can impersonate a non-super-admin user from `/admin/users/:id`; the session temporarily becomes the target user (`isImpersonating`, `impersonatedBy`), the admin's `/admin` access is blocked while impersonating, and `IMPERSONATION_STARTED`/`IMPERSONATION_ENDED` events are written to `AuditLog`. The `AppShell` shows an exit banner that returns the admin to `/admin/users`.
 - `tenantGuard.assertStoreAccess(user, projectId)` enforces: owners (`user.userId === user.id`) access any project in their workspace; staff (`user.userId` points to the owner) are pinned to `user.projectId`; super-admins bypass.
 - `requireRole()` / `requireSuperAdmin()` helpers for pages and actions.
 - Store pages use `checkStoreAccess(projectId)` — a pure predicate that returns a discriminated union — and call `notFound()` / `redirect("/login")` directly in the page body. A thin `requireStoreAccess(projectId)` wrapper remains for server actions that need throwing semantics.

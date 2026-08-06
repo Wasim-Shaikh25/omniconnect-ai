@@ -8,9 +8,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { SignOutButton } from "./sign-out-button";
+import { ExitImpersonationButton } from "./exit-impersonation-button";
 import { getUnreadNotificationCountAction } from "@/modules/notifications";
 import { isRole, type Role } from "@/modules/auth/domain";
 import type { SessionUser } from "@/modules/auth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import * as Dialog from "@radix-ui/react-dialog";
 import {
@@ -32,6 +34,7 @@ import {
   Settings,
   Store,
   TrendingUp,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -53,6 +56,15 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
+function parseClientDate(value: unknown): Date | null {
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
 function sessionUserFromClient(raw: unknown): SessionUser | null {
   if (typeof raw !== "object" || raw === null) return null;
   const u = raw as Record<string, unknown>;
@@ -63,11 +75,15 @@ function sessionUserFromClient(raw: unknown): SessionUser | null {
     name: typeof u.name === "string" ? u.name : null,
     role: isRole(u.role) ? (u.role as Role) : "USER",
     isSuperAdmin: typeof u.isSuperAdmin === "boolean" ? u.isSuperAdmin : false,
-    emailVerified: u.emailVerified instanceof Date ? u.emailVerified : null,
+    emailVerified: parseClientDate(u.emailVerified),
     phone: typeof u.phone === "string" ? u.phone : null,
-    phoneVerified: u.phoneVerified instanceof Date ? u.phoneVerified : null,
+    phoneVerified: parseClientDate(u.phoneVerified),
     userId: typeof u.userId === "string" ? u.userId : null,
     projectId: typeof u.projectId === "string" ? u.projectId : null,
+    suspendedAt: parseClientDate(u.suspendedAt),
+    banned: typeof u.banned === "boolean" ? u.banned : false,
+    impersonatedBy: typeof u.impersonatedBy === "string" ? u.impersonatedBy : null,
+    isImpersonating: typeof u.isImpersonating === "boolean" ? u.isImpersonating : false,
   };
 }
 
@@ -310,6 +326,19 @@ export function AppShell({ children }: AppShellProps) {
           "pt-14 md:pt-0",
         )}
       >
+        {user?.isImpersonating ? (
+          <Alert variant="default" className="m-4 border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            <UserCog className="h-4 w-4" aria-hidden="true" />
+            <AlertTitle>Impersonation mode</AlertTitle>
+            <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                You are viewing the app as <strong>{user.email}</strong>. Actions you perform may be
+                attributed to the real account in the audit log.
+              </span>
+              <ExitImpersonationButton />
+            </AlertDescription>
+          </Alert>
+        ) : null}
         {children}
       </main>
     </div>

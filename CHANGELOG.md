@@ -22,6 +22,11 @@ All notable changes to **OmniConnect AI** are documented here.
   new `/admin/users/[id]` detail page; new `/admin/health` dashboard shows user counts, 24h errors, BullMQ queue
   depth, and AI token usage/cost for 24h/7d/all-time via `aiQueries.summarizeTokenUsageTotal`. `TokenUsageRepository`
   gained `summarizeTotal`; `QueueService` gained `getJobCounts`.
+- `REQ-0087` **Super Admin Panel — Batch 2 (impersonation)** on `devin/req-0087-batch2-impersonation-1785989634`:
+  super admins can impersonate a non-super-admin user from `/admin/users/[id]`; the JWT stores `impersonatedUserId`
+  and the `session` callback swaps the session to the target user (`isImpersonating`, `impersonatedBy`);
+  `AppShell` displays an impersonation banner with an exit button; `exitImpersonationAction` returns the admin to their
+  own session and writes `IMPERSONATION_ENDED` audit log entries. Admin `/admin*` routes are blocked while impersonating.
 - `REQ-0082` + `REQ-0088` **Knowledge-base upload + Stripe billing lifecycle** on `devin/remaining-followups-0082-0088-1786060200`:
   added `AIConfiguration.productKnowledge` and `User.stripeCustomerId` columns with migrations;
   `extractKnowledgeBaseFiles` server action extracts PDF (via `pdfjs-dist`), Markdown, and text files
@@ -220,8 +225,7 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0087` **Super Admin Panel — Batch 2** on `devin/req-0087-batch2-impersonation-1785989634`:
-  impersonation flow with audit log, exit-impersonation UI, and session-callback support.
+None.
 
 ### ⏭️ Next
 
