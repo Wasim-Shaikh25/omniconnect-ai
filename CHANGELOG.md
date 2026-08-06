@@ -23,7 +23,8 @@ All notable changes to **OmniConnect AI** are documented here.
   `buildSystemPrompt` appends it to the system prompt. Stripe lifecycle completed with
   `createPortalSession` and `listInvoices` on `BillingService`/`StripePaymentGateway`, plus
   `/api/stripe/portal` and `/api/stripe/invoices` routes; `/settings/billing` now shows a
-  "Manage subscription" button and paid invoice history.
+  "Manage subscription" button and paid invoice history. Worker path for `pdfjs-dist` resolved via
+  `fileURLToPath`/`path.resolve` so PDF extraction works inside Next.js server actions.
 - `REQ-0084` **Attribution & Checkout Links** on `devin/attribution-checkout-links-1785956172`:
   new `attribution` module with `AttributionLink` Prisma model, `makeCreateAttributionLink` use-case
   that builds checkout URLs with coupon auto-apply (platform-specific `couponUrlPattern`) + UTM parameters,
