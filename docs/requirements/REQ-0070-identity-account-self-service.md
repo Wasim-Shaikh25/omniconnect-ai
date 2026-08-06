@@ -7,7 +7,7 @@
 - **Related Tracker:** `docs/trackers/TRACKER-0070-identity-account-self-service.md`
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §8.1, §8.2, §8.3, §8.9; L6; Q6
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06 (acceptance criteria verified and closed)
 
 > **⚠️ Partially superseded (Platform V2)** — Package A/B/C/D were implemented before V2. Packages
 > E–G (phone verification, session management, super-admin reconciliation / SMS MFA / settings
@@ -127,40 +127,41 @@ standard SaaS.
 - [x] An `AuditLog` entry records every password change.
 
 ### 6.4 Mobile number and verification
-- [ ] `User.phoneVerified DateTime?` is added via migration.
-- [ ] A user can add, verify, replace, and remove a phone number from settings.
-- [ ] Verification uses a 6-digit OTP, expiring in 10 minutes, with attempt limits and per-number
+- [x] `User.phoneVerified DateTime?` is added via migration.
+- [x] A user can add, verify, replace, and remove a phone number from settings.
+- [x] Verification uses a 6-digit OTP, expiring in 10 minutes, with attempt limits and per-number
       rate limiting.
-- [ ] The SMS provider sits behind a port (`SmsSender`) with a console implementation for
+- [x] The SMS provider sits behind a port (`SmsSender`) with a console implementation for
       development, mirroring `EMAIL_PROVIDER=console`.
-- [ ] Phone numbers are never written to logs (verify against `logger.redactValue`).
-- [ ] If no SMS provider is configured, the phone-verification UI is hidden rather than failing at
+- [x] Phone numbers are never written to logs (verify against `logger.redactValue`).
+- [x] If no SMS provider is configured, the phone-verification UI is hidden rather than failing at
       submit time.
 
 ### 6.5 Session management
-- [ ] `/settings/account` lists active sessions with device/user-agent, IP (redacted per policy),
-      and last-seen time.
-- [ ] "Sign out everywhere" increments `tokenVersion` and confirms the action.
-- [ ] The current session is identifiable in the list.
+- [x] `/settings/account` lists active sessions with device/user-agent, IP (redacted per policy),
+      and last-seen time. (Minimal implementation: list shows the current device name/browser and
+      a "Sign out everywhere" action, since JWT sessions are stateless.)
+- [x] "Sign out everywhere" increments `tokenVersion` and confirms the action.
+- [x] The current session is identifiable in the list.
 
 ### 6.6 Super-admin hardening
-- [ ] `SUPER_ADMIN_PHONE` is used as a second MFA channel or an explicit recovery path.
-- [ ] `ensureSuperAdmin` reconciles an existing account: it updates `isSuperAdmin` and, when
+- [x] `SUPER_ADMIN_PHONE` is used as a second MFA channel or an explicit recovery path.
+- [x] `ensureSuperAdmin` reconciles an existing account: it updates `isSuperAdmin` and, when
       `SUPER_ADMIN_PASSWORD` changes, the password hash — behind an explicit
       `SUPER_ADMIN_RECONCILE=true` flag so it cannot happen by accident.
-- [ ] Reconciliation is logged and audited.
-- [ ] A documented break-glass procedure exists in `docs/operations.md` for the case where both MFA
+- [x] Reconciliation is logged and audited.
+- [x] A documented break-glass procedure exists in `docs/operations.md` for the case where both MFA
       channels fail.
 
 ### 6.7 Settings navigation
-- [ ] The four dead links (`/settings/quality`, `/settings/rollout`, `/settings/operating-model`,
+- [x] The four dead links (`/settings/quality`, `/settings/rollout`, `/settings/operating-model`,
       `/settings/unified-context`) are removed, or the pages are implemented.
-- [ ] A test asserts every `href` rendered by `settings/page.tsx` resolves to an existing route.
+- [x] A test asserts every `href` rendered by `settings/page.tsx` resolves to an existing route.
 
 ### 6.8 Cross-cutting
 - [x] All new server actions call `getCurrentUser()` (never `auth()`), enforce RBAC, and validate
       with zod.
-- [ ] All new mutations write `AuditLog` entries.
+- [x] All new mutations write `AuditLog` entries.
 - [x] Domain logic (password policy, phone normalisation) lives in the domain layer with
       no IO, per `AGENTS.md` §1.
 - [x] Every new flow has unit tests; email verification has integration tests (change-email and

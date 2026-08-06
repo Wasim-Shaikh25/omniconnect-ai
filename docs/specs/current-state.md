@@ -81,7 +81,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | AI | OpenRouter gateway via `AIProvider` interface (`OpenRouterProvider`; model routing centralized) |
 | Payments | Stripe subscriptions + promotion codes |
 | E-commerce | Shopify Admin REST API (live) + webhooks for catalog/orders/abandoned cart + Mock connector (dev) |
-| Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified) |
+| Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified), Meta Login OAuth flow for Instagram/Facebook connection (`/api/meta/auth` + `/api/meta/callback`) |
 | Observability | JSON logger, `SystemLog`, Sentry, OpenTelemetry |
 | Deployment | Docker multi-stage, standalone Next.js output, Fly.io (`app` + `worker` groups) |
 
@@ -95,7 +95,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `users` | User profile, organization membership, role changes, store assignment, GDPR export/delete. |
 | `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits (`PlanConfig` DB overrides with `PLAN_LIMITS` fallback), team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons, adapter library (super-admin list/validate/approve generated adapters). |
-| `meta` | Meta Graph API client with per-project 200 calls/hour rate limiting, inbound webhook verification, outbound messaging, and Instagram Content Publishing API (`publishMedia` with container → poll → publish). |
+| `meta` | Meta Graph API client with per-project 200 calls/hour rate limiting, inbound webhook verification, outbound messaging, Meta Login OAuth connection flow (`/api/meta/auth` and `/api/meta/callback` that exchange a code for a long-lived token and persist the page token encrypted on `Project`), and Instagram Content Publishing API (`publishMedia` with container → poll → publish). |
 | `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence, `ChatSession`/`ChatMessage` assistant chat, `AI_TOOLS` function-calling definitions, `BusinessBrain` / `askBusinessBrainAction`, and `POST /api/chat/stream` SSE endpoint. |
 | `intelligence` | Marketing Brain (`updateMarketingMemory`, `generateDailyBrief`), Next Best Action (`recommendationService`), predictions, hypotheses, business learnings, goal planning, and plan-tier access rules (`canUseIntelligenceFeature`). |
 | `coupons` | First-follower and DM campaign coupon orchestration. |

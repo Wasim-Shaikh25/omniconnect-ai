@@ -4,7 +4,7 @@
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
-- **Last updated:** 2026-08-06 (T-071 trending reels/audio analysis batch complete on `devin/req-0079-trending-reels-1786006431`)
+- **Last updated:** 2026-08-06 (T-021 Meta OAuth flow implemented on `devin/batch-meta-oauth-doc-closeouts-1786007775`)
 
 ## 1. Summary
 
@@ -18,7 +18,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [x] Branch created (`devin/req-0079-content-publishing-1786062600`).
 
 ### Implementation
-- [ ] T-021: Meta OAuth flow (IG + FB page connection).
+- [x] T-021: Meta OAuth flow (IG + FB page connection).
 - [ ] T-022: WhatsApp Business API connection.
 - [x] T-023: Content Publishing API (container → poll → publish).
 - [x] T-024: Content scheduling (DB + BullMQ delayed job).
@@ -43,4 +43,4 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- T-023, T-024, T-025, T-058, T-059, T-069, T-070 (Graph API rate limiting), and T-071 (trending reels/audio analysis) completed on respective feature branches. Remaining: T-021 (Meta OAuth) and T-022 (WhatsApp).
+- T-021, T-023, T-024, T-025, T-058, T-059, T-069, T-070 (Graph API rate limiting), and T-071 (trending reels/audio analysis) completed on respective feature branches. Remaining: T-022 (WhatsApp).

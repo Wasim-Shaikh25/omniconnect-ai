@@ -11,6 +11,12 @@ export {
   metaService,
 } from "./infrastructure/container";
 export {
+  getMetaOAuthUrl,
+  exchangeMetaOAuthCode,
+  fetchInstagramAccount,
+} from "./infrastructure/meta-oauth";
+export type { MetaOAuthAccount } from "./infrastructure/meta-oauth";
+export {
   verifyWebhookChallenge,
   verifyWebhookSignature,
 } from "./application/verify-webhook";

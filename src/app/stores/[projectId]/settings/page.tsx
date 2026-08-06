@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ECOMMERCE_PROVIDERS, checkStoreAccess, updateStoreAction } from "@/modules/workspaces";
 import { StoreSettingsForm } from "@/components/store-settings-form";
+import { MetaConnectionCard } from "@/components/meta-connection-card";
 import {
   Card,
   CardContent,
@@ -42,6 +43,8 @@ export default async function StoreSettingsPage({
           />
         </CardContent>
       </Card>
+
+      <MetaConnectionCard projectId={projectId} />
 
       <div className="mt-6 flex items-center gap-2">
         <Button asChild variant="outline" size="sm">
