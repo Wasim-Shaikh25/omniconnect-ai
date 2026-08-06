@@ -100,9 +100,9 @@ fixed). No production deployment may proceed until every box below is `x`.
 - [x] Integration test: valid HMAC `products/create` persists a product.
 
 ### H10 — Atomic seat limits
-- [x] Concurrency test written and passing (pending invites never exceed `teamSeats`).
+- [x] Concurrency test written and passing (pending invites never exceed `teamSeats`); re-ran 5 times and full integration suite passes.
 - [x] `createWithinSeatLimit` added with a serializable transaction.
-- [x] Bounded serialization-failure retries added.
+- [x] Bounded serialization-failure retries added (5 attempts with exponential backoff + jitter).
 - [x] `SeatLimitError` returned via `err(...)`, no raw Prisma error escapes.
 - [x] Invite email sent only after commit.
 - [x] `planLimits(` inventory completed for other racy paths (store creation already atomic, AI reply counter atomic).

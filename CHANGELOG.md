@@ -426,6 +426,11 @@ All notable changes to **OmniConnect AI** are documented here.
   Shopify connector migration is **deferred** to Batch 3 until `ConfigInterpreter` supports two-step coupon
   creation.
 
+- `REQ-0067` **H10 seat-limit retry hardening** on `devin/fix-seat-limit-concurrency-1786017547`:
+  `PrismaOrganizationInviteRepository.createWithinSeatLimit` now retries Postgres `P2034` serialization
+  failures 5 times with exponential backoff + jitter, eliminating the flaky CI concurrency failure on the
+  `teamSeats + 5` parallel invite integration test.
+
 ### 🚧 In Progress
 
 - No active in-progress items.

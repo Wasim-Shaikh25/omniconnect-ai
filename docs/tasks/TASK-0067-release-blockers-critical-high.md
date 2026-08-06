@@ -678,9 +678,10 @@ async createWithinSeatLimit(input: CreateInviteInput & { teamSeats: number | nul
 }
 ```
 
-Wrap the call in a bounded retry (3 attempts) for Postgres serialization failures (`P2034` /
-SQLSTATE `40001`). `invite-member.ts` converts `{ ok: false, reason: "seat_limit" }` to
-`err(new SeatLimitError(limit))` and only sends the invite email after the transaction commits.
+Wrap the call in a bounded retry (5 attempts) for Postgres serialization failures (`P2034` /
+SQLSTATE `40001`), with exponential backoff + jitter between retries to avoid thundering-herd
+re-collisions under CI parallelism. `invite-member.ts` converts `{ ok: false, reason: "seat_limit" }`
+to `err(new SeatLimitError(limit))` and only sends the invite email after the transaction commits.
 
 **Test:** fire `teamSeats + 5` invites concurrently with `Promise.all`; assert pending invites
 never exceed `teamSeats`.
@@ -692,7 +693,7 @@ grep -rn "planLimits(" src/modules
 ```
 
 **H10 inventory 2026-08-01:**
-- `invite-member.ts` now uses `createWithinSeatLimit` with serializable isolation and bounded retries.
+- `invite-member.ts` now uses `createWithinSeatLimit` with serializable isolation and bounded retries (5 attempts with jittered backoff).
 - `create-store.ts` → `PrismaStoreRepository.create` already uses a serializable transaction for `maxStores`.
 - `usage.ts` → `PrismaOrganizationRepository.incrementAIReplies` already uses a serializable transaction for `monthlyAiReplies`.
 - No other `planLimits(` callers found.
