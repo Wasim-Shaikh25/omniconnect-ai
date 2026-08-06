@@ -7,6 +7,7 @@ import {
   fetchInstagramAccount,
   verifyMetaOAuthState,
 } from "@/modules/meta/server";
+import { env } from "@/shared/config";
 import { logger } from "@/shared/observability";
 
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ export const runtime = "nodejs";
 const OAUTH_STATE_COOKIE = "meta_oauth_state";
 const OAUTH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
   maxAge: 0,
@@ -29,18 +30,22 @@ function parseCookieValue(header: string | null, name: string): string | null {
   return null;
 }
 
-function redirectWithError(projectId: string | null, code: string): Response {
+function redirectWithError(
+  projectId: string | null,
+  code: string,
+  requestUrl: string,
+): Response {
   const base = projectId ? `/stores/${projectId}/settings` : "/settings";
-  const url = new URL(base, "http://localhost");
+  const url = new URL(base, requestUrl);
   url.searchParams.set("meta_error", code);
-  const response = NextResponse.redirect(url.pathname + url.search);
+  const response = NextResponse.redirect(url.toString());
   response.cookies.set(OAUTH_STATE_COOKIE, "", OAUTH_COOKIE_OPTIONS);
   return response;
 }
 
-function redirectSuccess(projectId: string): Response {
+function redirectSuccess(projectId: string, requestUrl: string): Response {
   const response = NextResponse.redirect(
-    new URL(`/stores/${projectId}/settings?meta=connected`, "http://localhost"),
+    new URL(`/stores/${projectId}/settings?meta=connected`, requestUrl).toString(),
   );
   response.cookies.set(OAUTH_STATE_COOKIE, "", OAUTH_COOKIE_OPTIONS);
   return response;
@@ -69,22 +74,22 @@ export async function GET(request: Request): Promise<Response> {
   if (error || !state || !nonce) {
     const code = errorReason ?? error ?? "denied";
     logger.warn("meta.oauth.denied", { error: code });
-    return redirectWithError(null, code);
+    return redirectWithError(null, code, request.url);
   }
 
   const projectId = verifyMetaOAuthState(state, nonce);
   if (!projectId) {
     logger.warn("meta.oauth.invalidState", { stateLength: state.length });
-    return redirectWithError(null, "invalid_state");
+    return redirectWithError(null, "invalid_state", request.url);
   }
 
   const access = await checkStoreAccess(projectId);
   if (!access.ok) {
-    return redirectWithError(projectId, "forbidden");
+    return redirectWithError(projectId, "forbidden", request.url);
   }
 
   if (!code) {
-    return redirectWithError(projectId, "missing_code");
+    return redirectWithError(projectId, "missing_code", request.url);
   }
 
   try {
@@ -92,7 +97,7 @@ export async function GET(request: Request): Promise<Response> {
     const account = await fetchInstagramAccount(accessToken);
 
     if (!account) {
-      return redirectWithError(projectId, "no_instagram_account");
+      return redirectWithError(projectId, "no_instagram_account", request.url);
     }
 
     await connectMeta({
@@ -109,10 +114,10 @@ export async function GET(request: Request): Promise<Response> {
       pageId: account.pageId,
     });
 
-    return redirectSuccess(projectId);
+    return redirectSuccess(projectId, request.url);
   } catch (error) {
     const code = error instanceof Error ? "oauth_failed" : "unknown";
     logger.error("meta.oauth.callbackFailed", { projectId, error: code });
-    return redirectWithError(projectId, code);
+    return redirectWithError(projectId, code, request.url);
   }
 }
