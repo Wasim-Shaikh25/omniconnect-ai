@@ -19,7 +19,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ### Implementation
 - [x] T-021: Meta OAuth flow (IG + FB page connection).
-- [x] T-022: WhatsApp Business API connection. — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
+- [d] T-022: WhatsApp Business API connection. — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API (container → poll → publish).
 - [x] T-024: Content scheduling (DB + BullMQ delayed job).
 - [x] T-025: Content Studio UI (publish form added to `/stores/[projectId]/content`).

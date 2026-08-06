@@ -51,7 +51,8 @@ The unified messaging capability lives in the existing `conversations` module (c
 - [x] T-076: Human takeover toggle.
 - [x] T-077: AI reply in conversations with channel enable + business-hours gating.
 - [x] T-075: Mobile PWA optimization — responsive messaging UI, offline support (P2).
-- [x] T-078: WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
+- [x] T-079: Fix offline banner wording so it does not falsely promise queued sends.
+- [d] T-078: WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 
 ## 5. Acceptance Criteria
 

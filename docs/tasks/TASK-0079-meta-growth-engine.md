@@ -48,7 +48,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 ## 4. Subtasks
 
 - [x] T-021: Meta OAuth flow
-- [x] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
+- [d] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API
 - [x] T-024: Content scheduling
 - [x] T-025: Content Studio UI (publish form integrated on `/stores/[projectId]/content`)

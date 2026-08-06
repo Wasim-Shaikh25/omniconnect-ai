@@ -435,6 +435,12 @@ All notable changes to **OmniConnect AI** are documented here.
   failures 5 times with exponential backoff + jitter, eliminating the flaky CI concurrency failure on the
   `teamSeats + 5` parallel invite integration test.
 
+- **Review-fixes / tracker honesty** on `devin/review-fixes-deferred-1786018765`:
+  `scripts/task-status.ts` now supports `- [d]` deferred checklist markers and excludes deferred items from
+  the active "Left" count. All previously-ticked deferred/N/A items across `REQ-0068`, `REQ-0069`,
+  `REQ-0070`, `REQ-0079`, and `REQ-0080` trackers have been restored to `[d]`. The `OnlineStatus` banner
+  no longer falsely claims offline replies will be queued.
+
 ### 🚧 In Progress
 
 - No active in-progress items.

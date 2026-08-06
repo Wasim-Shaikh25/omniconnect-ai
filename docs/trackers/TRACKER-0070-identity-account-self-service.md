@@ -40,7 +40,7 @@ bot protection.
 - [x] `confirmPassword` in schema with mismatch refinement.
 - [x] Confirm-password field rendered with inline error.
 - [x] Password rules displayed before submission.
-- [x] Optional `dateOfBirth` with age policy — **N/A** per Q1 (omitted for MVP).
+- [d] Optional `dateOfBirth` with age policy — **N/A** per Q1 (omitted for MVP).
 - [x] Optional E.164 `phone` validated client and server side.
 - [x] Turnstile verified server-side; no-op when unconfigured.
 - [x] Registration is enumeration-safe.
@@ -54,7 +54,7 @@ bot protection.
 - [x] Unverified login returns a distinguishable code with a resend affordance.
 - [x] `requireVerifiedEmail()` gates AI generation, store connection, and checkout.
 - [x] Resend rate-limited to 3/hour/address.
-- [x] Integration test: register → verify → login → gated features unlocked (tracked as a follow-up test). — **N/A**: covered by unit + integration tests for registration, email verification, and `requireVerifiedEmail` gating; full end-to-end journey deferred to release readiness.
+- [d] Integration test: register → verify → login → gated features unlocked (tracked as a follow-up test). — **N/A**: covered by unit + integration tests for registration, email verification, and `requireVerifiedEmail` gating; full end-to-end journey deferred to release readiness.
 
 ### Package D — Password and email change
 - [x] `changePassword` requires and validates the current password.
@@ -82,7 +82,7 @@ bot protection.
 ### Package F — Session management
 - [x] Minimal vs full session-list decision recorded (minimal: bump `tokenVersion` to invalidate all JWTs).
 - [x] "Sign out everywhere" implemented with confirmation.
-- [x] (If full) `UserSession` added and populated on sign-in. — **N/A**: minimal session management chosen (bump `tokenVersion` on sensitive changes and "sign out everywhere").
+- [d] (If full) `UserSession` added and populated on sign-in. — **N/A**: minimal session management chosen (bump `tokenVersion` on sensitive changes and "sign out everywhere").
 
 ### Package G — Super admin and settings navigation
 - [x] Gated `ensureSuperAdmin` reconciliation implemented and audited.
