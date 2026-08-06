@@ -122,5 +122,7 @@ export type { AdapterLibraryActionState } from "./presentation/adapter-library.a
 export {
   generateAdapterConfigAction,
   testAdapterConfigAction,
+  saveAdapterConfigAction,
+  connectAdapterAction,
 } from "./presentation/adapter-config.actions";
 export type { AdapterConfigActionState } from "./presentation/adapter-config.actions";

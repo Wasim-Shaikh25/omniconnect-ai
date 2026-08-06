@@ -212,6 +212,7 @@ model Project {
   @@index([userId])
 
   ecommerceConnections EcommerceConnection[]
+  generatedAdapters    GeneratedAdapter?
   aiConfigurations     AIConfiguration[]
   tokenUsage           TokenUsage[]
 
@@ -299,6 +300,20 @@ model EcommerceConnection {
 
   @@index([projectId])
   @@index([provider])
+}
+
+model GeneratedAdapter {
+  id           String   @id @default(cuid())
+  projectId    String   @unique
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  platformName String
+  config       Json // AdapterConfigMapping
+  credentials  String   // encrypted JSON of credential fields
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId])
 }
 
 model AttributionLink {

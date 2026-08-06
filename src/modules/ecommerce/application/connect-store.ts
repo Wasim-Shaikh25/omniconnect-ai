@@ -13,9 +13,6 @@ export const connectStoreSchema = z.object({
   provider: z.enum(ECOMMERCE_PROVIDERS).default("SHOPIFY"),
   shopDomain: z.string().max(255).optional(),
   accessToken: z.string().max(1024).optional(),
-  consumerKey: z.string().max(255).optional(),
-  consumerSecret: z.string().max(255).optional(),
-  storeHash: z.string().max(255).optional(),
 });
 
 export type ConnectStoreInput = z.infer<typeof connectStoreSchema>;
@@ -31,11 +28,6 @@ export function makeConnectStore(deps: {
     const connector = getConnector(input.provider, {
       shopDomain: input.shopDomain,
       accessToken: input.accessToken,
-      metadata: {
-        consumerKey: input.consumerKey,
-        consumerSecret: input.consumerSecret,
-        storeHash: input.storeHash,
-      },
     });
 
     // Validate the connection before persisting it.
@@ -46,22 +38,13 @@ export function makeConnectStore(deps: {
       return err(new ConnectorError(input.provider, "fetchStoreInfo"));
     }
 
-    const metadata: Record<string, string> = {};
-    if (input.provider === "WOOCOMMERCE" && input.consumerKey && input.consumerSecret) {
-      metadata.consumerKey = input.consumerKey;
-      metadata.consumerSecret = input.consumerSecret;
-    }
-    if (input.provider === "BIGCOMMERCE" && input.storeHash) {
-      metadata.storeHash = input.storeHash;
-    }
-
     const integration = await deps.integrations.upsertEcommerce({
       projectId: input.projectId,
       provider: input.provider,
       shopDomain: input.shopDomain ?? info.domain ?? null,
       accessToken: input.accessToken ?? null,
       scopes: null,
-      metadata: Object.keys(metadata).length > 0 ? metadata : null,
+      metadata: null,
     });
 
     await eventBus.publish(
