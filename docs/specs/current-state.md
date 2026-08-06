@@ -82,7 +82,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | Payments | Stripe subscriptions + promotion codes |
 | E-commerce | Shopify Admin REST API (live) + webhooks for catalog/orders/abandoned cart + Mock connector (dev) |
 | Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified), Meta Login OAuth flow for Instagram/Facebook connection (`/api/meta/auth` + `/api/meta/callback`) |
-| Observability | JSON logger, `SystemLog`, Sentry, OpenTelemetry |
+| Observability | JSON logger, `SystemLog`, Sentry, OpenTelemetry. `src/instrumentation.ts` patches `http`/`https` servers in Node to emit `http.request` log entries (method, redacted path, status, duration) and logs request errors via `onRequestError`. `/admin/ops` renders an operations dashboard with request/error rate, p95/mean latency, queue depth, and webhook health |
 | Deployment | Docker multi-stage, standalone Next.js output, Fly.io (`app` + `worker` groups) |
 
 ---

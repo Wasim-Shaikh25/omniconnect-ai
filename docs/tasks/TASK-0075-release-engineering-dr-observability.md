@@ -288,7 +288,11 @@ Record, do not necessarily build:
 - [x] **E.5** Document that production data is never copied to staging.
 - [x] **F.1** Configure all six alerts with owners and first-response steps.
 - [x] **F.2** Configure Sentry release tracking.
-- [ ] **F.3** Build the operations dashboard.
+- [x] **F.3** Build the operations dashboard.
+  - `src/instrumentation.ts` patches `http.createServer`/`https.createServer` to log `http.request` entries to `SystemLog` with method, redacted path, status, and `durationMs`; `onRequestError` logs unhandled request errors as `http.error`.
+  - `src/app/admin/ops/_actions.ts` provides `getOperationsSnapshotAction` (super-admin guarded) that computes 15m/1h request counts, error counts, p95/mean HTTP latency, per-queue depth, per-provider webhook health, and the 50 most recent ERROR/FATAL logs from `SystemLog`.
+  - `src/app/admin/ops/page.tsx` renders the dashboard with summary cards, queue-depth table, and recent-errors table.
+  - `src/app/admin/layout.tsx` adds an `Ops` nav link.
 - [x] **F.4** Schedule a threshold review one month after launch.
 - [ ] **G.1** Run the load test; record results; file or accept findings.
 - [ ] **G.2** Run axe-core and Lighthouse; triage findings; verify contrast.

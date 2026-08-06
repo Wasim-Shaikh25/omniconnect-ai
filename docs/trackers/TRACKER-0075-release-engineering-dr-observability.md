@@ -62,7 +62,7 @@ multi-replica correctness, live third-party integrations).
 - [x] Error-rate spike alert configured.
 - [x] Backup failure alert configured.
 - [x] Sentry release tracking configured.
-- [ ] Operations dashboard built.
+- [x] Operations dashboard built.
 - [x] Threshold review scheduled for one month post-launch.
 
 ### Package G — Residual-risk closure
@@ -86,8 +86,8 @@ multi-replica correctness, live third-party integrations).
 - [ ] A rollback completes within the documented procedure.
 - [ ] A restore completes and the application boots against the restored database.
 - [ ] All six alerts fire correctly when their conditions are simulated.
-- [ ] `CHANGELOG.md` updated.
-- [ ] `docs/specs/current-state.md` updated with the deployment topology.
+- [x] `CHANGELOG.md` updated.
+- [x] `docs/specs/current-state.md` updated with the deployment topology.
 
 ## 3. Acceptance Criteria
 

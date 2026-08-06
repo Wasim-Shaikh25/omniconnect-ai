@@ -15,6 +15,12 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0075` **Operations dashboard and runtime HTTP instrumentation** on `devin/req-0075-ops-dashboard-1786025034`:
+  - `src/instrumentation.ts` patches `http.createServer` and `https.createServer` in the Node.js runtime to emit `http.request` `SystemLog` entries (method, redacted path, status, durationMs) for every inbound request, while leaving the static build phase unchanged.
+  - `onRequestError` captures unhandled request errors and writes `http.error` `SystemLog` entries with path and method.
+  - `src/app/admin/ops/_actions.ts` (`getOperationsSnapshotAction`) exposes a super-admin-only snapshot covering 15m/1h request counts, 15m/1h error counts, p95/mean HTTP latency, queue depth per queue, webhook health per provider, and the 50 most recent ERROR/FATAL logs.
+  - `src/app/admin/ops/page.tsx` renders the dashboard with summary cards, queue-depth table, and recent-errors table.
+
 - `REQ-0078` **Dynamic E-Commerce Adapters — Batch 1** on `devin/req-0078-dynamic-adapters-batch1-1786085000`:
   implemented the safe HTTP `ConfigInterpreter` (`buildUrl`, `buildHeaders`, `extractPath`, `mapFields`, `interpolate`)
   so an `AdapterConfigMapping` can execute every `EcommerceConnector` method without arbitrary code;
