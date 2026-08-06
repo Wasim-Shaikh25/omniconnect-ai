@@ -1,4 +1,4 @@
-import { StoreNotConnectedError } from "../domain/errors";
+import { ProviderNotSupportedError, StoreNotConnectedError } from "../domain/errors";
 import type { EcommerceConnector } from "../domain/connector";
 import type { AdapterConfigMapping } from "../domain/adapter-config";
 import type {
@@ -9,20 +9,7 @@ import type {
 } from "../application/ports";
 import { getConnector } from "./provider-registry";
 
-const PROVIDERS = [
-  "SHOPIFY",
-  "MAGENTO",
-  "WIX",
-  "CUSTOM",
-] as const;
-
-type Provider = (typeof PROVIDERS)[number];
-
-function asProvider(value: string): Provider {
-  return (PROVIDERS as readonly string[]).includes(value)
-    ? (value as Provider)
-    : "CUSTOM";
-}
+const LEGACY_PROVIDERS = new Set(["WOOCOMMERCE", "BIGCOMMERCE"]);
 
 function isAdapterMapping(value: unknown): value is AdapterConfigMapping {
   return (
@@ -61,7 +48,11 @@ export class IntegrationConnectorFactory implements ConnectorFactory {
       return this.buildConnector(creds.metadata, credentials);
     }
 
-    return getConnector(asProvider(creds.provider), {
+    if (LEGACY_PROVIDERS.has(creds.provider)) {
+      throw new ProviderNotSupportedError(creds.provider);
+    }
+
+    return getConnector(creds.provider, {
       shopDomain: creds.shopDomain ?? undefined,
       accessToken: creds.accessToken ?? undefined,
       refreshToken: creds.refreshToken ?? undefined,

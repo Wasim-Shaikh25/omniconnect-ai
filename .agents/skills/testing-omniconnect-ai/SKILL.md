@@ -110,6 +110,13 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - `suspendUserAction`/`banUserAction` may fail to update the UI after the first toggle because the client form's hidden `suspended`/`banned` values may not re-render correctly with `useActionState`, and the `revalidatePath("/admin/users")` call does not revalidate `/admin/users/[id]` detail pages.
   - The status actions call `auditCommands.create`, but if the audit write fails (or is skipped) no `AuditLog` row appears; verify `AuditLog` directly when testing status toggles.
   - For headless Chrome, `browser_console` may not connect; use `Ctrl+L` to focus the address bar and type URLs directly, or POST to `/api/auth/callback/credentials` with CSRF and credentials.
+- PR #184 adapter wizard gotchas:
+  - The wizard lives at `/stores/[projectId]/integrations/adapter`. It requires a `USER`/`SUPER_ADMIN` role and a valid store; the seed must set `User.userId` to the user's own id for owner access.
+  - `OpenRouterAdapterGenerator` needs a real `OPENROUTER_API_KEY` or a runtime `global.fetch` shim (`NODE_OPTIONS='--import /tmp/mock-openrouter.mjs'`) to return a valid `AdapterConfigMapping`.
+  - The mock e-commerce server can run on any free port; if `9876` is occupied by the session harness, use `9877` and update the shim's `baseUrl` to match.
+  - `<input type="text">` fields may not accept native `type` events in headless Chrome; use `browser_console` to set `.value`, dispatch `input`/`change`, and call `form.requestSubmit()` for the `Generate adapter` form. `<textarea>` fields accept native typing.
+  - The `Credentials JSON` textarea parses with `JSON.parse`; invalid JSON disables `Test connection` and `Save and connect`, and re-generating resets the textarea to `{}` and re-enables the buttons.
+  - `npm run build` with `.env` `NODE_ENV=development` can fail during static generation with `<Html> should not be imported outside of pages/_document`; run `NODE_ENV=production npm run build` instead.
 
 ## Cross-tenant regression-test rule
 

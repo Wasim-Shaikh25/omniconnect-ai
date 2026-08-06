@@ -1,5 +1,5 @@
 import { metaService } from "@/modules/meta/server";
-import { analyzeMedia, analyzeTrendingReels, createContentIdea } from "@/modules/ai/server";
+import { analyzeMedia, analyzeTrendingReels, createContentIdea } from "@/modules/ai/ai-services";
 import { organizationQueries } from "@/modules/workspaces";
 import { eventBus } from "@/shared/events";
 import type { MetaMediaItem, MetaMediaMetrics } from "@/modules/meta";
