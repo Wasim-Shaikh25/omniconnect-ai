@@ -175,7 +175,7 @@ export async function exchangeMetaOAuthCode(
 
   const shortLived = await fetchGraph(
     `${GRAPH_API_BASE}/oauth/access_token`,
-    { method: "POST", body: tokenParams.toString() },
+    { method: "POST", body: tokenParams },
     tokenResponseSchema,
   );
 
@@ -187,7 +187,7 @@ export async function exchangeMetaOAuthCode(
 
   const longLived = await fetchGraph(
     `${GRAPH_API_BASE}/oauth/access_token`,
-    { method: "POST", body: longLivedParams.toString() },
+    { method: "POST", body: longLivedParams },
     tokenResponseSchema,
   );
 

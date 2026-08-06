@@ -15,6 +15,11 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- **Combined review-fix follow-up** on `devin/review-fix-followup-1786062800`:
+  - `src/app/api/meta/callback/route.ts` resolves redirect URLs against the incoming request origin instead of a hard-coded `http://localhost`; uses the validated `env.NODE_ENV` for the OAuth state cookie `secure` flag.
+  - `src/modules/meta/infrastructure/meta-oauth.ts` passes `URLSearchParams` objects (not `.toString()`) to `fetch` so `Content-Type: application/x-www-form-urlencoded` is set automatically for the short- and long-lived token exchanges.
+  - `src/instrumentation.ts` initialises Sentry and OpenTelemetry in every runtime (`nodejs` and `edge`) while keeping the Node-specific HTTP patching, batch flushing, and super-admin seeding behind the `nodejs` guard; `redactPath` now also redacts UUIDs and high-entropy path segments that may contain one-time tokens.
+
 - `REQ-0075` **Operations dashboard and runtime HTTP instrumentation** on `devin/req-0075-ops-dashboard-1786025034`:
   - `src/instrumentation.ts` patches `http`/`https` `Server.prototype.emit` so request metrics are captured even when the framework creates the server before `register()` runs; metrics are batched into `SystemLog.metadata.requests` arrays (flushed every 5 s or 500 requests) to bound per-request database writes; the logged `path` is the URL pathname only (no query strings), e-mails are redacted, and static assets are excluded.
   - `onRequestError` captures unhandled request errors and writes `http.error` `SystemLog` entries with path and method.

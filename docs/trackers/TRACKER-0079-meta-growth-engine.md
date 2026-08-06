@@ -48,4 +48,4 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 4. Notes / Blockers
 
-- T-021, T-021b, T-023, T-023b, T-024, T-025, T-058, T-059, T-069, T-070 (Graph API rate limiting), and T-071 (trending reels/audio analysis) completed on respective feature branches. T-022 (WhatsApp) is deferred to post-Meta-Business-verification.
+- T-021, T-021b, T-021c, T-023, T-023b, T-024, T-024b, T-024c, T-025, T-058, T-059, T-069, T-070 (Graph API rate limiting), and T-071 (trending reels/audio analysis) completed on respective feature branches. T-022 (WhatsApp) is deferred to post-Meta-Business-verification.

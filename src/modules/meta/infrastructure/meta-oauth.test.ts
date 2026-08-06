@@ -69,7 +69,9 @@ describe("meta-oauth", () => {
     it("exchanges the code for a long-lived token", async () => {
       const { exchangeMetaOAuthCode } = await loadMetaOAuth();
       const fetchStub = vi.fn().mockImplementation((_url: string, init: RequestInit) => {
-        const body = typeof init?.body === "string" ? init.body : "";
+        const body = init?.body instanceof URLSearchParams
+          ? init.body.toString()
+          : (typeof init?.body === "string" ? init.body : "");
         const isLongLived = body.includes("grant_type=fb_exchange_token");
         return Promise.resolve({
           ok: true,
@@ -82,6 +84,10 @@ describe("meta-oauth", () => {
       const result = await exchangeMetaOAuthCode("auth-code");
 
       expect(fetchStub).toHaveBeenCalledTimes(2);
+      const [, firstInit] = fetchStub.mock.calls[0] as [string, RequestInit];
+      const [, secondInit] = fetchStub.mock.calls[1] as [string, RequestInit];
+      expect(firstInit?.body).toBeInstanceOf(URLSearchParams);
+      expect(secondInit?.body).toBeInstanceOf(URLSearchParams);
       expect(result.accessToken).toBe("long-token");
     });
 

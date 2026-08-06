@@ -33,10 +33,21 @@ const httpRequestBatch: HttpRequestMetric[] = [];
 let httpBatchFlushing = false;
 
 function redactPath(path: string): string {
-  return path.replace(
+  let redacted = path.replace(
     /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g,
     "[REDACTED_EMAIL]",
   );
+  // Redact high-entropy path segments that may contain one-time tokens or IDs
+  // (UUIDs, base64-/hex-looking slugs, and other long random strings).
+  redacted = redacted.replace(
+    /\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+    "/[REDACTED_UUID]",
+  );
+  redacted = redacted.replace(
+    /\/[A-Za-z0-9_-]{16,}/g,
+    "/[REDACTED_TOKEN]",
+  );
+  return redacted;
 }
 
 function safePath(url: string | undefined): string {
@@ -133,49 +144,54 @@ function patchHttpServers(): void {
 }
 
 export async function register() {
-  if (process.env["NEXT_RUNTIME"] !== "nodejs") return;
   // Avoid patching the build-time HTTP server or validating secrets during `next build`.
   if (process.env["NEXT_PHASE"] === "phase-production-build") return;
 
+  // Sentry and OpenTelemetry must initialise in every runtime (nodejs + edge)
+  // so middleware and route errors are captured.
   initSentry();
   initTelemetry();
 
-  // Skip production secret validation during the static build phase; env is
-  // injected at runtime in the production image.
-  if (process.env["NEXT_PHASE"] !== "phase-production-build") {
-    validateProductionSecrets();
-  }
+  const isNodejs = process.env["NEXT_RUNTIME"] === "nodejs";
 
-  if (env.NODE_ENV === "production" && env.LOG_LEVEL === "debug") {
-    logger.warn("bootstrap.debugLoggingEnabled", {
-      message:
-        "LOG_LEVEL is set to debug in production. Debug logs are not redacted beyond the standard rules; rotate the level back to info once diagnostics are complete.",
-    });
-  }
+  if (isNodejs) {
+    // Skip production secret validation during the static build phase; env is
+    // injected at runtime in the production image.
+    if (process.env["NEXT_PHASE"] !== "phase-production-build") {
+      validateProductionSecrets();
+    }
 
-  patchHttpServers();
+    if (env.NODE_ENV === "production" && env.LOG_LEVEL === "debug") {
+      logger.warn("bootstrap.debugLoggingEnabled", {
+        message:
+          "LOG_LEVEL is set to debug in production. Debug logs are not redacted beyond the standard rules; rotate the level back to info once diagnostics are complete.",
+      });
+    }
 
-  if (!globalThis.__omniconnectHttpBatchFlushTimer) {
-    globalThis.__omniconnectHttpBatchFlushTimer = setInterval(() => {
+    patchHttpServers();
+
+    if (!globalThis.__omniconnectHttpBatchFlushTimer) {
+      globalThis.__omniconnectHttpBatchFlushTimer = setInterval(() => {
+        void flushHttpRequestBatch();
+      }, HTTP_BATCH_INTERVAL_MS);
+    }
+
+    process.on("beforeExit", () => {
       void flushHttpRequestBatch();
-    }, HTTP_BATCH_INTERVAL_MS);
-  }
-
-  process.on("beforeExit", () => {
-    void flushHttpRequestBatch();
-  });
-
-  // Seeding is best-effort. A transient database outage must never stop the process
-  // from serving traffic, including /api/health.
-  try {
-    const { ensureSuperAdmin, accounts, hasher } = await import(
-      "@/modules/auth/infrastructure/container"
-    );
-    await ensureSuperAdmin({ accounts, hasher });
-  } catch (error) {
-    logger.error("bootstrap.ensureSuperAdmin.failed", {
-      error: error instanceof Error ? error.message : "unknown",
     });
+
+    // Seeding is best-effort. A transient database outage must never stop the process
+    // from serving traffic, including /api/health.
+    try {
+      const { ensureSuperAdmin, accounts, hasher } = await import(
+        "@/modules/auth/infrastructure/container"
+      );
+      await ensureSuperAdmin({ accounts, hasher });
+    } catch (error) {
+      logger.error("bootstrap.ensureSuperAdmin.failed", {
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
 }
 
