@@ -15,6 +15,24 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0080` **Mobile PWA optimization for messaging UI (T-075)** on `devin/batch-0085-0080-0070-1786007108`:
+  added `OnlineStatus` (`src/components/online-status.tsx`) to show an offline alert on the
+  conversations list and detail pages, made conversation list items stack with full-width action
+  buttons on small screens, and improved the message feed with sender-aligned bubbles and
+  `break-words`. `ConversationTakeoverButton` and `ConversationMessageForm` buttons now span the
+  full width on mobile and shrink to auto on larger screens.
+
+- `REQ-0069` **Navigation reachability hardening (L2/L3)** on `devin/batch-0085-0080-0070-1786007108`:
+  verified `/support` and `/analytics/journeys` are present in the authenticated sidebar, no two
+  nav entries share a destination, active-state matching is exact (`pathname === item.href`), and
+  the admin item is injected by section label (`Account`) with an explicit `if` check. Updated
+  `TASK-0069` and `TRACKER-0069` to reflect completion; `L5.2/L5.3` memory sizing remains a
+  post-launch ops task.
+
+- `REQ-0085` **Profile & Reel Inspector closeout** on `devin/batch-0085-0080-0070-1786007108`:
+  marked the `CHANGELOG.md updated` checkbox in `TASK-0085` and updated `TRACKER-0085` last-updated;
+  the feature was already implemented and the existing `CHANGELOG.md` entry was confirmed present.
+
 - `REQ-0079` **Meta Growth Engine — Content Publishing API** on `devin/req-0079-content-publishing-1786062600`:
   added `MetaService.publishMedia` to the `meta` port and implemented it in `GraphApiMetaService` with the
   full Instagram Content Publishing API flow: create media container, poll `status_code` until `FINISHED`,
@@ -327,14 +345,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- `REQ-0081` **AI Assistant & Tools — Batch 2** on `devin/req-0081-batch2-tools-coupon-ui-1786020000`:
-  tool executor with guardrails, real-time coupon create/inject/send flow, and full-screen chat UI.
+- `REQ-0080 / REQ-0069 / REQ-0085` **Batch closeout** on `devin/batch-0085-0080-0070-1786007108`:
+  mobile PWA messaging UI, navigation reachability verification, and profile-inspector task closeout.
 
 ### ⏭️ Next
 
-- `REQ-0080` **Unified Messaging Board** — WhatsApp Business API connection (T-078) and mobile PWA
-  improvements (T-075).
+- `REQ-0080` **Unified Messaging Board** — WhatsApp Business API connection (T-078).
 - `REQ-0079` **Meta Growth Engine** — Meta OAuth flow (T-021) and WhatsApp Business API connection (T-022).
+- `REQ-0069` **L5 Fly.io memory sizing** — measure SSR + AI generation RSS in production and record
+  the ADR (post-launch ops task).
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

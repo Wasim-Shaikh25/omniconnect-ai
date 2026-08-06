@@ -41,8 +41,8 @@ export function ConversationMessageForm({
           disabled={pending}
         />
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <Button type="submit" disabled={pending}>
+      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
           {pending ? "Sending…" : "Send message"}
         </Button>
         {state?.ok && (

@@ -33,6 +33,7 @@ export function ConversationTakeoverButton({
         disabled={pending}
         variant={isHuman ? "default" : "destructive"}
         size="sm"
+        className="w-full sm:w-auto"
       >
         {pending ? "Updating…" : isHuman ? "Resume AI" : "Take over"}
       </Button>
