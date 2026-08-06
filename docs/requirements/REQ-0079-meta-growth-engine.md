@@ -42,9 +42,9 @@ Build the Meta Growth Engine pillar: content publishing via Instagram Content Pu
 - [x] Support photo, carousel, Reel, Story media types.
 - [x] Scheduled posts stored in DB with BullMQ delayed job.
 - [x] Content Studio UI with caption editor, publish form, and schedule picker.
-- [ ] Content calendar UI: visual grid preview and drag-to-reschedule for scheduled posts.
-- [ ] Hashtag intelligence: AI scores competition, reach, relevance for suggested tags.
-- [ ] Best time to post: returns day/hour/score based on follower online times + post history.
+- [x] Content calendar UI: visual grid preview and drag-to-reschedule for scheduled posts.
+- [x] Hashtag intelligence: AI scores competition, reach, relevance for suggested tags.
+- [x] Best time to post: returns day/hour/score based on follower online times + post history.
 - [ ] Rate limiting: respect 200 calls/hr Instagram Graph API limit.
 
 ## 6. Scope & Dependencies

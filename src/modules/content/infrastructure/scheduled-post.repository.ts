@@ -77,6 +77,8 @@ export class PrismaScheduledPostRepository implements ScheduledPostRepository {
         errorMessage: data.errorMessage,
         publishedAt: data.publishedAt,
         jobId: data.jobId,
+        scheduledAt: data.scheduledAt,
+        scheduledAtTimezone: data.scheduledAtTimezone,
       },
     });
     return mapRecord(row);

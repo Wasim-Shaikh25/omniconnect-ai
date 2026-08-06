@@ -9,6 +9,8 @@ import {
   generateContentIdeas,
   publishMedia,
   schedulePost,
+  reschedulePost,
+  hashtagIntelligence,
 } from "../infrastructure/container";
 
 export interface GenerateContentIdeasState {
@@ -56,6 +58,22 @@ const schedulePostActionSchema = z.object({
     .datetime("Please choose a valid schedule date and time.")
     .transform((v) => new Date(v)),
   scheduledAtTimezone: z.string().max(120).optional(),
+});
+
+const reschedulePostActionSchema = z.object({
+  projectId: z.string().min(1),
+  scheduledPostId: z.string().min(1),
+  scheduledAt: z
+    .string()
+    .min(1, "Please choose a schedule date and time.")
+    .datetime("Please choose a valid schedule date and time.")
+    .transform((v) => new Date(v)),
+  scheduledAtTimezone: z.string().max(120).optional(),
+});
+
+const hashtagIntelligenceActionSchema = z.object({
+  projectId: z.string().min(1),
+  query: z.string().min(1).max(120),
 });
 
 function tenantUserId(user: { id: string; userId: string | null }): string {
@@ -170,6 +188,22 @@ export async function publishMediaAction(
   }
 }
 
+export interface HashtagIntelligenceState {
+  error?: string;
+  results?: {
+    tag: string;
+    postCount: number;
+    avgLikes: number;
+    avgComments: number;
+    engagementScore: number;
+    reachEstimate: number;
+    competitionLevel: "LOW" | "MEDIUM" | "HIGH";
+    relevanceScore: number;
+    recommendation: string;
+    evidence: string;
+  }[];
+}
+
 export async function schedulePostAction(
   _prev: ContentActionState,
   formData: FormData,
@@ -224,6 +258,80 @@ export async function schedulePostAction(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to schedule post";
+    return { error: message };
+  }
+}
+
+export async function reschedulePostAction(
+  _prev: ContentActionState,
+  formData: FormData,
+): Promise<ContentActionState> {
+  const user = await requireRole("USER");
+  const parsed = reschedulePostActionSchema.safeParse({
+    projectId: formData.get("projectId"),
+    scheduledPostId: formData.get("scheduledPostId"),
+    scheduledAt: formData.get("scheduledAt"),
+    scheduledAtTimezone: formData.get("scheduledAtTimezone") || undefined,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (!(await assertStoreInOrg(user, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const result = await reschedulePost({
+      projectId: parsed.data.projectId,
+      scheduledPostId: parsed.data.scheduledPostId,
+      scheduledAt: parsed.data.scheduledAt,
+      scheduledAtTimezone: parsed.data.scheduledAtTimezone,
+    });
+
+    if (!result.ok) {
+      return { error: result.error.message };
+    }
+
+    revalidatePath(`/stores/${parsed.data.projectId}/content`);
+    const timeZone = result.value.scheduledAtTimezone ?? "UTC";
+    const formatted = result.value.scheduledAt.toLocaleString("en-US", { timeZone });
+    return {
+      ok: true,
+      message: `Rescheduled for ${formatted} (${timeZone}).`,
+      scheduledPostId: result.value.id,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to reschedule post";
+    return { error: message };
+  }
+}
+
+export async function hashtagIntelligenceAction(
+  _prev: HashtagIntelligenceState,
+  formData: FormData,
+): Promise<HashtagIntelligenceState> {
+  const user = await requireRole("USER");
+  const parsed = hashtagIntelligenceActionSchema.safeParse({
+    projectId: formData.get("projectId"),
+    query: formData.get("query"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  if (!(await assertStoreInOrg(user, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  try {
+    const results = await hashtagIntelligence({
+      projectId: parsed.data.projectId,
+      query: parsed.data.query,
+    });
+    return { results };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to analyze hashtags";
     return { error: message };
   }
 }
