@@ -1,4 +1,4 @@
-import { aiProvider } from "@/modules/ai/server";
+import { aiProvider } from "@/modules/ai/ai-services";
 import { PrismaSocialMentionRepository } from "./repositories";
 import { makeMentionService } from "../application/mention-service";
 import { makeMockBrandMentionSource } from "./mock-mention-source";

@@ -23,43 +23,35 @@ import {
   journeyService,
 } from "@/modules/intelligence/server";
 import { makeGenerateReply } from "../application/generate-reply";
-import { makeGenerateWelcome } from "../application/generate-welcome";
 import { makeUpdateAIConfiguration } from "../application/update-config";
-import { makeGenerateCaptions } from "../application/generate-captions";
 import { makeGenerateTrends } from "../application/generate-trends";
 import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
-import { makeAnalyzeCompetitor } from "../application/analyze-competitor";
-import { makeAnalyzeTrendingReels } from "../application/analyze-trending-reels";
-import { makeAnalyzeMedia } from "../application/analyze-media";
-import { makeCreateContentIdea } from "../application/create-content-idea";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
 import { makeBrainMemoryService } from "../application/brain-memory";
 import { makeChatAssistantService } from "../application/chat";
 import { makeToolExecutor } from "../application/tool-executor";
-import { env } from "@/shared/config";
-import { PrismaAIConfigurationRepository } from "./ai-configuration.repository";
 import { PrismaBrainMemoryRepository } from "./brain-memory.repository";
 import { PrismaChatSessionRepository } from "./chat-session.repository";
-import { OpenRouterProvider } from "./openrouter.provider";
-import { PrismaTokenUsageRepository } from "./token-usage.repository";
 import { makeWorkspaceContext } from "./workspace-context";
+import {
+  aiProvider,
+  aiConfigurationRepository,
+  tokenUsageRepository,
+} from "../ai-services";
 
-export const aiConfigurationRepository = new PrismaAIConfigurationRepository();
+export {
+  aiProvider,
+  aiConfigurationRepository,
+  generateWelcome,
+  generateCaptions,
+  analyzeCompetitor,
+  analyzeTrendingReels,
+  analyzeMedia,
+  createContentIdea,
+} from "../ai-services";
+
 const brainMemoryRepository = new PrismaBrainMemoryRepository();
-const tokenUsageRepository = new PrismaTokenUsageRepository();
 export const chatSessionRepository = new PrismaChatSessionRepository();
-export const aiProvider = new OpenRouterProvider(
-  {
-    apiKey: env.OPENROUTER_API_KEY ?? "",
-    siteUrl: env.OPENROUTER_SITE_URL,
-    siteName: env.OPENROUTER_SITE_NAME,
-    defaultModel: env.AI_DEFAULT_MODEL,
-  },
-  {
-    tokenUsageRepository,
-    resolveUserId: organizationQueries.getOrganizationIdByStoreId,
-  },
-);
 
 /** Composition root for the ai module. */
 export const aiQueries = {
@@ -73,11 +65,6 @@ export const aiQueries = {
     typeof tokenUsageRepository.summarizeTotal
   >[0]) => tokenUsageRepository.summarizeTotal(options),
 };
-
-export const generateWelcome = makeGenerateWelcome({
-  aiProvider,
-  aiConfigurationRepository,
-});
 
 export const toolExecutor = makeToolExecutor({
   generateCoupon,
@@ -120,11 +107,6 @@ export const updateAIConfiguration = makeUpdateAIConfiguration({
   repository: aiConfigurationRepository,
 });
 
-export const generateCaptions = makeGenerateCaptions({
-  aiProvider,
-  aiConfigurationRepository,
-});
-
 export const generateTrends = makeGenerateTrends({
   aiProvider,
   aiConfigurationRepository,
@@ -160,16 +142,6 @@ export const generatePostIdeas = makeGeneratePostIdeas({
   },
 });
 
-export const analyzeCompetitor = makeAnalyzeCompetitor({
-  aiProvider,
-  aiConfigurationRepository,
-});
-
-export const analyzeTrendingReels = makeAnalyzeTrendingReels({
-  aiProvider,
-  aiConfigurationRepository,
-});
-
 export const askBusinessBrain = makeAskBusinessBrain({
   aiProvider,
   aiConfigurationRepository,
@@ -178,6 +150,3 @@ export const askBusinessBrain = makeAskBusinessBrain({
   businessBrainContext: businessBrainContextService,
   brainMemory: brainMemoryService,
 });
-
-export const analyzeMedia = makeAnalyzeMedia({ aiProvider, aiConfigurationRepository });
-export const createContentIdea = makeCreateContentIdea({ aiProvider, aiConfigurationRepository });

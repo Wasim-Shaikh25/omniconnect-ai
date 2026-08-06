@@ -1,5 +1,5 @@
-import { resolveOperation } from "@/modules/ai";
-import { generateDashboard } from "@/modules/ai";
+import { resolveOperation } from "@/modules/ai/ai-services";
+import { generateDashboard } from "@/modules/ai/ai-services";
 import type { GenerateDashboardResult } from "@/modules/ai";
 import type { AnalysisSpec } from "../domain/analysis";
 import type { AnalysisEngineOperations, DatasetFetcher } from "./analysis-engine";
