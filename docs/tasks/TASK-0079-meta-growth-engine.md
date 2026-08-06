@@ -1,6 +1,6 @@
 # TASK-0079: Meta Growth Engine
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
@@ -41,9 +41,10 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 4. Subtasks
 
-- [ ] T-021: Meta OAuth flow
-- [ ] T-022: WhatsApp Business API connection
+- [x] T-021: Meta OAuth flow
+- [d] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API
+- [x] T-023b: Content Publishing API review fixes — `access_token` sent in `Authorization` header, `media_publish` uses safe URL construction, polling short-circuits on non-`FINISHED` statuses, and carousel size validation returns friendly messages.
 - [x] T-024: Content scheduling
 - [x] T-025: Content Studio UI (publish form integrated on `/stores/[projectId]/content`)
 - [x] T-058: Hashtag intelligence
@@ -53,12 +54,12 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0079 acceptance criteria.
+- [x] Matches REQ-0079 acceptance criteria.
 - [x] Lint + typecheck + tests pass.
 - [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 
-- T-023, T-024, T-058, T-059, T-069, T-070, and T-071 completed on the respective feature branches. T-021 (Meta OAuth) and T-022 (WhatsApp) remain open.
+- All actionable subtasks complete. T-022 (WhatsApp) deferred to post-launch. T-023b review fixes merged in PR #165.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.

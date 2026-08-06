@@ -31,11 +31,11 @@ All notable changes to **OmniConnect AI** are documented here.
   `schedule-post.ts`. Next up in REQ-0079: hashtag intelligence (T-058) and best-time-to-post (T-059).
 
 - `REQ-0079` **Content Publishing API review fixes** on `devin/fix-content-publishing-review-1786000600`:
-  added the missing `access_token` query parameter to the final `media_publish` Graph API call in
-  `GraphApiMetaService.publishMedia`; changed the polling check to short-circuit on any status other than
-  `FINISHED` (`ERROR` or `TIMEOUT`) so long-processing media does not trigger a premature publish attempt;
-  and replaced the throwing `publishMediaSchema.parse` in `makePublishMedia` with `safeParse` so users see
-  a friendly validation message (e.g., for more than 10 carousel slides) instead of a raw Zod JSON dump.
+  `GraphApiMetaService.publishMedia` builds the `media_publish` URL with `URL` and sends the access token in
+  the `Authorization: Bearer` header instead of the query string; `createMediaContainer` and
+  `pollContainerStatus` also use the `Authorization` header. Polling short-circuits on any status other than
+  `FINISHED` (`ERROR` or `TIMEOUT`), and `makePublishMedia` uses `safeParse` so users see friendly validation
+  messages (e.g., for more than 10 carousel slides) instead of a raw Zod JSON dump.
 - `REQ-0079` **Content Scheduling review fixes** on `devin/fix-content-scheduling-review-1786001674`:
   fixed timezone handling by converting the `datetime-local` value to an ISO UTC string on the client and storing
   the browser's IANA timezone in `ScheduledPost.scheduledAtTimezone`; rejected missing/empty schedule times

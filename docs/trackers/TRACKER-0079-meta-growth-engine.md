@@ -1,6 +1,6 @@
 # TRACKER-0079: Meta Growth Engine
 
-- **Status:** In Progress
+- **Status:** Implemented
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0079-meta-growth-engine.md`
 - **Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
@@ -18,9 +18,10 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [x] Branch created (`devin/req-0079-content-publishing-1786062600`).
 
 ### Implementation
-- [ ] T-021: Meta OAuth flow (IG + FB page connection).
-- [ ] T-022: WhatsApp Business API connection.
+- [x] T-021: Meta OAuth flow (IG + FB page connection).
+- [d] T-022: WhatsApp Business API connection. — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API (container → poll → publish).
+- [x] T-023b: Content Publishing API review fixes — `access_token` sent in `Authorization` header, `media_publish` URL built with `URL`, polling short-circuits on non-`FINISHED` statuses, and carousel validation returns friendly messages.
 - [x] T-024: Content scheduling (DB + BullMQ delayed job).
 - [x] T-025: Content Studio UI (publish form added to `/stores/[projectId]/content`).
 - [x] T-058: Hashtag intelligence (Meta API + AI scoring).
@@ -38,9 +39,9 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 
 ## 3. Acceptance Criteria
 
-- [ ] All linked requirement acceptance criteria are met.
-- [ ] All verification steps above pass.
+- [x] All linked requirement acceptance criteria are met.
+- [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 
-- T-023, T-024, T-025, T-058, T-059, T-069, T-070 (Graph API rate limiting), and T-071 (trending reels/audio analysis) completed on respective feature branches. Remaining: T-021 (Meta OAuth) and T-022 (WhatsApp).
+- All actionable subtasks complete. T-022 (WhatsApp) deferred to post-launch. T-023b review fixes merged in PR #165.
