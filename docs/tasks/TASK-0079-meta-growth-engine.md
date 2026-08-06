@@ -49,7 +49,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 - [x] T-021: Meta OAuth flow
 - [x] T-021b: Meta OAuth security fixes — signed CSRF state with session-bound cookie, `Authorization: Bearer` token header, no secret logging, APP_URL-derived redirect URI, and no Page-id fallback for Instagram accounts.
-- [x] T-021c: Meta OAuth review-fix follow-up — `/api/meta/callback` redirects resolve against the incoming request origin (no hard-coded `localhost`) and use `env.NODE_ENV` for the state cookie; token exchange posts `URLSearchParams` so `fetch` sets `application/x-www-form-urlencoded`.
+- [x] T-021c: Meta OAuth review-fix follow-up — `/api/meta/callback` redirects resolve against the validated `env.APP_URL` (no hard-coded `localhost`, no attacker-controllable `Host` header) and use `env.NODE_ENV` for the state cookie; token exchange posts `URLSearchParams` so `fetch` sets `application/x-www-form-urlencoded`.
 - [d] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API
 - [x] T-023b: Content Publishing API review fixes — `access_token` sent in `Authorization` header, `media_publish` uses safe URL construction, polling short-circuits on non-`FINISHED` statuses, and carousel size validation returns friendly messages.
