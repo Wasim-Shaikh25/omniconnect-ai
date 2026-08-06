@@ -62,7 +62,7 @@ multi-replica correctness, live third-party integrations).
 - [x] Error-rate spike alert configured.
 - [x] Backup failure alert configured.
 - [x] Sentry release tracking configured.
-- [x] Operations dashboard built.
+- [x] Operations dashboard built (Devin Review fixes: `Server.prototype.emit` patch, batched `http.request` metrics, pathname-only redacted logging, queue-snapshot `await`, Shopify/Meta webhook `SystemLog` writes).
 - [x] Threshold review scheduled for one month post-launch.
 
 ### Package G — Residual-risk closure

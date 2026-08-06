@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "@/shared/config";
-import { logger } from "@/shared/observability";
+import { logger, logSystem, logSystemError } from "@/shared/observability";
 import { verifyShopifyWebhookSignature } from "@/shared/security/shopify-webhook";
 import { applyShopifyWebhook } from "@/modules/ecommerce";
 import { ensureSubscribers } from "@/server/subscribers";
@@ -22,7 +22,10 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (!verifyShopifyWebhookSignature(rawBody, signature, secret)) {
-    logger.warn("shopify.webhook.invalidSignature", { topic, shopDomain });
+    const message = "Invalid Shopify webhook signature";
+    void logSystem("ERROR", "shopify.webhook.invalidSignature", message, {
+      metadata: { topic, shopDomain },
+    });
     return new NextResponse("Invalid signature", { status: 401 });
   }
 
@@ -30,10 +33,16 @@ export async function POST(request: Request): Promise<Response> {
   try {
     payload = JSON.parse(rawBody);
   } catch {
+    void logSystem("ERROR", "shopify.webhook.parseFailed", "Failed to parse Shopify webhook body", {
+      metadata: { topic, shopDomain },
+    });
     return new NextResponse("Bad request", { status: 400 });
   }
 
   if (!payload || typeof payload !== "object") {
+    void logSystem("ERROR", "shopify.webhook.invalidPayload", "Shopify webhook payload is not an object", {
+      metadata: { topic, shopDomain },
+    });
     return new NextResponse("Bad request", { status: 400 });
   }
 
@@ -46,9 +55,15 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (!result.ok) {
-    logger.warn("shopify.webhook.processingFailed", { topic, shopDomain, message: result.message });
+    void logSystemError("shopify.webhook.processingFailed", new Error(result.message ?? "Processing failed"), {
+      metadata: { topic, shopDomain, eventId },
+    });
     return new NextResponse(result.message ?? "Processing failed", { status: 400 });
   }
+
+  void logSystem("INFO", "shopify.webhook.received", "Shopify webhook processed", {
+    metadata: { topic, shopDomain, eventId },
+  });
 
   if (result.data) {
     return NextResponse.json(result.data, { status: 200 });

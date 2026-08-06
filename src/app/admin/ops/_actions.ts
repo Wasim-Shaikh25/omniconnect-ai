@@ -79,23 +79,51 @@ function percentile(sorted: number[], p: number): number {
   return sorted[Math.max(0, index)] ?? 0;
 }
 
-async function computeLatency(window: Date): Promise<OperationsSnapshot["latency"]> {
+async function countHttpRequestLogs(since: Date): Promise<number> {
+  const result = await prisma.$queryRaw<{ count: number }[]>`
+    SELECT COALESCE(SUM(
+      CASE
+        WHEN metadata ? 'requests' AND jsonb_typeof(metadata->'requests') = 'array'
+        THEN jsonb_array_length(metadata->'requests')
+        ELSE 1
+      END
+    ), 0)::int as count
+    FROM "SystemLog"
+    WHERE service = 'http.request' AND "createdAt" >= ${since};
+  `;
+  return result[0]?.count ?? 0;
+}
+
+async function computeHttpRequestLatency(window: Date): Promise<OperationsSnapshot["latency"]> {
   const logs = await prisma.systemLog.findMany({
     where: {
       service: "http.request",
       createdAt: { gte: window },
     },
     select: { metadata: true },
-    take: 10000,
+    orderBy: { createdAt: "desc" },
+    take: 100,
   });
 
-  const durations = logs
-    .map((log) => {
-      const metadata = log.metadata as Record<string, unknown> | null;
-      const duration = metadata?.durationMs;
-      return typeof duration === "number" && Number.isFinite(duration) ? duration : null;
-    })
-    .filter((d): d is number => d !== null);
+  const durations: number[] = [];
+  const maxSamples = 10_000;
+
+  for (const log of logs) {
+    if (durations.length >= maxSamples) break;
+    const metadata = log.metadata as Record<string, unknown> | null;
+    if (metadata && Array.isArray(metadata.requests)) {
+      for (const raw of metadata.requests) {
+        if (durations.length >= maxSamples) break;
+        const request = raw as Record<string, unknown>;
+        const duration = request?.durationMs;
+        if (typeof duration === "number" && Number.isFinite(duration)) {
+          durations.push(duration);
+        }
+      }
+    } else if (typeof metadata?.durationMs === "number" && Number.isFinite(metadata.durationMs)) {
+      durations.push(metadata.durationMs);
+    }
+  }
 
   if (durations.length === 0) {
     return { p95ms: null, meanMs: null, count: 0 };
@@ -113,7 +141,8 @@ async function computeLatency(window: Date): Promise<OperationsSnapshot["latency
 async function queueSnapshot(name: string): Promise<QueueCounts | null> {
   try {
     const queue = await getQueue(name);
-    return queue.getJobCounts();
+    const counts = await queue.getJobCounts();
+    return counts;
   } catch {
     return null;
   }
@@ -139,8 +168,8 @@ export async function getOperationsSnapshotAction(): Promise<OperationsSnapshot>
   const since1h = minutesAgo(60);
 
   const [requests15m, requests1h, errors15m, errors1h, httpErrors15m] = await Promise.all([
-    countLogs({ servicePrefix: "http.request", since: since15m }),
-    countLogs({ servicePrefix: "http.request", since: since1h }),
+    countHttpRequestLogs(since15m),
+    countHttpRequestLogs(since1h),
     countLogs({ levels: ["ERROR", "FATAL"], since: since15m }),
     countLogs({ levels: ["ERROR", "FATAL"], since: since1h }),
     countLogs({ servicePrefix: "http.error", levels: ["ERROR", "FATAL"], since: since15m }),
@@ -148,7 +177,7 @@ export async function getOperationsSnapshotAction(): Promise<OperationsSnapshot>
 
   const [latency, eventsQueue, scheduleQueue, shopifyWebhook, metaWebhook, recentErrors] =
     await Promise.all([
-      computeLatency(since15m),
+      computeHttpRequestLatency(since15m),
       queueSnapshot(EVENTS_QUEUE),
       queueSnapshot(CONTENT_SCHEDULE_QUEUE),
       webhookHealth("shopify.webhook"),

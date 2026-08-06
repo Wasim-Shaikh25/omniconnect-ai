@@ -1,63 +1,135 @@
-import http from "http";
-import https from "https";
-import type { IncomingMessage, RequestListener, ServerResponse } from "http";
+import http from "node:http";
+import https from "node:https";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { env, validateProductionSecrets } from "@/shared/config";
-import { initSentry, initTelemetry, logger } from "@/shared/observability";
+import {
+  initSentry,
+  initTelemetry,
+  logger,
+  logSystem,
+  logSystemError,
+} from "@/shared/observability";
 
 declare global {
   var __omniconnectHttpMetricsPatched: boolean | undefined;
+  var __omniconnectHttpBatchFlushTimer: ReturnType<typeof setInterval> | undefined;
 }
 
-const METRICS_EXCLUDE_PATTERN = /^\/(?:_next\/|favicon\.ico|.*\.(?:png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot|ico))(?:\?|$)/;
+const METRICS_EXCLUDE_PATTERN =
+  /^\/(?:_next\/|favicon\.ico|.*\.(?:png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot|ico))(?:\?|$)/;
+
+const HTTP_BATCH_INTERVAL_MS = 5_000;
+const HTTP_BATCH_SIZE = 500;
+
+interface HttpRequestMetric {
+  method: string;
+  path: string;
+  status: number;
+  durationMs: number;
+  timestamp: string;
+}
+
+const httpRequestBatch: HttpRequestMetric[] = [];
+let httpBatchFlushing = false;
 
 function redactPath(path: string): string {
-  return path.replace(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g, "[REDACTED_EMAIL]");
+  return path.replace(
+    /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g,
+    "[REDACTED_EMAIL]",
+  );
 }
 
-function wrapRequestListener(listener: RequestListener): RequestListener {
-  return (req: IncomingMessage, res: ServerResponse) => {
-    const start = process.hrtime.bigint();
-    const path = redactPath(req.url ?? "unknown");
-    const method = req.method ?? "unknown";
+function safePath(url: string | undefined): string {
+  if (!url) return "unknown";
+  try {
+    const { pathname } = new URL(url, "http://localhost");
+    return pathname || "/";
+  } catch {
+    return url.split("?")[0] || "/";
+  }
+}
 
-    if (METRICS_EXCLUDE_PATTERN.test(path)) {
-      return listener(req, res);
+async function flushHttpRequestBatch(): Promise<void> {
+  if (httpBatchFlushing) return;
+  httpBatchFlushing = true;
+  const batch = httpRequestBatch.splice(0, httpRequestBatch.length);
+  if (batch.length === 0) {
+    httpBatchFlushing = false;
+    return;
+  }
+
+  try {
+    // Store one log row per chunk to bound per-request DB writes.
+    const chunks: HttpRequestMetric[][] = [];
+    for (let i = 0; i < batch.length; i += HTTP_BATCH_SIZE) {
+      chunks.push(batch.slice(i, i + HTTP_BATCH_SIZE));
     }
-
-    res.once("finish", () => {
-      const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
-      const status = res.statusCode;
-      import("@/shared/observability")
-        .then(({ logSystem }) =>
-          logSystem("INFO", "http.request", "HTTP request", {
-            metadata: { method, path, status, durationMs },
-          }),
-        )
-        .catch(() => undefined);
+    await Promise.all(
+      chunks.map((requests) =>
+        logSystem("INFO", "http.request", "HTTP request batch", {
+          metadata: { requests },
+        }),
+      ),
+    );
+  } catch (error) {
+    logger.error("http.request.batchFlushFailed", {
+      error: error instanceof Error ? error.message : "unknown",
+      count: batch.length,
     });
-
-    return listener(req, res);
-  };
+  } finally {
+    httpBatchFlushing = false;
+  }
 }
 
-function patchCreateServer<T extends typeof http.createServer | typeof https.createServer>(
-  createServer: T,
-): T {
-  return function patchedCreateServer(this: unknown, ...args: unknown[]) {
-    if (typeof args[0] === "function") {
-      args[0] = wrapRequestListener(args[0] as RequestListener);
-    } else if (args.length >= 2 && typeof args[1] === "function") {
-      args[1] = wrapRequestListener(args[1] as RequestListener);
+function attachMetrics(req: IncomingMessage, res: ServerResponse): void {
+  const start = process.hrtime.bigint();
+  const path = redactPath(safePath(req.url));
+  const method = req.method ?? "unknown";
+
+  if (METRICS_EXCLUDE_PATTERN.test(path)) {
+    return;
+  }
+
+  res.once("finish", () => {
+    const durationMs = Number(process.hrtime.bigint() - start) / 1_000_000;
+    const status = res.statusCode;
+    httpRequestBatch.push({
+      method,
+      path,
+      status,
+      durationMs,
+      timestamp: new Date().toISOString(),
+    });
+    if (httpRequestBatch.length >= HTTP_BATCH_SIZE) {
+      void flushHttpRequestBatch();
     }
-    return (createServer as unknown as (...args: unknown[]) => ReturnType<T>)(...args);
-  } as unknown as T;
+  });
+}
+
+type ServerEmitFn = (
+  this: http.Server | https.Server,
+  event: string,
+  ...args: unknown[]
+) => boolean;
+
+function patchServerEmit(prototype: { emit: ServerEmitFn }): void {
+  const originalEmit = prototype.emit;
+  prototype.emit = function (this: http.Server | https.Server, event: string, ...args: unknown[]) {
+    if (event === "request") {
+      const req = args[0] as IncomingMessage | undefined;
+      const res = args[1] as ServerResponse | undefined;
+      if (req && res) attachMetrics(req, res);
+    }
+    return originalEmit.apply(this, [event, ...args]) as boolean;
+  } as ServerEmitFn;
 }
 
 function patchHttpServers(): void {
   if (globalThis.__omniconnectHttpMetricsPatched) return;
   globalThis.__omniconnectHttpMetricsPatched = true;
-  http.createServer = patchCreateServer(http.createServer);
-  https.createServer = patchCreateServer(https.createServer);
+
+  patchServerEmit(http.Server.prototype as { emit: ServerEmitFn });
+  patchServerEmit(https.Server.prototype as { emit: ServerEmitFn });
 }
 
 export async function register() {
@@ -83,6 +155,16 @@ export async function register() {
 
   patchHttpServers();
 
+  if (!globalThis.__omniconnectHttpBatchFlushTimer) {
+    globalThis.__omniconnectHttpBatchFlushTimer = setInterval(() => {
+      void flushHttpRequestBatch();
+    }, HTTP_BATCH_INTERVAL_MS);
+  }
+
+  process.on("beforeExit", () => {
+    void flushHttpRequestBatch();
+  });
+
   // Seeding is best-effort. A transient database outage must never stop the process
   // from serving traffic, including /api/health.
   try {
@@ -102,7 +184,6 @@ export async function onRequestError(
   request: { path?: string; method?: string },
 ): Promise<void> {
   if (process.env["NEXT_RUNTIME"] !== "nodejs") return;
-  const { logSystemError } = await import("@/shared/observability");
   await logSystemError("http.error", error, {
     metadata: { path: request.path ?? "unknown", method: request.method ?? "unknown" },
   });

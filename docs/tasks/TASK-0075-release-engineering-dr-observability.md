@@ -288,9 +288,11 @@ Record, do not necessarily build:
 - [x] **E.5** Document that production data is never copied to staging.
 - [x] **F.1** Configure all six alerts with owners and first-response steps.
 - [x] **F.2** Configure Sentry release tracking.
-- [x] **F.3** Build the operations dashboard.
-  - `src/instrumentation.ts` patches `http.createServer`/`https.createServer` to log `http.request` entries to `SystemLog` with method, redacted path, status, and `durationMs`; `onRequestError` logs unhandled request errors as `http.error`.
-  - `src/app/admin/ops/_actions.ts` provides `getOperationsSnapshotAction` (super-admin guarded) that computes 15m/1h request counts, error counts, p95/mean HTTP latency, per-queue depth, per-provider webhook health, and the 50 most recent ERROR/FATAL logs from `SystemLog`.
+- [x] **F.3** Build the operations dashboard (including Devin Review fixes).
+  - `src/instrumentation.ts` patches `http`/`https` `Server.prototype.emit` so request metrics are captured even when the framework creates the server before `register()` runs; metrics are batched into `SystemLog.metadata.requests` arrays (flushed every 5 s or 500 requests) to bound per-request database writes; the logged `path` is the URL pathname only (no query strings), e-mails are redacted, and static assets are excluded.
+  - `onRequestError` logs unhandled request errors as `http.error`.
+  - `src/app/admin/ops/_actions.ts` provides `getOperationsSnapshotAction` (super-admin guarded) that computes 15m/1h request counts, error counts, p95/mean HTTP latency, per-queue depth, per-provider webhook health, and the 50 most recent ERROR/FATAL logs from `SystemLog`; it uses `countHttpRequestLogs` and `computeHttpRequestLatency` that parse both legacy single-request rows and the new batched `requests` arrays; queue snapshots now `await getJobCounts()` so Redis failures return `null` instead of crashing the page.
+  - `src/app/api/shopify/webhooks/route.ts` and `src/app/api/meta/webhook/route.ts` emit `SystemLog` entries with `shopify.webhook.*` / `meta.webhook.*` service names (valid deliveries `INFO`, failures `ERROR`) so webhook health panels reflect real traffic.
   - `src/app/admin/ops/page.tsx` renders the dashboard with summary cards, queue-depth table, and recent-errors table.
   - `src/app/admin/layout.tsx` adds an `Ops` nav link.
 - [x] **F.4** Schedule a threshold review one month after launch.
