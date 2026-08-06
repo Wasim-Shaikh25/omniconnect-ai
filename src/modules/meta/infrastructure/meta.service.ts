@@ -12,6 +12,8 @@ import type {
   MetaAudienceInsights,
   AudienceDemographics,
   MetaMediaMetrics,
+  PublishMediaInput,
+  PublishMediaResult,
 } from "../application/ports";
 
 const GRAPH_API_BASE = "https://graph.facebook.com/v21.0";
@@ -69,6 +71,68 @@ export class GraphApiMetaService implements MetaService {
         logger.info("meta.sendMessage.ok", { projectId: input.projectId });
       },
       { attributes: { projectId: input.projectId } },
+    );
+  }
+
+  async publishMedia(
+    projectId: string,
+    input: PublishMediaInput,
+  ): Promise<PublishMediaResult | null> {
+    return withSpan(
+      "meta.publishMedia",
+      async () => {
+        const token = await this.integrations.findAccessToken(projectId);
+        const integration = await this.integrations.findByStore(projectId);
+        if (!token || !integration?.accountId) {
+          logger.info("meta.publishMedia.skipped", { projectId, reason: "not-configured" });
+          return null;
+        }
+
+        const accountId = integration.accountId;
+        if (input.mediaUrls.length === 0) {
+          logger.warn("meta.publishMedia.invalid", { projectId, reason: "no-media-urls" });
+          return null;
+        }
+
+        try {
+          const creationId = await this.createMediaContainer(accountId, token, input);
+          const status = await this.pollContainerStatus(creationId, accountId, token);
+          if (status === "ERROR") {
+            logger.warn("meta.publishMedia.containerError", { projectId, creationId });
+            return null;
+          }
+
+          const publishRes = await fetch(
+            `${GRAPH_API_BASE}/${accountId}/media_publish?creation_id=${creationId}`,
+            withTimeout({ method: "POST" }),
+          );
+          if (!publishRes.ok) {
+            const text = await publishRes.text();
+            logger.warn("meta.publishMedia.publishFailed", {
+              projectId,
+              status: publishRes.status,
+              body: text,
+            });
+            return null;
+          }
+          const publishBody = (await publishRes.json()) as { id?: string };
+          const externalId = publishBody.id;
+          if (!externalId) {
+            logger.warn("meta.publishMedia.noId", { projectId, creationId, publishBody });
+            return null;
+          }
+
+          logger.info("meta.publishMedia.ok", { projectId, externalId });
+          return { externalId };
+        } catch (error) {
+          logger.error("meta.publishMedia.error", {
+            projectId,
+            error: error instanceof Error ? error.message : "unknown",
+          });
+          return null;
+        }
+      },
+      { attributes: { projectId, mediaType: input.mediaType, mediaUrls: input.mediaUrls.length } },
     );
   }
 
@@ -491,6 +555,132 @@ export class GraphApiMetaService implements MetaService {
       });
     }
   }
+
+  private async createMediaContainer(
+    accountId: string,
+    token: string,
+    input: PublishMediaInput,
+  ): Promise<string> {
+    const { mediaType, mediaUrls, caption } = input;
+
+    if (mediaType === "CAROUSEL") {
+      const childIds: string[] = [];
+      for (const url of mediaUrls) {
+        const isVideo = isVideoUrl(url);
+        const childParams = new URLSearchParams();
+        childParams.set("is_carousel_item", "true");
+        childParams.set("access_token", token);
+        childParams.set(isVideo ? "video_url" : "image_url", url);
+        if (isVideo) childParams.set("media_type", "VIDEO");
+        const childRes = await fetch(
+          `${GRAPH_API_BASE}/${accountId}/media?${childParams.toString()}`,
+          withTimeout({ method: "POST" }),
+        );
+        const childBody = (await parseJson(childRes)) as { id?: string };
+        if (!childBody.id) {
+          throw new Error(`Failed to create carousel child: ${JSON.stringify(childBody)}`);
+        }
+        childIds.push(childBody.id);
+      }
+      const parentParams = new URLSearchParams();
+      parentParams.set("children", childIds.join(","));
+      parentParams.set("access_token", token);
+      if (caption) parentParams.set("caption", caption);
+      const parentRes = await fetch(
+        `${GRAPH_API_BASE}/${accountId}/media?${parentParams.toString()}`,
+        withTimeout({ method: "POST" }),
+      );
+      const parentBody = (await parseJson(parentRes)) as { id?: string };
+      if (!parentBody.id) {
+        throw new Error(`Failed to create carousel container: ${JSON.stringify(parentBody)}`);
+      }
+      return parentBody.id;
+    }
+
+    const firstUrl = mediaUrls[0];
+    if (!firstUrl) {
+      throw new Error("Cannot create media container without a media URL");
+    }
+
+    const params = new URLSearchParams();
+    params.set("access_token", token);
+
+    switch (mediaType) {
+      case "IMAGE":
+        params.set("image_url", firstUrl);
+        break;
+      case "VIDEO":
+        params.set("video_url", firstUrl);
+        params.set("media_type", "VIDEO");
+        break;
+      case "REEL":
+        params.set("video_url", firstUrl);
+        params.set("media_type", "REELS");
+        break;
+      case "STORY": {
+        const isVideo = isVideoUrl(firstUrl);
+        params.set(isVideo ? "video_url" : "image_url", firstUrl);
+        params.set("media_type", "STORIES");
+        break;
+      }
+      default:
+        throw new Error(`Unsupported media type: ${mediaType}`);
+    }
+
+    if (caption) params.set("caption", caption);
+
+    const res = await fetch(
+      `${GRAPH_API_BASE}/${accountId}/media?${params.toString()}`,
+      withTimeout({ method: "POST" }),
+    );
+    const body = (await parseJson(res)) as { id?: string };
+    if (!body.id) {
+      throw new Error(`Failed to create media container: ${JSON.stringify(body)}`);
+    }
+    return body.id;
+  }
+
+  private async pollContainerStatus(
+    creationId: string,
+    _accountId: string,
+    token: string,
+    maxAttempts = 30,
+    delayMs = 2000,
+  ): Promise<"FINISHED" | "ERROR" | "TIMEOUT"> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (attempt > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+      const res = await fetch(
+        `${GRAPH_API_BASE}/${creationId}?fields=status_code&access_token=${token}`,
+        withTimeout(),
+      );
+      if (!res.ok) {
+        logger.warn("meta.publishMedia.statusCheckFailed", {
+          creationId,
+          status: res.status,
+        });
+        return "ERROR";
+      }
+      const body = (await res.json()) as { status_code?: string; status?: string };
+      const status = body.status_code ?? body.status;
+      if (status === "FINISHED") return "FINISHED";
+      if (status === "ERROR" || status === "EXPIRED") return "ERROR";
+    }
+    return "TIMEOUT";
+  }
+}
+
+function isVideoUrl(url: string): boolean {
+  return /\.(mp4|mov|webm|mkv)$/i.test(url);
+}
+
+async function parseJson(res: Response): Promise<unknown> {
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Graph API ${res.status}: ${text}`);
+  }
+  return res.json();
 }
 
 function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaMediaItem | null {

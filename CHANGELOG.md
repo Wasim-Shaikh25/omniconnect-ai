@@ -15,6 +15,14 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0079` **Meta Growth Engine — Content Publishing API** on `devin/req-0079-content-publishing-1786062600`:
+  added `MetaService.publishMedia` to the `meta` port and implemented it in `GraphApiMetaService` with the
+  full Instagram Content Publishing API flow: create media container, poll `status_code` until `FINISHED`,
+  and `media_publish`. Supports `IMAGE`, `VIDEO`, `REEL`, `CAROUSEL`, and `STORY` media types. Added
+  `makePublishMedia` in the `content` module, `publishMediaAction` tenant-guarded through `organizationQueries`,
+  and the `PublishPostForm` UI on `/stores/[projectId]/content`. Unit tests added for `publish-media.ts`.
+  Scheduling and a `ScheduledPost` persistence model are the next step (T-024).
+
 - `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
   added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`
   message and routes `INSTAGRAM`/`FACEBOOK` replies through `MetaService.sendMessage`; wired it in the

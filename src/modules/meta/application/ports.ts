@@ -71,6 +71,19 @@ export interface CompetitorMediaOptions {
   limit?: number;
 }
 
+export type ContentMediaType = "IMAGE" | "VIDEO" | "REEL" | "CAROUSEL" | "STORY";
+
+export interface PublishMediaInput {
+  caption?: string;
+  mediaType: ContentMediaType;
+  mediaUrls: string[];
+}
+
+export interface PublishMediaResult {
+  externalId: string;
+  permalink?: string | null;
+}
+
 export interface MetaPageInsights {
   username: string | null;
   followers: number | null;
@@ -147,4 +160,15 @@ export interface MetaService {
 
   /** Send a server-side Purchase event to the Meta Conversions API. No-ops when the pixel or access token is missing. */
   sendPurchaseEvent(projectId: string, order: ConnectorOrder): Promise<void>;
+
+  /**
+   * Publish content to the connected Instagram Business account using the Content
+   * Publishing API: create container → poll until FINISHED → publish. Supports
+   * IMAGE, VIDEO, REEL, CAROUSEL, and STORY media types. Returns null when the
+   * account is not connected or the Graph API rejects the request.
+   */
+  publishMedia(
+    projectId: string,
+    input: PublishMediaInput,
+  ): Promise<PublishMediaResult | null>;
 }

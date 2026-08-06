@@ -46,6 +46,9 @@ export type {
   MetaPageInsights,
   AudienceDemographics,
   MetaAudienceInsights,
+  PublishMediaInput,
+  PublishMediaResult,
+  ContentMediaType,
 } from "./application/ports";
 export type { MetaConnectionView } from "./application/queries";
 
