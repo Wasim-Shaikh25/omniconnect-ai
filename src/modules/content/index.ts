@@ -19,6 +19,14 @@ export type {
 } from "./application/generate-content-ideas";
 export type { PublishMedia, PublishMediaInput } from "./application/publish-media";
 export type { SchedulePost, SchedulePostInput } from "./application/schedule-post";
+export type { ReschedulePost, ReschedulePostInput } from "./application/reschedule-post";
+export type {
+  HashtagIntelligence,
+  HashtagIntelligenceInput,
+  HashtagAnalysis,
+  HashtagScorer,
+  HashtagScorerInput,
+} from "./application/hashtag-intelligence";
 export type {
   ScheduledPostRecord,
   ScheduledPostRepository,
@@ -30,10 +38,13 @@ export {
   generateContentIdeasAction,
   publishMediaAction,
   schedulePostAction,
+  reschedulePostAction,
+  hashtagIntelligenceAction,
 } from "./presentation/actions";
 export type {
   GenerateContentIdeasState,
   ContentActionState,
+  HashtagIntelligenceState,
 } from "./presentation/actions";
 
 export { CONTENT_SCHEDULE_QUEUE } from "./infrastructure/queue";

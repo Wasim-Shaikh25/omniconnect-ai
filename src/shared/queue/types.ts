@@ -27,6 +27,7 @@ export interface JobCounts {
 
 export interface QueueService {
   add<T>(name: string, data: T, opts?: JobOptions): Promise<string>;
+  remove(jobId: string): Promise<void>;
   getFailedCount(): Promise<number>;
   getJobCounts(): Promise<JobCounts>;
   close(): Promise<void>;

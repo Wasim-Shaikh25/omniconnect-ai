@@ -21,6 +21,11 @@ export class BullMQQueue implements QueueService {
     return job.id ?? "";
   }
 
+  async remove(jobId: string): Promise<void> {
+    await this.queue.remove(jobId);
+    logger.info("queue.bullmq.removed", { queue: this.queue.name, jobId });
+  }
+
   async getFailedCount(): Promise<number> {
     return this.queue.getFailedCount();
   }

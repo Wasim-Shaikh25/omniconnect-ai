@@ -10,7 +10,7 @@ description: Meta Growth Engine
 - **Related Task:** `docs/tasks/TASK-0079-meta-growth-engine.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
 - **Supersedes:** Portions of `REQ-0003-meta-integration.md`, `REQ-0018-content-studio-mvp.md`
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -42,8 +42,9 @@ Build the Meta Growth Engine pillar: content publishing via Instagram Content Pu
 - [x] Support photo, carousel, Reel, Story media types.
 - [x] Scheduled posts stored in DB with BullMQ delayed job.
 - [x] Content Studio UI with caption editor, publish form, and schedule picker.
-- [ ] Hashtag intelligence: AI scores competition, reach, relevance for suggested tags.
-- [ ] Best time to post: returns day/hour/score based on follower online times + post history.
+- [x] Content calendar UI: visual grid preview and drag-to-reschedule for scheduled posts.
+- [x] Hashtag intelligence: AI scores competition, reach, relevance for suggested tags.
+- [x] Best time to post: returns day/hour/score based on follower online times + post history.
 - [ ] Rate limiting: respect 200 calls/hr Instagram Graph API limit.
 
 ## 6. Scope & Dependencies

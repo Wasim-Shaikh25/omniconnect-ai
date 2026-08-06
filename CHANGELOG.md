@@ -43,6 +43,14 @@ All notable changes to **OmniConnect AI** are documented here.
   maximum `setTimeout` value so far-future posts do not fire instantly in dev/test; marked `ScheduledPost`
   rows as `FAILED` when enqueueing throws; and removed the unused `User.contentSchedulesThisMonth` /
   `contentSchedulesResetAt` columns.
+- `REQ-0079` **Hashtag intelligence, best time to post, and content calendar UI** on `devin/req-0079-hashtag-besttime-calendar-1786001674`:
+  added `makeHashtagIntelligence` use-case that searches the Meta Hashtag API, fetches top media, and scores
+  tags with deterministic competition/reach/relevance metrics plus an optional OpenRouter AI scorer; exposed
+  as `hashtagIntelligenceAction` and rendered in the `HashtagIntelligence` panel on `/stores/[projectId]/content`.
+  Added `ContentBestTime` (server component) wired to `getBestTimeToPostForStore` and `ContentCalendar`
+  (client, drag-to-reschedule) wired to `getContentCalendarForStore`. Added `makeReschedulePost` use-case,
+  `reschedulePostAction`, and `QueueService.remove(jobId)` so delayed jobs can be cancelled and re-enqueued.
+  Unit tests added for `hashtag-intelligence.ts` and `reschedule-post.ts`.
 
 - `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
   added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`

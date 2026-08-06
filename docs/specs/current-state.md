@@ -102,7 +102,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume, and `sendMessage` use-case for outbound `HUMAN`/`AI` replies. |
 | `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
-| `content` | Content ideation (`generateContentIdeas`), Instagram publishing (`publishMedia`), and scheduling (`ScheduledPost` + delayed `publish-scheduled-post` queue job) behind the `MetaService` port. |
+| `content` | Content ideation (`generateContentIdeas`), Instagram publishing (`publishMedia`), scheduling (`ScheduledPost` + delayed `publish-scheduled-post` queue job), reschedule, hashtag intelligence, best-time-to-post, and a drag-to-reschedule content calendar — all behind the `MetaService` port and `QueueService`. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
 | `support` | Support tickets, admin triage, system logs. The `/admin/*` pages (users, health, logs, tickets, coupons, organizations, AI usage) are super-admin-only and live under `src/app/admin`. `/support` is authenticated-only and not in `publicPaths`. |
@@ -214,6 +214,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 1. The Content Studio page at `/stores/[projectId]/content` offers AI-generated post ideas (`generateContentIdeasAction`) and direct Instagram publishing (`publishMediaAction`).
 2. `publishMediaAction` is tenant-guarded, validates `mediaType` (`IMAGE`, `VIDEO`, `REEL`, `CAROUSEL`, `STORY`) and public `mediaUrls`, and delegates to `makePublishMedia` in the `content` application layer.
 3. `makePublishMedia` calls `MetaService.publishMedia` (the `GraphApiMetaService` adapter), which creates a Graph API media container, polls `status_code` until `FINISHED`, and calls `media_publish` to return the published `externalId`.
+4. `makeSchedulePost` enqueues a delayed `publish-scheduled-post` job; `makeReschedulePost` removes the old job, updates `scheduledAt`/`scheduledAtTimezone`, and re-enqueues.
+5. The Content Studio page also displays `BestTimeToPost` (from `getBestTimeToPostForStore`), `HashtagIntelligence` (Meta Hashtag API + deterministic scoring with optional OpenRouter AI), and a `ContentCalendar` with drag-to-reschedule onto suggested slots (from `getContentCalendarForStore`).
+6. `QueueService` now supports `remove(jobId)` so delayed jobs can be cancelled/rescheduled.
 4. The `PublishPostForm` component supports single and carousel media URLs and renders success or error state from the server action.
 
 ### 8.7 Attribution and Checkout Links
@@ -317,7 +320,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Only **Shopify** e-commerce connector is live; WooCommerce/BigCommerce/Magento are planned (REQ-0062).
 - Analytics `couponsUsed` and strict coupon-to-order attribution are not yet implemented (TASK-0062).
 - Out-of-scope UI routes (affiliates, media-kit, brand-deals, UGC growth, revenue, daily-marketing, engagement, orders) have been removed. The remaining navigation is grouped in a collapsible sidebar (Home / Connect / Create / Engage / Analyze / Account).
-- Direct Meta content publishing/scheduling is out of scope for MVP.
+- Meta Graph API rate limiting (200 calls/hour) is not yet enforced.
 - Real load and penetration testing has not been performed.
 - Accessibility hardening (`REQ-0068` M8) is in place: a skip link targets `<main id="main-content" tabIndex={-1}>`, the collapsed sidebar preserves link labels via `aria-label` with `aria-hidden` icons, and the mobile drawer is a Radix `Dialog` that traps focus, closes on `Escape`, and restores focus to the trigger. Manual keyboard traversal and a colour-contrast spot-check on primary surfaces were recorded.
 - Encryption (`REQ-0068` M9) uses HKDF (`enc:v2:`), supports dual-key decryption with `ENCRYPTION_KEY_PREVIOUS` for rotation, and documents a re-encryption procedure.
