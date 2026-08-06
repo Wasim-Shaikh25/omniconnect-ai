@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Colors - Light Mode */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -21,7 +22,28 @@
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 262.1 83.3% 57.8%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+
+    /* Semantic Colors */
+    --success: 142.3 76.2% 36.3%;
+    --success-foreground: 210 20% 98%;
+    --warning: 38.7 92.1% 50.2%;
+    --warning-foreground: 210 20% 98%;
+    --info: 206.3 91.9% 50.2%;
+    --info-foreground: 210 20% 98%;
+
+    /* Surface Elevation */
+    --surface-elevation: 220 13% 91%;
+    --surface-elevation-2: 220 13% 86%;
+
+    /* Typography Scale (line-height and tracking applied via components) */
+    --font-display: 44px; /* Marketing/page titles */
+    --font-xl: 32px;      /* Page title */
+    --font-lg: 24px;      /* Section title */
+    --font-md: 18px;      /* Card title */
+    --font-base: 16px;    /* Body text */
+    --font-sm: 14px;      /* Small text */
+    --font-xs: 12px;      /* Caption */
   }
 
   .dark {
@@ -42,6 +64,17 @@
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
     --ring: 263.4 70% 50.4%;
+
+    /* Semantic Colors */
+    --success: 142.3 76.2% 36.3%;
+    --success-foreground: 210 20% 98%;
+    --warning: 38.7 92.1% 50.2%;
+    --warning-foreground: 210 20% 98%;
+    --info: 206.3 91.9% 50.2%;
+    --info-foreground: 210 20% 98%;
+
+    --surface-elevation: 215 27.9% 16.9%;
+    --surface-elevation-2: 215 27.9% 22%;
   }
 }
 
@@ -49,7 +82,175 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography System */
+  h1 {
+    @apply text-4xl font-bold leading-tight tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl font-bold leading-tight tracking-tight;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold leading-snug tracking-tight;
+  }
+
+  h4 {
+    @apply text-lg font-semibold leading-snug;
+  }
+
+  h5 {
+    @apply text-base font-semibold leading-snug;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  /* Page Layout */
+  .page-container {
+    @apply min-h-screen bg-background;
+  }
+
+  .page-header {
+    @apply flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-4 sm:px-8 sm:py-6;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold text-foreground;
+  }
+
+  .page-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Section Layout */
+  .section {
+    @apply space-y-6;
+  }
+
+  .section-header {
+    @apply flex items-center justify-between gap-4;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-foreground;
+  }
+
+  /* Cards */
+  .card-base {
+    @apply rounded-lg border border-border bg-card p-6;
+  }
+
+  .card-hover {
+    @apply transition-colors hover:bg-surface-elevation/50;
+  }
+
+  /* Data Grid */
+  .data-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .data-grid-2 {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+
+  /* Forms */
+  .form-section {
+    @apply space-y-4;
+  }
+
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-foreground;
+  }
+
+  .form-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .form-error {
+    @apply text-sm font-medium text-destructive;
+  }
+
+  /* Status Badges */
+  .badge-success {
+    @apply inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-950 dark:text-green-200;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center gap-1 rounded-full bg-yellow-50 px-3 py-1 text-sm font-medium text-yellow-700 dark:bg-yellow-950 dark:text-yellow-200;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700 dark:bg-red-950 dark:text-red-200;
+  }
+
+  .badge-info {
+    @apply inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-200;
+  }
+
+  /* Buttons Group */
+  .button-group {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* Table Enhancements */
+  .table-container {
+    @apply overflow-x-auto rounded-lg border border-border;
+  }
+
+  .table-header {
+    @apply bg-surface-elevation/50 font-semibold text-muted-foreground;
+  }
+
+  .table-row-hover {
+    @apply transition-colors hover:bg-surface-elevation/50;
+  }
+
+  /* Empty State */
+  .empty-state {
+    @apply flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border bg-surface-elevation/30 py-12 px-6 text-center;
+  }
+
+  .empty-state-icon {
+    @apply text-4xl text-muted-foreground;
+  }
+
+  .empty-state-title {
+    @apply text-lg font-semibold text-foreground;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Loading State */
+  .skeleton {
+    @apply animate-pulse rounded-md bg-surface-elevation;
+  }
+
+  /* Responsive Helpers */
+  .responsive-hidden {
+    @apply hidden md:block;
+  }
+
+  .mobile-only {
+    @apply md:hidden;
   }
 }
