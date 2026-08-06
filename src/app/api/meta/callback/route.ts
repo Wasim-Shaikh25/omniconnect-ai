@@ -30,22 +30,23 @@ function parseCookieValue(header: string | null, name: string): string | null {
   return null;
 }
 
-function redirectWithError(
-  projectId: string | null,
-  code: string,
-  requestUrl: string,
-): Response {
+function trustedOrigin(): string {
+  const origin = env.APP_URL ?? "http://localhost:3000";
+  return origin.replace(/\/$/, "");
+}
+
+function redirectWithError(projectId: string | null, code: string): Response {
   const base = projectId ? `/stores/${projectId}/settings` : "/settings";
-  const url = new URL(base, requestUrl);
+  const url = new URL(base, trustedOrigin());
   url.searchParams.set("meta_error", code);
   const response = NextResponse.redirect(url.toString());
   response.cookies.set(OAUTH_STATE_COOKIE, "", OAUTH_COOKIE_OPTIONS);
   return response;
 }
 
-function redirectSuccess(projectId: string, requestUrl: string): Response {
+function redirectSuccess(projectId: string): Response {
   const response = NextResponse.redirect(
-    new URL(`/stores/${projectId}/settings?meta=connected`, requestUrl).toString(),
+    new URL(`/stores/${projectId}/settings?meta=connected`, trustedOrigin()).toString(),
   );
   response.cookies.set(OAUTH_STATE_COOKIE, "", OAUTH_COOKIE_OPTIONS);
   return response;
@@ -59,7 +60,7 @@ function redirectSuccess(projectId: string, requestUrl: string): Response {
 export async function GET(request: Request): Promise<Response> {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", trustedOrigin()));
   }
 
   const { searchParams } = new URL(request.url);
@@ -74,22 +75,22 @@ export async function GET(request: Request): Promise<Response> {
   if (error || !state || !nonce) {
     const code = errorReason ?? error ?? "denied";
     logger.warn("meta.oauth.denied", { error: code });
-    return redirectWithError(null, code, request.url);
+    return redirectWithError(null, code);
   }
 
   const projectId = verifyMetaOAuthState(state, nonce);
   if (!projectId) {
     logger.warn("meta.oauth.invalidState", { stateLength: state.length });
-    return redirectWithError(null, "invalid_state", request.url);
+    return redirectWithError(null, "invalid_state");
   }
 
   const access = await checkStoreAccess(projectId);
   if (!access.ok) {
-    return redirectWithError(projectId, "forbidden", request.url);
+    return redirectWithError(projectId, "forbidden");
   }
 
   if (!code) {
-    return redirectWithError(projectId, "missing_code", request.url);
+    return redirectWithError(projectId, "missing_code");
   }
 
   try {
@@ -97,7 +98,7 @@ export async function GET(request: Request): Promise<Response> {
     const account = await fetchInstagramAccount(accessToken);
 
     if (!account) {
-      return redirectWithError(projectId, "no_instagram_account", request.url);
+      return redirectWithError(projectId, "no_instagram_account");
     }
 
     await connectMeta({
@@ -114,10 +115,10 @@ export async function GET(request: Request): Promise<Response> {
       pageId: account.pageId,
     });
 
-    return redirectSuccess(projectId, request.url);
+    return redirectSuccess(projectId);
   } catch (error) {
     const code = error instanceof Error ? "oauth_failed" : "unknown";
     logger.error("meta.oauth.callbackFailed", { projectId, error: code });
-    return redirectWithError(projectId, code, request.url);
+    return redirectWithError(projectId, code);
   }
 }
