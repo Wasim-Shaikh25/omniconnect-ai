@@ -123,7 +123,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `ChatSession` / `ChatMessage` — assistant chat history per project/user; separate from customer `Conversation`/`Message`; messages carry `role` (`system` | `user` | `assistant` | `tool`) and optional `toolCalls`/`toolCallId`.
 - `Follower` / `Campaign` — first-follower campaign tracking.
 - `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
-- `ScheduledPost` — pending/published/failed/cancelled Instagram posts with `scheduledAt`, `mediaUrls`, and the dispatched `jobId`.
+- `ScheduledPost` — pending/published/failed/cancelled Instagram posts with `scheduledAt` (UTC), `scheduledAtTimezone` (browser IANA zone for display), `mediaUrls`, and the dispatched `jobId`.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
 - `PlanConfig` — optional per-plan feature-limit overrides; `planConfigService.resolveLimits(plan)` falls back to the hardcoded `PLAN_LIMITS` when no override exists.

@@ -68,7 +68,7 @@ export default async function ContentStudioPage({
                 <div>
                   <p className="font-medium">{post.mediaType}</p>
                   <p className="text-sm text-muted-foreground">
-                    {post.scheduledAt.toLocaleString()} · {post.status}
+                    {post.scheduledAt.toLocaleString("en-US", { timeZone: post.scheduledAtTimezone ?? "UTC" })} ({post.scheduledAtTimezone ?? "UTC"}) · {post.status}
                   </p>
                 </div>
                 {post.externalId && (

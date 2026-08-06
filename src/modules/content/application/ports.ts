@@ -19,6 +19,7 @@ export interface ScheduledPostRecord {
   externalId: string | null;
   jobId: string | null;
   errorMessage: string | null;
+  scheduledAtTimezone: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

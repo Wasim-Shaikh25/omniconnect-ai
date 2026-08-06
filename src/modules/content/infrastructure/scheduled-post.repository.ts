@@ -15,6 +15,7 @@ function mapRecord(row: {
   externalId: string | null;
   jobId: string | null;
   errorMessage: string | null;
+  scheduledAtTimezone: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): ScheduledPostRecord {
@@ -42,6 +43,7 @@ export class PrismaScheduledPostRepository implements ScheduledPostRepository {
         mediaUrls: input.mediaUrls,
         status: input.status ?? "SCHEDULED",
         scheduledAt: input.scheduledAt,
+        scheduledAtTimezone: input.scheduledAtTimezone,
       },
     });
     return mapRecord(row);
