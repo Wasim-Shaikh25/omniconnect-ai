@@ -430,14 +430,18 @@ All notable changes to **OmniConnect AI** are documented here.
   `shopify.connector.ts` has been deleted. Shopify stores resolve through the same `ConfigInterpreter` safe
   executor as dynamically generated adapters.
 
-- `REQ-0078` **Adapter wizard review fixes** on `devin/review-fixes-adapter-1786019200`:
+- `REQ-0078` **Adapter wizard review fixes** on `devin/review-fixes-adapter-1786019200` and
+  `devin/review-fixes-adapter-circular-1786021500`:
   `makeSaveGeneratedAdapter` now also upserts an `EcommerceConnection` row so the store is marked connected
   after the adapter wizard succeeds, while preserving any existing provider credentials and `baseUrl` instead
   of overwriting them with `null`; `ConnectAdapterForm` no longer swallows partial JSON in the credentials
   text area and disables the Test/Save buttons while the JSON is invalid, so stale credentials cannot be
   submitted; `IntegrationConnectorFactory`/`getConnector` raise `ProviderNotSupportedError` for legacy
   `WOOCOMMERCE`/`BIGCOMMERCE` rows instead of silently routing them to the Mock connector and wiping real
-  catalog data, and `CUSTOM` connections continue to resolve to the built-in Mock connector.
+  catalog data, and `CUSTOM` connections continue to resolve to the built-in Mock connector; the adapter
+  generator now lazy-loads `ai/server` at call time to break the `ecommerce` ↔ `ai` module-initialization
+  cycle, and `generateAdapterConfigAction` asserts store membership and checks `aiUsageGuard` before invoking
+  AI. Also fixes `scripts/backfill-past-due.ts` to import `Plan` from the public `@/modules/workspaces` barrel.
 
 - `REQ-0067` **H10 seat-limit retry hardening** on `devin/fix-seat-limit-concurrency-1786017547`:
   `PrismaOrganizationInviteRepository.createWithinSeatLimit` now retries Postgres `P2034` serialization

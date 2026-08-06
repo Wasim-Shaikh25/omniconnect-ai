@@ -3,11 +3,11 @@
 import { z } from "zod";
 import { requireRole } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
-import { adapterConfigGenerator } from "../infrastructure/ai-adapter-generator";
 import {
   testAdapterConfig,
   saveGeneratedAdapter,
 } from "../infrastructure/container";
+import { adapterConfigGenerator } from "../infrastructure/ai-adapter-generator";
 import { validateAdapterConfigMapping } from "../infrastructure/adapter-config-schema";
 
 export type AdapterConfigActionState =
@@ -52,7 +52,14 @@ export async function generateAdapterConfigAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  if (parsed.data.projectId && !(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
   try {
+    const { aiUsageGuard } = await import("@/modules/ai/application/usage-guard");
+    await aiUsageGuard.assertAvailable(user.userId ?? user.id);
+
     const config = await adapterConfigGenerator.generate({
       platformName: parsed.data.platformName,
       apiDocs: parsed.data.apiDocs,
