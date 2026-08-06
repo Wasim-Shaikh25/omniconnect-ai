@@ -6,7 +6,7 @@ import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-even
 import { Plan, isPlan } from "../domain/plan";
 import { OrganizationRepository } from "./ports";
 import { SaaSCouponRepository } from "./saas-coupon";
-import { CheckoutSessionInput, PaymentGateway } from "./payment-gateway";
+import { CheckoutSessionInput, PaymentGateway, PortalSessionInput, PortalSessionResult, InvoiceRecord } from "./payment-gateway";
 
 export class BillingSignatureError extends Error {
   constructor(message: string) {
@@ -24,6 +24,8 @@ export class BillingConfigurationError extends Error {
 
 export interface BillingService {
   createCheckoutSession(input: CheckoutSessionInput): Promise<{ url: string | null }>;
+  createPortalSession(input: PortalSessionInput): Promise<PortalSessionResult>;
+  listInvoices(customerId: string): Promise<InvoiceRecord[]>;
   fulfillCheckout(payload: string | Buffer, signature: string): Promise<void>;
 }
 
@@ -45,6 +47,14 @@ export function makeBillingService(deps: {
       const org = await deps.organizations.findById(input.userId);
       if (!org) throw new Error("Organization not found");
       return deps.paymentGateway.createCheckoutSession(input);
+    },
+
+    async createPortalSession(input: PortalSessionInput) {
+      return deps.paymentGateway.createPortalSession(input);
+    },
+
+    async listInvoices(customerId: string) {
+      return deps.paymentGateway.listInvoices(customerId);
     },
 
     async fulfillCheckout(payload, signature) {
@@ -100,6 +110,8 @@ export function makeBillingService(deps: {
               const plan = metadata.plan;
               const subscriptionId =
                 typeof session.subscription === "string" ? session.subscription : undefined;
+              const stripeCustomerId =
+                typeof session.customer === "string" ? session.customer : undefined;
 
               if (!userId || !plan || !isPlan(plan)) {
                 logger.error("stripe.checkout.missingMetadata", {
@@ -116,6 +128,7 @@ export function makeBillingService(deps: {
                   plan,
                   subscriptionId,
                   subscriptionStatus: "active",
+                  stripeCustomerId,
                 },
                 tx,
               );
@@ -147,6 +160,8 @@ export function makeBillingService(deps: {
 
               const priceId = subscription.items.data[0]?.price.id;
               const pricePlan = planFromPriceId(priceId);
+              const stripeCustomerId =
+                typeof subscription.customer === "string" ? subscription.customer : undefined;
               const existingOrg = await findOrganizationBySubscriptionId(
                 deps.organizations,
                 subscription.id,
@@ -166,6 +181,7 @@ export function makeBillingService(deps: {
                   plan: entitledPlan,
                   subscriptionId: subscription.id,
                   subscriptionStatus: subscription.status,
+                  stripeCustomerId,
                 },
                 tx,
               );
@@ -200,6 +216,8 @@ export function makeBillingService(deps: {
                   plan: org.plan,
                   subscriptionId,
                   subscriptionStatus: "active",
+                  stripeCustomerId:
+                    typeof invoice.customer === "string" ? invoice.customer : undefined,
                 },
                 tx,
               );
@@ -226,6 +244,8 @@ export function makeBillingService(deps: {
                   plan: Plan.FREE,
                   subscriptionId: subscription.id,
                   subscriptionStatus: "canceled",
+                  stripeCustomerId:
+                    typeof subscription.customer === "string" ? subscription.customer : undefined,
                 },
                 tx,
               );
@@ -257,6 +277,8 @@ export function makeBillingService(deps: {
                     plan: org.plan,
                     subscriptionId,
                     subscriptionStatus: "past_due",
+                    stripeCustomerId:
+                      typeof invoice.customer === "string" ? invoice.customer : undefined,
                   },
                   tx,
                 );

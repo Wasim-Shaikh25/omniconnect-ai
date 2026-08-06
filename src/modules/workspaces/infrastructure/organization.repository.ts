@@ -14,6 +14,7 @@ function mapOrg(org: {
   plan: string;
   subscriptionId: string | null;
   subscriptionStatus: string | null;
+  stripeCustomerId: string | null;
   createdAt: Date;
 }): OrganizationRecord {
   return {
@@ -22,6 +23,7 @@ function mapOrg(org: {
     plan: parsePlan(org.plan),
     subscriptionId: org.subscriptionId,
     subscriptionStatus: org.subscriptionStatus,
+    stripeCustomerId: org.stripeCustomerId,
     createdAt: org.createdAt,
   };
 }
@@ -82,13 +84,14 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
 
   async updatePlan(
     id: string,
-    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
+    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; stripeCustomerId?: string | null },
     tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
     const client = tx ?? prisma;
     const data: Record<string, unknown> = { plan: input.plan };
     if (input.subscriptionId !== undefined) data.subscriptionId = input.subscriptionId;
     if (input.subscriptionStatus !== undefined) data.subscriptionStatus = input.subscriptionStatus;
+    if (input.stripeCustomerId !== undefined) data.stripeCustomerId = input.stripeCustomerId;
     const org = await client.user.update({ where: { id }, data });
     return mapOrg(org);
   }

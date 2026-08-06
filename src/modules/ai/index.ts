@@ -94,8 +94,9 @@ export {
   generateTrendsAction,
   generatePostIdeasAction,
   askBusinessBrainAction,
+  extractKnowledgeBaseFiles,
 } from "./presentation/actions";
-export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState, AskBusinessBrainState } from "./presentation/actions";
+export type { AIActionState, GenerateCaptionsState, GenerateTrendsState, GeneratePostIdeasState, AskBusinessBrainState, ExtractKnowledgeState } from "./presentation/actions";
 export { resolveOperation } from "./application/operation-resolver";
 export type { ResolveResult, ResolvedOperation, UnsupportedOperation, OperationExemplar } from "./application/operation-resolver";
 export { queryAnalytics } from "./application/query-analytics";

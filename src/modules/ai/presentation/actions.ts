@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { extractTextFromPdf } from "@/shared/lib/pdf-text";
 import { getCurrentUser, requireRole, requireVerifiedEmail, ForbiddenError } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
@@ -298,4 +299,62 @@ export async function askBusinessBrainAction(
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not answer" };
   }
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_TYPES = ["application/pdf", "text/markdown", "text/x-markdown", "text/plain"];
+const ALLOWED_EXTENSIONS = [".pdf", ".md", ".txt"];
+
+export interface ExtractKnowledgeState {
+  ok?: boolean;
+  error?: string;
+  text?: string;
+}
+
+export async function extractKnowledgeBaseFiles(
+  _prev: ExtractKnowledgeState,
+  formData: FormData,
+): Promise<ExtractKnowledgeState> {
+  const user = await requireRole("USER");
+  await requireVerifiedEmail(user);
+
+  const projectId = formData.get("projectId");
+  if (typeof projectId !== "string" || !projectId) {
+    return { error: "Missing project ID" };
+  }
+  if (!(await assertStoreInOrg(user.userId, projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File);
+  if (files.length === 0) {
+    return { error: "No files uploaded." };
+  }
+
+  const parts: string[] = [];
+  for (const file of files) {
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    const typeOk = ALLOWED_TYPES.includes(file.type) || ALLOWED_EXTENSIONS.includes(ext);
+    if (!typeOk) {
+      return { error: `Unsupported file type: ${file.name}` };
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return { error: `File too large: ${file.name} (max 5 MB)` };
+    }
+
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      if (file.type === "application/pdf" || ext === ".pdf") {
+        const text = await extractTextFromPdf(buffer);
+        parts.push(`--- ${file.name} ---\n${text.trim()}`);
+      } else {
+        const text = buffer.toString("utf-8");
+        parts.push(`--- ${file.name} ---\n${text.trim()}`);
+      }
+    } catch (error) {
+      return { error: `Could not read ${file.name}: ${error instanceof Error ? error.message : "unknown"}` };
+    }
+  }
+
+  return { ok: true, text: parts.join("\n\n") };
 }

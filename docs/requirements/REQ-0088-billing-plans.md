@@ -4,7 +4,7 @@ description: Billing & Plans
 
 # REQ-0088: Billing & Plans
 
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0088-billing-plans.md`
@@ -54,7 +54,7 @@ Three-tier billing system via Stripe: Free, Pro, Business. Plan limits enforced 
 | Attribution Links | 10/month | Unlimited | Unlimited |
 | Intelligence | Daily Brief | Full | Full + predictions |
 
-- [ ] Stripe checkout, webhooks, subscription management.
+- [x] Stripe checkout, webhooks, subscription management.
 - [x] Plan enforcement at service layer.
 - [x] Billing settings page: current plan, upgrade, payment method, invoices.
 

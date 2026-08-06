@@ -8,7 +8,7 @@ import type { OrganizationRepository, OrganizationRecord } from "./ports";
 import type { SaaSCouponRepository, SaaSCouponRecord } from "./saas-coupon";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import { makeBillingService, type BillingService, BillingSignatureError } from "./billing";
-import type { CheckoutSessionInput, PaymentGateway } from "./payment-gateway";
+import type { CheckoutSessionInput, PaymentGateway, InvoiceRecord } from "./payment-gateway";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
 const STARTER_PRICE = "price_1_starter";
@@ -24,6 +24,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
       plan: Plan.FREE,
       subscriptionId: null,
       subscriptionStatus: null,
+      stripeCustomerId: null,
       createdAt: new Date(),
     };
     this.orgs.set(record.id, record);
@@ -57,7 +58,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
 
   async updatePlan(
     id: string,
-    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null },
+    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; stripeCustomerId?: string | null },
     _tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
     const org = this.orgs.get(id);
@@ -65,6 +66,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
     org.plan = input.plan;
     if (input.subscriptionId !== undefined) org.subscriptionId = input.subscriptionId ?? null;
     if (input.subscriptionStatus !== undefined) org.subscriptionStatus = input.subscriptionStatus ?? null;
+    if (input.stripeCustomerId !== undefined) org.stripeCustomerId = input.stripeCustomerId ?? null;
     return org;
   }
 
@@ -205,6 +207,14 @@ class FakePaymentGateway implements PaymentGateway {
 
   createCheckoutSession(_input: CheckoutSessionInput): Promise<{ url: string | null }> {
     return Promise.resolve({ url: "https://checkout.stripe.com/test" });
+  }
+
+  createPortalSession(_input: { customerId: string; returnUrl: string }): Promise<{ url: string | null }> {
+    return Promise.resolve({ url: "https://billing.stripe.com/test" });
+  }
+
+  listInvoices(_customerId: string): Promise<InvoiceRecord[]> {
+    return Promise.resolve([]);
   }
 }
 

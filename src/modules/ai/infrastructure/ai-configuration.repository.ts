@@ -41,6 +41,7 @@ function toRecord(row: {
   escalationRules: unknown;
   modelOverrides: unknown;
   knowledgeBase: string | null;
+  productKnowledge: string | null;
   model: string;
 }): AIConfigurationRecord {
   return {
@@ -59,6 +60,7 @@ function toRecord(row: {
     escalationRules: parseEscalationRules(row.escalationRules),
     modelOverrides: parseModelOverrides(row.modelOverrides),
     knowledgeBase: row.knowledgeBase,
+    productKnowledge: row.productKnowledge,
     model: row.model,
   };
 }
@@ -106,6 +108,7 @@ function serialize(input: Partial<Omit<AIConfigurationRecord, "projectId">>): Re
   if (input.couponStrategy !== undefined) data.couponStrategy = input.couponStrategy;
   if (input.salesStrategy !== undefined) data.salesStrategy = input.salesStrategy;
   if (input.knowledgeBase !== undefined) data.knowledgeBase = input.knowledgeBase;
+  if (input.productKnowledge !== undefined) data.productKnowledge = input.productKnowledge;
   if (input.model !== undefined) data.model = input.model;
   if (input.enabledSkills !== undefined) data.enabledSkills = input.enabledSkills;
   if (input.salesRules !== undefined) data.salesRules = input.salesRules;

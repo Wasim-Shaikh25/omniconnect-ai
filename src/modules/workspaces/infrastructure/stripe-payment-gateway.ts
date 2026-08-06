@@ -5,6 +5,9 @@ import {
   CheckoutSessionInput,
   CheckoutSessionResult,
   PaymentGateway,
+  PortalSessionInput,
+  PortalSessionResult,
+  InvoiceRecord,
 } from "../application/payment-gateway";
 
 const planToPriceId: Record<Plan, string | undefined> = {
@@ -57,6 +60,33 @@ export class StripePaymentGateway implements PaymentGateway {
     const session = await this.client.checkout.sessions.create(sessionInput);
 
     return { url: session.url ?? null };
+  }
+
+  async createPortalSession(input: PortalSessionInput): Promise<PortalSessionResult> {
+    const session = await this.client.billingPortal.sessions.create({
+      customer: input.customerId,
+      return_url: input.returnUrl,
+    });
+    return { url: session.url ?? null };
+  }
+
+  async listInvoices(customerId: string): Promise<InvoiceRecord[]> {
+    const invoices = await this.client.invoices.list({
+      customer: customerId,
+      limit: 50,
+      status: "paid",
+    });
+    return invoices.data.map((invoice) => ({
+      id: invoice.id,
+      number: invoice.number ?? null,
+      amount: invoice.amount_due,
+      currency: invoice.currency,
+      status: invoice.status ?? "unknown",
+      createdAt: invoice.created,
+      pdfUrl: invoice.invoice_pdf ?? null,
+      periodStart: invoice.period_start ?? null,
+      periodEnd: invoice.period_end ?? null,
+    }));
   }
 
   constructWebhookEvent(

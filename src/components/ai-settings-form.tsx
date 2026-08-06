@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useActionState } from "react";
-import type { AIActionState, AIConfigurationRecord } from "@/modules/ai";
+import { useState, useActionState, useRef } from "react";
+import type { AIActionState, AIConfigurationRecord, ExtractKnowledgeState } from "@/modules/ai";
+import { extractKnowledgeBaseFiles } from "@/modules/ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,11 @@ export function AISettingsForm({
     action,
     {},
   );
+  const [extractState, extractAction, extracting] = useActionState<ExtractKnowledgeState, FormData>(
+    extractKnowledgeBaseFiles,
+    {},
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateField = <K extends keyof AIConfigurationRecord>(
     key: K,
@@ -78,8 +84,31 @@ export function AISettingsForm({
     evt.preventDefault();
     const formData = new FormData(evt.currentTarget);
     formData.append("projectId", projectId);
-    formData.append("config", JSON.stringify(config));
+    formData.append(
+      "config",
+      JSON.stringify(config, (key, value) => (key === "productKnowledge" ? undefined : value)),
+    );
     formAction(formData);
+  };
+
+  const handleFilesChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const files = evt.target.files;
+    if (!files || files.length === 0) return;
+    const formData = new FormData();
+    formData.append("projectId", projectId);
+    for (const file of files) {
+      formData.append("files", file);
+    }
+    extractAction(formData);
+  };
+
+  const appendExtractedText = () => {
+    if (!extractState?.text) return;
+    setConfig((prev) => {
+      const base = prev.knowledgeBase?.trim() ? `${prev.knowledgeBase.trim()}\n\n` : "";
+      return { ...prev, knowledgeBase: `${base}${extractState.text}`.trim() };
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -301,6 +330,42 @@ export function AISettingsForm({
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold">Knowledge base</h3>
+        <p className="text-xs text-muted-foreground">
+          Upload PDF, Markdown, or text files to append extracted text, or type directly below.
+        </p>
+        <div className="flex items-end gap-2">
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="knowledgeFiles">Upload files</Label>
+            <input
+              id="knowledgeFiles"
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.md,.txt"
+              multiple
+              onChange={handleFilesChange}
+              className="block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!extractState?.text || extracting}
+            onClick={appendExtractedText}
+          >
+            {extracting ? "Extracting…" : "Append extracted text"}
+          </Button>
+        </div>
+        {extractState?.error && (
+          <p className="text-sm text-destructive">{extractState.error}</p>
+        )}
+        {extractState?.text && (
+          <div className="rounded-md border bg-muted/50 p-3 text-xs">
+            <p className="font-medium">Preview ({extractState.text.length.toLocaleString()} chars)</p>
+            <p className="line-clamp-6 whitespace-pre-wrap text-muted-foreground">
+              {extractState.text}
+            </p>
+          </div>
+        )}
         <textarea
           id="knowledgeBase"
           rows={4}

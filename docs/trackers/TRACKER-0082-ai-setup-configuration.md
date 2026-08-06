@@ -1,6 +1,6 @@
 # TRACKER-0082: AI Setup & Configuration
 
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0082-ai-setup-configuration.md`
 - **Task:** `docs/tasks/TASK-0082-ai-setup-configuration.md`
@@ -23,7 +23,7 @@ Progress tracker for REQ-0082: AI Setup & Configuration.
 - [x] T-047: AI Setup UI: skills & permissions toggles.
 - [x] T-048: AI Setup UI: sales rules (max discount, budget, auto-send).
 - [x] T-049: AI Setup UI: channel settings (tone, hours, enable).
-- [ ] T-050: Knowledge base file upload (PDF/MD) + product auto-sync.
+- [x] T-050: Knowledge base file upload (PDF/MD) + product auto-sync.
 - [x] T-051: Escalation rules (complaint, refund, low confidence).
 - [x] T-052: Model selection per skill via OpenRouter.
 - [x] T-053: System prompt builder.
@@ -38,7 +38,7 @@ Progress tracker for REQ-0082: AI Setup & Configuration.
 
 ## 3. Acceptance Criteria
 
-- [x] All linked requirement acceptance criteria are met (PDF/MD file upload still open).
+- [x] All linked requirement acceptance criteria are met.
 - [x] All verification steps above pass.
 
 ## 4. Notes / Blockers

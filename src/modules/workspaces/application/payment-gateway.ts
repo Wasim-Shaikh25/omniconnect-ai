@@ -13,7 +13,30 @@ export interface CheckoutSessionResult {
   url: string | null;
 }
 
+export interface PortalSessionInput {
+  customerId: string;
+  returnUrl: string;
+}
+
+export interface PortalSessionResult {
+  url: string | null;
+}
+
+export interface InvoiceRecord {
+  id: string;
+  number: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: number;
+  pdfUrl: string | null;
+  periodStart: number | null;
+  periodEnd: number | null;
+}
+
 export interface PaymentGateway {
   createCheckoutSession(input: CheckoutSessionInput): Promise<CheckoutSessionResult>;
+  createPortalSession(input: PortalSessionInput): Promise<PortalSessionResult>;
+  listInvoices(customerId: string): Promise<InvoiceRecord[]>;
   constructWebhookEvent(payload: string | Buffer, signature: string, secret: string): unknown;
 }

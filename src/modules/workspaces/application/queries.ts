@@ -9,6 +9,7 @@ export interface OrganizationOverview {
   name: string;
   plan: Plan;
   subscriptionStatus: string | null;
+  stripeCustomerId: string | null;
   stores: StoreRecord[];
 }
 
@@ -30,6 +31,7 @@ export function makeOrganizationQueries(deps: {
             name: org.name,
             plan: org.plan,
             subscriptionStatus: org.subscriptionStatus,
+            stripeCustomerId: org.stripeCustomerId,
             stores,
           };
         }),
@@ -59,6 +61,7 @@ export function makeOrganizationQueries(deps: {
         name: org.name,
         plan: org.plan,
         subscriptionStatus: org.subscriptionStatus,
+        stripeCustomerId: org.stripeCustomerId,
         stores,
       };
     },

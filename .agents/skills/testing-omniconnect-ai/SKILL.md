@@ -71,6 +71,39 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - `getCurrentUser()` now reloads canonical `User.userId`/`projectId` from the DB and checks `tokenVersion`, so updating `User.projectId` in Postgres is reflected on the next request without re-authenticating as long as `tokenVersion` is unchanged.
 - The `/settings` **Invite member** form is resilient to email-provider failures: `sendInviteEmail` catches SMTP/console errors, logs them, and the action returns success so the invite record is created. If `EMAIL_PROVIDER=smtp` and the server is unreachable, the form still shows "Invite sent" but the email is not delivered.
 - Browser automation can attach CDP to the wrong window when multiple Chrome windows/tabs are open. Use a single incognito window and close other browser windows before relying on `browser_console`.
+- File upload inputs in headless Chrome can be driven by constructing a `DataTransfer` and assigning it to `input.files`, then dispatching a `change` event:
+  ```js
+  const input = document.getElementById('knowledgeFiles');
+  const dt = new DataTransfer();
+  dt.items.add(new File(['content'], 'kb-test.txt', { type: 'text/plain' }));
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  ```
+- PR #155 knowledge-base upload gotchas:
+  - `.txt` and `.md` extraction works through the `extractKnowledgeBaseFiles` server action.
+  - PDF extraction uses `pdfjs-dist/legacy/build/pdf.mjs`; the worker path must resolve to an absolute file path on disk. `createRequire(import.meta.url).resolve` inside a Next.js RSC/server action can return a webpack internal module id such as `(rsc)/./node_modules/...`, producing an invalid `file://(rsc)/...` URL. A reliable fix is to derive `__dirname` from `fileURLToPath(import.meta.url)` and use `path.resolve(__dirname, "../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")`.
+  - Product sync dispatches `ProductsSynced` through the in-memory queue when `REDIS_URL` is unset; `AIConfiguration.productKnowledge` is populated by the `onProductsSynced` subscriber.
+  - `/settings/billing` renders the Free plan, plan limits, and a "Payments not configured" alert when Stripe keys are absent; the **Manage subscription** button is disabled.
+  - For headless Chrome file uploads, `fetch` to a local CORS server may be blocked. A reliable workaround is to place test files in `public/` temporarily, read them with a synchronous `XMLHttpRequest` using `overrideMimeType('text/plain; charset=x-user-defined')` to keep raw bytes, then build a `File` and assign it via `DataTransfer`:
+  ```js
+  function fetchFile(url, name, type) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false);
+    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+    xhr.send();
+    const raw = xhr.response;
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i) & 0xff;
+    return new File([bytes], name, { type });
+  }
+  const input = document.querySelector('input[type="file"]');
+  const dt = new DataTransfer();
+  dt.items.add(fetchFile('/kb-test.pdf', 'kb-test.pdf', 'application/pdf'));
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  ```
+  Remove the test files from `public/` after the test.
+- After submitting `/onboarding` the session may briefly land on `/login` with an empty main area because `unstable_update` does not refresh the JWT `tokenVersion` immediately. Navigating to `/login` or refreshing usually resolves it.
 
 ## Cross-tenant regression-test rule
 

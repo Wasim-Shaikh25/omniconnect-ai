@@ -252,9 +252,9 @@ Core tables (see `prisma/schema.prisma` for full model):
 - AI configuration is stored per project in `AIConfiguration` with: `aiName`, `brandVoice`, `language`, `systemPrompt`,
   `tone`, `welcomeStrategy`, `couponStrategy`, `salesStrategy`, enabled skills (`createCoupon`, `sendMessage`, `generateDashboard`, `accessOrderData`, `triggerCampaigns`),
   sales guardrails (`maxDiscountPct`, `maxUses`, `dailyBudget`, `autoSend`), per-channel settings (Instagram/Facebook/WhatsApp with enable/tone/business hours),
-  escalation rules (complaint/refund/low-confidence with notify email/push), per-skill OpenRouter `modelOverrides`, and a free-text `knowledgeBase`.
-- `buildSystemPrompt()` (pure, in `ai/application/build-system-prompt.ts`) interpolates `{{ai_name}}`, `{{brand_name}}`, `{{product_count}}`, `{{top_products}}`, `{{store_url}}` and appends skill rules, guardrails, channel/escalation settings, and knowledge base.
-- The AI settings form (`src/components/ai-settings-form.tsx`) on `/stores/[projectId]` edits the full `AIConfigurationRecord` client-side and submits it as JSON to `updateAIConfigurationAction`.
+  escalation rules (complaint/refund/low-confidence with notify email/push), per-skill OpenRouter `modelOverrides`, a free-text `knowledgeBase`, and an auto-synced `productKnowledge` field.
+- `buildSystemPrompt()` (pure, in `ai/application/build-system-prompt.ts`) interpolates `{{ai_name}}`, `{{brand_name}}`, `{{product_count}}`, `{{top_products}}`, `{{store_url}}` and appends skill rules, guardrails, channel/escalation settings, knowledge base, and product catalog.
+- The AI settings form (`src/components/ai-settings-form.tsx`) on `/stores/[projectId]` edits the full `AIConfigurationRecord` client-side and submits it as JSON to `updateAIConfigurationAction`. Users can upload PDF, Markdown, or plain-text files; extracted text is appended to `knowledgeBase` via `extractKnowledgeBaseFiles` using `pdfjs-dist` for PDF parsing.
 - `generate-reply` uses the per-skill model override (`modelOverrides.reply`) when selecting the model and serializes enabled skills, sales rules, and escalation rules into the system prompt.
 - Prompt-injection defences: `sanitizePromptFragment` / `escapePromptDelimiters` / `wrapUserMessage` /
   `wrapExternalData` live in `src/modules/ai/domain/prompt-safety.ts` (pure, no IO). The reply
@@ -265,9 +265,10 @@ Core tables (see `prisma/schema.prisma` for full model):
   writes an audit log without PII, and escalates to a human before any Meta send.
 
 ### Stripe
-- Checkout sessions for plan upgrades; webhook fulfillment updates `Organization` subscription.
+- Checkout sessions for plan upgrades at `/api/stripe/checkout`; webhook fulfillment at `/api/stripe/webhook` updates `User` plan, `subscriptionId`, `subscriptionStatus`, and `stripeCustomerId`.
 - Webhook handlers: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`.
 - Subscription lifecycle derives the plan from the active `price.id` via `planFromPriceId`; `past_due` retains the current plan, while `canceled`/`unpaid`/`incomplete_expired` drops entitlement to `FREE`.
+- Customer portal at `/api/stripe/portal` and invoice list at `/api/stripe/invoices` (and server-side via `billingService.listInvoices`) let users manage payment methods and view paid invoices.
 - Stripe client pinned to `2024-09-30.acacia` API version.
 - SaaS promotion codes (`SaaSCoupon`) validated at checkout.
 

@@ -1,6 +1,6 @@
 # TRACKER-0088: Billing & Plans
 
-- **Status:** In Progress
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0088-billing-plans.md`
 - **Task:** `docs/tasks/TASK-0088-billing-plans.md`
@@ -19,7 +19,7 @@ Progress tracker for REQ-0088: Billing & Plans.
 
 ### Implementation
 - [x] T-006: SubscriptionPlan Prisma model (Plan enum + PLAN_LIMITS matrix already in place).
-- [ ] T-068: Stripe billing lifecycle.
+- [x] T-068: Stripe billing lifecycle.
 - [x] T-069: Extend PlanLimits for competitors, attribution links, content scheduling.
 - [x] T-070: Service-layer plan enforcement for competitor tracking and attribution links.
 - [x] T-071: Billing settings page with current plan, usage, and upgrade CTA.
@@ -34,9 +34,9 @@ Progress tracker for REQ-0088: Billing & Plans.
 
 ## 3. Acceptance Criteria
 
-- [x] All linked requirement acceptance criteria are met (partial: Stripe lifecycle still open).
+- [x] All linked requirement acceptance criteria are met.
 - [x] All verification steps above pass.
 
 ## 4. Notes / Blockers
 
-- Status: Todo — not yet started.
+- Status: Done.

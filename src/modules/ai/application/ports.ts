@@ -22,6 +22,7 @@ export interface AIConfigurationRecord {
   escalationRules: EscalationRules;
   modelOverrides: ModelOverrides;
   knowledgeBase: string | null;
+  productKnowledge: string | null;
   model: string;
 }
 
