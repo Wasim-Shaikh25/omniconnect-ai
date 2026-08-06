@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { SignOutButton } from "./sign-out-button";
 import { ExitImpersonationButton } from "./exit-impersonation-button";
+import { ProjectSwitcher } from "./project-switcher";
 import { getUnreadNotificationCountAction } from "@/modules/notifications";
 import { isRole, type Role } from "@/modules/auth/domain";
 import type { SessionUser } from "@/modules/auth";
@@ -235,6 +236,8 @@ export function AppShell({ children }: AppShellProps) {
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
+
+      {!collapsed && <ProjectSwitcher currentProjectId={user.projectId} />}
 
       <nav className="flex-1 space-y-6 overflow-y-auto p-3" aria-label="Main">
         {sections.map((section) => (

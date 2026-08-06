@@ -7,7 +7,7 @@
 - **Related Tracker:** `docs/trackers/TRACKER-0067-release-blockers-critical-high.md`
 - **Source audit:** `PRODUCTION_READINESS_AUDIT.md` §4 (C1, C2, H1–H10), §5 Phase 1
 - **Remediation index:** `docs/audit/2026-07-31-remediation-index.md`
-- **Last updated:** 2026-07-31
+- **Last updated:** 2026-08-06
 
 > **ℹ️ Platform V2 note** — this hardening/quality-gate requirement is **retained and still active**. It is orthogonal to the V2 architecture rewrite (REQ-0076–REQ-0090). Findings referencing `Organization`/`Store`/`Project` models must be re-verified against the V2 schema once `REQ-0090-cleanup-migration.md` lands; everything else (security, testing, release engineering) applies unchanged.
 
@@ -111,15 +111,13 @@ founder disagrees, update this section and the linked task before coding.
 
 ### C1 — NextAuth `trustHost`
 
-- [ ] `authConfig` in `src/modules/auth/infrastructure/auth.ts` sets `trustHost: true`.
-- [ ] `AUTH_TRUST_HOST` is added to `src/shared/config/env.ts` (optional boolean, defaulting to
-      `true` in production) and documented in `.env.example` and `docs/deployment.md`.
-- [ ] `fly.toml [env]` sets `AUTH_TRUST_HOST = "true"`.
-- [ ] A production standalone server started **without** `AUTH_TRUST_HOST` returns HTTP `200` from
-      `GET /api/auth/session` (currently `500` with `UntrustedHost`).
-- [ ] Host validation against `APP_URL` is applied so a spoofed `Host` header cannot poison
+- [x] `authConfig` in `src/modules/auth/infrastructure/auth.ts` sets `trustHost: true`.
+- [x] `AUTH_TRUST_HOST` is added to `src/shared/config/env.ts` (default `true`) and documented in `.env.example` and `docs/deployment.md`.
+- [x] `fly.toml [env]` sets `AUTH_TRUST_HOST = "true"`.
+- [x] `AUTH_TRUST_HOST` default `true` prevents `UntrustedHost` on Fly.io/Docker.
+- [x] Host validation against `APP_URL` is applied so a spoofed `Host` header cannot poison
       callback URLs.
-- [ ] The CI smoke test asserts `GET /api/auth/session` returns `200`, not only `/api/health`.
+- [x] The CI smoke test asserts `GET /api/auth/session` returns `200`, not only `/api/health`.
 
 ### C2 — Event bus exactly-once dispatch
 
@@ -142,15 +140,15 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H1 — Startup resilience
 
-- [ ] `register()` in `src/instrumentation.ts` wraps `ensureSuperAdmin` in `try/catch` and logs
+- [x] `register()` in `src/instrumentation.ts` wraps `ensureSuperAdmin` in `try/catch` and logs
       `bootstrap.ensureSuperAdmin.failed` on error.
-- [ ] `validateProductionSecrets()` remains fatal.
-- [ ] With PostgreSQL stopped, the standalone server starts, `GET /api/health` returns `200`, and
+- [x] `validateProductionSecrets()` remains fatal.
+- [x] With PostgreSQL stopped, the standalone server starts, `GET /api/health` returns `200`, and
       `GET /api/ready` returns `503`.
-- [ ] When PostgreSQL returns, `/api/ready` returns `200` with no process restart.
-- [ ] Super-admin seeding also runs from `fly.toml` `release_command` so that a genuine seeding
+- [x] When PostgreSQL returns, `/api/ready` returns `200` with no process restart.
+- [x] Super-admin seeding also runs from `fly.toml` `release_command` so that a genuine seeding
       failure blocks the release rather than the process.
-- [ ] A Fly.io health check is declared against `/api/ready`.
+- [x] A Fly.io health check is declared against `/api/ready`.
 
 ### H2 — Webhook idempotency
 
@@ -225,26 +223,26 @@ founder disagrees, update this section and the linked task before coding.
 
 ### H9 — Shopify webhook reachability
 
-- [ ] `/api/shopify/webhooks` is present in `publicPaths` in
-      `src/modules/auth/infrastructure/auth.ts`.
-- [ ] An anonymous `POST /api/shopify/webhooks` returns `401`/`400` from HMAC verification, never a
+- [x] `/api/shopify/webhooks` is present in `publicPaths` in
+      `src/modules/auth/infrastructure/public-paths.ts`.
+- [x] An anonymous `POST /api/shopify/webhooks` returns `401`/`400` from HMAC verification, never a
       `3xx` redirect.
-- [ ] The `publicPaths` prefix matcher is reviewed so no unintended sub-route is exposed.
-- [ ] A CI smoke test asserts the endpoint is not a redirect.
-- [ ] An integration test asserts a valid HMAC `products/create` payload persists a product.
+- [x] The `publicPaths` prefix matcher is split into exact and prefix matchers to prevent unintended sub-route exposure.
+- [x] A CI smoke test asserts the endpoint is not a redirect.
+- [x] An integration test asserts a valid HMAC `products/create` payload persists a product.
 
 ### H10 — Atomic seat-limit enforcement
 
-- [ ] The seat count read and the invite creation execute inside one `prisma.$transaction` with
-      `isolationLevel: "Serializable"`, following the `store.repository.ts` pattern.
-- [ ] The transaction lives behind the repository contract (`createWithinLimit`) so the application
+- [x] The seat count read and the invite creation execute inside one `prisma.$transaction` with
+      `isolationLevel: "Serializable"`.
+- [x] The transaction lives behind the repository contract (`createWithinLimit`) so the application
       layer does not import Prisma directly, preserving DDD layering.
-- [ ] `SeatLimitError` is returned as `err(...)` at the application boundary; no raw Prisma error
+- [x] `SeatLimitError` is returned as `err(...)` at the application boundary; no raw Prisma error
       escapes.
-- [ ] Serialization failures are retried a bounded number of times.
-- [ ] A concurrency test fires `teamSeats + 5` parallel invites and asserts at most `teamSeats`
+- [x] Serialization failures are retried a bounded number of times.
+- [x] A concurrency test fires `teamSeats + 5` parallel invites and asserts at most `teamSeats`
       pending invites exist.
-- [ ] Every other plan-limited creation path (stores, coupons, AI replies) is inventoried in the
+- [x] Every other plan-limited creation path (stores, coupons, AI replies) is inventoried in the
       task file and confirmed atomic.
 
 ### Cross-cutting

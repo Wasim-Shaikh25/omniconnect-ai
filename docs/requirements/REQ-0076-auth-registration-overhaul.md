@@ -4,7 +4,7 @@ description: Authentication & Registration Overhaul
 
 # REQ-0076: Authentication & Registration Overhaul
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0076-auth-registration-overhaul.md`
@@ -38,14 +38,14 @@ Overhaul registration to support new user fields (company name, mobile E.164, ag
 
 ## 5. Acceptance Criteria
 
-- [ ] Registration API validates all new fields (name 2-100 chars, E.164 mobile, age 13-120, gender enum).
-- [ ] Password policy: min 8 chars, 1 uppercase, 1 number, 1 special character, confirm match.
-- [ ] Email OTP send/verify gated by `ENABLE_EMAIL_OTP` env var.
-- [ ] Mobile OTP send/verify gated by `ENABLE_MOBILE_OTP` env var.
-- [ ] Social login buttons auto-hidden when provider credentials absent from env.
-- [ ] Default workspace auto-created on registration.
-- [ ] RBAC simplified: only USER and SUPER_ADMIN roles exist in codebase.
-- [ ] All existing role checks updated (remove ADMIN/STORE_OWNER/STAFF references).
+- [x] Registration API validates all new fields (name 2-100 chars, E.164 mobile, age 13-120, gender enum).
+- [x] Password policy: min 8 chars, 1 uppercase, 1 number, 1 special character, confirm match (enforced, plus lowercase).
+- [x] Email OTP send/verify gated by `ENABLE_EMAIL_OTP` env var.
+- [x] Mobile OTP send/verify gated by `ENABLE_MOBILE_OTP` env var.
+- [x] Social login buttons auto-hidden when provider credentials absent from env.
+- [x] Default workspace auto-created on registration.
+- [x] RBAC simplified: only USER and SUPER_ADMIN roles exist in codebase.
+- [x] All existing role checks updated (no ADMIN/STORE_OWNER/STAFF role strings; staff isolation uses `isStaff` helper).
 
 ## 6. Scope & Dependencies
 

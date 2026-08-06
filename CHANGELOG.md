@@ -15,6 +15,23 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0076`, `REQ-0077`, `REQ-0067`, `REQ-0078`, `REQ-0075` **Remaining V2 foundation batch** on `devin/features-branch-remaining-5req-1786011015`:
+  - `REQ-0076` Auth & Registration Overhaul: registration accepts `companyName`, `age`, and `gender`;
+    password policy now requires lowercase, uppercase, number, and special character; email and
+    mobile OTP are gated by `ENABLE_EMAIL_OTP` and `ENABLE_MOBILE_OTP`; social login buttons are
+    hidden when provider credentials are absent; default workspace auto-provisioning on registration.
+  - `REQ-0077` Workspace & Project System: added `ProjectSwitcher` in the app shell,
+    `switchProjectAction`, and `listMyStoresAction`; `createStore` enforces the stricter of
+    `maxStores`/`maxProjects`; default `AIConfiguration` is auto-created on `StoreCreated` via the
+    `ai` module subscriber.
+  - `REQ-0067` Release blockers: H1 startup resilience (super-admin seed is best-effort),
+    H9 Shopify webhook public-path prefix matching so `/api/shopify/webhooks` is not caught by
+    NextAuth redirects, and H10 atomic seat-limit enforcement counting members by `userId`.
+  - `REQ-0078` Dynamic E-Commerce Adapters: defined `AdapterConfigMapping` and the `ConfigInterpreter`
+    scaffold implementing `EcommerceConnector`; exported from the `ecommerce` barrel.
+  - `REQ-0075` Release engineering: documented rollback/backups/deploy topology in
+    `docs/operations.md` and aligned CI/workflow artifacts.
+
 - `REQ-0080` **Mobile PWA optimization for messaging UI (T-075)** on `devin/batch-0085-0080-0070-1786007108`:
   added `OnlineStatus` (`src/components/online-status.tsx`) to show an offline alert on the
   conversations list and detail pages, made conversation list items stack with full-width action

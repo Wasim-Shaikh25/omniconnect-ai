@@ -137,6 +137,36 @@ describe("applyShopifyWebhook", () => {
     }));
   });
 
+  it("persists a product on products/create", async () => {
+    const deps = makeDeps();
+    const apply = makeApplyShopifyWebhook(deps);
+
+    const result = await apply({
+      topic: "products/create",
+      shopDomain: "test.myshopify.com",
+      eventId: "evt-product-1",
+      payload: {
+        id: 12345,
+        title: "Webhook Product",
+        body_html: "<p>Description</p>",
+        variants: [{ price: "19.99", inventory_quantity: 42 }],
+        image: { src: "https://cdn.example.com/image.jpg" },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(deps.products.upsertMany).toHaveBeenCalledWith("store-1", [
+      expect.objectContaining({
+        externalId: "12345",
+        title: "Webhook Product",
+        description: "<p>Description</p>",
+        price: 19.99,
+        inventory: 42,
+        imageUrl: "https://cdn.example.com/image.jpg",
+      }),
+    ]);
+  });
+
   it("marks a cart converted on orders/create", async () => {
     const deps = makeDeps();
     const apply = makeApplyShopifyWebhook(deps);

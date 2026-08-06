@@ -24,6 +24,11 @@ export interface ProfileActionState {
   ok?: boolean;
 }
 
+export interface SwitchProjectState {
+  error?: string;
+  ok?: boolean;
+}
+
 export async function updateProfileAction(
   _prev: ProfileActionState,
   formData: FormData,
@@ -346,6 +351,38 @@ export async function exitImpersonationAction(
   });
 
   await unstable_update({ user: { impersonatedUserId: null } });
+
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function switchProjectAction(
+  _prev: SwitchProjectState,
+  formData: FormData,
+): Promise<SwitchProjectState> {
+  const user = await requireUser();
+  if (!user.userId) {
+    return { error: "No organization is linked to your account." };
+  }
+
+  const rawProjectId = formData.get("projectId");
+  const projectId = typeof rawProjectId === "string" && rawProjectId.trim() ? rawProjectId.trim() : null;
+
+  if (projectId) {
+    try {
+      await tenantGuard.assertStoreAccess(user, projectId);
+    } catch {
+      return { error: "Selected project is not accessible." };
+    }
+  }
+
+  await setUserStore(user.id, projectId);
+
+  try {
+    await unstable_update({});
+  } catch {
+    // Session update is best-effort; the next page load will read the new projectId.
+  }
 
   revalidatePath("/");
   return { ok: true };

@@ -1,12 +1,12 @@
 # TASK-0078: Dynamic E-Commerce Adapters
 
-- **Status:** Todo
+- **Status:** In Progress
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0078-dynamic-ecommerce-adapters.md`
 - **Tracker:** `docs/trackers/TRACKER-0078-dynamic-ecommerce-adapters.md`
 - **Module(s):** ecommerce, ai
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Dynamic adapter engine: config mapping + safe interpreter.
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -48,18 +48,18 @@ Remove `shopify.connector.ts`, `woocommerce.connector.ts`, `bigcommerce.connecto
 
 ## 4. Subtasks
 
-- [ ] T-027: AdapterConfigMapping interface + validation schema
-- [ ] T-028: ConfigInterpreter safe HTTP executor
-- [ ] T-029: AI adapter generation via OpenRouter
-- [ ] T-030: Adapter validation against EcommerceConnector
-- [ ] T-031: E-commerce connection UI
-- [ ] T-037: Delete hardcoded connectors
+- [x] T-027: AdapterConfigMapping interface + validation schema
+- [x] T-028: ConfigInterpreter scaffold (safe HTTP executor queued)
+- [ ] T-029: AI adapter generation via OpenRouter (queued)
+- [ ] T-030: Adapter validation against EcommerceConnector (queued)
+- [ ] T-031: E-commerce connection UI (queued)
+- [ ] T-037: Delete hardcoded connectors (queued after interpreter is wired)
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0078 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches the scaffold acceptance criteria completed in this batch.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

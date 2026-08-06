@@ -3,6 +3,7 @@ import { eventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import type { NewMessagePayload } from "@/modules/conversations";
 import type { ProductsSyncedPayload } from "@/modules/ecommerce";
+import type { StoreCreatedPayload } from "@/modules/workspaces";
 import { generateReply } from "./container";
 import { aiConfigurationRepository } from "./container";
 
@@ -58,8 +59,23 @@ const onProductsSynced: EventHandler = async (event) => {
   }
 };
 
+const onStoreCreated: EventHandler = async (event) => {
+  const p = event.payload as StoreCreatedPayload;
+  try {
+    await aiConfigurationRepository.getOrCreateDefault(p.projectId);
+    logger.info("ai.configuration.autoCreated", { projectId: p.projectId });
+  } catch (error) {
+    logger.error("ai.configuration.autoCreateFailed", {
+      projectId: p.projectId,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    throw error;
+  }
+};
+
 /** Wires the ai module's event subscribers. Call once at startup. */
 export function registerAiSubscribers(bus: EventBus = eventBus): void {
   bus.subscribe("NewMessage", onNewMessage);
   bus.subscribe("ProductsSynced", onProductsSynced);
+  bus.subscribe("StoreCreated", onStoreCreated);
 }

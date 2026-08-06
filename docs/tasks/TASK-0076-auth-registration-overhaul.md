@@ -1,12 +1,12 @@
 # TASK-0076: Authentication & Registration Overhaul
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0076-auth-registration-overhaul.md`
 - **Tracker:** `docs/trackers/TRACKER-0076-auth-registration-overhaul.md`
 - **Module(s):** auth, users, workspaces
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Registration overhaul with new fields, OTP, RBAC simplification.
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -54,19 +54,19 @@ Form with all fields, inline validation, OTP flow (email + SMS screens), social 
 
 ## 4. Subtasks
 
-- [ ] T-003: Update User model (new fields, remove org refs)
-- [ ] T-008: Registration API (new fields, validation)
-- [ ] T-009: Email OTP service
-- [ ] T-010: Mobile OTP service (SMS)
-- [ ] T-011: Social login (Google/Facebook/Apple OAuth)
-- [ ] T-012: Registration UI
-- [ ] T-013: Simplify RBAC (USER + SUPER_ADMIN only)
+- [x] T-003: Update User model (new fields persisted via `AccountRepository.create`; org refs removed earlier)
+- [x] T-008: Registration API (new fields, validation)
+- [x] T-009: Email OTP service
+- [x] T-010: Mobile OTP service (SMS)
+- [x] T-011: Social login (Google/Facebook/Apple OAuth)
+- [x] T-012: Registration UI
+- [x] T-013: Simplify RBAC (USER + SUPER_ADMIN only)
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0076 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0076 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

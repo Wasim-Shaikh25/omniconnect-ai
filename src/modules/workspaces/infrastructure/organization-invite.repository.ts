@@ -98,7 +98,7 @@ export class PrismaOrganizationInviteRepository
             if (teamSeats !== null) {
               const [userCount, pendingCount] = await Promise.all([
                 tx.user.count({
-                  where: { id: input.userId, deletedAt: null },
+                  where: { userId: input.userId, deletedAt: null },
                 }),
                 tx.organizationInvite.count({
                   where: {

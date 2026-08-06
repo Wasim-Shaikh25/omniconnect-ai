@@ -18,7 +18,7 @@ export const changePasswordSchema = z
     path: ["confirmNewPassword"],
   })
   .refine((data) => isPasswordValid(data.newPassword), {
-    message: `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters`,
+    message: `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters and include uppercase, lowercase, number, and special characters`,
     path: ["newPassword"],
   });
 
