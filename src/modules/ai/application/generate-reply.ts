@@ -2,6 +2,7 @@ import type { EventBus } from "@/shared/events";
 import { logger } from "@/shared/observability";
 import type { CrmQueries, CustomerProfile } from "@/modules/crm";
 import type {
+  ConversationChannel,
   ConversationCommands,
   ConversationQueries,
   MessageRecord,
@@ -56,6 +57,26 @@ export interface GenerateReplyInput {
 
 function toMessageRole(sender: MessageSender): "user" | "assistant" {
   return sender === "AI" ? "assistant" : "user";
+}
+
+function getChannelSettingKey(
+  channel: ConversationChannel,
+): keyof AIConfigurationRecord["channelSettings"] {
+  if (channel === "FACEBOOK") return "facebook";
+  if (channel === "INSTAGRAM") return "instagram";
+  return "whatsapp";
+}
+
+function isWithinBusinessHours(
+  now: Date,
+  start: string | null,
+  end: string | null,
+): boolean {
+  if (!start || !end) return true;
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  if (start <= end) return time >= start && time < end;
+  return time >= start || time < end;
 }
 
 function isCouponActive(coupon: {
@@ -269,6 +290,27 @@ export function makeGenerateReply(deps: GenerateReplyDeps) {
         deps.ecommerceQueries.listCoupons(projectId, MAX_COUPONS),
         deps.getOrganizationIdByStoreId(projectId),
       ]);
+
+    const channelSetting = config.channelSettings[getChannelSettingKey(meta.channel)];
+    if (!channelSetting?.enabled) {
+      logger.info("ai.generateReply.channelDisabled", {
+        conversationId,
+        projectId,
+        channel: meta.channel,
+      });
+      return { text: "", escalate: false };
+    }
+
+    if (!isWithinBusinessHours(new Date(), channelSetting.businessHoursStart, channelSetting.businessHoursEnd)) {
+      logger.info("ai.generateReply.outsideBusinessHours", {
+        conversationId,
+        projectId,
+        channel: meta.channel,
+        businessHoursStart: channelSetting.businessHoursStart,
+        businessHoursEnd: channelSetting.businessHoursEnd,
+      });
+      return { text: "", escalate: false };
+    }
 
     // Privacy: do not generate or send automated replies if the customer has declined consent.
     if (rawProfile?.customer.consent === "DECLINED") {

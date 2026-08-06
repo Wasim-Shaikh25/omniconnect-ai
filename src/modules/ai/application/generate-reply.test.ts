@@ -3,6 +3,8 @@ import { makeGenerateReply } from "./generate-reply";
 import type { GenerateReplyDeps } from "./generate-reply";
 import type { AIConfigurationRecord, AIProvider } from "./ports";
 import { defaultAIConfigurationRecord } from "./ai-config";
+import { defaultChannelSettings } from "../domain/ai-config";
+import type { ChannelSettings } from "../domain/ai-config";
 import type { ConversationCommands, ConversationQueries } from "@/modules/conversations";
 import type { CrmQueries } from "@/modules/crm";
 import type { EcommerceQueries } from "@/modules/ecommerce";
@@ -147,5 +149,73 @@ describe("makeGenerateReply escalation marker (L7)", () => {
     expect(result.escalate).toBe(false);
     expect(result.text).toBe("Thanks for reaching out!");
     expect(deps.conversationCommands.appendMessage).toHaveBeenCalled();
+  });
+});
+
+describe("makeGenerateReply channel gating", () => {
+  function makeDeps(overrides: { channel?: "INSTAGRAM" | "FACEBOOK"; channelSettings?: Partial<ChannelSettings> } = {}) {
+    const { channel = "INSTAGRAM", channelSettings = {} } = overrides;
+    const { deps, aiProvider } = makeSut("Autoreply");
+    const key = channel === "FACEBOOK" ? "facebook" : "instagram";
+
+    const config: AIConfigurationRecord = defaultAIConfigurationRecord("store-1", {
+      channelSettings: {
+        ...defaultChannelSettings,
+        [key]: {
+          ...defaultChannelSettings[key],
+          ...channelSettings[key],
+        },
+      } as ChannelSettings,
+    });
+
+    deps.aiConfigurationRepository = {
+      getOrCreateDefault: vi.fn().mockResolvedValue(config),
+    } as unknown as GenerateReplyDeps["aiConfigurationRepository"];
+
+    deps.conversationQueries.getConversation = vi.fn().mockResolvedValue({
+      conversation: {
+        id: "conv-1",
+        projectId: "store-1",
+        channel,
+        status: "AI_ACTIVE",
+        externalId: "ext-1",
+        customerId: null,
+        assignedHumanId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      messages: [{ id: "msg-1", conversationId: "conv-1", inReplyToMessageId: null, sender: "CUSTOMER" as const, content: "Help", createdAt: new Date() }],
+    });
+
+    return { deps, aiProvider };
+  }
+
+  it("returns empty when the conversation channel is disabled", async () => {
+    const { deps } = makeDeps({
+      channelSettings: {
+        instagram: { enabled: false, tone: "friendly", businessHoursStart: null, businessHoursEnd: null },
+      },
+    });
+    const generateReply = makeGenerateReply(deps);
+
+    const result = await generateReply({ conversationId: "conv-1", externalUserId: "ext-1", messageId: "msg-1" });
+
+    expect(result).toEqual({ text: "", escalate: false });
+    expect(deps.aiProvider.complete).not.toHaveBeenCalled();
+    expect(deps.conversationCommands.appendMessage).not.toHaveBeenCalled();
+  });
+
+  it("returns empty when current time is outside business hours", async () => {
+    const { deps } = makeDeps({
+      channelSettings: {
+        instagram: { enabled: true, tone: "friendly", businessHoursStart: "09:00", businessHoursEnd: "09:01" },
+      },
+    });
+    const generateReply = makeGenerateReply(deps);
+
+    const result = await generateReply({ conversationId: "conv-1", externalUserId: "ext-1", messageId: "msg-1" });
+
+    expect(result).toEqual({ text: "", escalate: false });
+    expect(deps.aiProvider.complete).not.toHaveBeenCalled();
   });
 });

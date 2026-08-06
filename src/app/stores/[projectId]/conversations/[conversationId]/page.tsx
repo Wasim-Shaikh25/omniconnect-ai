@@ -5,8 +5,10 @@ import { conversationQueries } from "@/modules/conversations";
 import {
   takeOverConversationAction,
   resumeAIConversationAction,
+  sendConversationMessageAction,
 } from "@/modules/conversations";
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
+import { ConversationMessageForm } from "@/components/conversation-message-form";
 import { ConversationContext, ConversationNextBestAction } from "@/components/conversation-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -122,6 +124,15 @@ export default async function ConversationDetailPage({
               <p className="text-sm text-muted-foreground">
                 No messages yet.
               </p>
+            )}
+            {isHuman && (
+              <div className="mt-6 border-t pt-4">
+                <ConversationMessageForm
+                  action={sendConversationMessageAction}
+                  projectId={projectId}
+                  conversationId={conversationId}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

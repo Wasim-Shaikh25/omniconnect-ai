@@ -15,6 +15,16 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
+  added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`
+  message and routes `INSTAGRAM`/`FACEBOOK` replies through `MetaService.sendMessage`; wired it in the
+  `conversations` container using `metaService`; added `sendConversationMessageAction` with `tenantGuard`
+  validation and a `ConversationMessageForm` component rendered on `/stores/[projectId]/conversations/[conversationId]`
+  when the conversation is `HUMAN_ACTIVE`. `ai.generateReply` now reads the conversation's `channelSettings`
+  from `AIConfiguration` and returns an empty reply without calling the LLM when the channel is disabled
+  or the current time is outside the configured business hours. Unit tests added for `sendMessage` and
+  `generateReply` channel gating. WhatsApp webhook/sender remains deferred.
+
 - `REQ-0089` **Intelligence Layer — plan-tier gating** on `devin/req-0089-intelligence-layer-1785995189`:
   added `canUseIntelligenceFeature(plan, feature)` in `intelligence/domain/access.ts` with unit tests;
   added `plan` to `SessionUser` so all pages/actions can read the current plan without an extra DB call;

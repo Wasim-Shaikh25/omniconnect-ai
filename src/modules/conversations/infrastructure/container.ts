@@ -1,9 +1,11 @@
 import { crmQueries } from "@/modules/crm";
 import { organizationQueries } from "@/modules/workspaces";
+import { metaService } from "@/modules/meta/server";
 import { makeConversationCommands } from "../application/commands";
 import { makeConversationQueries } from "../application/queries";
 import { makeDetectConversationInsights } from "../application/detect-insights";
 import { makeGetUnifiedInbox } from "../application/unified-inbox";
+import { makeSendMessage } from "../application/send-message";
 import { PrismaConversationRepository } from "./conversation.repository";
 import { PrismaMessageRepository } from "./message.repository";
 
@@ -27,4 +29,10 @@ export const unifiedInboxQueries = makeGetUnifiedInbox({
 export const conversationCommands = makeConversationCommands({
   conversations,
   messages,
+});
+
+export const sendMessage = makeSendMessage({
+  conversations,
+  messages,
+  sendMessage: metaService.sendMessage.bind(metaService),
 });
