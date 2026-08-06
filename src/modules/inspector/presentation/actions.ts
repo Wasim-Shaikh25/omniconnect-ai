@@ -99,6 +99,7 @@ export async function inspectProfileAction(
       getAccountId: (projectId) => metaService.getAccountId(projectId),
       mediaLimit: 25,
       commentLimit: 10,
+      consumeGraphApiCall: (projectId) => metaService.consumeGraphApiCall(projectId),
     });
 
     const result = await inspectProfile(

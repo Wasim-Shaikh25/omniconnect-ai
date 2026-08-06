@@ -56,6 +56,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 - [x] T-058: Hashtag intelligence
 - [x] T-059: Best time to post
 - [x] T-069: Content calendar UI — visual grid preview, drag-to-reschedule (P1)
+- [x] T-070b: Devin Review fixes on T-070 — expose `MetaService.consumeGraphApiCall` so `inspector` shares the Instagram Graph API 200 calls/hour bucket; route `sendPurchaseEvent` through direct `fetch` (not `graphApiFetch`) so Conversions API events do not consume the Instagram budget.
 - [x] T-071: Trending reels/audio analysis — AI-powered niche pattern detection (P2)
 
 ## 5. Acceptance Criteria
