@@ -48,7 +48,7 @@ One inbox for Instagram DM, Facebook Messenger, and WhatsApp. The existing `conv
 - [x] Human takeover flag stops AI replies on that conversation.
 - [x] Unified inbox UI with channel badges and filter.
 - [x] Manual human reply form from the conversation detail page.
-- [x] WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
+- [d] WhatsApp Business API webhook + sender — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
 - [x] Mobile PWA optimization for messaging UI (P2).
 
 ## 6. Scope & Dependencies

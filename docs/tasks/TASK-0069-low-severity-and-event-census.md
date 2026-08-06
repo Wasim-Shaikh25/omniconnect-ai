@@ -239,8 +239,8 @@ Record the results in §6.
 - [x] **L4.5** Test: `logger.debug` emits nothing at the default level.
 - [x] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.
 - [x] **L5.1** Set `min_machines_running = 1` and `auto_stop_machines = "off"` for the app process in `fly.toml`.
-- [x] **L5.2** Measure SSR + AI generation memory; decide the VM size. — **Deferred**: requires production-like traffic; tracked as a post-launch ops task in `docs/operations.md`.
-- [x] **L5.3** Record the sizing ADR. — **Blocked on L5.2 measurement; deferred**.
+- [d] **L5.2** Measure SSR + AI generation memory; decide the VM size. — **Deferred**: requires production-like traffic; tracked as a post-launch ops task in `docs/operations.md`.
+- [d] **L5.3** Record the sizing ADR. — **Blocked on L5.2 measurement; deferred**.
 - [x] **L5.1b** Set `auto_stop_machines = "off"` for the app process in `fly.toml`.
 - [x] **L5.1c** With `auto_stop_machines = "off"` and `min_machines_running = 1`, the app machine stays running; no cold-start on webhook delivery.
 - [x] **L5.4** Document the scale-to-zero constraint in `docs/deployment.md`.

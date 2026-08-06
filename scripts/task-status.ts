@@ -34,6 +34,7 @@ interface Item {
 interface Checklist {
   total: number;
   done: number;
+  deferred: number;
   pending: string[];
   status?: string;
 }
@@ -92,20 +93,23 @@ function parseChecklist(filePath: string): Checklist {
   const pending: string[] = [];
   let total = 0;
   let done = 0;
+  let deferred = 0;
 
   for (const line of lines) {
-    const match = line.match(/^(\s*)-\s*\[([ xX])\]\s*(.+)$/);
+    const match = line.match(/^(\s*)-\s*\[([ xXdD])\]\s*(.+)$/);
     if (!match) continue;
     total++;
-    const checked = match[2]!.toLowerCase() === "x";
-    if (checked) {
+    const marker = match[2]!.toLowerCase();
+    if (marker === "x") {
       done++;
+    } else if (marker === "d") {
+      deferred++;
     } else {
       pending.push(match[3]!.trim());
     }
   }
 
-  return { total, done, pending, status: parseStatus(content) };
+  return { total, done, deferred, pending, status: parseStatus(content) };
 }
 
 function safeWrite(line: string) {
@@ -146,7 +150,7 @@ function main() {
         task,
         tracker,
         req: parseChecklist(req.file),
-        taskCheck: task ? parseChecklist(task.file) : { total: 0, done: 0, pending: [] },
+        taskCheck: task ? parseChecklist(task.file) : { total: 0, done: 0, deferred: 0, pending: [] },
         trackerCheck: parseChecklist(tracker.file),
       });
     }
@@ -187,11 +191,13 @@ function main() {
   const sortedRecords = records.sort((a, b) => Number(a.id) - Number(b.id));
   let doneCount = 0;
   let cancelledCount = 0;
+  let deferredCount = 0;
 
   for (const r of sortedRecords) {
     const reqPct = progressPct(r.req);
     const taskPct = progressPct(r.taskCheck);
     const trackerPct = progressPct(r.trackerCheck);
+    const totalDeferred = r.req.deferred + r.taskCheck.deferred + r.trackerCheck.deferred;
 
     const reqStatus = (r.requirement?.status ?? "").toLowerCase();
     const trackerStatusText = (r.tracker.status ?? "").toLowerCase();
@@ -208,18 +214,20 @@ function main() {
 
     if (isDone) doneCount++;
     if (isCancelled) cancelledCount++;
+    if (totalDeferred > 0 && !isCancelled) deferredCount += totalDeferred;
 
     const reqTitle = r.requirement ? `[REQ-${r.id}](${path.relative(ROOT, r.requirement.file)})` : "—";
     const taskTitle = r.task ? `[TASK-${r.id}](${path.relative(ROOT, r.task.file)})` : "—";
     const trackTitle = `[TRACKER-${r.id}](${path.relative(ROOT, r.tracker.file)})`;
 
+    const showDeferred = (c: Checklist) => (c.deferred > 0 ? ` (${c.deferred} deferred)` : "");
     safeWrite(
-      `| ${r.id} | ${reqTitle} | ${taskTitle} | ${trackTitle} | ${r.requirement?.status ?? "—"} | ${reqPct}% (${r.req.done}/${r.req.total}) | ${taskPct}% (${r.taskCheck.done}/${r.taskCheck.total}) | ${trackerPct}% (${r.trackerCheck.done}/${r.trackerCheck.total}) |`,
+      `| ${r.id} | ${reqTitle} | ${taskTitle} | ${trackTitle} | ${r.requirement?.status ?? "—"} | ${reqPct}% (${r.req.done}/${r.req.total - r.req.deferred}${showDeferred(r.req)}) | ${taskPct}% (${r.taskCheck.done}/${r.taskCheck.total - r.taskCheck.deferred}${showDeferred(r.taskCheck)}) | ${trackerPct}% (${r.trackerCheck.done}/${r.trackerCheck.total - r.trackerCheck.deferred}${showDeferred(r.trackerCheck)}) |`,
     );
   }
 
   safeWrite("");
-  safeWrite(`**Total:** ${sortedRecords.length} | **Done:** ${doneCount} | **Cancelled:** ${cancelledCount} | **Left:** ${sortedRecords.length - doneCount - cancelledCount}`);
+  safeWrite(`**Total:** ${sortedRecords.length} | **Done:** ${doneCount} | **Cancelled:** ${cancelledCount} | **Deferred:** ${deferredCount} | **Left:** ${sortedRecords.length - doneCount - cancelledCount}`);
   safeWrite("");
 
   if (!summaryMode) {
@@ -245,7 +253,8 @@ function main() {
 }
 
 function progressPct(checklist: Checklist): number {
-  return checklist.total === 0 ? 100 : Math.round((checklist.done / checklist.total) * 100);
+  const actionable = checklist.total - checklist.deferred;
+  return actionable === 0 ? 100 : Math.round((checklist.done / actionable) * 100);
 }
 
 function isCancelled(r: TaskRecord): boolean {

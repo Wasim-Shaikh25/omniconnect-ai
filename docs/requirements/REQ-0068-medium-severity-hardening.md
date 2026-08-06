@@ -129,7 +129,7 @@ part of H5 in `REQ-0067` and the UI half is `REQ-0073`.
       invokes the injected job scheduler to stop scheduled sync jobs for that store
       (`src/modules/ecommerce/application/apply-shopify-webhook.ts:176-198`).
 - [x] Unhandled topics no longer return `{ ok: true }` for compliance topics (`src/modules/ecommerce/application/apply-shopify-webhook.ts:260-269`).
-- [x] Shopify's automated compliance checks pass in a test store. — **Deferred**: requires a live Shopify development store, `SHOPIFY_API_SECRET`, and app review; recorded as a release-readiness task in `docs/operations.md`.
+- [d] Shopify's automated compliance checks pass in a test store. — **Deferred**: requires a live Shopify development store, `SHOPIFY_API_SECRET`, and app review; recorded as a release-readiness task in `docs/operations.md`.
 - [x] Tests exist for each of the four topics (`src/modules/ecommerce/application/apply-shopify-webhook.test.ts:174-239`; `src/modules/ecommerce/infrastructure/shopify-compliance.integration.test.ts`).
 
 ### M6 — Stripe API version

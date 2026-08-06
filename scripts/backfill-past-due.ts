@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import { env } from "@/shared/config";
-import { Plan } from "@/modules/workspaces/domain/plan";
+import { Plan } from "@/modules/workspaces";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2024-09-30.acacia",

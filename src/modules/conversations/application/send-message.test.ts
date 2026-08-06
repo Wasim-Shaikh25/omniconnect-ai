@@ -44,8 +44,10 @@ describe("makeSendMessage", () => {
   it("appends a HUMAN message and calls the outbound sender for Instagram", async () => {
     const { send, messages, sendMessage } = makeSut();
 
-    await send({ conversationId: "conv-1", projectId: "store-1", sender: "HUMAN", content: "Hello" });
+    const result = await send({ conversationId: "conv-1", projectId: "store-1", sender: "HUMAN", content: "Hello" });
 
+    expect(result.message).toEqual(expect.objectContaining({ content: "Hello" }));
+    expect(result.delivered).toBe(true);
     expect(messages.append).toHaveBeenCalledWith({
       conversationId: "conv-1",
       projectId: "store-1",
@@ -73,18 +75,20 @@ describe("makeSendMessage", () => {
       updatedAt: new Date(),
     });
 
-    await send({ conversationId: "conv-1", projectId: "store-1", sender: "HUMAN", content: "Hello" });
+    const result = await send({ conversationId: "conv-1", projectId: "store-1", sender: "HUMAN", content: "Hello" });
 
     expect(sendMessage).not.toHaveBeenCalled();
+    expect(result.delivered).toBe(false);
   });
 
-  it("does not fail when the outbound sender throws", async () => {
+  it("does not fail when the outbound sender throws and reports delivery failed", async () => {
     const { send, sendMessage, messages } = makeSut();
     sendMessage.mockRejectedValue(new Error("Graph API error"));
 
-    await expect(
-      send({ conversationId: "conv-1", projectId: "store-1", sender: "HUMAN", content: "Hello" }),
-    ).resolves.toEqual(expect.objectContaining({ content: "Hello" }));
+    const result = await send({ conversationId: "conv-1", projectId: "store-1", sender: "HUMAN", content: "Hello" });
+
+    expect(result.message).toEqual(expect.objectContaining({ content: "Hello" }));
+    expect(result.delivered).toBe(false);
     expect(messages.append).toHaveBeenCalled();
   });
 

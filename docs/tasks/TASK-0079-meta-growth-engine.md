@@ -48,14 +48,18 @@ Insights API `online_followers` + historical post performance → AI correlation
 ## 4. Subtasks
 
 - [x] T-021: Meta OAuth flow
-- [x] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
+- [x] T-021b: Meta OAuth security fixes — signed CSRF state with session-bound cookie, `Authorization: Bearer` token header, no secret logging, APP_URL-derived redirect URI, and no Page-id fallback for Instagram accounts.
+- [d] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API
+- [x] T-023b: Content Publishing API review fixes — `access_token` sent in `Authorization` header, `media_publish` uses safe URL construction, polling short-circuits on non-`FINISHED` statuses, and carousel size validation returns friendly messages.
 - [x] T-024: Content scheduling
 - [x] T-024b: Content scheduling review fixes — validate `scheduledAtTimezone` against `Intl.supportedValuesOf("timeZone")` (or a runtime check) before persistence; fall back to UTC when formatting; re-arm `InMemoryQueue` timers for delays beyond `MAX_TIMEOUT_MS`; guard `publishScheduledPost` against premature execution; clean up fired timers.
+- [x] T-024c: Content scheduling review follow-up — re-enqueue or short-sleep `publishScheduledPost` when invoked early; keep displayed time zone label consistent with `formatInTimeZone`; remove `as string` casts from `InMemoryQueue`.
 - [x] T-025: Content Studio UI (publish form integrated on `/stores/[projectId]/content`)
 - [x] T-058: Hashtag intelligence
 - [x] T-059: Best time to post
 - [x] T-069: Content calendar UI — visual grid preview, drag-to-reschedule (P1)
+- [x] T-070b: Devin Review fixes on T-070 — expose `MetaService.consumeGraphApiCall` so `inspector` shares the Instagram Graph API 200 calls/hour bucket; route `sendPurchaseEvent` through direct `fetch` (not `graphApiFetch`) so Conversions API events do not consume the Instagram budget.
 - [x] T-071: Trending reels/audio analysis — AI-powered niche pattern detection (P2)
 
 ## 5. Acceptance Criteria
@@ -66,6 +70,6 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 6. Notes / Blockers
 
-- T-021, T-023, T-024, T-058, T-059, T-069, T-070, and T-071 completed on the respective feature branches. T-022 (WhatsApp) remains open.
+- T-021, T-021b, T-023, T-023b, T-024, T-058, T-059, T-069, T-070, and T-071 completed on the respective feature branches; T-022 (WhatsApp) is deferred to post-Meta-Business-verification.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.

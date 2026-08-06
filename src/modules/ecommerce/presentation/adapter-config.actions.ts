@@ -2,12 +2,13 @@
 
 import { z } from "zod";
 import { requireRole } from "@/modules/auth";
+import { aiUsageGuard } from "@/modules/ai/ai-services";
 import { organizationQueries } from "@/modules/workspaces";
-import { adapterConfigGenerator } from "../infrastructure/ai-adapter-generator";
 import {
   testAdapterConfig,
   saveGeneratedAdapter,
 } from "../infrastructure/container";
+import { adapterConfigGenerator } from "../infrastructure/ai-adapter-generator";
 import { validateAdapterConfigMapping } from "../infrastructure/adapter-config-schema";
 
 export type AdapterConfigActionState =
@@ -33,7 +34,7 @@ async function assertStoreInOrg(
 const generateSchema = z.object({
   platformName: z.string().min(1),
   apiDocs: z.string().min(1).max(20000),
-  projectId: z.string().optional(),
+  projectId: z.string().min(1),
 });
 
 export async function generateAdapterConfigAction(
@@ -52,12 +53,18 @@ export async function generateAdapterConfigAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
+    return { error: "Store not found in your organization." };
+  }
+
   try {
+    await aiUsageGuard.assertAvailable(user.userId ?? user.id);
+
     const config = await adapterConfigGenerator.generate({
       platformName: parsed.data.platformName,
       apiDocs: parsed.data.apiDocs,
       userId: user.userId ?? user.id,
-      projectId: parsed.data.projectId ?? null,
+      projectId: parsed.data.projectId,
     });
     return { ok: true, config: config as unknown };
   } catch (error) {

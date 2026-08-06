@@ -50,7 +50,7 @@ open at `33e2e0b`. L6 (registration bot protection) is tracked in `REQ-0070`.
 - [x] `auto_stop_machines` set to `"off"` for the app process.
 - [x] Scale-to-zero decision recorded in `docs/decisions/0008-fly-machine-auto-stop.md`.
 - [x] `docs/deployment.md` references the ADR and explains why scale-to-zero is unsafe for webhooks.
-- [x] Memory measured under SSR + AI generation load — **Deferred**: requires production-like traffic; tracked as a post-launch ops task in `docs/operations.md`.
+- [d] Memory measured under SSR + AI generation load — **Deferred**: requires production-like traffic; tracked as a post-launch ops task in `docs/operations.md`.
 - [x] Scale-to-zero constraint documented in `docs/deployment.md` (references ADR 0008).
 
 ### L7 — Escalation marker

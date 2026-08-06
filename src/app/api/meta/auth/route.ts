@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/modules/auth";
 import { checkStoreAccess } from "@/modules/workspaces";
-import { getMetaOAuthUrl } from "@/modules/meta/server";
+import {
+  createMetaOAuthState,
+  generateMetaOAuthNonce,
+  getMetaOAuthUrl,
+} from "@/modules/meta/server";
+import { env } from "@/shared/config";
 import { logger } from "@/shared/observability";
 
 export const runtime = "nodejs";
+
+const OAUTH_STATE_COOKIE = "meta_oauth_state";
+const OAUTH_STATE_MAX_AGE = 10 * 60; // 10 minutes
 
 /** Starts the Meta OAuth flow for a project. The project id is passed in query. */
 export async function GET(request: Request): Promise<Response> {
@@ -25,8 +33,18 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
-    const url = getMetaOAuthUrl(projectId);
-    return NextResponse.redirect(url);
+    const nonce = generateMetaOAuthNonce();
+    const state = createMetaOAuthState(projectId, nonce);
+    const url = getMetaOAuthUrl(projectId, state);
+    const response = NextResponse.redirect(url);
+    response.cookies.set(OAUTH_STATE_COOKIE, nonce, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: OAUTH_STATE_MAX_AGE,
+    });
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Meta OAuth not configured";
     logger.warn("meta.oauth.startFailed", { projectId, error: message });

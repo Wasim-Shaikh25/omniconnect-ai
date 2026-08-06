@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
-import { logger } from "@/shared/observability";
+import { logSystem, logSystemError } from "@/shared/observability";
 import {
   processMetaWebhook,
   verifyWebhookChallenge,
@@ -42,7 +42,10 @@ export async function POST(request: Request): Promise<Response> {
   ensureSubscribers();
 
   if (await webhookGuard.isRateLimited(request)) {
-    logger.warn("meta.webhook.rateLimited", { ip: clientIp(request.headers) });
+    const message = "Meta webhook rate limited";
+    void logSystem("ERROR", "meta.webhook.rateLimited", message, {
+      metadata: { ip: clientIp(request.headers) },
+    });
     return new NextResponse("Rate limited", { status: 429 });
   }
 
@@ -50,7 +53,8 @@ export async function POST(request: Request): Promise<Response> {
   const signature = request.headers.get("x-hub-signature-256");
 
   if (!(await verifyWebhookSignature(rawBody, signature))) {
-    logger.warn("meta.webhook.invalidSignature", {});
+    const message = "Invalid Meta webhook signature";
+    void logSystem("ERROR", "meta.webhook.invalidSignature", message, {});
     return new NextResponse("Invalid signature", { status: 401 });
   }
 
@@ -61,7 +65,9 @@ export async function POST(request: Request): Promise<Response> {
     type: "events",
   });
   if (!recorded.recorded) {
-    logger.info("meta.webhook.duplicate", { eventId });
+    void logSystem("INFO", "meta.webhook.duplicate", "Duplicate Meta webhook event", {
+      metadata: { eventId },
+    });
     return new NextResponse("EVENT_RECEIVED", { status: 200 });
   }
 
@@ -69,13 +75,23 @@ export async function POST(request: Request): Promise<Response> {
   try {
     payload = JSON.parse(rawBody);
   } catch {
+    void logSystem("ERROR", "meta.webhook.parseFailed", "Failed to parse Meta webhook body", {
+      metadata: { eventId },
+    });
     return new NextResponse("Bad request", { status: 400 });
   }
 
   const result = await processMetaWebhook(payload);
   if (!result.accepted) {
+    void logSystemError("meta.webhook.processingFailed", new Error("Meta webhook not accepted"), {
+      metadata: { eventId },
+    });
     return new NextResponse("Bad request", { status: 400 });
   }
+
+  void logSystem("INFO", "meta.webhook.received", "Meta webhook processed", {
+    metadata: { eventId },
+  });
 
   // Meta expects a fast 200 EVENT_RECEIVED ack.
   return new NextResponse("EVENT_RECEIVED", { status: 200 });

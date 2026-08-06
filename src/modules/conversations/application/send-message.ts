@@ -13,12 +13,17 @@ export interface SendMessageInput {
   content: string;
 }
 
+export interface SendMessageResult {
+  message: MessageRecord;
+  delivered: boolean;
+}
+
 export function makeSendMessage(deps: {
   conversations: ConversationRepository;
   messages: MessageRepository;
   sendMessage: MetaService["sendMessage"];
 }) {
-  return async function sendMessage(input: SendMessageInput): Promise<MessageRecord> {
+  return async function sendMessage(input: SendMessageInput): Promise<SendMessageResult> {
     const conversation = await deps.conversations.findById(
       input.conversationId,
       input.projectId,
@@ -39,25 +44,27 @@ export function makeSendMessage(deps: {
     });
 
     if (
-      conversation.externalId &&
-      (conversation.channel === "INSTAGRAM" || conversation.channel === "FACEBOOK")
+      !conversation.externalId ||
+      (conversation.channel !== "INSTAGRAM" && conversation.channel !== "FACEBOOK")
     ) {
-      try {
-        await deps.sendMessage({
-          projectId: input.projectId,
-          recipientId: conversation.externalId,
-          text: trimmed,
-        });
-      } catch (error) {
-        logger.warn("conversations.sendMessage.failed", {
-          conversationId: input.conversationId,
-          projectId: input.projectId,
-          error: error instanceof Error ? error.message : "unknown",
-        });
-      }
+      return { message, delivered: false };
     }
 
-    return message;
+    try {
+      await deps.sendMessage({
+        projectId: input.projectId,
+        recipientId: conversation.externalId,
+        text: trimmed,
+      });
+      return { message, delivered: true };
+    } catch (error) {
+      logger.warn("conversations.sendMessage.failed", {
+        conversationId: input.conversationId,
+        projectId: input.projectId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return { message, delivered: false };
+    }
   };
 }
 

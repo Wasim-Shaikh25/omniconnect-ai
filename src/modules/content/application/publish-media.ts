@@ -11,13 +11,31 @@ export const publishMediaSchema = z.object({
 
 export type PublishMediaInput = z.infer<typeof publishMediaSchema>;
 
+function formatValidationIssues(issues: z.ZodIssue[]): string {
+  const first = issues[0];
+  if (!first) return "Invalid input.";
+  const topLevelPath = first.path[0];
+  if (topLevelPath === "mediaUrls") {
+    if (first.code === "too_big") return "You can only publish up to 10 media URLs at once.";
+    if (first.code === "too_small") return "At least one media URL is required.";
+    if (first.code === "invalid_string" && first.validation === "url") {
+      return "Every media URL must be a valid, publicly reachable URL.";
+    }
+  }
+  return `${first.path.join(".") || "Input"}: ${first.message}`;
+}
+
 export function makePublishMedia(deps: {
   publishMedia: MetaService["publishMedia"];
 }) {
   return async function publishMedia(
     raw: PublishMediaInput,
   ): Promise<Result<PublishMediaResult, Error>> {
-    const input = publishMediaSchema.parse(raw);
+    const parsed = publishMediaSchema.safeParse(raw);
+    if (!parsed.success) {
+      return err(new Error(formatValidationIssues(parsed.error.issues)));
+    }
+    const input = parsed.data;
 
     const result = await deps.publishMedia(input.projectId, {
       caption: input.caption?.trim() || undefined,

@@ -14,6 +14,9 @@ export {
   getMetaOAuthUrl,
   exchangeMetaOAuthCode,
   fetchInstagramAccount,
+  createMetaOAuthState,
+  generateMetaOAuthNonce,
+  verifyMetaOAuthState,
 } from "./infrastructure/meta-oauth";
 export type { MetaOAuthAccount } from "./infrastructure/meta-oauth";
 export {
