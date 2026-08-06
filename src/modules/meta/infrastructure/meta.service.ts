@@ -128,15 +128,17 @@ export class GraphApiMetaService implements MetaService {
         try {
           const creationId = await this.createMediaContainer(projectId, accountId, token, input);
           const status = await this.pollContainerStatus(projectId, creationId, accountId, token);
-          if (status === "ERROR") {
-            logger.warn("meta.publishMedia.containerError", { projectId, creationId });
+          if (status !== "FINISHED") {
+            logger.warn("meta.publishMedia.containerNotReady", { projectId, creationId, status });
             return null;
           }
 
-          const publishRes = await this.graphApiFetch(projectId, 
-            `${GRAPH_API_BASE}/${accountId}/media_publish?creation_id=${creationId}`,
-            withTimeout({ method: "POST" }),
-          );
+          const publishUrl = new URL(`${GRAPH_API_BASE}/${accountId}/media_publish`);
+          publishUrl.searchParams.set("creation_id", creationId);
+          const publishRes = await this.graphApiFetch(projectId, publishUrl.toString(), withTimeout({
+            method: "POST",
+            headers: { authorization: `Bearer ${token}` },
+          }));
           if (!publishRes.ok) {
             const text = await publishRes.text();
             logger.warn("meta.publishMedia.publishFailed", {
@@ -602,12 +604,11 @@ export class GraphApiMetaService implements MetaService {
         const isVideo = isVideoUrl(url);
         const childParams = new URLSearchParams();
         childParams.set("is_carousel_item", "true");
-        childParams.set("access_token", token);
         childParams.set(isVideo ? "video_url" : "image_url", url);
         if (isVideo) childParams.set("media_type", "VIDEO");
-        const childRes = await this.graphApiFetch(projectId, 
+        const childRes = await this.graphApiFetch(projectId,
           `${GRAPH_API_BASE}/${accountId}/media?${childParams.toString()}`,
-          withTimeout({ method: "POST" }),
+          withTimeout({ method: "POST", headers: { authorization: `Bearer ${token}` } }),
         );
         const childBody = (await parseJson(childRes)) as { id?: string };
         if (!childBody.id) {
@@ -617,11 +618,10 @@ export class GraphApiMetaService implements MetaService {
       }
       const parentParams = new URLSearchParams();
       parentParams.set("children", childIds.join(","));
-      parentParams.set("access_token", token);
       if (caption) parentParams.set("caption", caption);
-      const parentRes = await this.graphApiFetch(projectId, 
+      const parentRes = await this.graphApiFetch(projectId,
         `${GRAPH_API_BASE}/${accountId}/media?${parentParams.toString()}`,
-        withTimeout({ method: "POST" }),
+        withTimeout({ method: "POST", headers: { authorization: `Bearer ${token}` } }),
       );
       const parentBody = (await parseJson(parentRes)) as { id?: string };
       if (!parentBody.id) {
@@ -636,7 +636,6 @@ export class GraphApiMetaService implements MetaService {
     }
 
     const params = new URLSearchParams();
-    params.set("access_token", token);
 
     switch (mediaType) {
       case "IMAGE":
@@ -662,9 +661,9 @@ export class GraphApiMetaService implements MetaService {
 
     if (caption) params.set("caption", caption);
 
-    const res = await this.graphApiFetch(projectId, 
+    const res = await this.graphApiFetch(projectId,
       `${GRAPH_API_BASE}/${accountId}/media?${params.toString()}`,
-      withTimeout({ method: "POST" }),
+      withTimeout({ method: "POST", headers: { authorization: `Bearer ${token}` } }),
     );
     const body = (await parseJson(res)) as { id?: string };
     if (!body.id) {
@@ -685,10 +684,11 @@ export class GraphApiMetaService implements MetaService {
       if (attempt > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
-      const res = await this.graphApiFetch(projectId, 
-        `${GRAPH_API_BASE}/${creationId}?fields=status_code&access_token=${token}`,
-        withTimeout(),
-      );
+      const statusUrl = new URL(`${GRAPH_API_BASE}/${creationId}`);
+      statusUrl.searchParams.set("fields", "status_code");
+      const res = await this.graphApiFetch(projectId, statusUrl.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
       if (!res.ok) {
         logger.warn("meta.publishMedia.statusCheckFailed", {
           creationId,
