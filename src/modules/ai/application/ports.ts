@@ -49,6 +49,7 @@ export interface AICompletionConfig {
 
 export interface AIProvider {
   complete(messages: AIMessage[], config: AICompletionConfig): Promise<string>;
+  stream?(messages: AIMessage[], config: AICompletionConfig): AsyncIterable<string>;
 }
 
 export interface TokenUsageRecord {
@@ -120,6 +121,34 @@ export interface AssistantService {
     text: string;
     escalate: boolean;
   }>;
+}
+
+export interface ChatSessionRecord {
+  id: string;
+  projectId: string;
+  userId: string;
+  title: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChatMessageRecord {
+  id: string;
+  sessionId: string;
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+  toolCalls: Record<string, unknown> | null;
+  toolCallId: string | null;
+  createdAt: Date;
+}
+
+export interface ChatSessionRepository {
+  create(input: { projectId: string; userId: string; title?: string }): Promise<ChatSessionRecord>;
+  findById(id: string): Promise<(ChatSessionRecord & { messages: ChatMessageRecord[] }) | null>;
+  listByProject(projectId: string, limit?: number): Promise<ChatSessionRecord[]>;
+  updateTitle(id: string, title: string): Promise<ChatSessionRecord | null>;
+  delete(id: string): Promise<void>;
+  addMessage(input: Omit<ChatMessageRecord, "id" | "createdAt">): Promise<ChatMessageRecord>;
 }
 
 export interface BrainConversationMemoryRecord {

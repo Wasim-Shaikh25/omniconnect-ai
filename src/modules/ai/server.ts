@@ -18,6 +18,9 @@ export {
   updateAIConfiguration,
   askBusinessBrain,
   brainMemoryService,
+  chatAssistant,
+  chatSessionRepository,
+  aiConfigurationRepository,
 } from "./infrastructure/container";
 
 export type {
