@@ -10,7 +10,8 @@ export const schedulePostSchema = z.object({
   caption: z.string().max(2200).optional(),
   mediaType: z.enum(["IMAGE", "VIDEO", "REEL", "CAROUSEL", "STORY"] as const),
   mediaUrls: z.array(z.string().url()).min(1).max(10),
-  scheduledAt: z.coerce.date(),
+  scheduledAt: z.date({ invalid_type_error: "Please choose a valid schedule date and time." }),
+  scheduledAtTimezone: z.string().max(120).optional(),
 });
 
 export type SchedulePostInput = z.infer<typeof schedulePostSchema>;
@@ -75,17 +76,27 @@ export function makeSchedulePost(deps: {
       mediaUrls: input.mediaUrls,
       status: "SCHEDULED",
       scheduledAt: input.scheduledAt,
+      scheduledAtTimezone: input.scheduledAtTimezone ?? null,
     });
 
     const delay = post.scheduledAt.getTime() - now.getTime();
     if (delay > 0) {
-      const jobId = await deps.addJob(
-        "publish-scheduled-post",
-        { scheduledPostId: post.id },
-        { jobId: post.id, delay },
-      );
-      await deps.scheduledPostRepo.update(post.id, { jobId });
-      return ok({ ...post, jobId });
+      try {
+        const jobId = await deps.addJob(
+          "publish-scheduled-post",
+          { scheduledPostId: post.id },
+          { jobId: post.id, delay },
+        );
+        await deps.scheduledPostRepo.update(post.id, { jobId });
+        return ok({ ...post, jobId });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "unknown";
+        await deps.scheduledPostRepo.update(post.id, {
+          status: "FAILED",
+          errorMessage: `Failed to enqueue the scheduled post: ${message}`,
+        });
+        return err(new Error("Failed to schedule the post. The post has been marked as failed."));
+      }
     }
 
     const result = await deps.publishMedia(input.projectId, {

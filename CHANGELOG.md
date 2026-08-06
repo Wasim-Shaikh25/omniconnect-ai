@@ -30,6 +30,14 @@ All notable changes to **OmniConnect AI** are documented here.
   schedule picker and a scheduled-posts list on `/stores/[projectId]/content`. Unit tests added for
   `schedule-post.ts`. Next up in REQ-0079: hashtag intelligence (T-058) and best-time-to-post (T-059).
 
+- `REQ-0079` **Content Scheduling review fixes** on `devin/fix-content-scheduling-review-1786001674`:
+  fixed timezone handling by converting the `datetime-local` value to an ISO UTC string on the client and storing
+  the browser's IANA timezone in `ScheduledPost.scheduledAtTimezone`; rejected missing/empty schedule times
+  (previously `null` coerced to 1970-01-01 and published immediately); capped `InMemoryQueue` delays to the
+  maximum `setTimeout` value so far-future posts do not fire instantly in dev/test; marked `ScheduledPost`
+  rows as `FAILED` when enqueueing throws; and removed the unused `User.contentSchedulesThisMonth` /
+  `contentSchedulesResetAt` columns.
+
 - `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
   added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`
   message and routes `INSTAGRAM`/`FACEBOOK` replies through `MetaService.sendMessage`; wired it in the

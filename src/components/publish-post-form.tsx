@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, type FormEvent } from "react";
 import type { ContentActionState } from "@/modules/content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,24 @@ export function PublishPostForm({
   const [mediaType, setMediaType] = useState("IMAGE");
   const [urls, setUrls] = useState<string[]>([""]);
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    if (isSchedule) {
+      const localValue = formData.get("scheduledAtLocal");
+      if (localValue) {
+        formData.set("scheduledAt", new Date(localValue as string).toISOString());
+      }
+      try {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        formData.set("scheduledAtTimezone", timeZone);
+      } catch {
+        // fall back to UTC string hidden by default
+      }
+    }
+    formAction(formData);
+  }
+
   const isCarousel = mediaType === "CAROUSEL";
   const isSchedule = mode === "schedule";
   const buttonLabel =
@@ -59,7 +77,7 @@ export function PublishPostForm({
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="mediaType" value={mediaType} />
 
@@ -130,14 +148,16 @@ export function PublishPostForm({
 
       {isSchedule && (
         <div className="space-y-1.5">
-          <Label htmlFor="scheduledAt">Schedule date and time</Label>
+          <Label htmlFor="scheduledAtLocal">Schedule date and time</Label>
           <Input
-            id="scheduledAt"
-            name="scheduledAt"
+            id="scheduledAtLocal"
+            name="scheduledAtLocal"
             type="datetime-local"
             required
             disabled={pending}
           />
+          <input type="hidden" name="scheduledAt" />
+          <input type="hidden" name="scheduledAtTimezone" />
         </div>
       )}
 

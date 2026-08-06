@@ -3,10 +3,13 @@ import { randomId } from "@/shared/security/random";
 import { jobRegistry } from "./registry";
 import type { Job, JobCounts, JobOptions, QueueService } from "./types";
 
+const MAX_TIMEOUT_MS = 2_147_483_647; // largest delay setTimeout reliably supports (~24.8 days)
+
 export class InMemoryQueue implements QueueService {
   private jobs: Job<unknown>[] = [];
   private processing = false;
   private jobIds = new Set<string>();
+  private timers: NodeJS.Timeout[] = [];
 
   constructor(private name: string) {}
 
@@ -34,13 +37,19 @@ export class InMemoryQueue implements QueueService {
     this.jobIds.add(id);
     const job: Job<T> = { id, name, data };
 
-    const delay = opts?.delay ?? 0;
-    if (delay > 0) {
-      logger.info("queue.inMemory.delayed", { queue: this.name, jobId: id, jobName: name, delay });
-      setTimeout(() => {
+    const requestedDelay = opts?.delay ?? 0;
+    if (requestedDelay > 0) {
+      const delay = Math.min(requestedDelay, MAX_TIMEOUT_MS);
+      if (delay < requestedDelay) {
+        logger.warn("queue.inMemory.delayCapped", { queue: this.name, jobId: id, jobName: name, requestedDelay, delay });
+      } else {
+        logger.info("queue.inMemory.delayed", { queue: this.name, jobId: id, jobName: name, delay });
+      }
+      const timer = setTimeout(() => {
         this.jobs.push(job);
         this.processNext();
       }, delay);
+      this.timers.push(timer);
     } else {
       this.jobs.push(job);
       logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });
@@ -72,6 +81,10 @@ export class InMemoryQueue implements QueueService {
   }
 
   async close(): Promise<void> {
+    for (const timer of this.timers) {
+      clearTimeout(timer);
+    }
+    this.timers = [];
     this.jobs = [];
   }
 }

@@ -15,6 +15,7 @@ function makeSut() {
         ...input,
         status: input.status ?? "SCHEDULED",
         caption: input.caption ?? null,
+        scheduledAtTimezone: input.scheduledAtTimezone ?? null,
         publishedAt: null,
         externalId: null,
         jobId: null,
