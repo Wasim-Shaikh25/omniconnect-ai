@@ -1,5 +1,5 @@
 import { metaService } from "@/modules/meta/server";
-import { analyzeMedia, createContentIdea } from "@/modules/ai/server";
+import { analyzeMedia, analyzeTrendingReels, createContentIdea } from "@/modules/ai/server";
 import { organizationQueries } from "@/modules/workspaces";
 import { eventBus } from "@/shared/events";
 import type { MetaMediaItem, MetaMediaMetrics } from "@/modules/meta";
@@ -7,13 +7,14 @@ import type {
   MarketingInsightsRepository,
   UpsertMediaInsightInput,
 } from "./ports";
-import type { MediaPost, MediaInsight, MediaAnalysis, AccountInsight } from "../domain/types";
+import type { MediaPost, MediaInsight, MediaAnalysis, AccountInsight, TrendSnapshot } from "../domain/types";
 import {
   AccountAnalyticsSynced,
   MediaAnalyticsSynced,
   TrendingHashtagDiscovered,
   ReportGenerated,
   ContentRecommendationCreated,
+  TrendingReelsAnalyzed,
 } from "../domain/events";
 
 function mapMediaType(item: MetaMediaItem): MediaPost["mediaType"] {
@@ -129,6 +130,58 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
       });
 
       await eventBus.publish(new TrendingHashtagDiscovered(projectId, { query, fetchedAt: new Date() }));
+      return snapshot.id;
+    },
+
+    async analyzeTrendingReels(projectId: string, query: string): Promise<TrendSnapshot["id"]> {
+      const since = new Date();
+      since.setDate(since.getDate() - 30);
+      const reels = await repo.listMediaPosts(projectId, { mediaType: "REEL", since, limit: 50 });
+      if (reels.length === 0) {
+        throw new Error("No recent Reels found. Sync your media catalog first.");
+      }
+
+      const analysis = await analyzeTrendingReels({
+        projectId,
+        query,
+        reels: reels.map((r) => ({
+          externalId: r.externalId,
+          caption: r.caption,
+          mediaType: r.mediaType,
+          hashtags: r.hashtags,
+          audioName: r.audioName,
+          publishedAt: r.publishedAt?.toISOString() ?? null,
+          likes: r.latestInsight?.likes ?? null,
+          comments: r.latestInsight?.comments ?? null,
+          plays: r.latestInsight?.plays ?? null,
+          views: r.latestInsight?.views ?? null,
+          engagementRate: r.latestInsight?.engagementRate ?? null,
+        })),
+      });
+
+      const snapshot = await repo.createTrendSnapshot(projectId, {
+        type: "NICHE",
+        query,
+        data: {
+          reelCount: reels.length,
+          ...analysis,
+        },
+      });
+
+      for (const rec of analysis.recommendations.slice(0, 3)) {
+        await repo.createContentRecommendation(projectId, {
+          type: "REEL",
+          title: rec.title,
+          outline: rec.outline,
+          hashtags: rec.hashtags,
+          audioSuggestion: rec.audioSuggestion,
+          basedOnMediaIds: reels.slice(0, 5).map((r) => r.id),
+        });
+      }
+
+      await eventBus.publish(
+        new TrendingReelsAnalyzed(projectId, { query, snapshotId: snapshot.id, generatedAt: new Date() }),
+      );
       return snapshot.id;
     },
 

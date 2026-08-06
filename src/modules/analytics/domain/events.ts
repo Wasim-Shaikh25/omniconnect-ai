@@ -93,3 +93,13 @@ export interface ContentRecommendationCreatedPayload {
 export class ContentRecommendationCreated extends BaseDomainEvent<ContentRecommendationCreatedPayload> {
   readonly name = "ContentRecommendationCreated";
 }
+
+export interface TrendingReelsAnalyzedPayload {
+  query: string;
+  snapshotId: string;
+  generatedAt: Date;
+}
+
+export class TrendingReelsAnalyzed extends BaseDomainEvent<TrendingReelsAnalyzedPayload> {
+  readonly name = "TrendingReelsAnalyzed";
+}

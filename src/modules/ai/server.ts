@@ -11,6 +11,7 @@ export {
   generateTrends,
   generatePostIdeas,
   analyzeCompetitor,
+  analyzeTrendingReels,
   analyzeMedia,
   createContentIdea,
   generateReply,
