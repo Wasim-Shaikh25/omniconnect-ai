@@ -4,7 +4,7 @@ description: Dynamic E-Commerce Adapters
 
 # REQ-0078: Dynamic E-Commerce Adapters
 
-- **Status:** In Progress; Batch 2 (connection UI, encrypted persistence, WooCommerce/BigCommerce deletion) complete; Shopify migration queued for Batch 3.
+- **Status:** Implemented; Batch 3 (Shopify migration, multi-step `ConfigInterpreter`, hardcoded `shopify.connector.ts` deleted) complete.
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0078-dynamic-ecommerce-adapters.md`
@@ -48,7 +48,7 @@ Replace hardcoded e-commerce connectors (Shopify, WooCommerce, BigCommerce) with
 - [x] `GeneratedAdapter` model + repository; config mapping stored with credentials encrypted.
 - [x] `IntegrationConnectorFactory` resolves `ConfigInterpreter` from stored generated adapter.
 - [x] Hardcoded WooCommerce and BigCommerce connector files deleted.
-- [ ] Shopify connector migrated to a dynamic mapping and deleted (deferred until `ConfigInterpreter` supports two-step coupon creation).
+- [x] Shopify connector migrated to a dynamic mapping and `shopify.connector.ts` deleted; `ConfigInterpreter` now supports multi-step endpoints, variable extraction, and optional lookup matching.
 
 ## 6. Scope & Dependencies
 

@@ -8,7 +8,11 @@ import type {
   GenerateCouponInput,
   StoreInfo,
 } from "../domain/connector";
-import type { AdapterConfigMapping, EndpointMapping } from "../domain/adapter-config";
+import type {
+  AdapterConfigMapping,
+  EndpointMapping,
+  EndpointStep,
+} from "../domain/adapter-config";
 import { ConnectorError } from "../domain/errors";
 
 export class ConfigInterpreterNotImplementedError extends Error {
@@ -67,7 +71,7 @@ export class ConfigInterpreter implements EcommerceConnector {
     const endpoint = this.config.endpoints.fetchStoreInfo;
     const data = await this.fetchAndParse(endpoint);
     const root = this.getValueByPath(data, endpoint.responseMapping.dataPath) ?? data;
-    const mapped = this.mapFields(root, endpoint.responseMapping.fieldMap);
+    const mapped = this.mapFieldsWithVariables(root, endpoint.responseMapping.fieldMap, {});
     return {
       name: asString(mapped.name) ?? this.provider,
       domain: asString(mapped.domain) ?? null,
@@ -81,7 +85,9 @@ export class ConfigInterpreter implements EcommerceConnector {
     const params = this.buildQueryParams(endpoint, { [this.limitParam()]: String(limit) });
     const data = await this.fetchAndParse(endpoint, params);
     const items = this.extractItems(data, endpoint.responseMapping.dataPath, "getProducts");
-    return items.map((item) => this.toProduct(this.mapFields(item, endpoint.responseMapping.fieldMap)));
+    return items.map((item) =>
+      this.toProduct(this.mapFieldsWithVariables(item, endpoint.responseMapping.fieldMap, {})),
+    );
   }
 
   async getOrders(limit = 50): Promise<ConnectorOrder[]> {
@@ -89,7 +95,9 @@ export class ConfigInterpreter implements EcommerceConnector {
     const params = this.buildQueryParams(endpoint, { [this.limitParam()]: String(limit) });
     const data = await this.fetchAndParse(endpoint, params);
     const items = this.extractItems(data, endpoint.responseMapping.dataPath, "getOrders");
-    return items.map((item) => this.toOrder(this.mapFields(item, endpoint.responseMapping.fieldMap)));
+    return items.map((item) =>
+      this.toOrder(this.mapFieldsWithVariables(item, endpoint.responseMapping.fieldMap, {})),
+    );
   }
 
   async getCustomers(limit = 50): Promise<ConnectorCustomer[]> {
@@ -97,7 +105,9 @@ export class ConfigInterpreter implements EcommerceConnector {
     const params = this.buildQueryParams(endpoint, { [this.limitParam()]: String(limit) });
     const data = await this.fetchAndParse(endpoint, params);
     const items = this.extractItems(data, endpoint.responseMapping.dataPath, "getCustomers");
-    return items.map((item) => this.toCustomer(this.mapFields(item, endpoint.responseMapping.fieldMap)));
+    return items.map((item) =>
+      this.toCustomer(this.mapFieldsWithVariables(item, endpoint.responseMapping.fieldMap, {})),
+    );
   }
 
   async fetchDiscounts(): Promise<ConnectorDiscount[]> {
@@ -105,7 +115,9 @@ export class ConfigInterpreter implements EcommerceConnector {
     const params = this.buildQueryParams(endpoint);
     const data = await this.fetchAndParse(endpoint, params);
     const items = this.extractItems(data, endpoint.responseMapping.dataPath, "fetchDiscounts");
-    return items.map((item) => this.toDiscount(this.mapFields(item, endpoint.responseMapping.fieldMap)));
+    return items.map((item) =>
+      this.toDiscount(this.mapFieldsWithVariables(item, endpoint.responseMapping.fieldMap, {})),
+    );
   }
 
   async generateCoupon(input: GenerateCouponInput): Promise<ConnectorCoupon> {
@@ -115,15 +127,29 @@ export class ConfigInterpreter implements EcommerceConnector {
       discountPct: String(input.discountPct),
       expiresAt: input.expiresAt?.toISOString() ?? null,
     };
+
+    if (endpoint.steps && endpoint.steps.length > 0) {
+      const result = await this.executeSteps(endpoint, variables);
+      return this.toCoupon(result);
+    }
+
     const body = this.buildBody(endpoint, variables);
     const data = await this.fetchAndParse(endpoint, undefined, body, variables);
     const root = this.getValueByPath(data, endpoint.responseMapping.dataPath) ?? data;
-    return this.toCoupon(this.mapFields(root, endpoint.responseMapping.fieldMap));
+    return this.toCoupon(
+      this.mapFieldsWithVariables(root, endpoint.responseMapping.fieldMap, variables),
+    );
   }
 
   async disableCoupon(code: string): Promise<void> {
     const endpoint = this.config.endpoints.disableCoupon;
     const variables: Record<string, string | null> = { code };
+
+    if (endpoint.steps && endpoint.steps.length > 0) {
+      await this.executeSteps(endpoint, variables);
+      return;
+    }
+
     const body = this.buildBody(endpoint, variables);
     await this.fetchAndParse(endpoint, undefined, body, variables);
   }
@@ -133,7 +159,7 @@ export class ConfigInterpreter implements EcommerceConnector {
   }
 
   private buildQueryParams(
-    endpoint: EndpointMapping,
+    endpoint: Pick<EndpointMapping, "queryParams">,
     overrides: Record<string, string> = {},
     variables: Record<string, string | null> = {},
   ): Record<string, string> {
@@ -151,11 +177,78 @@ export class ConfigInterpreter implements EcommerceConnector {
   }
 
   private buildBody(
-    endpoint: EndpointMapping,
+    endpoint: Pick<EndpointMapping, "body">,
     variables: Record<string, string | null>,
   ): Record<string, unknown> | undefined {
     if (!endpoint.body) return undefined;
     return this.interpolateValues(endpoint.body, variables) as Record<string, unknown>;
+  }
+
+  private async executeSteps(
+    endpoint: EndpointMapping,
+    initialVariables: Record<string, string | null>,
+  ): Promise<Record<string, unknown>> {
+    let variables = { ...initialVariables };
+    let lastResponse: unknown;
+
+    for (const step of endpoint.steps ?? []) {
+      const result = await this.executeStep(step, variables);
+      if (result === undefined) {
+        // Optional lookup did not match; abort remaining steps.
+        return this.mapFieldsWithVariables(
+          {},
+          endpoint.responseMapping.fieldMap,
+          variables,
+        );
+      }
+      variables = { ...variables, ...result.variables };
+      lastResponse = result.response;
+    }
+
+    const root =
+      this.getValueByPath(lastResponse, endpoint.responseMapping.dataPath) ?? lastResponse ?? {};
+    return this.mapFieldsWithVariables(root, endpoint.responseMapping.fieldMap, variables);
+  }
+
+  private async executeStep(
+    step: EndpointStep,
+    variables: Record<string, string | null>,
+  ): Promise<{ variables: Record<string, string | null>; response: unknown } | undefined> {
+    const params = this.buildQueryParams(step, {}, variables);
+    const body = this.buildBody(step, variables);
+    const response = await this.fetchJson(step.method, step.path, params, body, variables);
+
+    if (step.lookup) {
+      const items = this.extractItems(response, step.lookup.dataPath, "lookup");
+      const expected = variables[step.lookup.againstVariable];
+      const match = items.find((item) => {
+        const value = this.getValueByPath(item, step.lookup!.field);
+        return asString(value) === expected;
+      });
+
+      if (!match) {
+        if (step.lookup.optional) {
+          return undefined;
+        }
+        throw new ConnectorError(this.provider, "disableCoupon.lookup");
+      }
+
+      const extracted = this.extractVariables(match, step.lookup.variableMap, variables);
+      if (step.variableMap) {
+        const more = this.extractVariables(match, step.variableMap, variables);
+        return { variables: { ...extracted, ...more }, response: match };
+      }
+      return { variables: extracted, response: match };
+    }
+
+    if (step.variableMap) {
+      return {
+        variables: this.extractVariables(response, step.variableMap, variables),
+        response,
+      };
+    }
+
+    return { variables: {}, response };
   }
 
   private async fetchAndParse(
@@ -164,14 +257,27 @@ export class ConfigInterpreter implements EcommerceConnector {
     body?: Record<string, unknown>,
     variables: Record<string, string | null> = {},
   ): Promise<unknown> {
-    const url = this.buildUrl(endpoint.path, params, variables);
-    const headers = this.buildHeaders(endpoint, variables);
-    const init: RequestInit = {
-      method: endpoint.method,
-      headers,
-    };
-    if (body !== undefined && ["POST", "PUT", "DELETE"].includes(endpoint.method)) {
+    if (!endpoint.method || !endpoint.path) {
+      throw new ConnectorError(this.provider, "fetchAndParse.missingEndpoint");
+    }
+    return this.fetchJson(endpoint.method, endpoint.path, params, body, variables);
+  }
+
+  private async fetchJson(
+    method: string,
+    pathTemplate: string,
+    params: Record<string, string> | undefined,
+    body: Record<string, unknown> | undefined,
+    variables: Record<string, string | null>,
+  ): Promise<unknown> {
+    const url = this.buildUrl(pathTemplate, params, variables);
+    const headers = this.buildHeaders({}, variables);
+    if (body !== undefined && ["POST", "PUT", "DELETE"].includes(method)) {
       headers["Content-Type"] = "application/json";
+    }
+
+    const init: RequestInit = { method, headers };
+    if (body !== undefined) {
       init.body = JSON.stringify(body);
     }
 
@@ -179,23 +285,23 @@ export class ConfigInterpreter implements EcommerceConnector {
     try {
       response = await fetch(url, init);
     } catch {
-      throw new ConnectorError(this.provider, endpoint.method + endpoint.path);
+      throw new ConnectorError(this.provider, method + pathTemplate);
     }
 
     if (!response.ok) {
-      throw new ConnectorError(this.provider, endpoint.method + endpoint.path);
+      throw new ConnectorError(this.provider, method + pathTemplate);
     }
 
     try {
       return (await response.json()) as unknown;
     } catch {
-      throw new ConnectorError(this.provider, endpoint.method + endpoint.path);
+      throw new ConnectorError(this.provider, method + pathTemplate);
     }
   }
 
   private buildUrl(
     pathTemplate: string,
-    params?: Record<string, string>,
+    params: Record<string, string> | undefined,
     variables: Record<string, string | null> = {},
   ): string {
     const merged = this.mergeVariables(variables);
@@ -211,13 +317,13 @@ export class ConfigInterpreter implements EcommerceConnector {
   }
 
   private buildHeaders(
-    endpoint: EndpointMapping,
+    endpointHeaders: Record<string, string> | undefined,
     variables: Record<string, string | null> = {},
   ): Record<string, string> {
     const merged = this.mergeVariables(variables);
     const headers: Record<string, string> = {};
-    if (endpoint.headers) {
-      for (const [key, value] of Object.entries(endpoint.headers)) {
+    if (endpointHeaders) {
+      for (const [key, value] of Object.entries(endpointHeaders)) {
         headers[key] = this.interpolate(value, merged);
       }
     }
@@ -240,9 +346,7 @@ export class ConfigInterpreter implements EcommerceConnector {
     return headers;
   }
 
-  private mergeVariables(
-    variables: Record<string, string | null>,
-  ): Record<string, string | null> {
+  private mergeVariables(variables: Record<string, string | null>): Record<string, string | null> {
     return { ...this.credentials, ...variables };
   }
 
@@ -258,7 +362,7 @@ export class ConfigInterpreter implements EcommerceConnector {
     variables: Record<string, string | null>,
   ): unknown {
     if (isString(value)) {
-      return this.interpolate(value, variables);
+      return this.interpolate(value, this.mergeVariables(variables));
     }
     if (Array.isArray(value)) {
       return value.map((item) => this.interpolateValues(item, variables));
@@ -280,14 +384,39 @@ export class ConfigInterpreter implements EcommerceConnector {
     throw new ConnectorError(this.provider, operation);
   }
 
-  private mapFields(
+  private extractVariables(
+    item: unknown,
+    variableMap: Record<string, string>,
+    variables: Record<string, string | null>,
+  ): Record<string, string | null> {
+    const result: Record<string, string | null> = {};
+    for (const [outputKey, sourcePath] of Object.entries(variableMap)) {
+      if (sourcePath.startsWith("var:")) {
+        const variableName = sourcePath.slice(4);
+        result[outputKey] = variables[variableName] ?? null;
+        continue;
+      }
+      const value = this.getValueByPath(item, sourcePath);
+      result[outputKey] = value === undefined || value === null ? null : String(value);
+    }
+    return result;
+  }
+
+  private mapFieldsWithVariables(
     item: unknown,
     fieldMap: Record<string, string>,
+    variables: Record<string, string | null>,
   ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
     if (!isRecord(item) && !Array.isArray(item)) return result;
     for (const [outputKey, sourcePath] of Object.entries(fieldMap)) {
-      result[outputKey] = this.getValueByPath(item, sourcePath);
+      if (sourcePath.startsWith("var:")) {
+        const variableName = sourcePath.slice(4);
+        const variableValue = variables[variableName];
+        result[outputKey] = variableValue === undefined ? null : variableValue;
+      } else {
+        result[outputKey] = this.getValueByPath(item, sourcePath);
+      }
     }
     return result;
   }

@@ -3,7 +3,10 @@ import type {
   AdapterConfigMapping,
   AuthType,
   EndpointMapping,
+  EndpointStep,
+  LookupConfig,
   PaginationConfig,
+  ResponseMapping,
 } from "../domain/adapter-config";
 
 const authType: z.ZodType<AuthType> = z.enum(["bearer", "basic", "apiKey", "oauth2"]);
@@ -15,16 +18,37 @@ const paginationConfigSchema: z.ZodType<PaginationConfig> = z.object({
   maxPerPage: z.number().int().positive().optional(),
 });
 
-const endpointMappingSchema: z.ZodType<EndpointMapping> = z.object({
+const responseMappingSchema: z.ZodType<ResponseMapping> = z.object({
+  dataPath: z.string(),
+  fieldMap: z.record(z.string()),
+});
+
+const lookupConfigSchema: z.ZodType<LookupConfig> = z.object({
+  dataPath: z.string(),
+  field: z.string(),
+  againstVariable: z.string(),
+  variableMap: z.record(z.string()),
+  optional: z.boolean().optional(),
+});
+
+const endpointStepSchema: z.ZodType<EndpointStep> = z.object({
   method: z.enum(["GET", "POST", "PUT", "DELETE"]),
   path: z.string().min(1),
   headers: z.record(z.string()).optional(),
   queryParams: z.record(z.string()).optional(),
   body: z.record(z.unknown()).optional(),
-  responseMapping: z.object({
-    dataPath: z.string(),
-    fieldMap: z.record(z.string()),
-  }),
+  variableMap: z.record(z.string()).optional(),
+  lookup: lookupConfigSchema.optional(),
+});
+
+const endpointMappingSchema: z.ZodType<EndpointMapping> = z.object({
+  method: z.enum(["GET", "POST", "PUT", "DELETE"]).optional(),
+  path: z.string().min(1).optional(),
+  headers: z.record(z.string()).optional(),
+  queryParams: z.record(z.string()).optional(),
+  body: z.record(z.unknown()).optional(),
+  responseMapping: responseMappingSchema,
+  steps: z.array(endpointStepSchema).optional(),
 });
 
 const credentialFieldSchema = z.object({
