@@ -174,7 +174,7 @@ export function ConnectAdapterForm({
                 )}
               </div>
             )}
-            <Button type="submit" disabled={testPending} variant="secondary">
+            <Button type="submit" disabled={testPending || !!credentialsError} variant="secondary">
               {testPending ? "Testing…" : "Test connection"}
             </Button>
             {testState?.error && (
@@ -197,7 +197,12 @@ export function ConnectAdapterForm({
             <input type="hidden" name="config" value={JSON.stringify(config)} />
             <input type="hidden" name="platformName" value={config.platformName} />
             <input type="hidden" name="credentials" value={JSON.stringify(credentials)} />
-            <Button type="submit" disabled={savePending}>
+            {credentialsError && (
+              <p className="text-sm text-destructive" role="alert">
+                {credentialsError}
+              </p>
+            )}
+            <Button type="submit" disabled={savePending || !!credentialsError}>
               {savePending ? "Saving…" : "Save and connect"}
             </Button>
             {saveState?.error && (

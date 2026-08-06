@@ -431,12 +431,13 @@ All notable changes to **OmniConnect AI** are documented here.
   executor as dynamically generated adapters.
 
 - `REQ-0078` **Adapter wizard review fixes** on `devin/review-fixes-adapter-1786019200`:
-  `makeSaveGeneratedAdapter` now also upserts an `EcommerceConnection` row with `provider: "CUSTOM"` so
-  the store is marked connected after the adapter wizard succeeds; `ConnectAdapterForm` no longer swallows
-  partial JSON in the credentials text area, instead keeping a typed raw JSON string and parsing only when
-  valid; and `IntegrationConnectorFactory`/`getConnector` raise `ProviderNotSupportedError` for legacy
+  `makeSaveGeneratedAdapter` now also upserts an `EcommerceConnection` row so the store is marked connected
+  after the adapter wizard succeeds, while preserving any existing provider credentials and `baseUrl` instead
+  of overwriting them with `null`; `ConnectAdapterForm` no longer swallows partial JSON in the credentials
+  text area and disables the Test/Save buttons while the JSON is invalid, so stale credentials cannot be
+  submitted; `IntegrationConnectorFactory`/`getConnector` raise `ProviderNotSupportedError` for legacy
   `WOOCOMMERCE`/`BIGCOMMERCE` rows instead of silently routing them to the Mock connector and wiping real
-  catalog data.
+  catalog data, and `CUSTOM` connections continue to resolve to the built-in Mock connector.
 
 - `REQ-0067` **H10 seat-limit retry hardening** on `devin/fix-seat-limit-concurrency-1786017547`:
   `PrismaOrganizationInviteRepository.createWithinSeatLimit` now retries Postgres `P2034` serialization

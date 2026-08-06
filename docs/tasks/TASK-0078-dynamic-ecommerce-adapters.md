@@ -58,6 +58,7 @@ Paste API docs URL → AI generates config → enter credentials → validate �
 - [x] T-037: Delete WooCommerce and BigCommerce hardcoded connectors
 - [x] T-038: Migrate Shopify connector to dynamic mapping and delete `shopify.connector.ts`
 - [x] T-038b: Adapter wizard review fixes — `saveGeneratedAdapter` upserts an `EcommerceConnection` so the store is marked connected; `ConnectAdapterForm` JSON credentials box accepts partial/typed input; legacy WooCommerce/BigCommerce rows raise `ProviderNotSupportedError` instead of silently falling back to the Mock connector.
+- [x] T-038c: Adapter wizard follow-up — `saveGeneratedAdapter` preserves existing shop credentials when marking a generated adapter; `IntegrationConnectorFactory` no longer rejects `CUSTOM` connections; `ConnectAdapterForm` disables Test/Save while credentials JSON is invalid.
 
 ## 5. Acceptance Criteria
 

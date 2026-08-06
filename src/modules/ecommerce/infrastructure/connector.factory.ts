@@ -8,7 +8,6 @@ import type {
   IntegrationRepository,
 } from "../application/ports";
 import { getConnector } from "./provider-registry";
-import { isEcommerceProvider } from "@/modules/workspaces";
 
 const LEGACY_PROVIDERS = new Set(["WOOCOMMERCE", "BIGCOMMERCE"]);
 
@@ -51,14 +50,6 @@ export class IntegrationConnectorFactory implements ConnectorFactory {
 
     if (LEGACY_PROVIDERS.has(creds.provider)) {
       throw new ProviderNotSupportedError(creds.provider);
-    }
-
-    if (!isEcommerceProvider(creds.provider)) {
-      throw new ProviderNotSupportedError(creds.provider);
-    }
-
-    if (creds.provider === "CUSTOM") {
-      throw new StoreNotConnectedError(projectId);
     }
 
     return getConnector(creds.provider, {
