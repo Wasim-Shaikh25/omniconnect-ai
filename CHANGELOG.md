@@ -15,6 +15,14 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0067` **Release blockers — remaining tests and hardening** on `devin/req-0067-release-blockers-c2-tests-1786083000`:
+  - added `src/shared/events/redis-event-bus.integration.test.ts` proving two `RedisEventBus` instances on one Redis each dispatch a published event exactly once;
+  - added `src/modules/ecommerce/application/apply-shopify-webhook.integration.test.ts` proving a valid HMAC `products/create` payload persists a product and `x-shopify-webhook-id` deduplication works;
+  - added route-level regression tests for `/api/export/[id]` covering stale `tokenVersion` and soft-deleted users returning `401`;
+  - added `generate-reply` idempotency unit test asserting duplicate invocations reuse the existing AI `Message` and do not call the provider or send a second DM;
+  - hardened `ChatSessionRepository.delete` to scope by `projectId` and updated `ChatAssistantService.deleteSession` / `deleteChatSessionAction` signatures accordingly (H5.6 delete-site inventory);
+  - added `scripts/backfill-past-due.ts` to reconcile organizations stuck in `past_due` against live Stripe subscription status (H3.6).
+
 - `REQ-0076`, `REQ-0077`, `REQ-0067`, `REQ-0078`, `REQ-0075` **Remaining V2 foundation batch** on `devin/features-branch-remaining-5req-1786011015`:
   - `REQ-0076` Auth & Registration Overhaul: registration accepts `companyName`, `age`, and `gender`;
     password policy now requires lowercase, uppercase, number, and special character; email and
@@ -404,20 +412,16 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- No active in-progress items; backlog reduced to 5 feature requirements.
+- No active in-progress items; `REQ-0067` PR is being prepared, then work will continue with `REQ-0078`.
 
 ### ⏭️ Next
 
-- `REQ-0076` **Authentication & Registration Overhaul** — remaining registration fields, OTP env toggles,
-  auto-workspace creation, and RBAC alignment.
-- `REQ-0077` **Workspace & Project System** — workspace/project selector UI in the sidebar and default
-  AIConfiguration auto-creation on project creation.
-- `REQ-0078` **Dynamic E-Commerce Adapters** — `AdapterConfigMapping` + `ConfigInterpreter` safe executor,
-  AI config generation, and adapter library UI.
-- `REQ-0067` **Release blockers (critical/high)** — `ProcessedWebhookEvent` ledger, Stripe subscription
-  lifecycle, bootstrap/super-admin reconciliation, and end-to-end staging verification.
+- `REQ-0078` **Dynamic E-Commerce Adapters** — complete `ConfigInterpreter` HTTP execution, AI adapter config
+  generation via OpenRouter, adapter validation, connection-test UI, and `GeneratedAdapter` persistence.
 - `REQ-0075` **Release engineering / DR / observability** — GitHub Environments, Fly.io staging/prod
   approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
+- `REQ-0067` **Release blockers (staging verification)** — end-to-end staging run, browser login on a
+  proxied deployment, and final §1.6 release-condition sign-off.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

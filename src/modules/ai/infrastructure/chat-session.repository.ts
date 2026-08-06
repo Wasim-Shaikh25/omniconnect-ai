@@ -129,8 +129,8 @@ export class PrismaChatSessionRepository implements ChatSessionRepository {
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await prisma.chatSession.delete({ where: { id } });
+  async delete(id: string, projectId: string): Promise<void> {
+    await prisma.chatSession.delete({ where: { id, projectId } });
   }
 
   async addMessage(

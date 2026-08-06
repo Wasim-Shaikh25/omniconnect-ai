@@ -121,20 +121,20 @@ founder disagrees, update this section and the linked task before coding.
 
 ### C2 — Event bus exactly-once dispatch
 
-- [ ] `RedisEventBus.publish()` no longer calls `dispatchLocal()` on the happy path; delivery is
+- [x] `RedisEventBus.publish()` no longer calls `dispatchLocal()` on the happy path; delivery is
       uniform via the Redis subscription.
-- [ ] If `publisher.publish()` throws, the event is dispatched locally exactly once as a fallback
+- [x] If `publisher.publish()` throws, the event is dispatched locally exactly once as a fallback
       and the failure is logged as `redisEventBus.publishFailed`.
-- [ ] A unit test asserts one publish with one registered subscriber runs the handler **exactly
+- [x] A unit test asserts one publish with one registered subscriber runs the handler **exactly
       once** (this test must fail against current `main`).
-- [ ] An integration test with two bus instances on one Redis asserts each instance handles the
+- [x] An integration test with two bus instances on one Redis asserts each instance handles the
       event exactly once.
-- [ ] All 23 `bus.subscribe(...)` registrations are audited for a dependency on the previous
+- [x] All 23 `bus.subscribe(...)` registrations are audited for a dependency on the previous
       synchronous eager dispatch; findings are recorded in the task file.
-- [ ] Side-effecting handlers (AI reply, coupon issuance, notifications, DM sends) are routed
+- [x] Side-effecting handlers (AI reply, coupon issuance, notifications, DM sends) are routed
       through BullMQ with a deterministic `jobId` so exactly one worker in the cluster executes
       them (Q4 default).
-- [ ] `generateReply` carries an idempotency key derived from the inbound message id and a
+- [x] `generateReply` carries an idempotency key derived from the inbound message id and a
       duplicate invocation produces exactly one `Message` row with `sender = "AI"` and one
       outbound DM.
 

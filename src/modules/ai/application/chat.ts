@@ -38,7 +38,7 @@ export interface ChatAssistantService {
   }): Promise<ChatSessionRecord>;
   listSessions(projectId: string): Promise<ChatSessionRecord[]>;
   renameSession(sessionId: string, title: string): Promise<ChatSessionRecord | null>;
-  deleteSession(sessionId: string): Promise<void>;
+  deleteSession(sessionId: string, projectId: string): Promise<void>;
   getSession(sessionId: string): Promise<(ChatSessionRecord & { messages: ChatMessageRecord[] }) | null>;
   sendMessage(input: SendChatMessageInput): Promise<SendChatMessageResult>;
   streamMessage(input: SendChatMessageInput): AsyncIterable<string>;
@@ -63,8 +63,8 @@ export function makeChatAssistantService(deps: {
       return deps.sessions.updateTitle(sessionId, title);
     },
 
-    async deleteSession(sessionId) {
-      await deps.sessions.delete(sessionId);
+    async deleteSession(sessionId, projectId) {
+      await deps.sessions.delete(sessionId, projectId);
     },
 
     async getSession(sessionId) {
