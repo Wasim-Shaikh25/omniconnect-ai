@@ -219,3 +219,25 @@ describe("makeGenerateReply channel gating", () => {
     expect(deps.aiProvider.complete).not.toHaveBeenCalled();
   });
 });
+
+describe("makeGenerateReply idempotency", () => {
+  it("returns the existing AI reply and does not call the provider or send a DM when a reply already exists", async () => {
+    const { deps } = makeSut("This should not be used");
+    deps.conversationQueries.findReplyByInReplyToMessageId = vi.fn().mockResolvedValue({
+      id: "ai-reply-1",
+      conversationId: "conv-1",
+      inReplyToMessageId: "msg-1",
+      sender: "AI",
+      content: "Already replied",
+      createdAt: new Date(),
+    });
+
+    const generateReply = makeGenerateReply(deps);
+    const result = await generateReply({ conversationId: "conv-1", externalUserId: "ext-1", messageId: "msg-1" });
+
+    expect(result).toEqual({ text: "Already replied", escalate: false });
+    expect(deps.aiProvider.complete).not.toHaveBeenCalled();
+    expect(deps.conversationCommands.appendMessage).not.toHaveBeenCalled();
+    expect(deps.metaService.sendMessage).not.toHaveBeenCalled();
+  });
+});

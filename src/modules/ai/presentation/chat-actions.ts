@@ -184,7 +184,7 @@ export async function deleteChatSessionAction(
     return { error: "Store not found in your organization." };
   }
 
-  await chatAssistant.deleteSession(parsed.data.id);
+  await chatAssistant.deleteSession(parsed.data.id, session.projectId);
   revalidatePath("/chat");
   return { ok: true };
 }

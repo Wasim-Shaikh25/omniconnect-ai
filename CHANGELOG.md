@@ -24,6 +24,14 @@ All notable changes to **OmniConnect AI** are documented here.
   added `testAdapterConfigAction` to exercise `fetchStoreInfo` + `getProducts` with user credentials and
   tenant-guarded project access. UI persistence and hardcoded connector removal queued for Batch 2.
 
+- `REQ-0067` **Release blockers — remaining tests and hardening** on `devin/req-0067-release-blockers-c2-tests-1786083000`:
+  - added `src/shared/events/redis-event-bus.integration.test.ts` proving two `RedisEventBus` instances on one Redis each dispatch a published event exactly once;
+  - added `src/modules/ecommerce/application/apply-shopify-webhook.integration.test.ts` proving a valid HMAC `products/create` payload persists a product and `x-shopify-webhook-id` deduplication works;
+  - added route-level regression tests for `/api/export/[id]` covering stale `tokenVersion` and soft-deleted users returning `401`;
+  - added `generate-reply` idempotency unit test asserting duplicate invocations reuse the existing AI `Message` and do not call the provider or send a second DM;
+  - hardened `ChatSessionRepository.delete` to scope by `projectId` and updated `ChatAssistantService.deleteSession` / `deleteChatSessionAction` signatures accordingly (H5.6 delete-site inventory);
+  - added `scripts/backfill-past-due.ts` to reconcile organizations stuck in `past_due` against live Stripe subscription status (H3.6).
+
 - `REQ-0076`, `REQ-0077`, `REQ-0067`, `REQ-0078`, `REQ-0075` **Remaining V2 foundation batch** on `devin/features-branch-remaining-5req-1786011015`:
   - `REQ-0076` Auth & Registration Overhaul: registration accepts `companyName`, `age`, and `gender`;
     password policy now requires lowercase, uppercase, number, and special character; email and
