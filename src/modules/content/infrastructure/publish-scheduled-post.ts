@@ -16,6 +16,18 @@ export async function publishScheduledPost(
     return;
   }
 
+  const now = Date.now();
+  const due = post.scheduledAt.getTime();
+  if (due > now + 5000) {
+    logger.info("content.publishScheduledPost.tooEarly", {
+      scheduledPostId,
+      due,
+      now,
+      remainingMs: due - now,
+    });
+    return;
+  }
+
   try {
     const result = await publishMedia({
       projectId: post.projectId,

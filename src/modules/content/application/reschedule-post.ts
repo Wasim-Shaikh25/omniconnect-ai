@@ -1,12 +1,17 @@
 import { z } from "zod";
 import { Result, ok, err } from "@/shared/kernel";
+import { isValidTimeZone } from "@/shared/utils/timezone";
 import type { ScheduledPostRepository, ScheduledPostRecord } from "./ports";
 
 export const reschedulePostSchema = z.object({
   projectId: z.string().min(1),
   scheduledPostId: z.string().min(1),
   scheduledAt: z.date({ invalid_type_error: "Please choose a valid schedule date and time." }),
-  scheduledAtTimezone: z.string().max(120).optional(),
+  scheduledAtTimezone: z
+    .string()
+    .max(120)
+    .refine(isValidTimeZone, { message: "Invalid time zone." })
+    .optional(),
 });
 
 export type ReschedulePostInput = z.infer<typeof reschedulePostSchema>;

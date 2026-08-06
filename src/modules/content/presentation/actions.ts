@@ -12,6 +12,7 @@ import {
   reschedulePost,
   hashtagIntelligence,
 } from "../infrastructure/container";
+import { formatInTimeZone, isValidTimeZone } from "@/shared/utils/timezone";
 
 export interface GenerateContentIdeasState {
   error?: string;
@@ -57,7 +58,11 @@ const schedulePostActionSchema = z.object({
     .min(1, "Please choose a schedule date and time.")
     .datetime("Please choose a valid schedule date and time.")
     .transform((v) => new Date(v)),
-  scheduledAtTimezone: z.string().max(120).optional(),
+  scheduledAtTimezone: z
+    .string()
+    .max(120)
+    .refine(isValidTimeZone, { message: "Invalid time zone." })
+    .optional(),
 });
 
 const reschedulePostActionSchema = z.object({
@@ -68,7 +73,11 @@ const reschedulePostActionSchema = z.object({
     .min(1, "Please choose a schedule date and time.")
     .datetime("Please choose a valid schedule date and time.")
     .transform((v) => new Date(v)),
-  scheduledAtTimezone: z.string().max(120).optional(),
+  scheduledAtTimezone: z
+    .string()
+    .max(120)
+    .refine(isValidTimeZone, { message: "Invalid time zone." })
+    .optional(),
 });
 
 const hashtagIntelligenceActionSchema = z.object({
@@ -250,7 +259,7 @@ export async function schedulePostAction(
 
     revalidatePath(`/stores/${parsed.data.projectId}/content`);
     const timeZone = result.value.scheduledAtTimezone ?? "UTC";
-    const formatted = result.value.scheduledAt.toLocaleString("en-US", { timeZone });
+    const formatted = formatInTimeZone(result.value.scheduledAt, timeZone);
     return {
       ok: true,
       message: `Scheduled for ${formatted} (${timeZone}).`,
@@ -295,7 +304,7 @@ export async function reschedulePostAction(
 
     revalidatePath(`/stores/${parsed.data.projectId}/content`);
     const timeZone = result.value.scheduledAtTimezone ?? "UTC";
-    const formatted = result.value.scheduledAt.toLocaleString("en-US", { timeZone });
+    const formatted = formatInTimeZone(result.value.scheduledAt, timeZone);
     return {
       ok: true,
       message: `Rescheduled for ${formatted} (${timeZone}).`,
