@@ -6,7 +6,7 @@
 - **Tracker:** `docs/trackers/TRACKER-0079-meta-growth-engine.md`
 - **Module(s):** content (new), meta
 - **Changelog entry:** `CHANGELOG.md [Unreleased]` — Content publishing, scheduling, hashtag intelligence, best-time-to-post.
-- **Last updated:** 2026-08-06 (T-058/T-059/T-069 batch complete on `devin/req-0079-hashtag-besttime-calendar-1786001674`)
+- **Last updated:** 2026-08-06 (T-071 trending reels/audio analysis batch complete on `devin/req-0079-trending-reels-1786006431`)
 
 ## 1. Summary
 
@@ -49,7 +49,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 - [x] T-058: Hashtag intelligence
 - [x] T-059: Best time to post
 - [x] T-069: Content calendar UI — visual grid preview, drag-to-reschedule (P1)
-- [ ] T-071: Trending reels/audio analysis — AI-powered niche pattern detection (P2)
+- [x] T-071: Trending reels/audio analysis — AI-powered niche pattern detection (P2)
 
 ## 5. Acceptance Criteria
 
@@ -59,6 +59,6 @@ Insights API `online_followers` + historical post performance → AI correlation
 
 ## 6. Notes / Blockers
 
-- T-023, T-024, T-058, T-059, T-069, and T-070 completed on the respective feature branches. T-021 (Meta OAuth), T-022 (WhatsApp), and T-071 (trending reels) remain open.
+- T-023, T-024, T-058, T-059, T-069, T-070, and T-071 completed on the respective feature branches. T-021 (Meta OAuth) and T-022 (WhatsApp) remain open.
 - Instagram Content Publishing API requires Meta App Review approval.
 - Hashtag API limited to 30 unique lookups per 7-day rolling window.

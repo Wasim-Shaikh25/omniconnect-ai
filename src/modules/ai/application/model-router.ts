@@ -7,6 +7,7 @@ export type AIOperation =
   | "post-ideas"
   | "trends"
   | "competitor-analysis"
+  | "trending-reels"
   | "welcome-message"
   | "default";
 
@@ -74,6 +75,8 @@ function operationToFeature(operation: AIOperation): AIModelFeature {
       return "content";
     case "competitor-analysis":
       return "inspector";
+    case "trending-reels":
+      return "content";
     default:
       return "analysis";
   }

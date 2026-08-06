@@ -29,6 +29,7 @@ import { makeGenerateCaptions } from "../application/generate-captions";
 import { makeGenerateTrends } from "../application/generate-trends";
 import { makeGeneratePostIdeas } from "../application/generate-post-ideas";
 import { makeAnalyzeCompetitor } from "../application/analyze-competitor";
+import { makeAnalyzeTrendingReels } from "../application/analyze-trending-reels";
 import { makeAnalyzeMedia } from "../application/analyze-media";
 import { makeCreateContentIdea } from "../application/create-content-idea";
 import { makeAskBusinessBrain } from "../application/ask-business-brain";
@@ -160,6 +161,11 @@ export const generatePostIdeas = makeGeneratePostIdeas({
 });
 
 export const analyzeCompetitor = makeAnalyzeCompetitor({
+  aiProvider,
+  aiConfigurationRepository,
+});
+
+export const analyzeTrendingReels = makeAnalyzeTrendingReels({
   aiProvider,
   aiConfigurationRepository,
 });

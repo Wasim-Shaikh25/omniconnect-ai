@@ -66,6 +66,13 @@ export type {
   AnalyzeCompetitor,
 } from "./application/analyze-competitor";
 export type {
+  AnalyzeTrendingReelsInput,
+  TrendingReelsAnalysis,
+  TrendingReelInput,
+  TrendingReelRecommendation,
+  AnalyzeTrendingReels,
+} from "./application/analyze-trending-reels";
+export type {
   MediaMetricsInput,
   MediaSlide,
   MediaAnalysis,

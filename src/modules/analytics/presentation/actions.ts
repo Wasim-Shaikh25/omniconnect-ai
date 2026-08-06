@@ -535,6 +535,7 @@ export async function getContentCalendarAction(
 export interface SyncMediaCatalogState { error?: string; upserted?: number; }
 export interface SyncAccountAnalyticsState { error?: string; insight?: Awaited<ReturnType<typeof marketingInsightsService.syncAccountAnalytics>>; }
 export interface SearchTrendingHashtagsState { error?: string; snapshotId?: string; }
+export interface AnalyzeTrendingReelsState { error?: string; snapshotId?: string; }
 export interface AnalyzeMediaState { error?: string; analysis?: Awaited<ReturnType<typeof marketingInsightsService.analyzeMediaPost>>; }
 export interface GenerateReportState { error?: string; reportId?: string; }
 export interface CreateContentRecommendationState { error?: string; recommendationId?: string; }
@@ -603,6 +604,37 @@ export async function searchTrendingHashtagsAction(_prev: SearchTrendingHashtags
     return { snapshotId };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not search hashtags" };
+  }
+}
+
+const analyzeTrendingReelsSchema = z.object({
+  projectId: z.string().min(1),
+  query: z.string().min(1).max(120),
+});
+
+export async function analyzeTrendingReelsAction(_prev: AnalyzeTrendingReelsState, formData: FormData): Promise<AnalyzeTrendingReelsState> {
+  const user = await getCurrentUser();
+  const parsed = analyzeTrendingReelsSchema.safeParse({
+    projectId: formData.get("projectId"),
+    query: formData.get("query"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const guard = await guardStoreAccess(user, parsed.data.projectId);
+  if (guard.error) return guard;
+
+  const userId = user?.userId ? await organizationQueries.getOrganizationIdByStoreId(parsed.data.projectId) : null;
+  try {
+    await aiUsageGuard.assertAvailable(userId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "AI quota exceeded" };
+  }
+
+  try {
+    const snapshotId = await marketingInsightsService.analyzeTrendingReels(parsed.data.projectId, parsed.data.query);
+    revalidatePath(`/stores/${parsed.data.projectId}/analytics/trends`);
+    return { snapshotId };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not analyze trending reels" };
   }
 }
 
