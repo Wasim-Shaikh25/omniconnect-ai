@@ -74,7 +74,13 @@ export default async function ContentStudioPage({
                 <div>
                   <p className="font-medium">{post.mediaType}</p>
                   <p className="text-sm text-muted-foreground">
-                    {formatInTimeZone(post.scheduledAt, post.scheduledAtTimezone)} ({post.scheduledAtTimezone ?? "UTC"}) · {post.status}
+                    {(() => {
+                      const { formatted, zone } = formatInTimeZone(
+                        post.scheduledAt,
+                        post.scheduledAtTimezone,
+                      );
+                      return `${formatted} (${zone}) · ${post.status}`;
+                    })()}
                   </p>
                 </div>
                 {post.externalId && (

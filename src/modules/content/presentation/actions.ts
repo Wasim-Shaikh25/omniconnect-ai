@@ -258,11 +258,13 @@ export async function schedulePostAction(
     }
 
     revalidatePath(`/stores/${parsed.data.projectId}/content`);
-    const timeZone = result.value.scheduledAtTimezone ?? "UTC";
-    const formatted = formatInTimeZone(result.value.scheduledAt, timeZone);
+    const { formatted, zone } = formatInTimeZone(
+      result.value.scheduledAt,
+      result.value.scheduledAtTimezone,
+    );
     return {
       ok: true,
-      message: `Scheduled for ${formatted} (${timeZone}).`,
+      message: `Scheduled for ${formatted} (${zone}).`,
       scheduledPostId: result.value.id,
     };
   } catch (error) {
@@ -303,11 +305,13 @@ export async function reschedulePostAction(
     }
 
     revalidatePath(`/stores/${parsed.data.projectId}/content`);
-    const timeZone = result.value.scheduledAtTimezone ?? "UTC";
-    const formatted = formatInTimeZone(result.value.scheduledAt, timeZone);
+    const { formatted, zone } = formatInTimeZone(
+      result.value.scheduledAt,
+      result.value.scheduledAtTimezone,
+    );
     return {
       ok: true,
-      message: `Rescheduled for ${formatted} (${timeZone}).`,
+      message: `Rescheduled for ${formatted} (${zone}).`,
       scheduledPostId: result.value.id,
     };
   } catch (error) {
