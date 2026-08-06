@@ -57,6 +57,15 @@ All notable changes to **OmniConnect AI** are documented here.
   `RateLimitStore` (Redis in production, in-memory fallback in dev/tests) keyed by `meta:graph:<projectId>`.
   Unit tests added in `src/modules/meta/infrastructure/meta.service.test.ts`.
 
+- `REQ-0079` **Trending Reels / Audio Analysis (T-071)** on `devin/req-0079-trending-reels-1786006431`:
+  added `makeAnalyzeTrendingReels` AI use-case and exported it from `ai/server`; `MarketingInsightsService`
+  fetches recent `REEL` `MediaPost` rows (last 30 days), calls the AI for niche pattern detection, and stores
+  a `TrendSnapshot` of type `NICHE` plus up to three `ContentRecommendation` rows of type `REEL`. New
+  `TrendingReelsAnalyzed` domain event is registered in `event-registry.json`. Added
+  `analyzeTrendingReelsAction` (tenant-guarded + AI usage-guarded), `AnalyzeTrendingReelsForm`, and wired
+  the `/stores/[projectId]/analytics/trends` page so users can analyze a niche and get AI recommendations.
+  Unit tests added for `analyze-trending-reels.ts`.
+
 - `REQ-0080` **Unified Messaging Board — manual reply + AI channel gating** on `devin/req-0080-unified-messaging-send-1785995189`:
   added `sendMessage` use-case in `conversations/application/send-message.ts` that appends a `HUMAN`/`AI`
   message and routes `INSTAGRAM`/`FACEBOOK` replies through `MetaService.sendMessage`; wired it in the
@@ -329,7 +338,9 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ⏭️ Next
 
-- `REQ-0089` **Intelligence Layer** — daily brief, marketing brain, next best action, signal detection.
+- `REQ-0080` **Unified Messaging Board** — WhatsApp Business API connection (T-078) and mobile PWA
+  improvements (T-075).
+- `REQ-0079` **Meta Growth Engine** — Meta OAuth flow (T-021) and WhatsApp Business API connection (T-022).
 - `REQ-0068` M5.7 — Shopify automated compliance checks in a development store (requires a live
   development store and `SHOPIFY_API_SECRET`).
 

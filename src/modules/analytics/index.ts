@@ -67,6 +67,7 @@ export {
   CompetitorContentSynced,
   ReportGenerated,
   ContentRecommendationCreated,
+  TrendingReelsAnalyzed,
 } from "./domain/events";
 
 export type { MarketingInsightsRepository } from "./application/ports";
@@ -92,6 +93,7 @@ export {
   syncMediaCatalogAction,
   syncAccountAnalyticsAction,
   searchTrendingHashtagsAction,
+  analyzeTrendingReelsAction,
   analyzeMediaAction,
   generateReportAction,
   queryAnalyticsAction,
@@ -121,6 +123,7 @@ export type {
   SyncMediaCatalogState,
   SyncAccountAnalyticsState,
   SearchTrendingHashtagsState,
+  AnalyzeTrendingReelsState,
   AnalyzeMediaState,
   GenerateReportState,
   QueryAnalyticsState,

@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-08-01T13:19:32.412Z",
-  "count": 89,
+  "count": 90,
   "events": [
     {
       "name": "EscalationRequested",
@@ -90,6 +90,14 @@
       "file": "modules/analytics/domain/events.ts",
       "status": "Planned",
       "reqId": "REQ-0020",
+      "subscribers": []
+    },
+    {
+      "name": "TrendingReelsAnalyzed",
+      "module": "analytics",
+      "file": "modules/analytics/domain/events.ts",
+      "status": "Live",
+      "reqId": "REQ-0079",
       "subscribers": []
     },
     {

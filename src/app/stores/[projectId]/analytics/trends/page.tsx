@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
-import { listTrendSnapshotsAction, searchTrendingHashtagsAction } from "@/modules/analytics";
+import { listTrendSnapshotsAction, searchTrendingHashtagsAction, analyzeTrendingReelsAction } from "@/modules/analytics";
 import { SearchTrendsForm } from "@/components/search-trends-form";
+import { AnalyzeTrendingReelsForm } from "@/components/analyze-trending-reels-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TrendSnapshot } from "@/modules/analytics";
@@ -43,6 +44,16 @@ export default async function TrendsAnalyticsPage({
         </CardHeader>
         <CardContent>
           <SearchTrendsForm action={searchTrendingHashtagsAction} projectId={projectId} />
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Trending Reels</CardTitle>
+          <CardDescription>Analyze your recent Reels to detect niche patterns and get AI recommendations.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AnalyzeTrendingReelsForm action={analyzeTrendingReelsAction} projectId={projectId} />
         </CardContent>
       </Card>
 
