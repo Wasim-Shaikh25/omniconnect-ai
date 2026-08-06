@@ -53,6 +53,7 @@ export interface AdapterConfigMapping {
     getProducts: EndpointMapping;
     getOrders: EndpointMapping;
     getCustomers: EndpointMapping;
+    fetchDiscounts: EndpointMapping;
     createCoupon: EndpointMapping;
     disableCoupon: EndpointMapping;
     fetchStoreInfo: EndpointMapping;

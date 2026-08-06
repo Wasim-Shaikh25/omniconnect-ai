@@ -4,6 +4,7 @@ import type {
   ConnectorProduct,
   EcommerceConnector,
 } from "../domain/connector";
+import type { AdapterConfigMapping } from "../domain/adapter-config";
 
 /** One active eCommerce connection per store. */
 export interface IntegrationRecord {
@@ -248,4 +249,22 @@ export interface CartRepository {
 /** Resolves the correct provider connector for a store. */
 export interface ConnectorFactory {
   forStore(projectId: string): Promise<EcommerceConnector>;
+}
+
+/** Builds a live connector from a generated adapter config and credentials. */
+export interface DynamicConnectorFactory {
+  build(
+    config: AdapterConfigMapping,
+    credentials: Record<string, string>,
+  ): EcommerceConnector;
+}
+
+/** Generates an {@link AdapterConfigMapping} from API documentation text. */
+export interface AdapterConfigGenerator {
+  generate(input: {
+    platformName: string;
+    apiDocs: string;
+    userId: string;
+    projectId?: string | null;
+  }): Promise<AdapterConfigMapping>;
 }

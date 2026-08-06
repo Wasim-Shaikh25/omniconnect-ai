@@ -15,6 +15,15 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 1** on `devin/req-0078-dynamic-adapters-batch1-1786085000`:
+  implemented the safe HTTP `ConfigInterpreter` (`buildUrl`, `buildHeaders`, `extractPath`, `mapFields`, `interpolate`)
+  so an `AdapterConfigMapping` can execute every `EcommerceConnector` method without arbitrary code;
+  added a Zod validation schema for `AdapterConfigMapping`;
+  added `OpenRouterAdapterGenerator` that converts API documentation text into a validated config via
+  the public `AIProvider` port;
+  added `testAdapterConfigAction` to exercise `fetchStoreInfo` + `getProducts` with user credentials and
+  tenant-guarded project access. UI persistence and hardcoded connector removal queued for Batch 2.
+
 - `REQ-0067` **Release blockers — remaining tests and hardening** on `devin/req-0067-release-blockers-c2-tests-1786083000`:
   - added `src/shared/events/redis-event-bus.integration.test.ts` proving two `RedisEventBus` instances on one Redis each dispatch a published event exactly once;
   - added `src/modules/ecommerce/application/apply-shopify-webhook.integration.test.ts` proving a valid HMAC `products/create` payload persists a product and `x-shopify-webhook-id` deduplication works;
@@ -412,12 +421,12 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### 🚧 In Progress
 
-- No active in-progress items; `REQ-0067` PR is being prepared, then work will continue with `REQ-0078`.
+- No active in-progress items; the latest batch is in PR #176 review.
 
 ### ⏭️ Next
 
-- `REQ-0078` **Dynamic E-Commerce Adapters** — complete `ConfigInterpreter` HTTP execution, AI adapter config
-  generation via OpenRouter, adapter validation, connection-test UI, and `GeneratedAdapter` persistence.
+- `REQ-0078` **Dynamic E-Commerce Adapters — Batch 2** — connection UI, `GeneratedAdapter` model for
+  encrypted persistence, and deletion of hardcoded Shopify/WooCommerce/BigCommerce connectors.
 - `REQ-0075` **Release engineering / DR / observability** — GitHub Environments, Fly.io staging/prod
   approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
 - `REQ-0067` **Release blockers (staging verification)** — end-to-end staging run, browser login on a
