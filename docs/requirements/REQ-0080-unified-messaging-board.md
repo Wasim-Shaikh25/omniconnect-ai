@@ -4,17 +4,17 @@ description: Unified Messaging Board
 
 # REQ-0080: Unified Messaging Board
 
-- **Status:** Draft
+- **Status:** Approved
 - **Owner:** wasim
 - **Product Charter:** `docs/specs/current-state.md`
 - **Related Task:** `docs/tasks/TASK-0080-unified-messaging-board.md`
 - **Related Tracker:** `docs/trackers/TRACKER-0080-unified-messaging-board.md`
 - **Supersedes:** `REQ-0016-unified-inbox.md`, `REQ-0008-human-takeover.md`
-- **Last updated:** 2026-08-05
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
-One inbox for Instagram DM, Facebook Messenger, and WhatsApp. Single webhook endpoint handles all Meta platforms. AI replies across all channels using project-specific AI configuration. Channel-specific message sending. Human takeover toggle per conversation.
+One inbox for Instagram DM, Facebook Messenger, and WhatsApp. The existing `conversations` module already owns unified storage, an inbox UI, human takeover, and IG/FB webhook ingestion. This batch finishes channel-specific outbound sending (manual and AI replies) and AI auto-reply gating by channel enable/disable and business hours. WhatsApp webhook/sender is deferred until Meta Business verification details are available.
 
 ## 2. Goals
 
@@ -40,13 +40,16 @@ One inbox for Instagram DM, Facebook Messenger, and WhatsApp. Single webhook end
 
 ## 5. Acceptance Criteria
 
-- [ ] Single webhook endpoint handles IG, FB Messenger, and WhatsApp events.
-- [ ] Webhook signature verification (HMAC-SHA256) for all platforms.
-- [ ] Messages stored with channel, direction, senderType.
-- [ ] AI auto-reply respects channel enable/disable and business hours from AIConfiguration.
-- [ ] MessageSender routes to correct Meta API per channel.
-- [ ] Human takeover flag stops AI replies on that conversation.
-- [ ] Unified inbox UI with channel badges and filter.
+- [x] Single webhook endpoint handles IG and FB Messenger events; WhatsApp route scaffolded.
+- [x] Webhook signature verification (HMAC-SHA256) for IG/FB.
+- [x] Messages stored with channel, direction, senderType.
+- [x] AI auto-reply respects channel enable/disable and business hours from AIConfiguration.
+- [x] MessageSender routes to correct Meta API per channel for IG/FB.
+- [x] Human takeover flag stops AI replies on that conversation.
+- [x] Unified inbox UI with channel badges and filter.
+- [x] Manual human reply form from the conversation detail page.
+- [ ] WhatsApp Business API webhook + sender (deferred).
+- [ ] Mobile PWA optimization for messaging UI (P2).
 
 ## 6. Scope & Dependencies
 

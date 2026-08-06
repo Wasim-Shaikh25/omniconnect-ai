@@ -100,7 +100,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `intelligence` | Marketing Brain (`updateMarketingMemory`, `generateDailyBrief`), Next Best Action (`recommendationService`), predictions, hypotheses, business learnings, goal planning, and plan-tier access rules (`canUseIntelligenceFeature`). |
 | `coupons` | First-follower and DM campaign coupon orchestration. |
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
-| `conversations` | Unified inbox, messages, human takeover/resume. |
+| `conversations` | Unified inbox, messages, human takeover/resume, and `sendMessage` use-case for outbound `HUMAN`/`AI` replies. |
 | `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
@@ -189,8 +189,10 @@ Core tables (see `prisma/schema.prisma` for full model):
 1. Customer DM/comment → `MetaMessageReceived` event.
 2. `conversations` appends customer message.
 3. Subscriber calls `ai.generateReply` if conversation status is `AI_ACTIVE` and `AIUsageGuard` allows.
-4. AI reply appended; `metaService.sendMessage` attempted.
-5. Staff can `takeOver` to set `HUMAN_ACTIVE`; `resumeAI` flips back.
+4. `ai.generateReply` now also respects `AIConfiguration.channelSettings` for the conversation's channel: if the channel is disabled or the current time is outside the configured `businessHoursStart..businessHoursEnd`, it returns an empty reply and does not call the LLM.
+5. AI reply appended; `metaService.sendMessage` attempted.
+6. Staff can `takeOver` to set `HUMAN_ACTIVE`; `resumeAI` flips back.
+7. When a conversation is `HUMAN_ACTIVE`, the conversation detail page shows a `ConversationMessageForm` that appends a `HUMAN` message and calls `MetaService.sendMessage` for `INSTAGRAM`/`FACEBOOK` channels (tenant-guarded via `sendConversationMessageAction`).
 
 ### 8.6 Analytics
 1. `getMarketingPerformance(projectId)` fetches live Meta page/media/audience insights and Shopify orders.

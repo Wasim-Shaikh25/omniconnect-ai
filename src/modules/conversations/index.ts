@@ -28,6 +28,7 @@ export type {
   MessageSender,
 } from "./application/ports";
 export type { ConversationCommands } from "./application/commands";
+export type { SendMessage, SendMessageInput } from "./application/send-message";
 export type { ConversationDetail, ConversationQueries } from "./application/queries";
 export type { DetectConversationInsights } from "./application/detect-insights";
 export type {
@@ -44,12 +45,14 @@ export {
   conversationQueries,
   unifiedInboxQueries,
   detectConversationInsights,
+  sendMessage,
 } from "./infrastructure/container";
 
 // Presentation
 export {
   takeOverConversationAction,
   resumeAIConversationAction,
+  sendConversationMessageAction,
   getUnifiedInboxAction,
 } from "./presentation/actions";
 export type { ConversationActionState } from "./presentation/actions";
