@@ -158,6 +158,12 @@ export interface MetaService {
   /** Return the Meta Pixel ID for this project, or null if not configured. */
   getPixelId(projectId: string): Promise<string | null>;
 
+  /**
+   * Consume one call from the Instagram Graph API hourly rate-limit bucket for the project.
+   * Throws `MetaRateLimitError` when the bucket is exhausted.
+   */
+  consumeGraphApiCall(projectId: string): Promise<void>;
+
   /** Send a server-side Purchase event to the Meta Conversions API. No-ops when the pixel or access token is missing. */
   sendPurchaseEvent(projectId: string, order: ConnectorOrder): Promise<void>;
 

@@ -15,6 +15,12 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0079` **Graph API rate-limit review fixes** on `devin/review-fixes-meta-rate-limit-1786022000`:
+  exposed `MetaService.consumeGraphApiCall` so cross-module Instagram Graph API callers (`inspector`)
+  share the same per-project 200 calls/hour bucket; routed `MetaService.sendPurchaseEvent`
+  through direct `fetch` so Meta Conversions API purchase events do not consume the Instagram
+  Graph API budget and are no longer silently dropped when the Instagram bucket is exhausted.
+
 - `REQ-0078` **Dynamic E-Commerce Adapters — Batch 1** on `devin/req-0078-dynamic-adapters-batch1-1786085000`:
   implemented the safe HTTP `ConfigInterpreter` (`buildUrl`, `buildHeaders`, `extractPath`, `mapFields`, `interpolate`)
   so an `AdapterConfigMapping` can execute every `EcommerceConnector` method without arbitrary code;

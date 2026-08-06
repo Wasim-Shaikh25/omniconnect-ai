@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { env } from "@/shared/config";
 import { logger, withSpan } from "@/shared/observability";
-import { rateLimit, type RateLimitResult, type RateLimitStore } from "@/shared/security/rate-limit";
+import { rateLimit, type RateLimitStore } from "@/shared/security/rate-limit";
 import type { ConnectorOrder } from "@/modules/ecommerce";
 import { MetaRateLimitError } from "../domain/errors";
 import type {
@@ -38,7 +38,7 @@ export class GraphApiMetaService implements MetaService {
     private readonly rateLimitStore?: RateLimitStore,
   ) {}
 
-  private async consumeRateLimit(projectId: string): Promise<RateLimitResult> {
+  async consumeGraphApiCall(projectId: string): Promise<void> {
     const result = await rateLimit({
       key: `meta:graph:${projectId}`,
       limit: GRAPH_API_HOURLY_LIMIT,
@@ -49,7 +49,6 @@ export class GraphApiMetaService implements MetaService {
       logger.warn("meta.rateLimit.exceeded", { projectId, resetAt: result.resetAt });
       throw new MetaRateLimitError(result.resetAt);
     }
-    return result;
   }
 
   private async graphApiFetch(
@@ -57,7 +56,7 @@ export class GraphApiMetaService implements MetaService {
     input: RequestInfo,
     init?: RequestInit,
   ): Promise<Response> {
-    await this.consumeRateLimit(projectId);
+    await this.consumeGraphApiCall(projectId);
     return fetch(input, init);
   }
 
@@ -572,7 +571,8 @@ export class GraphApiMetaService implements MetaService {
     };
 
     try {
-      const res = await this.graphApiFetch(projectId, `${GRAPH_API_BASE}/${pixelId}/events`, withTimeout({
+      // Conversions API calls are not part of the Instagram Graph API hourly budget.
+      const res = await fetch(`${GRAPH_API_BASE}/${pixelId}/events`, withTimeout({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),

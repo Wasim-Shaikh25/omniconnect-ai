@@ -30,6 +30,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [x] T-058: Hashtag intelligence (Meta API + AI scoring).
 - [x] T-059: Best time to post (Insights API + AI correlation).
 - [x] T-069: Content calendar UI — visual grid, drag-to-reschedule (P1).
+- [x] T-070b: Devin Review fixes on T-070 — `MetaService.consumeGraphApiCall` shared with `inspector`, `sendPurchaseEvent` bypasses Instagram Graph API bucket.
 - [x] T-071: Trending reels/audio analysis — AI niche pattern detection (P2) on `devin/req-0079-trending-reels-1786006431`.
 
 ### Verification

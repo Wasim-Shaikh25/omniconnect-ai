@@ -27,6 +27,8 @@ export interface MetaProfileFetcherConfig {
   fetch?: typeof fetch;
   mediaLimit?: number;
   commentLimit?: number;
+  /** Consume one call from the shared Instagram Graph API rate-limit bucket per outbound request. */
+  consumeGraphApiCall?(projectId: string): Promise<void>;
 }
 
 interface MediaItem {
@@ -69,7 +71,15 @@ function extractHashtags(caption: string): string[] {
   return matches ?? [];
 }
 
-async function fetchJson(url: string, fetchImpl: typeof fetch): Promise<unknown> {
+async function fetchJson(
+  url: string,
+  fetchImpl: typeof fetch,
+  projectId: string,
+  consumeGraphApiCall?: (projectId: string) => Promise<void>,
+): Promise<unknown> {
+  if (consumeGraphApiCall) {
+    await consumeGraphApiCall(projectId);
+  }
   const response = await fetchImpl(url);
   const body = (await response.json()) as { error?: { message: string; code: number } };
   if (!response.ok || body.error) {
@@ -89,13 +99,16 @@ export function makeMetaProfileFetcher(config: MetaProfileFetcherConfig): Profil
   const mediaLimit = config.mediaLimit ?? 50;
   const commentLimit = config.commentLimit ?? 20;
 
-  async function fetchComments(mediaId: string, accessToken: string): Promise<PublicComment[]> {
+  async function fetchComments(mediaId: string, accessToken: string, projectId: string): Promise<PublicComment[]> {
     const url = `${baseUrl}/${version}/${mediaId}/comments?fields=text&limit=${commentLimit}&access_token=${encodeURIComponent(accessToken)}`;
     try {
-      const body = (await fetchJson(url, fetchImpl)) as { data?: Array<{ text?: string }> };
+      const body = (await fetchJson(url, fetchImpl, projectId, config.consumeGraphApiCall)) as { data?: Array<{ text?: string }> };
       return (body.data ?? []).map((c) => ({ text: c.text ?? "" }));
     } catch (error) {
-      if (error instanceof ProfileNotFoundError) {
+      if (
+        error instanceof ProfileNotFoundError ||
+        (error instanceof Error && error.name === "MetaRateLimitError")
+      ) {
         return [];
       }
       throw error;
@@ -113,7 +126,7 @@ export function makeMetaProfileFetcher(config: MetaProfileFetcherConfig): Profil
       const fields = `business_discovery.username(${username}){followers_count,media_count,biography,media.limit(${mediaLimit}){id,media_type,caption,timestamp,like_count,comments_count,permalink}}`;
       const url = `${baseUrl}/${version}/${accountId}?fields=${encodeURIComponent(fields)}&access_token=${encodeURIComponent(accessToken)}`;
 
-      const body = (await fetchJson(url, fetchImpl)) as BusinessDiscoveryResponse;
+      const body = (await fetchJson(url, fetchImpl, projectId, config.consumeGraphApiCall)) as BusinessDiscoveryResponse;
       const discovery = body.business_discovery;
       if (!discovery) {
         throw new ProfileNotFoundError(username);
@@ -121,7 +134,7 @@ export function makeMetaProfileFetcher(config: MetaProfileFetcherConfig): Profil
 
       const mediaItems = discovery.media?.data ?? [];
       const commentsByMedia = await Promise.all(
-        mediaItems.map((item) => fetchComments(item.id, accessToken)),
+        mediaItems.map((item) => fetchComments(item.id, accessToken, projectId)),
       );
 
       const allComments: PublicComment[] = commentsByMedia.flat();
