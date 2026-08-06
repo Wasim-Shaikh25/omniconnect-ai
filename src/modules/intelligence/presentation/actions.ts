@@ -8,6 +8,7 @@ import { ForbiddenError, isStaff } from "@/modules/auth/domain";
 import { organizationQueries, tenantGuard } from "@/modules/workspaces";
 import { customerDirectory } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
+import { canUseIntelligenceFeature, type IntelligenceFeature } from "../domain/access";
 import {
   timelineService,
   customerSummaryService,
@@ -109,6 +110,13 @@ async function resolveStoreScope(
   }
 
   return null;
+}
+
+function planAllowsIntelligence(
+  user: SessionUser,
+  feature: IntelligenceFeature,
+): boolean {
+  return canUseIntelligenceFeature(user.plan, feature);
 }
 
 export async function getCustomerTimelineAction(customerId: string) {
@@ -241,6 +249,7 @@ export async function mergeEntityAction(formData: FormData): Promise<void> {
 export async function getRecommendationsAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { recommendations: [] };
+  if (!planAllowsIntelligence(user, "nextBestAction")) return { recommendations: [] };
   const userId = user.userId;
 
   let effectiveStoreId: string | null;
@@ -309,6 +318,7 @@ export async function refreshReadModelsAction(projectId?: string): Promise<{
 export async function approveRecommendationAction(formData: FormData): Promise<void> {
   const user = await requireRole("USER");
   if (!user.userId) return;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return;
 
   const parsed = z.object({ recommendationId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return;
@@ -326,6 +336,7 @@ export async function approveRecommendationAction(formData: FormData): Promise<v
 export async function executeActionPlanAction(formData: FormData): Promise<void> {
   const user = await requireRole("USER");
   if (!user.userId) return;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return;
 
   const parsed = z.object({ recommendationId: z.string().min(1) }).safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return;
@@ -358,6 +369,7 @@ export async function dismissRecommendationAction(formData: FormData): Promise<v
 export async function getGoalsAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { goals: [] };
+  if (!planAllowsIntelligence(user, "nextBestAction")) return { goals: [] };
 
   let effectiveStoreId: string | null;
   try {
@@ -373,6 +385,7 @@ export async function getGoalsAction(projectId?: string) {
 export async function createGoalAction(formData: FormData): Promise<void> {
   const user = await requireRole("USER");
   if (!user.userId) return;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return;
 
   const schema = z.object({
     projectId: z.string().optional(),
@@ -415,6 +428,7 @@ export async function splitEntityAction(formData: FormData): Promise<void> {
 export async function getPredictionsAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { predictions: [] };
+  if (!planAllowsIntelligence(user, "predictions")) return { predictions: [] };
 
   let effectiveStoreId: string | null;
   try {
@@ -431,6 +445,7 @@ export async function getPredictionsAction(projectId?: string) {
 export async function getHypothesesAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { hypotheses: [] };
+  if (!planAllowsIntelligence(user, "hypotheses")) return { hypotheses: [] };
 
   let effectiveStoreId: string | null;
   try {
@@ -447,6 +462,7 @@ export async function getHypothesesAction(projectId?: string) {
 export async function getBusinessLearningAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { learning: [] };
+  if (!planAllowsIntelligence(user, "businessLearnings")) return { learning: [] };
 
   let effectiveStoreId: string | null;
   try {
@@ -670,6 +686,7 @@ const createGoalAutomationSchema = z.object({
 export async function createGoalAutomationAction(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user || !user.userId) throw new Error("Not authenticated");
+  if (!planAllowsIntelligence(user, "nextBestAction")) throw new Error("Upgrade to Pro or Business to use goal automation.");
 
   const raw = Object.fromEntries(formData.entries());
   const parsed = createGoalAutomationSchema.safeParse({
@@ -859,6 +876,7 @@ export async function getFeatureProfileAction(type: "customer" | "product" | "co
 export async function createGoalPlanWorkflowAction(goalId: string) {
   const user = await requireRole("USER");
   if (!user.userId) return null;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return null;
   const plan = await goalPlanGenerationService.createVersionedWorkflow(goalId, user.userId);
   return plan;
 }
@@ -872,6 +890,7 @@ export async function testGoalPlanWorkflowAction(workflowId: string) {
 export async function launchGoalPlanWorkflowAction(workflowId: string, holdoutPct: number) {
   const user = await requireRole("SUPER_ADMIN");
   if (!user.userId) return null;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return null;
   return goalPlanGenerationService.launchWithHoldout(workflowId, user.userId, holdoutPct);
 }
 
@@ -983,6 +1002,7 @@ export async function getMarketingMemoryAction(
 export async function getTodayActionsAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { actions: [] };
+  if (!planAllowsIntelligence(user, "nextBestAction")) return { actions: [] };
   const userId = user.userId;
 
   let effectiveStoreId: string | null;
@@ -999,6 +1019,7 @@ export async function getTodayActionsAction(projectId?: string) {
 export async function completeDailyActionAction(formData: FormData): Promise<void> {
   const user = await requireRole("USER");
   if (!user.userId) return;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return;
 
   const parsed = z
     .object({ actionId: z.string().min(1), feedback: z.string().optional() })
@@ -1014,6 +1035,7 @@ export async function completeDailyActionAction(formData: FormData): Promise<voi
 export async function skipDailyActionAction(formData: FormData): Promise<void> {
   const user = await requireRole("USER");
   if (!user.userId) return;
+  if (!planAllowsIntelligence(user, "nextBestAction")) return;
 
   const parsed = z
     .object({ actionId: z.string().min(1), reason: z.string().optional() })
@@ -1053,6 +1075,7 @@ export async function getJourneyAction(journeyId: string) {
 export async function getBusinessBrainContextAction(projectId?: string) {
   const user = await getCurrentUser();
   if (!user || !user.userId) return { context: null };
+  if (!planAllowsIntelligence(user, "marketingBrain")) return { context: null };
   const userId = user.userId;
 
   let effectiveStoreId: string | null;

@@ -81,6 +81,7 @@ function sessionUserFromClient(raw: unknown): SessionUser | null {
     phoneVerified: parseClientDate(u.phoneVerified),
     userId: typeof u.userId === "string" ? u.userId : null,
     projectId: typeof u.projectId === "string" ? u.projectId : null,
+    plan: typeof u.plan === "string" ? u.plan : "FREE",
     suspendedAt: parseClientDate(u.suspendedAt),
     banned: typeof u.banned === "boolean" ? u.banned : false,
     impersonatedBy: typeof u.impersonatedBy === "string" ? u.impersonatedBy : null,

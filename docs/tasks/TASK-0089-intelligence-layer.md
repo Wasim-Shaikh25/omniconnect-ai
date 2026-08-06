@@ -1,12 +1,12 @@
 # TASK-0089: Intelligence Layer
 
-- **Status:** Todo
+- **Status:** Done
 - **Owner:** wasim
 - **Requirement:** `docs/requirements/REQ-0089-intelligence-layer.md`
 - **Tracker:** `docs/trackers/TRACKER-0089-intelligence-layer.md`
-- **Module(s):** intelligence
-- **Changelog entry:** `CHANGELOG.md [Unreleased]` — Intelligence layer: daily brief, brain, predictions, signals.
-- **Last updated:** 2026-08-05
+- **Module(s):** intelligence, auth, ai
+- **Changelog entry:** `CHANGELOG.md [Unreleased]` — Intelligence layer: plan-tier gating for all intelligence features.
+- **Last updated:** 2026-08-06
 
 ## 1. Summary
 
@@ -38,13 +38,18 @@ Free: Daily Brief only. Pro: Full intelligence. Business: Full + predictions.
 
 ## 4. Subtasks
 
-- [ ] T-073: Adapt intelligence features to new scope + expand
+- [x] T-073: Adapt intelligence features to new scope + expand
+- [x] Add `IntelligenceFeature` + `canUseIntelligenceFeature` domain rule in `src/modules/intelligence/domain/access.ts`.
+- [x] Add `plan` to `SessionUser` so every server action/page can read the current user's plan.
+- [x] Gate intelligence read/mutating actions (`getRecommendationsAction`, `getPredictionsAction`, `getHypothesesAction`, `getBusinessLearningAction`, `getTodayActionsAction`, `getGoalsAction`, `getBusinessBrainContextAction`, `createGoalAction`, `createGoalAutomationAction`, `createGoalPlanWorkflowAction`, `launchGoalPlanWorkflowAction`, `approveRecommendationAction`, `executeActionPlanAction`, `completeDailyActionAction`, `skipDailyActionAction`, `askBusinessBrainAction`).
+- [x] Hide Marketing Brain + Pro-only widgets on `/business-brain` and `/stores/[projectId]/daily-marketing` for Free users.
+- [x] Unit test `canUseIntelligenceFeature` for all plans/features.
 
 ## 5. Acceptance Criteria
 
-- [ ] Matches REQ-0089 acceptance criteria.
-- [ ] Lint + typecheck + tests pass.
-- [ ] `CHANGELOG.md` updated.
+- [x] Matches REQ-0089 acceptance criteria.
+- [x] Lint + typecheck + tests pass.
+- [x] `CHANGELOG.md` updated.
 
 ## 6. Notes / Blockers
 

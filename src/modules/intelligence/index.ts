@@ -208,6 +208,11 @@ export {
   dataQualityGateService,
 } from "./infrastructure/container";
 export { runWeek4ThinSlice } from "./infrastructure/thin-slice";
+
+export {
+  canUseIntelligenceFeature,
+} from "./domain/access";
+export type { IntelligenceFeature } from "./domain/access";
 export type { OperatingModel, OperatingModelService, Story, RiskTierRow, SuccessCriterion, Squad, Milestone, IntegrationHealth, EvaluationCase, ThinSliceReview } from "./application/operating-model";
 export type { ThinSliceResult } from "./infrastructure/thin-slice";
 export type {

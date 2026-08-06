@@ -6,6 +6,7 @@ import { extractTextFromPdf } from "@/shared/lib/pdf-text";
 import { getCurrentUser, requireRole, requireVerifiedEmail, ForbiddenError } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
+import { canUseIntelligenceFeature } from "@/modules/intelligence";
 import { aiUsageGuard } from "../application/usage-guard";
 import { updateAIConfiguration, generateCaptions, generateTrends, generatePostIdeas, askBusinessBrain } from "../infrastructure/container";
 import { updateAIConfigSchema } from "../application/update-config";
@@ -265,6 +266,9 @@ export async function askBusinessBrainAction(
   const user = await getCurrentUser();
   if (!user || !user.userId) {
     return { error: "You must be signed in to a workspace." };
+  }
+  if (!canUseIntelligenceFeature(user.plan, "marketingBrain")) {
+    return { error: "Marketing Brain is available on Pro and Business plans." };
   }
   await requireVerifiedEmail(user);
 
