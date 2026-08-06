@@ -51,6 +51,7 @@ Insights API `online_followers` + historical post performance → AI correlation
 - [x] T-022: WhatsApp Business API connection — **Deferred**: requires Meta Business verification and a dedicated WhatsApp Business API phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API
 - [x] T-024: Content scheduling
+- [x] T-024b: Content scheduling review fixes — validate `scheduledAtTimezone` against `Intl.supportedValuesOf("timeZone")` (or a runtime check) before persistence; fall back to UTC when formatting; re-arm `InMemoryQueue` timers for delays beyond `MAX_TIMEOUT_MS`; guard `publishScheduledPost` against premature execution; clean up fired timers.
 - [x] T-025: Content Studio UI (publish form integrated on `/stores/[projectId]/content`)
 - [x] T-058: Hashtag intelligence
 - [x] T-059: Best time to post

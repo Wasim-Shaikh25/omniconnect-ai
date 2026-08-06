@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { MetaService } from "@/modules/meta";
 import { Result, ok, err } from "@/shared/kernel";
+import { isValidTimeZone } from "@/shared/utils/timezone";
 import type { JobOptions } from "@/shared/queue/types";
 import type { ScheduledPostRecord, ScheduledPostRepository } from "./ports";
 
@@ -11,7 +12,11 @@ export const schedulePostSchema = z.object({
   mediaType: z.enum(["IMAGE", "VIDEO", "REEL", "CAROUSEL", "STORY"] as const),
   mediaUrls: z.array(z.string().url()).min(1).max(10),
   scheduledAt: z.date({ invalid_type_error: "Please choose a valid schedule date and time." }),
-  scheduledAtTimezone: z.string().max(120).optional(),
+  scheduledAtTimezone: z
+    .string()
+    .max(120)
+    .refine(isValidTimeZone, { message: "Invalid time zone." })
+    .optional(),
 });
 
 export type SchedulePostInput = z.infer<typeof schedulePostSchema>;

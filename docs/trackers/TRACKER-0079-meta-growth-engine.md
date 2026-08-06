@@ -22,6 +22,7 @@ Progress tracker for REQ-0079: Meta Growth Engine.
 - [x] T-022: WhatsApp Business API connection. — **Deferred**: requires Meta Business verification and a dedicated phone number; recorded as a post-launch integration task.
 - [x] T-023: Content Publishing API (container → poll → publish).
 - [x] T-024: Content scheduling (DB + BullMQ delayed job).
+- [x] T-024b: Content scheduling review fixes — timezone validation, `InMemoryQueue` re-arming for long delays, premature publish guard, and timer cleanup.
 - [x] T-025: Content Studio UI (publish form added to `/stores/[projectId]/content`).
 - [x] T-058: Hashtag intelligence (Meta API + AI scoring).
 - [x] T-059: Best time to post (Insights API + AI correlation).

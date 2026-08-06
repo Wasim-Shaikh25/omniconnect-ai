@@ -9,7 +9,6 @@ export class InMemoryQueue implements QueueService {
   private jobs: Job<unknown>[] = [];
   private processing = false;
   private jobIds = new Set<string>();
-  private timers: NodeJS.Timeout[] = [];
   private timersById = new Map<string, NodeJS.Timeout>();
 
   constructor(private name: string) {}
@@ -24,7 +23,7 @@ export class InMemoryQueue implements QueueService {
       active: this.processing ? 1 : 0,
       completed: 0,
       failed: 0,
-      delayed: 0,
+      delayed: this.timersById.size,
       paused: 0,
     };
   }
@@ -40,25 +39,37 @@ export class InMemoryQueue implements QueueService {
 
     const requestedDelay = opts?.delay ?? 0;
     if (requestedDelay > 0) {
-      const delay = Math.min(requestedDelay, MAX_TIMEOUT_MS);
-      if (delay < requestedDelay) {
-        logger.warn("queue.inMemory.delayCapped", { queue: this.name, jobId: id, jobName: name, requestedDelay, delay });
-      } else {
-        logger.info("queue.inMemory.delayed", { queue: this.name, jobId: id, jobName: name, delay });
-      }
-      const timer = setTimeout(() => {
-        this.timersById.delete(id);
-        this.jobs.push(job);
-        this.processNext();
-      }, delay);
-      this.timers.push(timer);
-      this.timersById.set(id, timer);
+      this.scheduleDelayed(job, requestedDelay);
     } else {
       this.jobs.push(job);
       logger.info("queue.inMemory.added", { queue: this.name, jobId: id, jobName: name });
       setImmediate(() => this.processNext());
     }
     return id;
+  }
+
+  private scheduleDelayed(job: Job<unknown>, remainingMs: number): void {
+    const delay = Math.min(remainingMs, MAX_TIMEOUT_MS);
+    logger.info("queue.inMemory.delayed", {
+      queue: this.name,
+      jobId: job.id,
+      jobName: job.name,
+      delay,
+      remainingMs,
+    });
+
+    const timer = setTimeout(() => {
+      this.timersById.delete(job.id as string);
+      const nextRemaining = remainingMs - MAX_TIMEOUT_MS;
+      if (nextRemaining > 0) {
+        this.scheduleDelayed(job, nextRemaining);
+      } else {
+        this.jobs.push(job);
+        this.processNext();
+      }
+    }, delay);
+
+    this.timersById.set(job.id as string, timer);
   }
 
   private async processNext(): Promise<void> {
@@ -88,18 +99,15 @@ export class InMemoryQueue implements QueueService {
     if (timer) {
       clearTimeout(timer);
       this.timersById.delete(id);
-      const index = this.timers.indexOf(timer);
-      if (index >= 0) this.timers.splice(index, 1);
     }
     this.jobIds.delete(id);
     this.jobs = this.jobs.filter((j) => j.id !== id);
   }
 
   async close(): Promise<void> {
-    for (const timer of this.timers) {
+    for (const timer of this.timersById.values()) {
       clearTimeout(timer);
     }
-    this.timers = [];
     this.timersById.clear();
     this.jobs = [];
   }
