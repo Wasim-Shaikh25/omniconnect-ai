@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { isStaff } from "@/modules/auth/domain";
 import {
@@ -7,8 +7,8 @@ import {
   createStoreAction,
   organizationQueries,
 } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { CreateStoreForm } from "@/components/create-store-form";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,20 +27,18 @@ export default async function StoresPage() {
   const canManage = user.role === "SUPER_ADMIN" || !isStaff(user);
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Stores</h1>
-          <p className="text-sm text-muted-foreground">
-            {overview ? overview.name : "No organization yet"}
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Stores"
+          description={overview ? overview.name : "Manage your store workspaces"}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores" },
+          ]}
+        />
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="section grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Your stores</CardTitle>
@@ -85,7 +83,8 @@ export default async function StoresPage() {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

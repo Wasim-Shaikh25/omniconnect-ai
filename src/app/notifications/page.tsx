@@ -5,6 +5,8 @@ import {
   markNotificationAsReadAction,
   markAllNotificationsAsReadAction,
 } from "@/modules/notifications";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { PaginationControls, ListSearch } from "@/components/pagination-controls";
 import type { PaginationInput } from "@/shared/kernel";
+import { Bell } from "lucide-react";
 
 function parsePagination(
   rawPage?: string,
@@ -43,34 +46,37 @@ export default async function NotificationsPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Notifications</h1>
-          <p className="text-sm text-muted-foreground">
-            Stay on top of customer activity.
-          </p>
-        </div>
-        <form action={markAllNotificationsAsReadAction}>
-          <Button type="submit" variant="outline" size="sm">
-            Mark all as read
-          </Button>
-        </form>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Notifications"
+          description="Stay on top of customer activity"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Notifications" },
+          ]}
+          actions={
+            <form action={markAllNotificationsAsReadAction}>
+              <Button type="submit" variant="outline" size="sm">
+                Mark all as read
+              </Button>
+            </form>
+          }
+        />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent notifications</CardTitle>
-          <CardDescription>
-            {total} notification(s).
-          </CardDescription>
-          <div className="pt-2">
-            <ListSearch placeholder="Search notifications..." defaultValue={search} limit={pagination.limit} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {notifications.length > 0 ? (
-            <>
+        <div className="section">
+        {notifications.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent notifications</CardTitle>
+              <CardDescription>
+                {total} notification(s).
+              </CardDescription>
+              <div className="pt-2">
+                <ListSearch placeholder="Search notifications..." defaultValue={search} limit={pagination.limit} />
+              </div>
+            </CardHeader>
+            <CardContent>
               <ul className="divide-y">
                 {notifications.map((n) => (
                   <li
@@ -106,15 +112,17 @@ export default async function NotificationsPage({
                   limit={pagination.limit}
                 />
               </div>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No notifications yet. Simulate events from a store to generate
-              them.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+            </CardContent>
+          </Card>
+        ) : (
+          <EmptyState
+            icon={Bell}
+            title="No notifications yet"
+            description="You'll see notifications when there is activity from your stores and campaigns."
+          />
+        )}
+        </div>
+      </div>
+    </div>
   );
 }
