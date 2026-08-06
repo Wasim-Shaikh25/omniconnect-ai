@@ -44,6 +44,9 @@ export default async function AdminLayout({
           <Link href="/admin/health" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
             Health
           </Link>
+          <Link href="/admin/ops" className="rounded-md border px-3 py-1.5 text-sm hover:bg-accent">
+            Ops
+          </Link>
         </nav>
       </header>
       {children}

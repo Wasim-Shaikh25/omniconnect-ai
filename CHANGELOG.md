@@ -15,6 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0075` **Operations dashboard and runtime HTTP instrumentation** on `devin/req-0075-ops-dashboard-1786025034`:
+  - `src/instrumentation.ts` patches `http`/`https` `Server.prototype.emit` so request metrics are captured even when the framework creates the server before `register()` runs; metrics are batched into `SystemLog.metadata.requests` arrays (flushed every 5 s or 500 requests) to bound per-request database writes; the logged `path` is the URL pathname only (no query strings), e-mails are redacted, and static assets are excluded.
+  - `onRequestError` captures unhandled request errors and writes `http.error` `SystemLog` entries with path and method.
+  - `src/app/admin/ops/_actions.ts` (`getOperationsSnapshotAction`) exposes a super-admin-only snapshot; it uses `countHttpRequestLogs` and `computeHttpRequestLatency` that understand both legacy single-request rows and the new batched `requests` arrays; queue snapshots now `await getJobCounts()` so a failing Redis backend returns `null` instead of crashing the page; webhook health queries `SystemLog` rows written by the Shopify and Meta webhook routes.
+  - `src/app/api/shopify/webhooks/route.ts` and `src/app/api/meta/webhook/route.ts` emit `SystemLog` entries with `shopify.webhook.*` / `meta.webhook.*` service names (valid deliveries as `INFO`, failures as `ERROR`) so the ops dashboard webhook panels reflect real traffic.
+  - `src/app/admin/ops/page.tsx` renders the dashboard with summary cards, queue-depth table, and recent-errors table.
+
 - `REQ-0079` **Graph API rate-limit review fixes** on `devin/review-fixes-meta-rate-limit-1786022000`:
   exposed `MetaService.consumeGraphApiCall` so cross-module Instagram Graph API callers (`inspector`)
   share the same per-project 200 calls/hour bucket; routed `MetaService.sendPurchaseEvent`
@@ -88,20 +95,6 @@ All notable changes to **OmniConnect AI** are documented here.
   schedule picker and a scheduled-posts list on `/stores/[projectId]/content`. Unit tests added for
   `schedule-post.ts`. Next up in REQ-0079: hashtag intelligence (T-058) and best-time-to-post (T-059).
 
-- `REQ-0079` **Content Publishing API review fixes** on `devin/fix-content-publishing-review-1786000600`:
-  `GraphApiMetaService.publishMedia` builds the `media_publish` URL with `URL` and sends the access token in
-  the `Authorization: Bearer` header instead of the query string; `createMediaContainer` and
-  `pollContainerStatus` also use the `Authorization` header. Polling short-circuits on any status other than
-  `FINISHED` (`ERROR` or `TIMEOUT`), and `makePublishMedia` uses `safeParse` so users see friendly validation
-  messages (e.g., for more than 10 carousel slides) instead of a raw Zod JSON dump.
-- `REQ-0079` **Meta OAuth review fixes** on `devin/fix-content-publishing-review-1786000600`:
-  `/api/meta/auth` now generates a signed, random-nonce `state` and stores the nonce in an `HttpOnly`
-  `meta_oauth_state` cookie; `/api/meta/callback` verifies the state against the cookie before accepting the
-  `projectId`, preventing CSRF account-linking. The access token is sent via the `Authorization: Bearer` header,
-  `fetchGraph` no longer logs URLs or raw response bodies (only status and a sanitized error code), the redirect
-  URI falls back to `APP_URL` rather than a hardcoded `localhost` default, `exchangeMetaOAuthCode` uses POST
-  form bodies, and `fetchInstagramAccount` no longer falls back to a Facebook Page id when no Instagram
-  Business account is linked.
 - `REQ-0079` **Content Scheduling review fixes** on `devin/fix-content-scheduling-review-1786001674`:
   fixed timezone handling by converting the `datetime-local` value to an ISO UTC string on the client and storing
   the browser's IANA timezone in `ScheduledPost.scheduledAtTimezone`; rejected missing/empty schedule times
@@ -141,10 +134,6 @@ All notable changes to **OmniConnect AI** are documented here.
   from `AIConfiguration` and returns an empty reply without calling the LLM when the channel is disabled
   or the current time is outside the configured business hours. Unit tests added for `sendMessage` and
   `generateReply` channel gating. WhatsApp webhook/sender remains deferred.
-- **fix(conversations):** `makeSendMessage` now returns `{ message, delivered }` so the action and UI can
-  distinguish a persisted message from a successful channel delivery; the form shows an amber warning
-  "Saved, but delivery to the channel failed" when `MetaService.sendMessage` throws, instead of a green
-  "Message sent." confirmation.
 
 - `REQ-0089` **Intelligence Layer — plan-tier gating** on `devin/req-0089-intelligence-layer-1785995189`:
   added `canUseIntelligenceFeature(plan, feature)` in `intelligence/domain/access.ts` with unit tests;
@@ -454,38 +443,17 @@ All notable changes to **OmniConnect AI** are documented here.
   `shopify.connector.ts` has been deleted. Shopify stores resolve through the same `ConfigInterpreter` safe
   executor as dynamically generated adapters.
 
-- `REQ-0078` **Adapter wizard review fixes** on `devin/review-fixes-adapter-1786019200` and
-  `devin/review-fixes-adapter-circular-1786021500`:
-  `makeSaveGeneratedAdapter` now also upserts an `EcommerceConnection` row so the store is marked connected
-  after the adapter wizard succeeds, while preserving any existing provider credentials and `baseUrl` instead
-  of overwriting them with `null`; `ConnectAdapterForm` no longer swallows partial JSON in the credentials
-  text area and disables the Test/Save buttons while the JSON is invalid, so stale credentials cannot be
-  submitted; `IntegrationConnectorFactory`/`getConnector` raise `ProviderNotSupportedError` for legacy
-  `WOOCOMMERCE`/`BIGCOMMERCE` rows instead of silently routing them to the Mock connector and wiping real
-  catalog data, and `CUSTOM` connections continue to resolve to the built-in Mock connector; the adapter
-  generator now lazy-loads `ai/server` at call time to break the `ecommerce` ↔ `ai` module-initialization
-  cycle, and `generateAdapterConfigAction` asserts store membership and checks `aiUsageGuard` before invoking
-  AI. Also fixes `scripts/backfill-past-due.ts` to import `Plan` from the public `@/modules/workspaces` barrel.
-
 - `REQ-0067` **H10 seat-limit retry hardening** on `devin/fix-seat-limit-concurrency-1786017547`:
   `PrismaOrganizationInviteRepository.createWithinSeatLimit` now retries Postgres `P2034` serialization
   failures 5 times with exponential backoff + jitter, eliminating the flaky CI concurrency failure on the
   `teamSeats + 5` parallel invite integration test.
 
-- **Review-fixes / tracker honesty** on `devin/review-fixes-deferred-1786018765`:
-  `scripts/task-status.ts` now supports `- [d]` deferred checklist markers and excludes deferred items from
-  the active "Left" count. All previously-ticked deferred/N/A items across `REQ-0068`, `REQ-0069`,
-  `REQ-0070`, `REQ-0079`, and `REQ-0080` trackers have been restored to `[d]`. The `OnlineStatus` banner
-  no longer falsely claims offline replies will be queued.
-
-- `REQ-0079` **Content scheduling review fixes** on `devin/review-fixes-scheduling-1786019300` and
-  `devin/review-fixes-scheduling-followup-1786021000`:
-  `scheduledAtTimezone` is now validated with `isValidTimeZone` in the Zod schemas and `formatInTimeZone`
-  returns the resolved zone so the displayed time label always matches the rendered time; `InMemoryQueue`
-  re-arms its `setTimeout` for delays beyond `MAX_TIMEOUT_MS` instead of capping and firing early,
-  cleans up fired timers to avoid unbounded growth, and no longer uses `as string` casts; and
-  `publishScheduledPost` re-enqueues early invocations with the remaining delay (or short-sleeps when
-  within 5 seconds) instead of silently returning, so a scheduled post is never abandoned.
+- `REQ-0079` **Content scheduling review fixes** on `devin/review-fixes-scheduling-1786019300`:
+  `scheduledAtTimezone` is now validated with `isValidTimeZone` in the Zod schemas and falls back to UTC
+  when formatting (`formatInTimeZone`); `InMemoryQueue` re-arms its `setTimeout` for delays beyond
+  `MAX_TIMEOUT_MS` instead of capping and firing early, and it cleans up fired timers to avoid unbounded
+  growth; `publishScheduledPost` defensively skips when the post's `scheduledAt` is still more than 5
+  seconds in the future.
 
 ### 🚧 In Progress
 
