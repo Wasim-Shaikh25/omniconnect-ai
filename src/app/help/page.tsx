@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { HelpCircle } from "lucide-react";
 
 interface HelpSection {
   title: string;
@@ -543,43 +544,54 @@ export default function HelpPage() {
   }, [query]);
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Help center</h1>
-          <p className="text-sm text-muted-foreground">Search for guides on using OmniConnect AI.</p>
-        </div>
-        <Button variant="outline" asChild>
-          <Link href="/">Back home</Link>
-        </Button>
-      </header>
-
-      <div className="mb-6">
-        <Input
-          type="search"
-          placeholder="Search topics, keywords, or features..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full"
+    <div className="page-container">
+      <div className="container max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Help center"
+          description="Search for guides on using OmniConnect AI."
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Help" },
+          ]}
         />
-      </div>
 
-      {filtered.length === 0 ? (
-        <p className="text-muted-foreground">No help topics match your search.</p>
-      ) : (
-        <div className="grid gap-4">
-          {filtered.map((section) => (
-            <Card key={section.title}>
-              <CardHeader>
-                <CardTitle className="text-lg">{section.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm leading-relaxed text-muted-foreground">
-                {section.content}
-              </CardContent>
-            </Card>
-          ))}
+        <div className="section">
+          <Card>
+            <CardContent className="pt-6">
+              <Input
+                type="search"
+                placeholder="Search topics, keywords, or features..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full"
+              />
+            </CardContent>
+          </Card>
         </div>
-      )}
-    </main>
+
+        <div className="section">
+          {filtered.length === 0 ? (
+            <EmptyState
+              icon={HelpCircle}
+              title="No help topics found"
+              description="Try a different search term or browse all topics."
+            />
+          ) : (
+            <div className="grid gap-4">
+              {filtered.map((section) => (
+                <Card key={section.title}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{section.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm leading-relaxed text-muted-foreground">
+                    {section.content}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
