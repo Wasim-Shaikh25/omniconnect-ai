@@ -15,6 +15,7 @@ export default async function CompetitorsPage({
     if (access.reason === "unauthenticated") redirect("/login");
     notFound();
   }
+  const { store } = access;
 
   const repository = new PrismaTrackedAccountRepository();
   const accounts = await repository.listByStore(projectId);
@@ -22,7 +23,7 @@ export default async function CompetitorsPage({
   return (
     <>
       <CompetitorNextBestAction projectId={projectId} />
-      <CompetitorsPageClient projectId={projectId} initialAccounts={accounts} />
+      <CompetitorsPageClient projectId={projectId} storeName={store.name} initialAccounts={accounts} />
     </>
   );
 }
