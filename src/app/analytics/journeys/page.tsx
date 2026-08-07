@@ -33,35 +33,36 @@ export default async function JourneysPage() {
           ]}
         />
 
+        <div className="section">
           <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Tracked journeys</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold">{journeys.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Converted</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold">{purchased}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Attributed revenue</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold">${totalRevenue.toFixed(2)}</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Tracked journeys</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{journeys.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Converted</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{purchased}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Attributed revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">${totalRevenue.toFixed(2)}</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
 
-      <div className="section">
+        <div className="section">
       <Card>
         <CardHeader>
           <CardTitle>Journeys</CardTitle>
@@ -80,7 +81,8 @@ export default async function JourneysPage() {
             </ul>
           )}
         </CardContent>
-      </Card>
+        </Card>
+        </div>
       </div>
     </div>
   );

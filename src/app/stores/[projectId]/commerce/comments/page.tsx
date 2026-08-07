@@ -3,6 +3,7 @@
 import { use, useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,14 +27,20 @@ export default function CommentsPage({
   }, [projectId, replyState, hideState]);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold">Comments & mentions</h1>
-        <p className="text-sm text-muted-foreground">Engagement automation queue for this store.</p>
-        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Comments & Mentions"
+          description="Engagement automation queue for this store"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: "Comments & Mentions" },
+          ]}
+        />
 
-      <Card className="mb-6">
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Comments ({data.comments.length})</CardTitle>
           <CardDescription>Incoming comments are classified and can be auto-replied or hidden.</CardDescription>
@@ -73,26 +80,32 @@ export default function CommentsPage({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Mentions ({data.mentions.length})</CardTitle>
-          <CardDescription>Brand @mentions and tags will appear here when collected.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data.mentions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No mentions collected yet.</p>
-          ) : (
-            <ul className="divide-y">
-              {data.mentions.map((m) => (
-                <li key={m.id} className="py-2 text-sm">
-                  <p className="font-medium">{m.handle ?? m.externalUserId ?? "Unknown"} · {m.source}</p>
-                  <p className="text-muted-foreground">{m.caption ?? "—"}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+          </Card>
+        </div>
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mentions ({data.mentions.length})</CardTitle>
+              <CardDescription>Brand @mentions and tags will appear here when collected.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {data.mentions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No mentions collected yet.</p>
+              ) : (
+                <ul className="divide-y">
+                  {data.mentions.map((m) => (
+                    <li key={m.id} className="py-2 text-sm">
+                      <p className="font-medium">{m.handle ?? m.externalUserId ?? "Unknown"} · {m.source}</p>
+                      <p className="text-muted-foreground">{m.caption ?? "—"}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

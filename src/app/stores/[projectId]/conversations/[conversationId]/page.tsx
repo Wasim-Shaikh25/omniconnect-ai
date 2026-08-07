@@ -7,6 +7,7 @@ import {
   resumeAIConversationAction,
   sendConversationMessageAction,
 } from "@/modules/conversations";
+import { PageHeader } from "@/components/page-header";
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
 import { ConversationMessageForm } from "@/components/conversation-message-form";
 import { ConversationContext, ConversationNextBestAction } from "@/components/conversation-context";
@@ -40,23 +41,23 @@ export default async function ConversationDetailPage({
   const isHuman = detail.conversation.status === "HUMAN_ACTIVE";
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
+    <div className="page-container">
       <OnlineStatus />
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{store.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {detail.conversation.channel} · {detail.conversation.externalId ?? "—"}
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-          <Link href={`/stores/${projectId}/conversations`}>
-            Back to conversations
-          </Link>
-        </Button>
-      </header>
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title={detail.conversation.channel}
+          description={detail.conversation.externalId ?? "Conversation"}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Conversations", href: `/stores/${projectId}/conversations` },
+            { label: "Messages" },
+          ]}
+        />
 
-      <div className="mt-8 grid gap-6 md:grid-cols-4">
+        <div className="section">
+          <div className="grid gap-6 md:grid-cols-4">
         <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle>Status</CardTitle>
@@ -138,7 +139,9 @@ export default async function ConversationDetailPage({
             )}
           </CardContent>
         </Card>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
