@@ -4,6 +4,7 @@ import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { couponsQueries } from "@/modules/coupons";
 import { growthQueries } from "@/modules/growth";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -67,20 +68,21 @@ export default async function AutomationsHubPage({
     ]);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Automations</h1>
-          <p className="text-sm text-muted-foreground">
-            Active automations for {store.name}.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Automations"
+          description={`Active automations for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Automations" },
+          ]}
+        />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="section">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <AutomationCard
           title="Welcome & follow-up"
           description="Greet new followers with a welcome coupon and message."
@@ -134,8 +136,10 @@ export default async function AutomationsHubPage({
           <CardContent className="mt-auto">
             <p className="text-sm text-muted-foreground">Coming soon</p>
           </CardContent>
-        </Card>
+          </Card>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
