@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { listMentionsWithSentimentAction } from "@/modules/social";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,32 +44,33 @@ export default async function BrandMentionsPage({
   const { mentions, error } = await listMentionsWithSentimentAction(projectId);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Brand Mentions</h1>
-          <p className="text-sm text-muted-foreground">
-            Track @mentions, tags, and hashtags with AI sentiment.
-          </p>
-        </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          <SyncMentionsButton projectId={projectId} />
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/analytics`}>Back to Analytics</Link>
-          </Button>
-        </div>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Brand Mentions"
+          description="Track @mentions, tags, and hashtags with AI sentiment"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: "Analytics", href: `/stores/${projectId}/analytics` },
+            { label: "Mentions" },
+          ]}
+          actions={<SyncMentionsButton projectId={projectId} />}
+        />
 
-      {error && (
-        <p className="mt-4 text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      )}
+        {error && (
+          <div className="section">
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          </div>
+        )}
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Mentions Feed</CardTitle>
-        </CardHeader>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mentions Feed</CardTitle>
+            </CardHeader>
         <CardContent>
           {mentions.length === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -119,8 +121,10 @@ export default async function BrandMentionsPage({
               ))}
             </ul>
           )}
-        </CardContent>
-      </Card>
-    </main>
+          </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

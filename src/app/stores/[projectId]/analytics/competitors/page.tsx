@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { getCompetitorComparisonDashboard } from "@/modules/analytics/server";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,112 +39,123 @@ export default async function CompetitorComparisonPage({
   }
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Competitor comparison</h1>
-          <p className="text-sm text-muted-foreground">Benchmark your page against tracked competitors.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href={`/stores/${projectId}/commerce/competitors`}>Manage competitors</Link>
-          </Button>
-        </div>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Competitor Comparison"
+          description="Benchmark your page against tracked competitors"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: "Analytics", href: `/stores/${projectId}/analytics` },
+            { label: "Competitors" },
+          ]}
+          actions={
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/stores/${projectId}/commerce/competitors`}>Manage Competitors</Link>
+              </Button>
+            </div>
+          }
+        />
 
-      {error && <p className="mb-4 text-sm text-destructive" role="alert">{error}</p>}
+        {error && <div className="section"><p className="text-sm text-destructive" role="alert">{error}</p></div>}
 
-      {dashboard && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Workspace snapshot</CardTitle>
-              <CardDescription>{dashboard.summary}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-                <Metric label="Posts" value={dashboard.workspace.postCount} />
-                <Metric label="Posts/week" value={dashboard.workspace.postsPerWeek} />
-                <Metric label="Reel ratio" value={`${dashboard.workspace.reelRatio}%`} />
-                <Metric label="Avg hook length" value={dashboard.workspace.avgHookLength} />
-                <Metric label="Avg caption length" value={dashboard.workspace.avgCaptionLength} />
-                <Metric label="Avg engagement" value={dashboard.workspace.avgEngagement} />
-              </div>
-              {dashboard.workspace.topHashtags.length > 0 && (
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Top hashtags: {dashboard.workspace.topHashtags.slice(0, 10).map((h) => `#${h}`).join(" ")}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+        {dashboard && (
+          <>
+            <div className="section">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Workspace Snapshot</CardTitle>
+                  <CardDescription>{dashboard.summary}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+                    <Metric label="Posts" value={dashboard.workspace.postCount} />
+                    <Metric label="Posts/week" value={dashboard.workspace.postsPerWeek} />
+                    <Metric label="Reel ratio" value={`${dashboard.workspace.reelRatio}%`} />
+                    <Metric label="Avg hook length" value={dashboard.workspace.avgHookLength} />
+                    <Metric label="Avg caption length" value={dashboard.workspace.avgCaptionLength} />
+                    <Metric label="Avg engagement" value={dashboard.workspace.avgEngagement} />
+                  </div>
+                  {dashboard.workspace.topHashtags.length > 0 && (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Top hashtags: {dashboard.workspace.topHashtags.slice(0, 10).map((h) => `#${h}`).join(" ")}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
-          {dashboard.insights.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                  {dashboard.insights.map((insight, i) => (
-                    <li key={i}>{insight}</li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Tracked competitors</CardTitle>
-              <CardDescription>{dashboard.competitors.length === 0 ? "No competitors tracked yet." : `${dashboard.competitors.length} competitor${dashboard.competitors.length === 1 ? "" : "s"} tracked.`}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {dashboard.competitors.length === 0 ? (
-                <Button asChild size="sm">
-                  <Link href={`/stores/${projectId}/commerce/competitors`}>Add your first competitor</Link>
-                </Button>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-left text-muted-foreground">
-                        <th className="pb-2 pr-4 font-medium">Handle</th>
-                        <th className="pb-2 pr-4 font-medium">Posts</th>
-                        <th className="pb-2 pr-4 font-medium">Posts/wk</th>
-                        <th className="pb-2 pr-4 font-medium">Reels %</th>
-                        <th className="pb-2 pr-4 font-medium">Avg hook</th>
-                        <th className="pb-2 pr-4 font-medium">Avg caption</th>
-                        <th className="pb-2 pr-4 font-medium">Engagement</th>
-                        <th className="pb-2 pr-4 font-medium">Likes</th>
-                        <th className="pb-2 pr-4 font-medium">Comments</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dashboard.competitors.map((competitor) => (
-                        <tr key={competitor.accountId} className="border-b last:border-0">
-                          <td className="py-3 pr-4 font-medium">@{competitor.handle}</td>
-                          <td className="py-3 pr-4">{formatNumber(competitor.postCount)}</td>
-                          <td className="py-3 pr-4">{competitor.postsPerWeek}</td>
-                          <td className="py-3 pr-4">{competitor.reelRatio}%</td>
-                          <td className="py-3 pr-4">{competitor.avgHookLength}</td>
-                          <td className="py-3 pr-4">{competitor.avgCaptionLength}</td>
-                          <td className="py-3 pr-4">{formatNumber(competitor.avgEngagement)}</td>
-                          <td className="py-3 pr-4">{formatNumber(competitor.totalLikes)}</td>
-                          <td className="py-3 pr-4">{formatNumber(competitor.totalComments)}</td>
-                        </tr>
+            {dashboard.insights.length > 0 && (
+              <div className="section">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Insights</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                      {dashboard.insights.map((insight, i) => (
+                        <li key={i}>{insight}</li>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </main>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="section">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tracked Competitors</CardTitle>
+                  <CardDescription>{dashboard.competitors.length === 0 ? "No competitors tracked yet." : `${dashboard.competitors.length} competitor${dashboard.competitors.length === 1 ? "" : "s"} tracked.`}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {dashboard.competitors.length === 0 ? (
+                    <Button asChild size="sm">
+                      <Link href={`/stores/${projectId}/commerce/competitors`}>Add your first competitor</Link>
+                    </Button>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b text-left text-muted-foreground">
+                            <th className="pb-2 pr-4 font-medium">Handle</th>
+                            <th className="pb-2 pr-4 font-medium">Posts</th>
+                            <th className="pb-2 pr-4 font-medium">Posts/wk</th>
+                            <th className="pb-2 pr-4 font-medium">Reels %</th>
+                            <th className="pb-2 pr-4 font-medium">Avg hook</th>
+                            <th className="pb-2 pr-4 font-medium">Avg caption</th>
+                            <th className="pb-2 pr-4 font-medium">Engagement</th>
+                            <th className="pb-2 pr-4 font-medium">Likes</th>
+                            <th className="pb-2 pr-4 font-medium">Comments</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dashboard.competitors.map((competitor) => (
+                            <tr key={competitor.accountId} className="border-b last:border-0">
+                              <td className="py-3 pr-4 font-medium">@{competitor.handle}</td>
+                              <td className="py-3 pr-4">{formatNumber(competitor.postCount)}</td>
+                              <td className="py-3 pr-4">{competitor.postsPerWeek}</td>
+                              <td className="py-3 pr-4">{competitor.reelRatio}%</td>
+                              <td className="py-3 pr-4">{competitor.avgHookLength}</td>
+                              <td className="py-3 pr-4">{competitor.avgCaptionLength}</td>
+                              <td className="py-3 pr-4">{formatNumber(competitor.avgEngagement)}</td>
+                              <td className="py-3 pr-4">{formatNumber(competitor.totalLikes)}</td>
+                              <td className="py-3 pr-4">{formatNumber(competitor.totalComments)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
