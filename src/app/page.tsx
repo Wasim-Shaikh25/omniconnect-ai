@@ -52,8 +52,8 @@ const capabilities = [
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col">
-      <section className="container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
+    <div className="page-container flex min-h-screen flex-col">
+      <section className="container mx-auto flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-24 text-center">
         <span className="mb-4 rounded-full border px-3 py-1 text-xs text-muted-foreground">
           AI Marketing & Commerce for Instagram and Facebook Businesses
         </span>
@@ -76,7 +76,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="mb-10 text-center text-3xl font-semibold">
           Built for the jobs you do every day
         </h2>
@@ -98,7 +98,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="mb-10 text-center text-3xl font-semibold">Simple, transparent pricing</h2>
         <PricingCards showFree={true} ctaTarget="signup" />
         <p className="mt-6 text-center text-sm text-muted-foreground">
@@ -106,7 +106,7 @@ export default function Home() {
         </p>
       </section>
 
-      <section className="container mx-auto px-4 py-16 text-center">
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h2 className="text-3xl font-semibold">Ready to grow on Meta?</h2>
         <p className="mt-4 text-muted-foreground">
           Join businesses using OmniConnect AI to convert followers into customers.
@@ -119,6 +119,6 @@ export default function Home() {
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
         OmniConnect AI — AI Marketing & Commerce Platform for Instagram and Facebook Businesses.
       </footer>
-    </main>
+    </div>
   );
 }
