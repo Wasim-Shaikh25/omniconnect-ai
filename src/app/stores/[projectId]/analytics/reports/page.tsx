@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { listReportsAction, generateReportAction } from "@/modules/analytics";
+import { PageHeader } from "@/components/page-header";
 import { GenerateReportForm } from "@/components/generate-report-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,30 +26,40 @@ export default async function ReportsAnalyticsPage({
   const { reports, error } = await listReportsAction(projectId);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Reports</h1>
-          <p className="text-sm text-muted-foreground">Marketing performance reports for {store.name}.</p>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Reports"
+          description={`Marketing performance reports for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Analytics", href: `/stores/${projectId}/analytics` },
+            { label: "Reports" },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Generate a report</CardTitle>
+              <CardDescription>Create a weekly or monthly snapshot.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GenerateReportForm action={generateReportAction} projectId={projectId} />
+            </CardContent>
+          </Card>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
-        </Button>
-      </header>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Generate a report</CardTitle>
-          <CardDescription>Create a weekly or monthly snapshot.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <GenerateReportForm action={generateReportAction} projectId={projectId} />
-        </CardContent>
-      </Card>
+        {error && (
+          <div className="section">
+            <p className="text-sm text-destructive" role="alert">{error}</p>
+          </div>
+        )}
 
-      {error && <p className="mb-4 text-sm text-destructive" role="alert">{error}</p>}
-
-      <div className="grid gap-4">
+        <div className="section">
+          <div className="grid gap-4">
         {(reports ?? []).length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
@@ -69,8 +80,10 @@ export default async function ReportsAnalyticsPage({
               </CardContent>
             </Card>
           ))
-        )}
+          )}
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
