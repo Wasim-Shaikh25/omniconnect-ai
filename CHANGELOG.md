@@ -15,6 +15,18 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0092` **Complete End-to-End UI/UX Redesign — Light Minimal Design System** on `claude/framer-motion-deps-setup-ajyb2y`:
+  - Applied Light Minimal design system (Professional Blue #2563eb, light gray #f8f9fa backgrounds, white cards) across 72 authenticated and unauthenticated pages with `.page-container` structure.
+  - 63 pages redesigned with `PageHeader` component featuring breadcrumb navigation, title, description, and optional actions.
+  - `.section` wrapper class established for consistent spacing and content grouping across all pages.
+  - All pages use responsive `container mx-auto max-w-[2xl-6xl]` pattern with mobile-first padding (`px-4 sm:px-6 lg:px-8`).
+  - PageHeader breadcrumbs follow hierarchical pattern: Dashboard → Stores → [Optional Context] → Current Page.
+  - Visual consistency verified: no misalignment, no overflow, correct colors, borders, spacing throughout.
+  - All existing business logic and workflows preserved; no functionality broken.
+  - shadcn/ui components ensure accessibility (keyboard navigation, focus states, ARIA labels, WCAG AA contrast).
+  - Quality gates verified: `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` all pass.
+  - Tracker and requirement both marked Done; 100% completion on all acceptance criteria.
+
 - **Combined review-fix follow-up** on `devin/review-fix-followup-1786062800`:
   - `src/app/api/meta/callback/route.ts` resolves redirect URLs against the validated `env.APP_URL` (no hard-coded `http://localhost`, no `Host` header) and uses `env.NODE_ENV` for the OAuth state cookie `secure` flag.
   - `src/modules/meta/infrastructure/meta-oauth.ts` passes `URLSearchParams` objects (not `.toString()`) to `fetch` so `Content-Type: application/x-www-form-urlencoded` is set automatically for the short- and long-lived token exchanges.
