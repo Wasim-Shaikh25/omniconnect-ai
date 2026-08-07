@@ -1,4 +1,5 @@
 import { requireSuperAdmin } from "@/modules/auth";
+import { PageHeader } from "@/components/page-header";
 import { listPaymentInvoicesAction } from "@/modules/workspaces";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefundButton } from "@/components/refund-button";
@@ -8,8 +9,20 @@ export default async function AdminPaymentsPage() {
   const { items } = await listPaymentInvoicesAction();
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Payment Management"
+          description="View paid invoices and issue refunds"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Payments" },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Payment management</CardTitle>
           <CardDescription>View paid invoices and issue refunds.</CardDescription>
@@ -67,6 +80,8 @@ export default async function AdminPaymentsPage() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }
