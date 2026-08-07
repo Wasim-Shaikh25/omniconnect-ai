@@ -77,9 +77,7 @@ export default function CommentsPage({
           {replyState.error && <p className="text-sm text-destructive mt-2">{replyState.error}</p>}
           {replyState.ok && <p className="text-sm text-green-600 mt-2">Reply sent</p>}
           {hideState.error && <p className="text-sm text-destructive mt-2">{hideState.error}</p>}
-        </CardContent>
-      </Card>
-
+            </CardContent>
           </Card>
         </div>
 
