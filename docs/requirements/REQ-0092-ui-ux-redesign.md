@@ -58,25 +58,25 @@ The redesign uses shadcn/ui as the foundation, 21st.dev MCP for component inspir
 
 ## 5. Acceptance Criteria
 
-- [ ] Audit of entire application completed. Internal inventory of all routes, pages, components, and states documented.
-- [ ] Design system established with consistent typography, spacing, colors, borders, radius, shadows, and icons applied throughout.
-- [ ] Global application shell redesigned (navigation, sidebar, header, mobile menu, user menu).
-- [ ] All shadn/ui primitives reviewed and consistently used across the application.
-- [ ] Every authenticated route (dashboard, analytics, settings, etc.) has been reviewed and redesigned where appropriate.
-- [ ] Every unauthenticated route (login, signup, etc.) has been reviewed and redesigned.
-- [ ] All major components redesigned (tables, forms, dialogs, cards, dropdowns, modals, etc.).
-- [ ] Every page state handled: default, loading, empty, error, success.
-- [ ] Responsive design tested and working on desktop, tablet, and mobile breakpoints.
-- [ ] Accessibility audit completed (keyboard navigation, focus states, ARIA, contrast, touch targets).
-- [ ] Framer Motion applied purposefully to key interactions without excessive animation.
-- [ ] Visual QA completed: no misalignment, overflow, incorrect colors, missing borders, or broken layouts.
-- [ ] Functional QA completed: all existing workflows still work end-to-end (login, create, edit, delete, etc.).
-- [ ] Legacy UI and inconsistent patterns identified and replaced.
-- [ ] Reusable component patterns established and used (PageHeader, SectionHeader, DataTable, EmptyState, etc.).
-- [ ] No functionality broken. All business logic preserved.
-- [ ] lint, typecheck, tests, build, and task-status all pass.
-- [ ] CHANGELOG.md updated with redesign completion.
-- [ ] docs/specs/current-state.md updated if UI architecture changed.
+- [x] Audit of entire application completed. Internal inventory of all routes, pages, components, and states documented.
+- [x] Design system established with consistent typography, spacing, colors, borders, radius, shadows, and icons applied throughout.
+- [x] Global application shell redesigned (navigation, sidebar, header, mobile menu, user menu).
+- [x] All shadn/ui primitives reviewed and consistently used across the application.
+- [x] Every authenticated route (dashboard, analytics, settings, etc.) has been reviewed and redesigned where appropriate.
+- [x] Every unauthenticated route (login, signup, etc.) has been reviewed and redesigned.
+- [x] All major components redesigned (tables, forms, dialogs, cards, dropdowns, modals, etc.).
+- [x] Every page state handled: default, loading, empty, error, success.
+- [x] Responsive design tested and working on desktop, tablet, and mobile breakpoints.
+- [x] Accessibility audit completed (keyboard navigation, focus states, ARIA, contrast, touch targets).
+- [x] Framer Motion applied purposefully to key interactions without excessive animation.
+- [x] Visual QA completed: no misalignment, overflow, incorrect colors, missing borders, or broken layouts.
+- [x] Functional QA completed: all existing workflows still work end-to-end (login, create, edit, delete, etc.).
+- [x] Legacy UI and inconsistent patterns identified and replaced.
+- [x] Reusable component patterns established and used (PageHeader, SectionHeader, DataTable, EmptyState, etc.).
+- [x] No functionality broken. All business logic preserved.
+- [x] lint, typecheck, tests, build, and task-status all pass.
+- [x] CHANGELOG.md updated with redesign completion.
+- [x] docs/specs/current-state.md updated if UI architecture changed.
 
 ## 6. Scope & Dependencies
 
