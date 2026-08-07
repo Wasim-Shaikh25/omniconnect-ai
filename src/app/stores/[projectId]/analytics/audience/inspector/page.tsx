@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { ProfileInspectorForm } from "./ProfileInspectorForm";
 
@@ -19,18 +20,25 @@ export default async function ProfileInspectorPage({
   const { store } = access;
 
   return (
-    <main className="container mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Profile Inspector</h1>
-          <p className="text-sm text-muted-foreground">Analyze any public Instagram profile for {store.name}.</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics/audience`}>Back to audience</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Profile Inspector"
+          description={`Analyze any public Instagram profile for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Analytics", href: `/stores/${projectId}/analytics` },
+            { label: "Audience", href: `/stores/${projectId}/analytics/audience` },
+            { label: "Profile Inspector" },
+          ]}
+        />
 
-      <ProfileInspectorForm projectId={projectId} />
-    </main>
+        <div className="section">
+          <ProfileInspectorForm projectId={projectId} />
+        </div>
+      </div>
+    </div>
   );
 }
