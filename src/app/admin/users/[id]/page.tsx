@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { requireSuperAdmin } from "@/modules/auth";
 import { getUserProfile } from "@/modules/users";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserStatusButtons } from "@/components/user-status-buttons";
 import { ImpersonateUserButton } from "@/components/impersonate-user-button";
@@ -16,12 +18,26 @@ export default async function AdminUserDetailPage({ params }: AdminUserDetailPag
   if (!user) redirect("/admin/users");
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>User details</CardTitle>
-        <CardDescription>{user.email}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 text-sm">
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title={user.email}
+          description="User account details"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Users", href: "/admin/users" },
+            { label: user.email },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>User details</CardTitle>
+              <CardDescription>{user.email}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
         <div className="grid gap-2 sm:grid-cols-2">
           <div>
             <span className="text-muted-foreground">Name</span>
@@ -54,7 +70,10 @@ export default async function AdminUserDetailPage({ params }: AdminUserDetailPag
           <UserStatusButtons userId={user.id} suspendedAt={user.suspendedAt} banned={user.banned} />
           <ImpersonateUserButton userId={user.id} />
         </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

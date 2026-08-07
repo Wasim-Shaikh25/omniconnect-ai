@@ -1,5 +1,6 @@
 import { requireSuperAdmin } from "@/modules/auth";
 import { listAdaptersAction } from "@/modules/ecommerce";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdapterActions } from "@/components/adapter-actions";
 
@@ -8,15 +9,27 @@ export default async function AdminAdaptersPage() {
   const { items } = await listAdaptersAction();
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Adapter library</CardTitle>
-          <CardDescription>
-            View all generated e-commerce adapters, validate their connection, and approve or flag them.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Adapter Management"
+          description="View and manage e-commerce adapters"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Adapters" },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Adapter library</CardTitle>
+              <CardDescription>
+                View all generated e-commerce adapters, validate their connection, and approve or flag them.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
           {items.length === 0 ? (
             <p className="text-sm text-muted-foreground">No adapters connected yet.</p>
           ) : (
@@ -59,8 +72,10 @@ export default async function AdminAdaptersPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

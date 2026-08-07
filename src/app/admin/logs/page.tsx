@@ -1,5 +1,6 @@
 import { requireSuperAdmin } from "@/modules/auth";
 import { listSystemLogs } from "@/shared/observability";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AdminLogsPage({
@@ -16,12 +17,25 @@ export default async function AdminLogsPage({
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>System logs</CardTitle>
-        <CardDescription>Recent operational events and errors.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="System Logs"
+          description="Monitor operational events and errors"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Logs" },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>System logs</CardTitle>
+              <CardDescription>Recent operational events and errors.</CardDescription>
+            </CardHeader>
+            <CardContent>
         <form className="mb-4 flex gap-2">
           <select name="level" defaultValue={params.level} className="h-9 rounded-md border bg-background px-3 text-sm">
             <option value="">All levels</option>
@@ -61,7 +75,10 @@ export default async function AdminLogsPage({
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
