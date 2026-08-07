@@ -10,15 +10,27 @@
 
 ## 1. Summary
 
-Systematically redesign every user-facing component and page in OmniConnect AI using a cohesive design system. Work follows the master audit → design system → global shell → page-by-page approach, with emphasis on:
+Systematically redesign every user-facing component and page in OmniConnect AI using the **Light Minimal design system** (Professional Blue theme). Work follows the master audit → design system → global shell → page-by-page approach, with emphasis on:
 
-1. Establishing a unified design language
+1. Establishing a unified design language (Light Minimal colors, typography, spacing)
 2. Redesigning the global application structure
 3. Systematically updating all pages while preserving functionality
 4. Implementing responsive design
 5. Ensuring accessibility
-6. Adding purposeful micro-interactions
+6. Adding purposeful micro-interactions (Framer Motion)
 7. Performing comprehensive visual and functional QA
+
+**Design System Reference (Light Minimal):**
+- **Background:** #f8f9fa (light gray)
+- **Primary Color:** #2563eb (blue) - headings, accents, active states
+- **Secondary:** #1e40af (dark blue) - hover states
+- **Tertiary:** #dbeafe (light blue) - badges, backgrounds
+- **Text Primary:** #1a1a1a (dark), Text Secondary: #666
+- **Cards:** white (#ffffff) with 1px #e5e7eb border, subtle shadow
+- **Spacing:** 4px 8px 12px 16px 24px 32px scale
+- **Animations:** slideUp (0.6s ease-out), hover lift (-5px), staggered delays (0.1s per card)
+- **Radius:** 6-12px (cards), 20px (buttons in alt designs)
+- **Typography:** Clean sans-serif, professional hierarchy
 
 ## 2. References
 

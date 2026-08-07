@@ -11,6 +11,14 @@
 
 Transform OmniConnect AI from a functional MVP into a premium, cohesive, modern SaaS application with exceptional UX and visual polish. This is a complete redesign of every user-facing route, component, and state across the entire authenticated and unauthenticated product experience. All existing business logic and functionality must be preserved while dramatically improving usability, information hierarchy, visual consistency, and perceived quality.
 
+**Design Direction:** Light Minimal (Professional Blue theme)
+- **Primary Colors:** #2563eb (blue), #1e40af (dark blue), #dbeafe (light blue)
+- **Background:** #f8f9fa (light gray), White cards (#ffffff)
+- **Typography:** Clean, professional, high contrast
+- **Interactions:** Smooth fade-in animations, subtle hover lift effects (translateY -5px), staggered delays
+- **Aesthetic:** Clean, minimal, professional. Best for: Business creators, consultants, coaches
+- **Emotion:** Trust, professionalism, clarity
+
 The redesign uses shadcn/ui as the foundation, 21st.dev MCP for component inspiration, Framer Motion for purposeful micro-interactions, and applies professional UX/UI principles from industry-leading products.
 
 ## 2. Goals
