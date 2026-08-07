@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,42 +49,43 @@ export default async function StoreProductsPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Products</h1>
-          <p className="text-sm text-muted-foreground">
-            Catalog imported from {store.name} for AI insights and Meta campaigns.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/stores/${projectId}`}>Back to store</Link>
-          </Button>
-        </div>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Products"
+          description={`Catalog imported from ${store.name} for AI insights and Meta campaigns`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Products" },
+          ]}
+        />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Catalog ({total})</CardTitle>
-          <CardDescription>
-            Read-only view of products synced from your connected e-commerce source. Manage the catalog in Shopify (or your provider); use this data for AI content and coupon campaigns.
-          </CardDescription>
-          <div className="pt-2">
-            <ListSearch placeholder="Search by title..." defaultValue={search} limit={pagination.limit} />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <ProductList products={products} projectId={projectId} />
-          <PaginationControls
-            page={pagination.page}
-            totalPages={totalPages}
-            total={total}
-            search={search}
-            limit={pagination.limit}
-          />
-        </CardContent>
-      </Card>
-    </main>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Catalog ({total})</CardTitle>
+              <CardDescription>
+                Read-only view of products synced from your connected e-commerce source. Manage the catalog in Shopify (or your provider); use this data for AI content and coupon campaigns.
+              </CardDescription>
+              <div className="pt-2">
+                <ListSearch placeholder="Search by title..." defaultValue={search} limit={pagination.limit} />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <ProductList products={products} projectId={projectId} />
+              <PaginationControls
+                page={pagination.page}
+                totalPages={totalPages}
+                total={total}
+                search={search}
+                limit={pagination.limit}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

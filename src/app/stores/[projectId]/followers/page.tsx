@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { checkStoreAccess } from "@/modules/workspaces";
 import { crmQueries } from "@/modules/crm";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -56,75 +57,78 @@ export default async function StoreFollowersPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Followers</h1>
-          <p className="text-sm text-muted-foreground">
-            {total} follower(s) for {store.name}.
-          </p>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Followers"
+          description={`${total} follower(s) for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Followers" },
+          ]}
+        />
+
+        <div className="section">
+          <div className="mb-4">
+            <ListSearch placeholder="Search by username..." defaultValue={search} limit={pagination.limit} />
+          </div>
+
+          {followers.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  No followers yet. Simulate a follow event from the store page.
+                </p>
+                <Button asChild variant="outline" className="mt-4">
+                  <Link href={`/stores/${projectId}`}>Simulate follow</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {followers.map((follower) => (
+                  <Card key={follower.id}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">
+                        {follower.username ?? "Unknown user"}
+                      </CardTitle>
+                      <CardDescription>IG: {follower.igUserId ?? "—"}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-sm">
+                      <p>
+                        <span className="text-muted-foreground">Followed</span>{" "}
+                        <span className="font-medium">
+                          {formatDate(follower.followedAt)}
+                        </span>
+                      </p>
+                      {follower.campaignEnrolledAt && (
+                        <p>
+                          <span className="text-muted-foreground">Enrolled</span>{" "}
+                          <span className="font-medium">
+                            {formatDate(follower.campaignEnrolledAt)}
+                          </span>
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="mt-6">
+                <PaginationControls
+                  page={pagination.page}
+                  totalPages={totalPages}
+                  total={total}
+                  search={search}
+                  limit={pagination.limit}
+                />
+              </div>
+            </>
+          )}
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-      </header>
-
-      <div className="mb-4">
-        <ListSearch placeholder="Search by username..." defaultValue={search} limit={pagination.limit} />
       </div>
-
-      {followers.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No followers yet. Simulate a follow event from the store page.
-            </p>
-            <Button asChild variant="outline" className="mt-4">
-              <Link href={`/stores/${projectId}`}>Simulate follow</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {followers.map((follower) => (
-              <Card key={follower.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">
-                    {follower.username ?? "Unknown user"}
-                  </CardTitle>
-                  <CardDescription>IG: {follower.igUserId ?? "—"}</CardDescription>
-                </CardHeader>
-                <CardContent className="text-sm">
-                  <p>
-                    <span className="text-muted-foreground">Followed</span>{" "}
-                    <span className="font-medium">
-                      {formatDate(follower.followedAt)}
-                    </span>
-                  </p>
-                  {follower.campaignEnrolledAt && (
-                    <p>
-                      <span className="text-muted-foreground">Enrolled</span>{" "}
-                      <span className="font-medium">
-                        {formatDate(follower.campaignEnrolledAt)}
-                      </span>
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <div className="mt-6">
-            <PaginationControls
-              page={pagination.page}
-              totalPages={totalPages}
-              total={total}
-              search={search}
-              limit={pagination.limit}
-            />
-          </div>
-        </>
-      )}
-    </main>
+    </div>
   );
 }

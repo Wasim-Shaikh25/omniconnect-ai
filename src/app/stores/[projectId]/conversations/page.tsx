@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { conversationQueries } from "@/modules/conversations";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,29 +50,31 @@ export default async function ConversationsPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
+    <div className="page-container">
       <OnlineStatus />
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{store.name}</h1>
-          <p className="text-sm text-muted-foreground">Conversations</p>
-        </div>
-        <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-      </header>
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Conversations"
+          description={`Manage conversations for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Conversations" },
+          ]}
+        />
 
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Recent conversations</CardTitle>
-          <CardDescription>
-            {total} conversation(s). Click to view messages and
-            manage AI/human status.
-          </CardDescription>
-          <div className="pt-2">
-            <ListSearch placeholder="Search by external ID..." defaultValue={search} limit={pagination.limit} />
-          </div>
-        </CardHeader>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Conversations</CardTitle>
+              <CardDescription>
+                {total} conversation(s). Click to view messages and manage AI/human status.
+              </CardDescription>
+              <div className="pt-2">
+                <ListSearch placeholder="Search by external ID..." defaultValue={search} limit={pagination.limit} />
+              </div>
+            </CardHeader>
         <CardContent>
           {conversations.length > 0 ? (
             <>
@@ -119,9 +122,11 @@ export default async function ConversationsPage({
               No conversations yet. Simulate an inbound Meta event on the store
               page to create one.
             </p>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+            )}
+          </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
