@@ -6,6 +6,8 @@ import { analyticsQueries } from "@/modules/analytics/server";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { crmQueries } from "@/modules/crm";
 import { conversationQueries } from "@/modules/conversations";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import {
   Card,
   CardContent,
@@ -13,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { BarChart3 } from "lucide-react";
 
 interface StoreReportRow {
   id: string;
@@ -59,12 +61,29 @@ export default async function ReportsPage() {
 
   if (!overview) {
     return (
-      <main className="container mx-auto max-w-5xl px-4 py-8">
-        <h1 className="text-2xl font-semibold">Reports</h1>
-        <p className="mt-4 text-sm text-muted-foreground">
-          No organization found.
-        </p>
-      </main>
+      <div className="page-container">
+        <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+          <PageHeader
+            title="Reports"
+            description="Workspace reports and analytics"
+            breadcrumbs={[
+              { label: "Dashboard", href: "/dashboard" },
+              { label: "Reports" },
+            ]}
+          />
+          <div className="section">
+            <EmptyState
+              icon={BarChart3}
+              title="No organization found"
+              description="Unable to load organization data."
+              action={{
+                label: "Back to Dashboard",
+                onClick: () => window.location.href = "/dashboard",
+              }}
+            />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -95,19 +114,20 @@ export default async function ReportsPage() {
   ]);
 
   return (
-    <main className="container mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Workspace Reports</h1>
-          <p className="text-sm text-muted-foreground">{overview.name}</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Workspace Reports"
+          description={overview.name}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Reports" },
+          ]}
+        />
 
-      {kpis && (
-        <section className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis && (
+          <div className="section">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard title="Stores" value={kpis.storeCount} />
           <KpiCard title="Products" value={kpis.productCount} />
           <KpiCard title="Conversations" value={kpis.conversationCount} />
@@ -121,17 +141,19 @@ export default async function ReportsPage() {
             title="Unread notifications"
             value={kpis.unreadNotificationCount}
           />
-        </section>
-      )}
+          </div>
+          </div>
+        )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Store breakdown</CardTitle>
-          <CardDescription>
-            Per-store activity and connection status.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <div className="section">
+        <Card>
+          <CardHeader>
+            <CardTitle>Store breakdown</CardTitle>
+            <CardDescription>
+              Per-store activity and connection status.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           {rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">No stores yet.</p>
           ) : (
@@ -171,8 +193,10 @@ export default async function ReportsPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
-    </main>
+          </CardContent>
+        </Card>
+        </div>
+      </div>
+    </div>
   );
 }

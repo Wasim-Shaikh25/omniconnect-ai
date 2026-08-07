@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { WorkspaceKpisSection } from "@/components/workspace-kpis-section";
 import { AskBusinessBrainForm } from "./_ask-form";
@@ -12,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Sparkles, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 export default async function BusinessBrainPage() {
   const user = await getCurrentUser();
@@ -22,38 +23,30 @@ export default async function BusinessBrainPage() {
   const { context } = hasAccess ? await getBusinessBrainContextAction() : { context: null };
 
   return (
-    <main className="container mx-auto max-w-3xl px-4 py-8">
-      <header className="mb-6 flex items-center gap-2">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/dashboard">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Dashboard
-          </Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Marketing Brain"
+          description="Ask OmniConnect anything about your workspace. Answers are grounded in your data."
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Marketing Brain" },
+          ]}
+        />
 
-      <section className="mb-8">
-        <h1 className="text-2xl font-semibold flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          Marketing Brain
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Ask OmniConnect anything about your workspace. Answers are grounded in
-          your stores, products, conversations, and followers.
-        </p>
-      </section>
-
-      {hasAccess ? (
-        <>
-          <section className="mb-8">
-            <h2 className="mb-3 text-lg font-medium">Operating rhythm KPIs</h2>
+        {hasAccess ? (
+          <div className="space-y-6">
+          <div className="section">
+            <h2 className="section-title">Operating rhythm KPIs</h2>
             <WorkspaceKpisSection />
-          </section>
+          </div>
 
+          <div className="section">
           <AskBusinessBrainForm />
+          </div>
 
           {context && context.citations.length > 0 && (
-            <section className="mt-8">
+            <div className="section">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Grounded in your data</CardTitle>
@@ -74,28 +67,31 @@ export default async function BusinessBrainPage() {
                   </ul>
                 </CardContent>
               </Card>
-            </section>
+            </div>
           )}
-        </>
-      ) : (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Lock className="h-5 w-5" />
-              Marketing Brain is a Pro feature
-            </CardTitle>
-            <CardDescription>
-              Upgrade to Pro to ask questions about your workspace, see operating-rhythm KPIs,
-              and get grounded answers from your data.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="default">
-              <Link href="/settings/billing">Upgrade plan</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </main>
+          </div>
+        ) : (
+          <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Marketing Brain is a Pro feature
+              </CardTitle>
+              <CardDescription>
+                Upgrade to Pro to ask questions about your workspace, see operating-rhythm KPIs,
+                and get grounded answers from your data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="default">
+                <Link href="/settings/billing">Upgrade plan</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
