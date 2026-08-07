@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/page-header";
 import { DynamicDashboard } from "@/components/dashboard/DynamicDashboard";
 import { getDashboardShareByTokenAction } from "@/modules/analytics";
 
@@ -15,12 +16,20 @@ export default async function SharedDashboardPage({
   }
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold">{share.title ?? "Shared dashboard"}</h1>
-        <p className="text-sm text-muted-foreground">Read-only shared view.</p>
-      </header>
-      <DynamicDashboard schema={share.schema} />
-    </main>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title={share.title ?? "Shared dashboard"}
+          description="Read-only shared view"
+          breadcrumbs={[
+            { label: "Shared Dashboard" },
+          ]}
+        />
+
+        <div className="section">
+          <DynamicDashboard schema={share.schema} />
+        </div>
+      </div>
+    </div>
   );
 }
