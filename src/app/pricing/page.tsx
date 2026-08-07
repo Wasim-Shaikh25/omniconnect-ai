@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PricingCards } from "@/components/pricing-cards";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
   title: "Pricing — OmniConnect AI",
@@ -10,55 +11,63 @@ export const metadata = {
 
 export default function PricingPage() {
   return (
-    <main className="container mx-auto px-4 py-16">
-      <header className="mb-10 text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Simple pricing for Meta-first businesses
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-balance text-lg text-muted-foreground">
-          Start free, then upgrade to Starter or Pro when you are ready to scale your AI marketing
-          and commerce workflow.
-        </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/">Back to home</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/register">Start free</Link>
-          </Button>
+    <div className="page-container">
+      <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="section mb-10 text-center">
+          <h1 className="page-title">Simple pricing for Meta-first businesses</h1>
+          <p className="page-description mx-auto max-w-2xl text-balance">
+            Start free, then upgrade to Starter or Pro when you are ready to scale your AI marketing
+            and commerce workflow.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/">Back to home</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/register">Start free</Link>
+            </Button>
+          </div>
         </div>
-      </header>
 
-      <PricingCards showFree={true} ctaTarget="signup" />
+        <div className="section">
+          <PricingCards showFree={true} ctaTarget="signup" />
+        </div>
 
-      <section className="mx-auto mt-16 max-w-3xl space-y-4 text-sm text-muted-foreground">
-        <h2 className="text-lg font-semibold text-foreground">Frequently asked questions</h2>
-        <details className="rounded-lg border p-4">
-          <summary className="cursor-pointer font-medium text-foreground">
-            Can I change plans later?
-          </summary>
-          <p className="mt-2">
-            Yes. Visit <strong>Settings → Billing</strong> inside the app to upgrade or downgrade.
-          </p>
-        </details>
-        <details className="rounded-lg border p-4">
-          <summary className="cursor-pointer font-medium text-foreground">
-            What payment methods do you accept?
-          </summary>
-          <p className="mt-2">
-            We use Stripe for secure card payments. All major cards and wallets are supported.
-          </p>
-        </details>
-        <details className="rounded-lg border p-4">
-          <summary className="cursor-pointer font-medium text-foreground">
-            Is there a free trial?
-          </summary>
-          <p className="mt-2">
-            The Free plan is free forever. Starter and Pro are billed monthly and you can cancel any
-            time.
-          </p>
-        </details>
-      </section>
-    </main>
+        <div className="section">
+          <div className="mx-auto max-w-3xl space-y-3">
+            <h2 className="section-title">Frequently asked questions</h2>
+            <Card>
+              <CardContent className="space-y-4 pt-6">
+                <details className="group">
+                  <summary className="cursor-pointer font-medium text-foreground hover:text-primary transition-colors">
+                    Can I change plans later?
+                  </summary>
+                  <p className="mt-2 text-sm text-muted-foreground group-open:block hidden">
+                    Yes. Visit <strong>Settings → Billing</strong> inside the app to upgrade or downgrade.
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="cursor-pointer font-medium text-foreground hover:text-primary transition-colors">
+                    What payment methods do you accept?
+                  </summary>
+                  <p className="mt-2 text-sm text-muted-foreground group-open:block hidden">
+                    We use Stripe for secure card payments. All major cards and wallets are supported.
+                  </p>
+                </details>
+                <details className="group">
+                  <summary className="cursor-pointer font-medium text-foreground hover:text-primary transition-colors">
+                    Is there a free trial?
+                  </summary>
+                  <p className="mt-2 text-sm text-muted-foreground group-open:block hidden">
+                    The Free plan is free forever. Starter and Pro are billed monthly and you can cancel any
+                    time.
+                  </p>
+                </details>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
