@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { PageHeader } from "@/components/page-header";
 import { getMarketingPerformance } from "@/modules/analytics/server";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function CampaignAnalyticsPage({

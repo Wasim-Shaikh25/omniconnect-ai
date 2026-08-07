@@ -15,6 +15,23 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0092` **Light Minimal design-system audit fixes** on `claude/framer-motion-deps-setup-ajyb2y`:
+  - **Primary color corrected from purple to Professional Blue.** The design tokens still carried the
+    pre-redesign violet hue (`--primary: 262.1 83.3% 57.8%`) while REQ-0092 mandates `#2563eb`. Updated
+    `--primary`/`--ring` (light) to `221.2 83.2% 53.3%` (#2563eb) and dark-mode to `217.2 91.2% 59.8%`
+    (#3b82f6) so buttons, links, active states, and focus rings match the blue brand used by the chart
+    widgets. `--accent`/`--accent-foreground` now use the spec's light-blue `#dbeafe` / dark-blue `#1e40af`.
+  - **Page background set to Light Minimal light gray.** `--background` changed from pure white to
+    `210 20% 98%` (#f8f9fa) so white cards visibly elevate off the page per the spec.
+  - **Fixed misaligned competitor next-best-action panel.** On `/stores/[projectId]/commerce/competitors`
+    the `CompetitorNextBestAction` card rendered as a full-bleed sibling outside the `page-container`
+    max-width wrapper. It is now passed as a slot into `CompetitorsPageClient` and rendered inside the
+    `max-w-5xl` container, aligned with the rest of the page.
+  - **Cleared 37 build-breaking lint errors.** The redesign left unused `Link`/`Button` imports across
+    21 page files after custom headers were replaced by `PageHeader`; `npm run build` was failing on the
+    lint step. Removed the dead imports. All quality gates (`lint`, `typecheck`, `test`, `build`,
+    `build:worker`) now pass.
+
 - `REQ-0092` **Complete End-to-End UI/UX Redesign — Light Minimal Design System** on `claude/framer-motion-deps-setup-ajyb2y`:
   - Applied Light Minimal design system (Professional Blue #2563eb, light gray #f8f9fa backgrounds, white cards) across 72 authenticated and unauthenticated pages with `.page-container` structure.
   - 63 pages redesigned with `PageHeader` component featuring breadcrumb navigation, title, description, and optional actions.

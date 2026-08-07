@@ -1,6 +1,5 @@
 
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { env } from "@/shared/config";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { crmQueries } from "@/modules/crm";
@@ -12,7 +11,6 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { FirstTimeFollowerCampaignForm } from "@/components/first-time-follower-campaign-form";
 import { FirstTimeFollowerSimulator } from "@/components/first-time-follower-simulator";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

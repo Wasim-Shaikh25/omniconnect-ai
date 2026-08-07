@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { conversationQueries } from "@/modules/conversations";
 import {
@@ -12,7 +11,6 @@ import { ConversationTakeoverButton } from "@/components/conversation-takeover-b
 import { ConversationMessageForm } from "@/components/conversation-message-form";
 import { ConversationContext, ConversationNextBestAction } from "@/components/conversation-context";
 import { OnlineStatus } from "@/components/online-status";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

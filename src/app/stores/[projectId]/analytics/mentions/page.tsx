@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { listMentionsWithSentimentAction } from "@/modules/social";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

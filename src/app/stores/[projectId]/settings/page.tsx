@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { ECOMMERCE_PROVIDERS, checkStoreAccess, updateStoreAction } from "@/modules/workspaces";
 import { PageHeader } from "@/components/page-header";
 import { StoreSettingsForm } from "@/components/store-settings-form";
@@ -11,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default async function StoreSettingsPage({
   params,

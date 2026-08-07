@@ -21,9 +21,11 @@ export default async function CompetitorsPage({
   const accounts = await repository.listByStore(projectId);
 
   return (
-    <>
-      <CompetitorNextBestAction projectId={projectId} />
-      <CompetitorsPageClient projectId={projectId} storeName={store.name} initialAccounts={accounts} />
-    </>
+    <CompetitorsPageClient
+      projectId={projectId}
+      storeName={store.name}
+      initialAccounts={accounts}
+      nextBestAction={<CompetitorNextBestAction projectId={projectId} />}
+    />
   );
 }

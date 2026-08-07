@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { getMediaPostAction, analyzeMediaAction } from "@/modules/analytics";
 import { PageHeader } from "@/components/page-header";
 import { AnalyzeMediaForm } from "@/components/analyze-media-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function formatNumber(value: number | null | undefined): string {

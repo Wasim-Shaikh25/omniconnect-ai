@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { listReportsAction, generateReportAction } from "@/modules/analytics";
 import { PageHeader } from "@/components/page-header";
 import { GenerateReportForm } from "@/components/generate-report-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Report } from "@/modules/analytics";
 

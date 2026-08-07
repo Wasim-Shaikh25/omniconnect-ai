@@ -1,9 +1,7 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +25,12 @@ export default function CompetitorsPageClient({
   projectId,
   storeName,
   initialAccounts,
+  nextBestAction,
 }: {
   projectId: string;
   storeName: string;
   initialAccounts: TrackedAccountRecord[];
+  nextBestAction?: ReactNode;
 }) {
   const router = useRouter();
   const [accounts, setAccounts] = useState<TrackedAccountRecord[]>(initialAccounts);
@@ -61,6 +62,8 @@ export default function CompetitorsPageClient({
             { label: "Competitors" },
           ]}
         />
+
+        {nextBestAction}
 
         <div className="section space-y-6 mb-10">
         <Card>

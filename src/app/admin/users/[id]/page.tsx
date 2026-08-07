@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { requireSuperAdmin } from "@/modules/auth";
 import { getUserProfile } from "@/modules/users";
 import { PageHeader } from "@/components/page-header";

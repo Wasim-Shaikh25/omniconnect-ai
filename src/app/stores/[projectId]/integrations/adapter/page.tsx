@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import {
   generateAdapterConfigAction,
@@ -8,7 +7,6 @@ import {
 } from "@/modules/ecommerce";
 import { PageHeader } from "@/components/page-header";
 import { ConnectAdapterForm } from "@/components/connect-adapter-form";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,

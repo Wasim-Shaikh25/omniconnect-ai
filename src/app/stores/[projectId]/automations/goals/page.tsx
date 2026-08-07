@@ -1,5 +1,4 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 
 import { checkStoreAccess } from "@/modules/workspaces";
 import { getAutomationTemplatesAction, createGoalAutomationAction, goalAutomationService } from "@/modules/intelligence";
