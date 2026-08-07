@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { auditQueries } from "@/modules/users";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,20 +20,20 @@ export default async function AuditLogPage() {
   const logs = await auditQueries.listByOrganization(user.userId, 100);
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Audit log</h1>
-          <p className="text-sm text-muted-foreground">
-            Recent admin and system events for your organization.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/settings">Back to settings</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Audit log"
+          description="Recent admin and system events for your organization"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Settings", href: "/settings" },
+            { label: "Audit log" },
+          ]}
+        />
 
-      <Card>
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Events</CardTitle>
           <CardDescription>{logs.length} entries.</CardDescription>
@@ -70,7 +71,9 @@ export default async function AuditLogPage() {
             </ul>
           )}
         </CardContent>
-      </Card>
-    </main>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
