@@ -1,4 +1,6 @@
 import { prisma } from "@/shared/database";
+import { env } from "@/shared/config/env";
+import { logger } from "@/shared/observability";
 import type { EcommerceQueries } from "@/modules/ecommerce";
 import type { CrmQueries } from "@/modules/crm";
 import type { SocialQueries } from "@/modules/social";
@@ -218,7 +220,11 @@ export function makePrismaDatasetFetcher(deps: PrismaDatasetFetcherDeps) {
   const { ecommerce, social } = deps;
 
   async function fetchOrders(projectId: string, start: Date, end: Date): Promise<OrderSummary[]> {
-    const orders = await ecommerce.listOrders(projectId, 500, start);
+    const cap = env.ANALYSIS_ORDER_CAP;
+    const orders = await ecommerce.listOrders(projectId, cap, start);
+    if (orders.length >= cap) {
+      logger.warn("analytics.fetchOrders.capReached", { projectId, cap });
+    }
     return orders.filter((o) => o.orderDate >= start && o.orderDate <= end).map((o) => ({
       orderDate: o.orderDate,
       total: o.total,
@@ -246,6 +252,8 @@ export function makePrismaDatasetFetcher(deps: PrismaDatasetFetcherDeps) {
       reach: row.reach,
       impressions: row.impressions,
       websiteClicks: row.websiteClicks,
+      biography: row.biography,
+      profilePictureUrl: row.profilePictureUrl,
       audienceJson: row.audienceJson as AccountInsight["audienceJson"],
       fetchedAt: row.fetchedAt,
     }));
@@ -422,7 +430,7 @@ export function makePrismaDatasetFetcher(deps: PrismaDatasetFetcherDeps) {
       profile: {
         followerCount: latestInsight?.followers ?? 0,
         mediaCount: media.length,
-        bioLength: 0,
+        bioLength: (latestInsight?.biography ?? "").length,
       },
       media: media.map((m) => ({
         likes: m.latestInsight?.likes ?? 0,

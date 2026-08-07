@@ -41,4 +41,9 @@ describe("publicPaths (M13 / M14)", () => {
     expect(isPublicPath("/api/ready")).toBe(true);
     expect(isPublicPath("/manifest.webmanifest")).toBe(true);
   });
+
+  it("keeps /api/metrics reachable for unauthenticated Prometheus scrapers (bearer auth enforced at route handler)", () => {
+    expect(isPublicPath("/api/metrics")).toBe(true);
+    expect(authorizeRoute("/api/metrics", false)).toEqual({ kind: "allow" });
+  });
 });

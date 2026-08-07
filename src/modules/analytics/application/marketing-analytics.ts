@@ -362,6 +362,8 @@ export function makeGetMarketingPerformance(deps: {
               impressions: pageInsights.impressions,
               reach: pageInsights.reach,
               profileViews: pageInsights.profileViews,
+              biography: pageInsights.biography,
+              profilePictureUrl: pageInsights.profilePictureUrl,
             }
           : null,
         demographics: audienceInsights ? mapAudienceDemographics(audienceInsights.demographics) : null,

@@ -77,6 +77,14 @@ export default async function ContentAnalyticsPage({
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {post.thumbnailUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={post.thumbnailUrl}
+                      alt={post.caption?.slice(0, 60) ?? post.mediaType}
+                      className="mb-3 h-28 w-28 rounded object-cover"
+                    />
+                  )}
                   <p className="mb-3 text-sm">{post.caption || "(no caption)"}</p>
                   {post.hashtags.length > 0 && (
                     <p className="mb-3 text-xs text-muted-foreground">{post.hashtags.join(" ")}</p>

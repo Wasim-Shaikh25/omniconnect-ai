@@ -5,6 +5,7 @@ import { getCurrentUser, requireVerifiedEmail } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import { aiConfigurationRepository, chatAssistant } from "@/modules/ai/server";
 import { aiUsageGuard } from "@/modules/ai";
+import { rateLimit, clientIp } from "@/shared/security/rate-limit";
 
 const bodySchema = z.object({
   sessionId: z.string().min(1),
@@ -47,6 +48,15 @@ export async function POST(request: Request) {
 
   if (!(await assertStoreInOrg(user.userId, parsed.data.projectId))) {
     return NextResponse.json({ error: "Store not found in your organization" }, { status: 404 });
+  }
+
+  const limited = await rateLimit({
+    key: `chat-stream:${userId}:${clientIp(request.headers)}`,
+    limit: 15,
+    windowMs: 60_000,
+  });
+  if (!limited.allowed) {
+    return NextResponse.json({ error: "Too many requests, please slow down" }, { status: 429 });
   }
 
   try {

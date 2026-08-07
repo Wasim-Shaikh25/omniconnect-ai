@@ -110,10 +110,25 @@ export default async function StoreAnalyticsPage({
               <div className="section">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Connected Meta account</CardTitle>
-                    <CardDescription>
-                      @{view.audience.pageInsights.username ?? "unknown"} · {formatNumber(view.audience.pageInsights.mediaCount)} media
-                    </CardDescription>
+                    <div className="flex items-center gap-3">
+                      {view.audience.pageInsights.profilePictureUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={view.audience.pageInsights.profilePictureUrl}
+                          alt={view.audience.pageInsights.username ?? "Instagram profile"}
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div>
+                        <CardTitle>@{view.audience.pageInsights.username ?? "unknown"}</CardTitle>
+                        <CardDescription>
+                          {formatNumber(view.audience.pageInsights.mediaCount)} media
+                        </CardDescription>
+                      </div>
+                    </div>
+                    {view.audience.pageInsights.biography && (
+                      <p className="mt-2 text-sm text-muted-foreground">{view.audience.pageInsights.biography}</p>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -245,13 +260,18 @@ export default async function StoreAnalyticsPage({
                   ) : (
                     <ul className="divide-y text-sm">
                       {view.content.topPosts.map((post) => (
-                        <li key={post.id} className="flex items-center justify-between py-2">
-                          <div className="min-w-0">
-                            <p className="truncate font-medium">{post.caption || post.mediaType}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {post.orders} orders · {formatCurrency(post.revenue, view.product.currency)}
-                            </p>
-                          </div>
+                        <li key={post.id} className="py-2">
+                          <Link
+                            href={`/stores/${projectId}/analytics/content/${post.id}`}
+                            className="flex items-center justify-between hover:underline"
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate font-medium">{post.caption || post.mediaType}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {post.orders} orders · {formatCurrency(post.revenue, view.product.currency)}
+                              </p>
+                            </div>
+                          </Link>
                         </li>
                       ))}
                     </ul>

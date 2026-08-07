@@ -55,7 +55,11 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
 
   return {
     async syncMediaCatalog(projectId: string): Promise<{ upserted: number }> {
-      const items = await metaService.getAccountMedia(projectId, 25);
+      // Paginates through the Graph API's cursor-based media feed rather than
+      // stopping at the first 25-item page; capped to bound Graph API call volume
+      // against the 200 calls/hour per-project rate limit (each post also costs an
+      // insights call).
+      const items = await metaService.getAccountMedia(projectId, 100);
       let upserted = 0;
       for (const item of items) {
         const post = await repo.upsertMediaPost(projectId, {
@@ -68,7 +72,9 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
           hashtags: item.hashtags,
           audioId: null,
           audioName: null,
-          thumbnailUrl: item.thumbnailUrl,
+          // Meta only returns thumbnail_url for video-like media; images/carousels
+          // only have media_url, so fall back to it as the display image.
+          thumbnailUrl: item.thumbnailUrl ?? item.mediaUrl,
           publishedAt: item.publishedAt,
         });
 
@@ -101,7 +107,9 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
         profileViews: page?.profileViews ?? null,
         reach: page?.reach ?? null,
         impressions: page?.impressions ?? null,
-        websiteClicks: null,
+        websiteClicks: page?.websiteClicks ?? null,
+        biography: page?.biography ?? null,
+        profilePictureUrl: page?.profilePictureUrl ?? null,
         audienceJson: audience ? { demographics: audience.demographics } : null,
       });
 

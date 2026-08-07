@@ -36,6 +36,7 @@ export default async function AttributionDashboardPage({
     listAttributionLinks(projectId),
     ecommerceQueries.listCoupons(projectId, 100),
   ]);
+  const couponCodeById = new Map(coupons.map((c) => [c.id, c.code]));
 
   return (
     <div className="page-container">
@@ -108,7 +109,9 @@ export default async function AttributionDashboardPage({
                               {link.fullUrl}
                             </a>
                           </td>
-                          <td className="py-3 pr-4">{link.couponId ? "Yes" : "—"}</td>
+                          <td className="py-3 pr-4">
+                            {link.couponId ? couponCodeById.get(link.couponId) ?? "Yes" : "—"}
+                          </td>
                           <td className="py-3 pr-4">{link.utmSource}</td>
                           <td className="py-3 pr-4">{link.clicks}</td>
                           <td className="py-3 pr-4">{link.conversions}</td>

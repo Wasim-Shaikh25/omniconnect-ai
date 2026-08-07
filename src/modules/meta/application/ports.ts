@@ -91,6 +91,9 @@ export interface MetaPageInsights {
   impressions: number | null;
   reach: number | null;
   profileViews: number | null;
+  websiteClicks: number | null;
+  biography: string | null;
+  profilePictureUrl: string | null;
 }
 
 export interface AudienceDemographics {

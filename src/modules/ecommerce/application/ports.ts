@@ -181,7 +181,6 @@ export interface OrderRecord {
 }
 
 export interface OrderRepository {
-  sync(projectId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }>;
   upsertMany(projectId: string, orders: ConnectorOrder[]): Promise<number>;
   listByStore(
     projectId: string,

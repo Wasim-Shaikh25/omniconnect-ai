@@ -227,7 +227,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 3. Shared links drive checkouts; Shopify `orders/create|paid` webhooks and order sync publish an `OrderSynced` domain event for each fetched order.
 4. `attribution` module subscribes to `OrderSynced`, matches the order’s `couponCode` to a `Coupon` and `AttributionLink`, increments the link’s conversion/revenue totals and the coupon’s `usageCount`/`revenueAttributed`, then forwards the order to `MetaService.sendPurchaseEvent`.
 5. `MetaService.sendPurchaseEvent` sends a server-side Purchase event to the Meta Conversions API with SHA-256 hashed `em` and `external_id`, a stable `event_id` built from `purchase_${externalId}_${createdAt.getTime()}`, and `custom_data` containing currency, value, and line-item IDs. No-ops when `metaPixelId` or the access token is missing.
-6. The `/stores/[projectId]/analytics/attribution` dashboard lists every link with short code, full URL, UTM source, clicks, conversions, and revenue; groupings by source/medium/campaign and coupon can be derived from the link rows.
+6. The `/stores/[projectId]/analytics/attribution` dashboard lists every link with short code, full URL, UTM source, clicks, conversions, and revenue (coupon column shows the actual coupon code, not just "Yes"/"—"); groupings by source/medium/campaign and coupon can be derived from the link rows.
+7. `syncOrders()` fetches the connector's most recent 250 orders and calls `OrderRepository.upsertMany()`, which only inserts/updates — it never deletes orders absent from that batch. (A prior `sync()` method destructively deleted any DB order not present in the 250-item page, which silently lost order history on every sync for stores with >250 orders; it has been removed.) The analytics `profile_quality`/`attribution_breakdown`/etc. dataset fetcher reads orders without the previous 500-row cap, now bounded by `env.ANALYSIS_ORDER_CAP` (default 10,000, logs a warning if reached).
 
 ### 8.8 Billing and Plan Enforcement
 1. `Plan` enum (`FREE`, `PRO`, `BUSINESS`) and `PLAN_LIMITS` matrix live in `workspaces/domain/plan.ts` and are the single source of truth for user entitlements.
@@ -256,9 +257,12 @@ Core tables (see `prisma/schema.prisma` for full model):
 ### Meta
 - Webhook verification: HMAC-SHA256, constant-time compare, payload dedup via the shared `ProcessedWebhookEvent` ledger.
 - Graph API: page/account media, per-media insights, audience demographics, outbound messaging.
+- `getAccountMedia(projectId, limit)` paginates through the Graph API's `paging.next` cursor (25 items/page) until either no more pages remain or `limit` is reached; `syncMediaCatalog` requests up to 100 posts (raised from a previous hardcoded 25-post cap with no pagination). `MediaPost.thumbnailUrl` stores `thumbnail_url ?? media_url` since image/carousel posts only have `media_url`.
+- `getPageInsights` also requests `biography`, `profile_picture_url`, and the `website_clicks` metric; these are persisted on `AccountInsight.biography` / `AccountInsight.profilePictureUrl` / `AccountInsight.websiteClicks` (previously `websiteClicks` was always written as `null` despite the column existing, and biography/profile picture were never fetched at all, which meant `profile_quality` analysis always saw `bioLength: 0`).
+- Stories are **not** ingested (only outbound story publishing exists via `publishMedia`); see `REQ-0098` for the proposed Stories Graph API integration.
 - Conversions API: server-side `Purchase` events via `MetaService.sendPurchaseEvent`, with SHA-256 hashed user data, stable `event_id` dedup, and `custom_data` for currency/value/line items. Requires a `metaPixelId` on the project.
 - Permissions: `instagram_business_basic`, `instagram_business_manage_insights`, `pages_read_engagement`; optional `ads_management`/`ads_read` for ad insights.
-- Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure.
+- Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure. Pagination and per-item insight fetches both count against this budget, which bounds how high `syncMediaCatalog`'s request limit can practically go.
 
 ### OpenRouter
 - `OpenRouterProvider` implements `AIProvider` and `ContentModerator`.
@@ -388,6 +392,9 @@ audit pass were resolved by `REQ-0093`:
 | **N1** SSRF in ConfigInterpreter | ✅ Fixed (REQ-0093) | `assertPublicHttpUrl()` guard before every outbound fetch; `baseUrl` requires HTTPS. |
 | **N2** Unauthenticated `/api/metrics` | ✅ Fixed (REQ-0093) | Bearer token check via `METRICS_TOKEN` env var. |
 | **N3** Stale NO-GO verdict in docs | ✅ Fixed (REQ-0093) | This section updated. |
+| **P1** `/api/metrics` unreachable by Prometheus | ✅ Fixed (REQ-0097) | The N2 bearer-token check never ran because the NextAuth middleware redirected unauthenticated requests (including scrapers) to `/login` before hitting the route. `/api/metrics` added to `PUBLIC_PATHS_EXACT`; bearer check still enforced in the route handler; `validateProductionSecrets()` now requires `METRICS_TOKEN` in production. |
+| **P2** Order sync destructive `deleteMany` | ✅ Fixed (REQ-0096) | `syncOrders()` deleted every DB order absent from the connector's 250-order batch on every sync, silently losing history for stores with >250 orders. Replaced with non-destructive `upsertMany()`; destructive `sync()` removed from `OrderRepository`. |
+| **P3** `/api/chat/stream` no per-request rate limit | ✅ Fixed (REQ-0097) | Added `rateLimit()` (15/min) ahead of the monthly AI-quota guard. |
 | M1–M15 medium findings | ✅ Verified | See audit report §4 for per-finding evidence. |
 | L1–L7 low findings | ✅ Verified / Accepted | See audit report §4. |
 
@@ -398,6 +405,8 @@ Remaining conditions before a 🟢 GO:
    HTTP redirect chains and international domain names.
 3. Completion of the two deferred medium findings (M3 project-race, M4 unbounded findMany) tracked
    in the audit report as "Scheduled Post-Release".
+4. Stories ingestion (`REQ-0098`) is proposed but not implemented — content analytics has no data for
+   Instagram Stories today.
 
 ---
 

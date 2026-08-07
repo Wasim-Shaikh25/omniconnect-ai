@@ -259,21 +259,35 @@ export class GraphApiMetaService implements MetaService {
     }
 
     const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,children{id,media_type,media_url,permalink,caption,timestamp,thumbnail_url}";
-    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/media`);
-    url.searchParams.set("fields", fields);
-    url.searchParams.set("limit", String(Math.min(limit, 25)));
+    const pageSize = 25;
+    const rows: unknown[] = [];
+    let nextUrl: string | null = (() => {
+      const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/media`);
+      url.searchParams.set("fields", fields);
+      url.searchParams.set("limit", String(Math.min(limit, pageSize)));
+      return url.toString();
+    })();
 
     try {
-      const res = await this.graphApiFetch(projectId, url.toString(), withTimeout({
-        headers: { authorization: `Bearer ${token}` },
-      }));
-      if (!res.ok) {
-        logger.warn("meta.getAccountMedia.failed", { projectId, status: res.status });
-        return [];
+      while (nextUrl && rows.length < limit) {
+        const res: Response = await this.graphApiFetch(projectId, nextUrl, withTimeout({
+          headers: { authorization: `Bearer ${token}` },
+        }));
+        if (!res.ok) {
+          logger.warn("meta.getAccountMedia.failed", { projectId, status: res.status });
+          break;
+        }
+        const payload: unknown = await res.json();
+        const pageRows = (payload as { data?: unknown[] }).data ?? [];
+        rows.push(...pageRows);
+        const paging = (payload as { paging?: { next?: string } }).paging;
+        nextUrl = pageRows.length > 0 ? paging?.next ?? null : null;
       }
-      const payload: unknown = await res.json();
-      const rows = (payload as { data?: unknown[] }).data ?? [];
-      const items = rows.map((row) => parseMediaItem(row, "INSTAGRAM")).filter((m): m is MetaMediaItem => m !== null);
+
+      const items = rows
+        .slice(0, limit)
+        .map((row) => parseMediaItem(row, "INSTAGRAM"))
+        .filter((m): m is MetaMediaItem => m !== null);
       await Promise.all(
         items.map(async (item) => {
           const insights = await this.fetchMediaInsights(projectId, item.externalId, token);
@@ -306,7 +320,7 @@ export class GraphApiMetaService implements MetaService {
 
         try {
           const accountUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}`);
-          accountUrl.searchParams.set("fields", "username,followers_count,media_count");
+          accountUrl.searchParams.set("fields", "username,followers_count,media_count,biography,profile_picture_url");
           const accountRes = await this.graphApiFetch(projectId, accountUrl.toString(), withTimeout({
             headers: { authorization: `Bearer ${token}` },
           }));
@@ -316,7 +330,7 @@ export class GraphApiMetaService implements MetaService {
           const since = Math.floor(Date.now() / 1000) - days * 86400;
           const until = Math.floor(Date.now() / 1000);
           const insightsUrl = new URL(`${GRAPH_API_BASE}/${integration.accountId}/insights`);
-          insightsUrl.searchParams.set("metric", "impressions,reach,profile_views");
+          insightsUrl.searchParams.set("metric", "impressions,reach,profile_views,website_clicks");
           insightsUrl.searchParams.set("period", "day");
           insightsUrl.searchParams.set("since", String(since));
           insightsUrl.searchParams.set("until", String(until));
@@ -337,6 +351,9 @@ export class GraphApiMetaService implements MetaService {
             impressions: summed.impressions,
             reach: summed.reach,
             profileViews: summed.profileViews,
+            websiteClicks: summed.websiteClicks,
+            biography: typeof accountJson.biography === "string" ? accountJson.biography : null,
+            profilePictureUrl: typeof accountJson.profile_picture_url === "string" ? accountJson.profile_picture_url : null,
           };
         } catch (error) {
           logger.error("meta.getPageInsights.error", {
@@ -903,11 +920,14 @@ function sumInsightData(data: unknown[]): {
   impressions: number | null;
   reach: number | null;
   profileViews: number | null;
+  websiteClicks: number | null;
 } {
   let impressions = 0;
   let reach = 0;
   let profileViews = 0;
+  let websiteClicks = 0;
   let hasAny = false;
+  let hasWebsiteClicks = false;
 
   for (const metric of data) {
     if (typeof metric !== "object" || metric === null) continue;
@@ -931,11 +951,14 @@ function sumInsightData(data: unknown[]): {
     } else if (name === "profile_views") {
       profileViews += total;
       hasAny = true;
+    } else if (name === "website_clicks") {
+      websiteClicks += total;
+      hasWebsiteClicks = true;
     }
   }
 
-  if (!hasAny) return { impressions: null, reach: null, profileViews: null };
-  return { impressions, reach, profileViews };
+  if (!hasAny) return { impressions: null, reach: null, profileViews: null, websiteClicks: null };
+  return { impressions, reach, profileViews, websiteClicks: hasWebsiteClicks ? websiteClicks : null };
 }
 
 function mergeDemographicObject(

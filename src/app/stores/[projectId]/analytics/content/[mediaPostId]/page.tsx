@@ -61,6 +61,14 @@ export default async function MediaPostDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {post.thumbnailUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={post.thumbnailUrl}
+              alt={post.caption?.slice(0, 60) ?? post.mediaType}
+              className="mb-3 h-48 w-48 rounded object-cover"
+            />
+          )}
           <p className="mb-3 text-sm">{post.caption || "(no caption)"}</p>
           {post.hashtags.length > 0 && (
             <p className="mb-3 text-xs text-muted-foreground">{post.hashtags.join(" ")}</p>
@@ -82,6 +90,14 @@ export default async function MediaPostDetailPage({
                   <p>{formatNumber(metric.value)}</p>
                 </div>
               ))}
+              <div>
+                <span className="text-xs text-muted-foreground">Engagement rate</span>
+                <p>
+                  {post.latestInsight.engagementRate
+                    ? `${(post.latestInsight.engagementRate * 100).toFixed(2)}%`
+                    : "—"}
+                </p>
+              </div>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">No insights captured yet.</p>

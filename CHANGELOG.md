@@ -15,6 +15,46 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0094`/`REQ-0096`/`REQ-0097` **Post-audit UI/data-integrity fixes** on `claude/framer-motion-deps-setup-ajyb2y`
+  (follow-up to a UI/ecommerce-data/JSON-on-UI audit; `REQ-0095` partially done, `REQ-0098` split out as a follow-up):
+  - **`REQ-0097` — `/api/metrics` was unreachable to Prometheus scrapers.** The NextAuth middleware
+    redirected every unauthenticated request — including the metrics scraper — to `/login` before the
+    route handler's `METRICS_TOKEN` bearer check ever ran. Added `/api/metrics` to
+    `PUBLIC_PATHS_EXACT`; the bearer-token check in the route handler still gates access.
+    `validateProductionSecrets()` now requires `METRICS_TOKEN` in production. Added a per-request rate
+    limit (15/min) to `/api/chat/stream`, which previously had only a monthly AI-quota guard and no
+    per-request throttle.
+  - **`REQ-0096` — order sync was silently deleting historical orders on every run (data loss).**
+    `syncOrders()` fetched only the connector's most recent 250 orders
+    (`connector.getOrders(250)`) and then called `OrderRepository.sync()`, which deleted every DB order
+    whose `externalId` wasn't in that 250-item batch. Any store with more than 250 orders lost older
+    order history on every sync. Replaced with `upsertMany()` (never deletes); the destructive `sync()`
+    method was removed from `OrderRepository` entirely since it had no other caller. Also: removed the
+    500-order hard cap in the analytics dataset fetcher (`fetchOrders()`), now configurable via
+    `ANALYSIS_ORDER_CAP` (default 10,000, warns when hit); attribution page now shows the real coupon
+    code instead of "Yes"/"—"; analytics page top-posts list links through to the post detail page.
+  - **`REQ-0094` — Meta sync silently dropped data.** `getAccountMedia()` was hard-capped at 25 posts
+    with no pagination; fixed to follow the Graph API's `paging.next` cursor up to the requested limit
+    (raised from 25 to 100). `websiteClicks` was always stored as `null` even though the DB column
+    existed — now populated from the real `website_clicks` Graph API metric. `bioLength` was hardcoded
+    to `0` in the `profile_quality` analysis dataset because `biography`/`profile_picture_url` were
+    never fetched from Meta; added both fields to the Page Insights request and to a new
+    `AccountInsight.biography` / `AccountInsight.profilePictureUrl` migration
+    (`20260807144559_add_account_profile_fields`); `bioLength` is now derived from the stored biography.
+  - **`REQ-0095` (partial) — content UI was missing visuals.** Post thumbnails now render on the content
+    list and detail pages (falling back to `media_url` for image/carousel posts, which Meta never
+    returns a `thumbnail_url` for); the analytics page now shows an Instagram profile identity card
+    (avatar, `@handle`, bio) when Meta page insights are available; engagement rate added to the post
+    detail page's metrics grid. Story-specific engagement metrics (exits/taps) were **not** implemented —
+    the codebase has no existing ingestion of Meta's `/stories` edge at all (only outbound story
+    *publishing* exists), so this was split out as `REQ-0098` (a net-new feature, not a bug fix) rather
+    than rushed.
+  - New requirements/tasks/trackers: `REQ-0094`–`REQ-0098` in `docs/requirements/`,
+    `TASK-0094`–`TASK-0097` in `docs/tasks/`, `TRACKER-0094`–`TRACKER-0097` in `docs/trackers/`.
+  - All quality gates pass: `lint`, `typecheck`, `372/372 tests` (0 skipped-as-failed), `build`,
+    `build:worker`. New tests: `meta.service.test.ts` (pagination), `route.test.ts` for
+    `/api/metrics` and `/api/chat/stream`, `public-paths.test.ts` metrics assertion.
+
 - `REQ-0093` **Security hardening — SSRF guard and metrics auth** on `claude/framer-motion-deps-setup-ajyb2y`:
   - **N1 (High — release blocker) resolved.** `ConfigInterpreter.fetchJson()` now calls
     `assertPublicHttpUrl(url)` before every outbound `fetch()`. The guard (`src/shared/security/outbound-url-guard.ts`) checks:
