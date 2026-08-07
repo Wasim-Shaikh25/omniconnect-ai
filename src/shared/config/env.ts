@@ -110,6 +110,8 @@ const envSchema = z.object({
 
   ABANDONED_CART_THRESHOLD_MINUTES: z.coerce.number().int().min(1).default(60),
 
+  METRICS_TOKEN: z.string().optional(),
+
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
   SMTP_HOST: z.string().optional(),

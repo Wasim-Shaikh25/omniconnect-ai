@@ -15,6 +15,16 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0093` **Security hardening — SSRF guard and metrics auth** on `claude/framer-motion-deps-setup-ajyb2y`:
+  - **N1 (High — release blocker) resolved.** `ConfigInterpreter.fetchJson()` now calls
+    `assertPublicHttpUrl(url)` before every outbound `fetch()`. The guard (`src/shared/security/outbound-url-guard.ts`) checks:
+    (1) scheme must be `http:` or `https:`, (2) IPv4 literals matching loopback/RFC-1918/link-local ranges are rejected, (3) IPv6 literals matching `::1`, `fc00::/7`, `fe80::/10` are rejected, (4) domain names are resolved via `node:dns/promises` and each resolved address is checked against the same private-range rules (DNS-rebinding protection). The `baseUrl` field in `AdapterConfigMapping` now requires the `https://` scheme. 19 unit tests added.
+  - **N2 (Medium — required pre-release) resolved.** `GET /api/metrics` now checks for an `Authorization: Bearer <token>` header using constant-time comparison when `METRICS_TOKEN` is set in environment. Requests without a valid token receive `401`. When `METRICS_TOKEN` is absent (local dev), the endpoint remains open.
+  - **N3 (Low — documentation) resolved.** `docs/specs/current-state.md §11.1` updated from "🔴 NO-GO as of 2026-07-31" to "🟡 CONDITIONAL GO as of 2026-08-07" with a per-finding status table covering all 36 findings.
+  - **Barrel cleanup.** `ConfigInterpreter` and `getConnector` removed from `src/modules/ecommerce/index.ts` barrel (neither was imported outside the ecommerce module; they are infrastructure internals). This also resolves a latent issue where server-only code transitively reached client bundles.
+  - **`PRODUCTION_READINESS_AUDIT.md` updated** with third-pass findings, post-fix verification, and revised recommendation.
+  - All quality gates pass: `lint`, `typecheck`, `364/367 tests`, `build`.
+
 - `REQ-0092` **Light Minimal design-system audit fixes** on `claude/framer-motion-deps-setup-ajyb2y`:
   - **Primary color corrected from purple to Professional Blue.** The design tokens still carried the
     pre-redesign violet hue (`--primary: 262.1 83.3% 57.8%`) while REQ-0092 mandates `#2563eb`. Updated

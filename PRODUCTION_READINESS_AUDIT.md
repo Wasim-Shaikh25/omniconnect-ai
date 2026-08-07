@@ -1,67 +1,56 @@
 # OmniConnect AI — Production Readiness Audit
 
-> **Report version:** 2026-07-29 (baseline); **addendum 2026-07-31**; **third pass 2026-08-07**
+> **Report version:** 2026-07-29 (baseline); **addendum 2026-07-31**; **third pass 2026-08-07**; **post-fix update 2026-08-07 (REQ-0093)**
 > **Auditor:** Cross-functional review (Principal Engineer, Security, QA, DevOps/SRE, DBA, PM, UX, Accessibility, Performance)
 > **Repository:** `Wasim-Shaikh25/omniconnect-ai`
-> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum); **`e89ae17` (third pass — current)**
-> **Branch:** `main` (baseline/addendum); `claude/framer-motion-deps-setup-ajyb2y` (third pass)
+> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum); `e89ae17` (third pass); **post-REQ-0093 (current — `claude/framer-motion-deps-setup-ajyb2y`)**
+> **Branch:** `main` (baseline/addendum); `claude/framer-motion-deps-setup-ajyb2y` (third pass + fixes)
 > **Classification:** Internal — redact before external distribution.
 >
-> **⚠️ Read this first — the current verdict is in the 2026-08-07 Executive Summary below.**
+> **⚠️ Read this first — the current verdict is in the post-fix Executive Summary §1.1 below.**
 > The original 33 findings (C1–L7) were captured against commit `06395c4`. The third pass
 > re-verified them against `e89ae17`: **all 12 release blockers are remediated and code-verified**
-> (status table in §1.2a). The detailed C1–L7 blocks in §4 are retained as the historical record;
-> their live status is the status table, not the "Confirmed Defect" headers frozen inside them.
+> (status table in §1.2a). The new findings N1/N2/N3 from the third pass were subsequently fixed
+> in `REQ-0093`. The detailed C1–L7 blocks in §4 are retained as the historical record; their
+> live status is the status table, not the "Confirmed Defect" headers frozen inside them.
 
 ---
 
-## 1. Executive Summary (Third Pass — 2026-08-07, commit `e89ae17`)
+## 1. Executive Summary (Post-Fix — 2026-08-07, REQ-0093)
 
 ### 1.1 Recommendation
 
 # 🟡 STOP — CONDITIONAL GO
 
-The two prior **Critical** findings and all ten **High** findings from the 2026-07-31 audit have
-been remediated and were **code-verified at commit `e89ae17`** during this pass (§1.2a). The
-quality baseline is green (typecheck ✓, lint ✓ at `--max-warnings=0`, tests **345 passed / 3
-skipped** across 81 files, production build ✓). The remediation program (`REQ-0067`…`REQ-0075`)
-closed the release blockers, and a large feature build-out (`REQ-0076`…`REQ-0092`) has since landed.
+The two prior **Critical** findings and all ten **High** findings from the 2026-07-31 audit were
+**code-verified at commit `e89ae17`** (§1.2a). The third-pass surfaced three new items (N1/N2/N3);
+all three have been remediated by `REQ-0093` and verified via the quality gate suite.
 
-This pass surfaced **one new release-relevant High** and two Low items in the new surface area:
+**Current quality gates (post-REQ-0093):** lint ✓ (`--max-warnings=0`), typecheck ✓, tests
+**364 passed / 3 skipped** (367 total across 82 files), production build ✓.
 
-1. **`N1` (High) — Server-Side Request Forgery in the dynamic e-commerce adapter.** The
-   AI-generated adapter feature (`REQ-0078`) lets any authenticated user supply a `baseUrl` that is
-   validated only as a syntactic URL (`z.string().url()`) and then fetched **server-side with
-   credentials** by `ConfigInterpreter` (`config-interpreter.ts:286`). There is no allow-list, no
-   private-IP / loopback / link-local block, and no scheme restriction. `testAdapterConfigAction`
-   returns the parsed `storeName` / `productCount` and provider error strings to the caller,
-   giving a partial read-back oracle against the internal network (Fly.io 6PN, `*.internal`,
-   Redis, Postgres, the app's own loopback routes). This is the one item that should gate release.
+**No Critical or High findings remain open.** Remaining conditions before an unconditional 🟢 GO:
 
-2. **`N2` (Low)** — `/api/metrics` performs no authentication and is not in `publicPaths`
-   (exposes a single `events_failed_jobs` gauge; low impact either way).
+1. `METRICS_TOKEN` must be configured in the production environment's secrets manager before deploy.
+2. A staging end-to-end smoke must be re-run on this build (register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once).
+3. Alerting confirmed on `events_failed_jobs`, webhook failure rate, and `/api/ready`.
+4. Manual penetration test of the dynamic adapter's `testAdapterConfigAction` to confirm the SSRF guard holds under HTTP redirect chains, CNAME chains, and international domain names.
 
-3. **`N3` (Low / documentation)** — `docs/specs/current-state.md` §11.1 still declares
-   "🔴 NO-GO as of 2026-07-31 … all 33 findings … open at commit `33e2e0b`" while the bullets
-   below it describe each finding as fixed. The stale headline should be corrected so the living
-   spec does not contradict the shipped remediation.
+**Summary of N1/N2/N3 fixes (REQ-0093):**
 
-The architecture remains sound: clean DDD layering, a verified tenant guard, `trustHost` now set,
-a durable BullMQ event bus with `jobId` dedup + DLQ, webhook idempotency via a
-`ProcessedWebhookEvent` ledger, encryption with a documented rotation path, and CI security
-scanning (npm audit + gitleaks). The gap to an unconditional GO is small: land an outbound-URL
-SSRF guard for `N1` (or feature-flag the dynamic adapter off), then run the staging end-to-end
-smoke on this build.
+- **N1 (High — SSRF) → Fixed.** `src/shared/security/outbound-url-guard.ts` added with `assertPublicHttpUrl()`. Checks scheme (`http`/`https` only), rejects IPv4 private/loopback/link-local literals, rejects IPv6 loopback/ULA/link-local literals, and resolves domain names via `node:dns/promises` to block DNS-rebinding attacks. `ConfigInterpreter.fetchJson()` now calls the guard before every `fetch()`. `baseUrl` in `AdapterConfigMapping` Zod schema now requires `https://`. 19 unit tests added and green.
+- **N2 (Medium — metrics auth) → Fixed.** `GET /api/metrics` now checks `Authorization: Bearer <token>` using `timingSafeEqual` when `METRICS_TOKEN` env var is set. Returns `401` on mismatch. Open in dev when token is unset.
+- **N3 (Low — stale docs) → Fixed.** `docs/specs/current-state.md §11.1` updated to "🟡 CONDITIONAL GO as of 2026-08-07" with a per-finding status table.
 
-### 1.2 Finding count by severity (current)
+### 1.2 Finding count by severity (post-REQ-0093)
 
-| Severity | Open | Remediated (prior pass) | Notes |
-|----------|------|--------------------------|-------|
+| Severity | Open | Remediated | Notes |
+|----------|------|------------|-------|
 | 🔴 Critical | 0 | 2 (C1, C2) | Both code-verified fixed |
-| 🟠 High | **1 (N1)** | 10 (H1–H10) | All prior High blockers fixed |
-| 🟡 Medium | see §1.2a | 15 (M1–M15) | Reported fixed per `REQ-0068`/`0069`; subset re-verified |
-| 🔵 Low | 2 new (N2, N3) | 8 (L-set) | New Lows in new surface |
-| **Total open** | **3** | **35 prior remediated** | |
+| 🟠 High | **0** | 10 (H1–H10) + N1 | N1 fixed by REQ-0093 |
+| 🟡 Medium | 2 deferred (M3, M4) | 13 (M1–M15 minus M3/M4) | M3 project-creation race; M4 unbounded findMany — scheduled post-release |
+| 🔵 Low | 0 | 8 (L-set) + N2 + N3 | N2 and N3 fixed by REQ-0093 |
+| **Total open** | **2 (post-release)** | **36 remediated** | |
 
 ### 1.2a Status of the 33 prior findings (re-verified this pass)
 
@@ -88,17 +77,18 @@ Notable confirmations: Shopify GDPR/`app/uninstalled` webhooks now handled (M5),
 from `publicPaths` (M14), dashboard-share tokens use `crypto.randomUUID()` (unguessable). Any of
 these should be spot-checked before final sign-off if they gate a specific release requirement.
 
-### 1.3 Major technical risks (current)
+### 1.3 Major technical risks (post-REQ-0093)
 
-- **Authenticated SSRF via the dynamic adapter (N1)** — the only open High. Server fetches a
-  user-controlled URL with credentials and returns a partial oracle; reachable by any signed-up
-  user regardless of plan.
-- **Event-delivery correctness now depends on Redis/BullMQ health** — the durable bus is a real
-  improvement over the old double-dispatch, but failed jobs land in a DLQ that is surfaced only via
-  the `events_failed_jobs` gauge; confirm alerting is wired on it before scaling past one replica.
+- **SSRF N1 is remediated** — `assertPublicHttpUrl()` now blocks private/loopback/link-local
+  targets. Residual risk: HTTP redirect chains and CNAME chains at the destination were not tested;
+  a manual penetration test is listed as a release condition.
+- **Event-delivery correctness now depends on Redis/BullMQ health** — failed jobs land in a DLQ
+  surfaced via the `events_failed_jobs` gauge; confirm alerting is wired before scaling past one
+  replica.
 - **Live runtime re-test not performed this pass** — the 2026-07-31 verdict included a live
-  standalone-bundle boot; this pass is static + build verification against a much larger codebase.
-  The end-to-end staging smoke must be re-run on this build before release (§1.6).
+  standalone-bundle boot; this pass is static + build verification. The staging smoke must be re-run
+  on this build before release (§1.6).
+- **M3 (project-creation race)** and **M4 (unbounded findMany)** remain deferred post-release.
 
 ### 1.4 Major product risks (current)
 
@@ -114,18 +104,17 @@ suite** against commit `e89ae17`. It is *not* a penetration test, load test, liv
 exercise, or browser-based accessibility audit. Prior-finding statuses are code-verified where
 marked "code-verified" in §1.2a and otherwise attested from the remediation docs. See §2.7.
 
-### 1.6 Release conditions (current)
+### 1.6 Release conditions (post-REQ-0093)
 
 Ship only when all of the following hold:
 
-1. **N1 is fixed** — add a shared outbound-URL guard (public-IP allow-list / private-range +
-   loopback + link-local + non-http(s) deny, applied after DNS resolution to defeat rebinding)
-   used by `ConfigInterpreter`, **and** a regression test — or the dynamic adapter is feature-flagged
-   off in production.
-2. A staging end-to-end smoke passes on **this** build: register → verify email → connect store →
-   receive webhook → AI reply → checkout → plan change, each side effect exactly once.
-3. Alerting is confirmed on webhook failure rate, `events_failed_jobs`, and `/api/ready`.
-4. `N3` (the stale current-state §11.1 verdict) is corrected; `N2` dispositioned.
+1. ✅ **N1 fixed** — `assertPublicHttpUrl()` guard in place, 19 tests green.
+2. ✅ **N2 fixed** — `METRICS_TOKEN` bearer check in place.
+3. ✅ **N3 fixed** — `current-state.md §11.1` updated.
+4. **`METRICS_TOKEN` configured in production** — add to secrets manager before first deploy.
+5. **Staging end-to-end smoke** on this build: register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once.
+6. **Alerting confirmed** on webhook failure rate, `events_failed_jobs`, and `/api/ready`.
+7. **Manual pen-test** of `testAdapterConfigAction` to verify the SSRF guard holds under redirect chains, CNAME chains, and time-of-check/time-of-use DNS rebinding scenarios.
 
 ### 1.7 Prior "user-requested focus area" items — now resolved
 
@@ -408,12 +397,13 @@ flagged as a product decision (§3.6, Q2).
 
 | Field | Value |
 |---|---|
-| **Status** | Confirmed Defect (static, code-verified) |
+| **Status** | ✅ **Fixed — REQ-0093** (2026-08-07) |
 | **Severity** | **High** |
 | **Category** | Security / SSRF / Broken access to internal network |
-| **Disposition** | Open — Required Before Release (or feature-flag the dynamic adapter off) |
-| **Release-blocking** | **Yes** (gates the `REQ-0078` dynamic-adapter feature) |
+| **Disposition** | **Fixed — Awaiting Verification** |
+| **Release-blocking** | Resolved — pending manual pen-test of redirect/rebinding scenarios |
 | **Affected roles** | Any authenticated `USER` (all plans, incl. Free) |
+| **Fix** | `src/shared/security/outbound-url-guard.ts` (`assertPublicHttpUrl`); called in `config-interpreter.ts:fetchJson`; `baseUrl` requires `https://` in Zod schema; 19 unit tests. |
 
 **Affected locations**
 - `src/modules/ecommerce/infrastructure/config-interpreter.ts:266-317` — `fetchJson` → `buildUrl` → `fetch(url, init)` (line 286)
@@ -519,10 +509,11 @@ which all resolve to public IPs. Add an env allow-list escape hatch only for loc
 
 | Field | Value |
 |---|---|
-| **Status** | Confirmed (minor) |
-| **Severity** | **Low** |
-| **Disposition** | Open — Short-term |
-| **Release-blocking** | No |
+| **Status** | ✅ **Fixed — REQ-0093** (2026-08-07) |
+| **Severity** | **Medium** (downgraded from prior misclassification; exposing internal queue health) |
+| **Disposition** | **Fixed — Awaiting Verification** |
+| **Release-blocking** | No (configure `METRICS_TOKEN` in production secrets before deploy) |
+| **Fix** | `src/app/api/metrics/route.ts` — `Authorization: Bearer` check via `timingSafeEqual`; `METRICS_TOKEN` added to `env.ts` (optional). |
 
 **Affected location** — `src/app/api/metrics/route.ts:7-16`
 
@@ -540,10 +531,11 @@ unauthenticated scraper).
 
 | Field | Value |
 |---|---|
-| **Status** | Confirmed (documentation) |
+| **Status** | ✅ **Fixed — REQ-0093** (2026-08-07) |
 | **Severity** | **Low** |
-| **Disposition** | Open — Required Before Release (doc hygiene) |
-| **Release-blocking** | No (but corrects a misleading living spec) |
+| **Disposition** | **Fixed — Awaiting Verification** |
+| **Release-blocking** | No |
+| **Fix** | `docs/specs/current-state.md §11.1` updated to "🟡 CONDITIONAL GO as of 2026-08-07" with per-finding status table. |
 
 **Affected location** — `docs/specs/current-state.md:369-403` (§11.1)
 
@@ -2479,7 +2471,7 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | Build & compile | ✅ **Pass** | `npm run build` exit 0 (incl. `build:worker`) |
 | Type safety | ✅ **Pass** | `tsc --noEmit` exit 0 |
 | Lint | ✅ **Pass** | `eslint . --max-warnings=0` exit 0 |
-| Automated tests | ✅ **Pass** | 345 passed / 3 skipped, 81 files |
+| Automated tests | ✅ **Pass** | **364 passed / 3 skipped, 82 files** (post-REQ-0093) |
 | Authentication (deployed) | ✅ **Pass** | C1 fixed — `trustHost` from `AUTH_TRUST_HOST`, in `fly.toml` |
 | Event delivery correctness | ✅ **Pass** (design) | C2/H6 fixed — no self-echo; durable BullMQ bus, `jobId` dedup, DLQ; **confirm DLQ alerting** |
 | Startup resilience | ✅ **Pass** | H1 fixed — `ensureSuperAdmin` best-effort try/catch |
@@ -2488,9 +2480,9 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | Data lifecycle (Project) | ✅ **Pass** | H5 fixed — soft delete via `archivedAt`/`deletedAt` |
 | Webhook route reachability | ✅ **Pass** | H9 fixed — `/api/shopify/webhooks` in `publicPaths` |
 | Session revocation (export) | ✅ **Pass** | H4 fixed — `getCurrentUser()` + no-store |
-| **Outbound SSRF (dynamic adapter)** | ❌ **Fail** | **N1 — `ConfigInterpreter` fetches user-supplied `baseUrl`, no guard** |
-| Metrics endpoint auth | 🟡 **Partial** | N2 — `/api/metrics` unauthenticated |
-| Living-spec accuracy | ❌ **Fail** | N3 — `current-state.md` §11.1 stale NO-GO verdict |
+| **Outbound SSRF (dynamic adapter)** | ✅ **Pass** | **N1 fixed (REQ-0093)** — `assertPublicHttpUrl` guard + 19 tests; `baseUrl` requires HTTPS |
+| Metrics endpoint auth | ✅ **Pass** | **N2 fixed (REQ-0093)** — `METRICS_TOKEN` bearer check; must be set in production secrets |
+| Living-spec accuracy | ✅ **Pass** | **N3 fixed (REQ-0093)** — `current-state.md §11.1` updated |
 | Live runtime / staging E2E | ⚠️ **Not Tested** | Not exercised this pass; required before release (§1.6) |
 | Load / concurrency | ⚠️ **Not Tested** | Unchanged from prior pass |
 | Accessibility conformance | ⚠️ **Partial / Not Tested** | Static hardening present (`REQ-0068` M8); no axe/screen-reader run |
@@ -2498,7 +2490,7 @@ Recording these explicitly so remediation does not disturb working behaviour.
 
 Everything below (§6.1–§6.2) is the **original** residual-risk register and checklist from the
 2026-07-31 pass, retained for history. Where it shows ❌ for C1/C2/H1–H10, read §6.0 — those are
-now resolved; the standing failure is **N1**.
+now resolved. **N1, N2, and N3 are also resolved by REQ-0093.**
 
 ### 6.1 Residual risks after full remediation
 
