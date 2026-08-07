@@ -155,7 +155,7 @@
   }
 
   .card-hover {
-    @apply transition-colors hover:bg-surface-elevation/50;
+    @apply transition-colors hover:bg-muted;
   }
 
   /* Data Grid */
@@ -216,16 +216,16 @@
   }
 
   .table-header {
-    @apply bg-surface-elevation/50 font-semibold text-muted-foreground;
+    @apply bg-muted font-semibold text-muted-foreground;
   }
 
   .table-row-hover {
-    @apply transition-colors hover:bg-surface-elevation/50;
+    @apply transition-colors hover:bg-muted;
   }
 
   /* Empty State */
   .empty-state {
-    @apply flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border bg-surface-elevation/30 py-12 px-6 text-center;
+    @apply flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border bg-muted py-12 px-6 text-center;
   }
 
   .empty-state-icon {
@@ -242,7 +242,7 @@
 
   /* Loading State */
   .skeleton {
-    @apply animate-pulse rounded-md bg-surface-elevation;
+    @apply animate-pulse rounded-md bg-muted;
   }
 
   /* Responsive Helpers */
