@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 import { requireSuperAdmin } from "@/modules/auth";
 import { getSystemHealthAction } from "./_actions";
 
@@ -7,7 +8,19 @@ export default async function AdminHealthPage() {
   const health = await getSystemHealthAction();
 
   return (
-    <div className="space-y-4">
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="System Health"
+          description="Platform performance and resource metrics"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Health" },
+          ]}
+        />
+
+        <div className="section space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
@@ -118,6 +131,8 @@ export default async function AdminHealthPage() {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }

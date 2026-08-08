@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { getJourneysAction } from "@/modules/intelligence";
+import { PageHeader } from "@/components/page-header";
 import { JourneyTimeline } from "@/components/journey-timeline";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,46 +21,48 @@ export default async function JourneysPage() {
   const totalRevenue = journeys.reduce((sum, j) => sum + (j.attributedRevenue ?? 0), 0);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Customer journeys</h1>
-          <p className="text-sm text-muted-foreground">
-            Connected touchpoints: post view → profile visit → DM → coupon → order.
-          </p>
+    <div className="page-container">
+      <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Customer journeys"
+          description="Connected touchpoints: post view → profile visit → DM → coupon → order"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Analytics" },
+            { label: "Journeys" },
+          ]}
+        />
+
+        <div className="section">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Tracked journeys</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{journeys.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Converted</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{purchased}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Attributed revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">${totalRevenue.toFixed(2)}</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Tracked journeys</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{journeys.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Converted</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{purchased}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Attributed revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">${totalRevenue.toFixed(2)}</p>
-          </CardContent>
-        </Card>
-      </div>
-
+        <div className="section">
       <Card>
         <CardHeader>
           <CardTitle>Journeys</CardTitle>
@@ -80,7 +81,9 @@ export default async function JourneysPage() {
             </ul>
           )}
         </CardContent>
-      </Card>
-    </main>
+        </Card>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -37,6 +37,8 @@ export interface AudienceInsights {
   impressions: number | null;
   reach: number | null;
   profileViews: number | null;
+  biography: string | null;
+  profilePictureUrl: string | null;
 }
 
 export interface AudienceSection {
@@ -132,6 +134,8 @@ export interface AccountInsight {
   reach: number | null;
   impressions: number | null;
   websiteClicks: number | null;
+  biography: string | null;
+  profilePictureUrl: string | null;
   audienceJson: Record<string, unknown> | null;
   fetchedAt: Date;
 }

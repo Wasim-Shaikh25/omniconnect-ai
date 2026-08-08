@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { organizationQueries } from "@/modules/workspaces";
 import { getMarketingPerformance, getBestTimeToPostForStore, getContentCalendarForStore } from "@/modules/analytics/server";
 import type { MarketingPerformanceView } from "@/modules/analytics";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DataQualityBadge } from "@/components/data-quality-badge";
+import { TrendingUp } from "lucide-react";
 
 function formatCurrency(value: number, currency: string | null): string {
   return `${currency ?? "$"}${value.toFixed(2)}`;
@@ -75,29 +76,33 @@ export default async function GrowthAnalyticsPage() {
   const currency = views[0]?.product.currency ?? null;
 
   return (
-    <main className="container mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Business growth</h1>
-          <p className="text-sm text-muted-foreground">
-            Unified view across {views.length} connected store(s).
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Business growth"
+          description={`Unified view across ${views.length} connected store(s)`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Analytics" },
+            { label: "Growth" },
+          ]}
+        />
 
-      {views.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No stores connected</CardTitle>
-            <CardDescription>Connect a store and Meta account to see growth analytics.</CardDescription>
-          </CardHeader>
-        </Card>
-      ) : (
-        <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {views.length === 0 ? (
+          <div className="section">
+            <EmptyState
+              icon={TrendingUp}
+              title="No stores connected"
+              description="Connect a store and Meta account to see growth analytics."
+              action={{
+                label: "Connect store",
+                onClick: () => window.location.href = "/stores",
+              }}
+            />
+          </div>
+        ) : (
+          <div className="section space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Total revenue</CardTitle>
@@ -136,7 +141,7 @@ export default async function GrowthAnalyticsPage() {
             </Card>
           </div>
 
-          <Card className="mb-6">
+          <Card>
             <CardHeader>
               <CardTitle>Store breakdown</CardTitle>
               <CardDescription>Growth metrics per connected store.</CardDescription>
@@ -161,7 +166,7 @@ export default async function GrowthAnalyticsPage() {
             </CardContent>
           </Card>
 
-          <Card className="mb-6">
+          <Card>
             <CardHeader>
               <CardTitle>Top content by revenue</CardTitle>
               <CardDescription>Posts driving the most attributed orders across all stores.</CardDescription>
@@ -230,8 +235,9 @@ export default async function GrowthAnalyticsPage() {
               </CardContent>
             </Card>
           </div>
-        </>
-      )}
-    </main>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

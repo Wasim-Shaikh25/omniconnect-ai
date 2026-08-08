@@ -1,5 +1,6 @@
 import { requireSuperAdmin } from "@/modules/auth";
 import { listAllOrganizationsAction } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AdminOrganizationsPageProps {
@@ -24,12 +25,25 @@ export default async function AdminOrganizationsPage({ searchParams }: AdminOrga
   const result = await listAllOrganizationsAction(page, limit);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Organizations</CardTitle>
-        <CardDescription>{result.total} tenants on the platform.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Organization Management"
+          description="View and manage organizations"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Organizations" },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Organizations</CardTitle>
+              <CardDescription>{result.total} tenants on the platform.</CardDescription>
+            </CardHeader>
+            <CardContent>
         {result.items.length === 0 ? (
           <p className="text-sm text-muted-foreground">No organizations yet.</p>
         ) : (
@@ -85,7 +99,10 @@ export default async function AdminOrganizationsPage({ searchParams }: AdminOrga
             </nav>
           </>
         )}
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

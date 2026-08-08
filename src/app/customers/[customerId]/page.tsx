@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { customerDirectory } from "@/modules/crm";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 import {
   Card,
   CardContent,
@@ -39,22 +38,20 @@ export default async function CustomerDetailPage({
   if (!customer) notFound();
 
   return (
-    <main className="container mx-auto max-w-4xl px-4 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {customer.username ?? "Unknown"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {customer.storeName} · {customer.igUserId ?? customer.fbUserId ?? "no external id"}
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/customers">Back to customers</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title={customer.username ?? "Unknown"}
+          description={`${customer.storeName} · ${customer.igUserId ?? customer.fbUserId ?? "no external id"}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Customers", href: "/customers" },
+            { label: customer.username ?? "Unknown" },
+          ]}
+        />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="section">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Lifecycle</CardTitle>
@@ -91,11 +88,13 @@ export default async function CustomerDetailPage({
             <p className="text-lg font-semibold">{customer.leadScore}/100</p>
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Segment & activity</CardTitle>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Segment & activity</CardTitle>
           <CardDescription>
             Derived from lifecycle stage, engagement, and lead score.
           </CardDescription>
@@ -116,12 +115,14 @@ export default async function CustomerDetailPage({
               Consent updated: {formatDate(customer.consentUpdatedAt)}
             </li>
           </ul>
-        </CardContent>
-      </Card>
+          </CardContent>
+          </Card>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Manage contact</CardTitle>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage contact</CardTitle>
           <CardDescription>
             Update lifecycle stage and marketing consent.
           </CardDescription>
@@ -131,11 +132,13 @@ export default async function CustomerDetailPage({
             customerId={customer.id}
             lifecycleStage={customer.lifecycleStage}
             consent={customer.consent}
-          />
-        </CardContent>
-      </Card>
+            />
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+        <div className="section">
+          <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Tags & interests</CardTitle>
@@ -172,10 +175,14 @@ export default async function CustomerDetailPage({
               </ul>
             )}
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+          </div>
+        </div>
 
-      <CustomerIntelligence customerId={customerId} />
-    </main>
+        <div className="section">
+          <CustomerIntelligence customerId={customerId} />
+        </div>
+      </div>
+    </div>
   );
 }

@@ -17,7 +17,7 @@ export function makeSyncOrders(deps: {
 }) {
   return async function syncOrders(
     projectId: string,
-  ): Promise<Result<{ count: number; removed: number }, StoreNotConnectedError | ConnectorError>> {
+  ): Promise<Result<{ count: number }, StoreNotConnectedError | ConnectorError>> {
     let connector;
     try {
       connector = await deps.connectors.forStore(projectId);
@@ -32,7 +32,9 @@ export function makeSyncOrders(deps: {
       return err(new ConnectorError(connector.provider, "getOrders"));
     }
 
-    const { upserted, removed } = await deps.orders.sync(projectId, fetched);
+    // getOrders(250) returns only the connector's most recent page, not the store's
+    // full order history, so this must never delete orders absent from that page.
+    const upserted = await deps.orders.upsertMany(projectId, fetched);
 
     if (deps.eventBus) {
       await Promise.all(
@@ -48,9 +50,8 @@ export function makeSyncOrders(deps: {
       projectId,
       provider: connector.provider,
       count: upserted,
-      removed,
     });
 
-    return ok({ count: upserted, removed });
+    return ok({ count: upserted });
   };
 }

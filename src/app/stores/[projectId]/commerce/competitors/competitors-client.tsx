@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,14 @@ import {
 
 export default function CompetitorsPageClient({
   projectId,
+  storeName,
   initialAccounts,
+  nextBestAction,
 }: {
   projectId: string;
+  storeName: string;
   initialAccounts: TrackedAccountRecord[];
+  nextBestAction?: ReactNode;
 }) {
   const router = useRouter();
   const [accounts, setAccounts] = useState<TrackedAccountRecord[]>(initialAccounts);
@@ -45,14 +49,23 @@ export default function CompetitorsPageClient({
   }, [trackState.ok, deleteState.ok, router]);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold">Competitor analysis</h1>
-        <p className="text-sm text-muted-foreground">Track competitor accounts, fetch their latest posts, and get AI strategy breakdowns.</p>
-        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Competitor analysis"
+          description="Track competitor accounts, fetch their latest posts, and get AI strategy breakdowns"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: storeName, href: `/stores/${projectId}` },
+            { label: "Commerce", href: `/stores/${projectId}/commerce/catalog` },
+            { label: "Competitors" },
+          ]}
+        />
 
-      <section className="space-y-6 mb-10">
+        {nextBestAction}
+
+        <div className="section space-y-6 mb-10">
         <Card>
           <CardHeader>
             <CardTitle>Track a competitor</CardTitle>
@@ -141,8 +154,9 @@ export default function CompetitorsPageClient({
             ))}
           </div>
         )}
-      </section>
-    </main>
+        </div>
+      </div>
+    </div>
   );
 }
 

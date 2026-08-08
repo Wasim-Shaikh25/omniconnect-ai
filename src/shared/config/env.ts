@@ -109,6 +109,9 @@ const envSchema = z.object({
   TWILIO_FROM_NUMBER: z.string().optional(),
 
   ABANDONED_CART_THRESHOLD_MINUTES: z.coerce.number().int().min(1).default(60),
+  ANALYSIS_ORDER_CAP: z.coerce.number().int().min(1).default(10_000),
+
+  METRICS_TOKEN: z.string().optional(),
 
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
@@ -198,6 +201,11 @@ export function validateProductionSecrets(): void {
         `SMS_PROVIDER=twilio is selected but missing environment variables: ${twilioMissing.join(", ")}`,
       );
     }
+  }
+  if (!env.METRICS_TOKEN) {
+    throw new Error(
+      "METRICS_TOKEN must be set in production. /api/metrics is a public path guarded only by this bearer token.",
+    );
   }
 }
 

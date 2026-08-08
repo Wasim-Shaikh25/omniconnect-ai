@@ -1,8 +1,8 @@
 "use client";
 
 import { use, useActionState, useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,14 +40,20 @@ export default function LeadsPage({
   }, [projectId, captureState, scoreState]);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold">Leads</h1>
-        <p className="text-sm text-muted-foreground">Capture and score leads from ads, DMs, comments, and follows.</p>
-        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Leads"
+          description="Capture and score leads from ads, DMs, comments, and follows"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: "Leads" },
+          ]}
+        />
 
-      <Card className="mb-6">
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Capture lead</CardTitle>
           <CardDescription>Simulate a Meta Lead Ads submission or manual entry.</CardDescription>
@@ -114,7 +120,9 @@ export default function LeadsPage({
           {scoreState.error && <p className="text-sm text-destructive mt-2">{scoreState.error}</p>}
           {scoreState.ok && <p className="text-sm text-green-600 mt-2">Scores updated</p>}
         </CardContent>
-      </Card>
-    </main>
+        </Card>
+        </div>
+      </div>
+    </div>
   );
 }

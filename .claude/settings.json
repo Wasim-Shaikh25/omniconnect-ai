@@ -1,0 +1,18 @@
+{
+  "mcps": {
+    "21st": {
+      "url": "https://mcp.21st.dev",
+      "enabled": true
+    },
+    "shadcn": {
+      "url": "https://mcp.shadcn.com",
+      "enabled": true
+    }
+  },
+  "skills": {
+    "ui-ux-pro-max": {
+      "github": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "enabled": true
+    }
+  }
+}

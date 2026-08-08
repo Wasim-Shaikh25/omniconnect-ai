@@ -61,7 +61,12 @@ const credentialFieldSchema = z.object({
 
 const adapterConfigMappingSchema = z.object({
   platformName: z.string().min(1),
-  baseUrl: z.string().url(),
+  baseUrl: z
+    .string()
+    .url()
+    .refine((u) => u.startsWith("https://"), {
+      message: "baseUrl must use the https:// scheme",
+    }),
   authPattern: z.object({
     type: authType,
     headerName: z.string().optional(),

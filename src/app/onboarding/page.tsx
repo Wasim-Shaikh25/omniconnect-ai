@@ -16,18 +16,20 @@ export default async function OnboardingPage() {
   if (user.userId) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create your workspace</CardTitle>
-          <CardDescription>
-            Start by naming your organization. You can change this later.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <OnboardingForm action={completeOnboardingAction} />
-        </CardContent>
-      </Card>
-    </main>
+    <div className="page-container">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Create your workspace</CardTitle>
+            <CardDescription>
+              Start by naming your organization. You can change this later.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OnboardingForm action={completeOnboardingAction} />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

@@ -15,6 +15,85 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0094`/`REQ-0096`/`REQ-0097` **Post-audit UI/data-integrity fixes** on `claude/framer-motion-deps-setup-ajyb2y`
+  (follow-up to a UI/ecommerce-data/JSON-on-UI audit; `REQ-0095` partially done, `REQ-0098` split out as a follow-up):
+  - **`REQ-0097` — `/api/metrics` was unreachable to Prometheus scrapers.** The NextAuth middleware
+    redirected every unauthenticated request — including the metrics scraper — to `/login` before the
+    route handler's `METRICS_TOKEN` bearer check ever ran. Added `/api/metrics` to
+    `PUBLIC_PATHS_EXACT`; the bearer-token check in the route handler still gates access.
+    `validateProductionSecrets()` now requires `METRICS_TOKEN` in production. Added a per-request rate
+    limit (15/min) to `/api/chat/stream`, which previously had only a monthly AI-quota guard and no
+    per-request throttle.
+  - **`REQ-0096` — order sync was silently deleting historical orders on every run (data loss).**
+    `syncOrders()` fetched only the connector's most recent 250 orders
+    (`connector.getOrders(250)`) and then called `OrderRepository.sync()`, which deleted every DB order
+    whose `externalId` wasn't in that 250-item batch. Any store with more than 250 orders lost older
+    order history on every sync. Replaced with `upsertMany()` (never deletes); the destructive `sync()`
+    method was removed from `OrderRepository` entirely since it had no other caller. Also: removed the
+    500-order hard cap in the analytics dataset fetcher (`fetchOrders()`), now configurable via
+    `ANALYSIS_ORDER_CAP` (default 10,000, warns when hit); attribution page now shows the real coupon
+    code instead of "Yes"/"—"; analytics page top-posts list links through to the post detail page.
+  - **`REQ-0094` — Meta sync silently dropped data.** `getAccountMedia()` was hard-capped at 25 posts
+    with no pagination; fixed to follow the Graph API's `paging.next` cursor up to the requested limit
+    (raised from 25 to 100). `websiteClicks` was always stored as `null` even though the DB column
+    existed — now populated from the real `website_clicks` Graph API metric. `bioLength` was hardcoded
+    to `0` in the `profile_quality` analysis dataset because `biography`/`profile_picture_url` were
+    never fetched from Meta; added both fields to the Page Insights request and to a new
+    `AccountInsight.biography` / `AccountInsight.profilePictureUrl` migration
+    (`20260807144559_add_account_profile_fields`); `bioLength` is now derived from the stored biography.
+  - **`REQ-0095` (partial) — content UI was missing visuals.** Post thumbnails now render on the content
+    list and detail pages (falling back to `media_url` for image/carousel posts, which Meta never
+    returns a `thumbnail_url` for); the analytics page now shows an Instagram profile identity card
+    (avatar, `@handle`, bio) when Meta page insights are available; engagement rate added to the post
+    detail page's metrics grid. Story-specific engagement metrics (exits/taps) were **not** implemented —
+    the codebase has no existing ingestion of Meta's `/stories` edge at all (only outbound story
+    *publishing* exists), so this was split out as `REQ-0098` (a net-new feature, not a bug fix) rather
+    than rushed.
+  - New requirements/tasks/trackers: `REQ-0094`–`REQ-0098` in `docs/requirements/`,
+    `TASK-0094`–`TASK-0097` in `docs/tasks/`, `TRACKER-0094`–`TRACKER-0097` in `docs/trackers/`.
+  - All quality gates pass: `lint`, `typecheck`, `372/372 tests` (0 skipped-as-failed), `build`,
+    `build:worker`. New tests: `meta.service.test.ts` (pagination), `route.test.ts` for
+    `/api/metrics` and `/api/chat/stream`, `public-paths.test.ts` metrics assertion.
+
+- `REQ-0093` **Security hardening — SSRF guard and metrics auth** on `claude/framer-motion-deps-setup-ajyb2y`:
+  - **N1 (High — release blocker) resolved.** `ConfigInterpreter.fetchJson()` now calls
+    `assertPublicHttpUrl(url)` before every outbound `fetch()`. The guard (`src/shared/security/outbound-url-guard.ts`) checks:
+    (1) scheme must be `http:` or `https:`, (2) IPv4 literals matching loopback/RFC-1918/link-local ranges are rejected, (3) IPv6 literals matching `::1`, `fc00::/7`, `fe80::/10` are rejected, (4) domain names are resolved via `node:dns/promises` and each resolved address is checked against the same private-range rules (DNS-rebinding protection). The `baseUrl` field in `AdapterConfigMapping` now requires the `https://` scheme. 19 unit tests added.
+  - **N2 (Medium — required pre-release) resolved.** `GET /api/metrics` now checks for an `Authorization: Bearer <token>` header using constant-time comparison when `METRICS_TOKEN` is set in environment. Requests without a valid token receive `401`. When `METRICS_TOKEN` is absent (local dev), the endpoint remains open.
+  - **N3 (Low — documentation) resolved.** `docs/specs/current-state.md §11.1` updated from "🔴 NO-GO as of 2026-07-31" to "🟡 CONDITIONAL GO as of 2026-08-07" with a per-finding status table covering all 36 findings.
+  - **Barrel cleanup.** `ConfigInterpreter` and `getConnector` removed from `src/modules/ecommerce/index.ts` barrel (neither was imported outside the ecommerce module; they are infrastructure internals). This also resolves a latent issue where server-only code transitively reached client bundles.
+  - **`PRODUCTION_READINESS_AUDIT.md` updated** with third-pass findings, post-fix verification, and revised recommendation.
+  - All quality gates pass: `lint`, `typecheck`, `364/367 tests`, `build`.
+
+- `REQ-0092` **Light Minimal design-system audit fixes** on `claude/framer-motion-deps-setup-ajyb2y`:
+  - **Primary color corrected from purple to Professional Blue.** The design tokens still carried the
+    pre-redesign violet hue (`--primary: 262.1 83.3% 57.8%`) while REQ-0092 mandates `#2563eb`. Updated
+    `--primary`/`--ring` (light) to `221.2 83.2% 53.3%` (#2563eb) and dark-mode to `217.2 91.2% 59.8%`
+    (#3b82f6) so buttons, links, active states, and focus rings match the blue brand used by the chart
+    widgets. `--accent`/`--accent-foreground` now use the spec's light-blue `#dbeafe` / dark-blue `#1e40af`.
+  - **Page background set to Light Minimal light gray.** `--background` changed from pure white to
+    `210 20% 98%` (#f8f9fa) so white cards visibly elevate off the page per the spec.
+  - **Fixed misaligned competitor next-best-action panel.** On `/stores/[projectId]/commerce/competitors`
+    the `CompetitorNextBestAction` card rendered as a full-bleed sibling outside the `page-container`
+    max-width wrapper. It is now passed as a slot into `CompetitorsPageClient` and rendered inside the
+    `max-w-5xl` container, aligned with the rest of the page.
+  - **Cleared 37 build-breaking lint errors.** The redesign left unused `Link`/`Button` imports across
+    21 page files after custom headers were replaced by `PageHeader`; `npm run build` was failing on the
+    lint step. Removed the dead imports. All quality gates (`lint`, `typecheck`, `test`, `build`,
+    `build:worker`) now pass.
+
+- `REQ-0092` **Complete End-to-End UI/UX Redesign — Light Minimal Design System** on `claude/framer-motion-deps-setup-ajyb2y`:
+  - Applied Light Minimal design system (Professional Blue #2563eb, light gray #f8f9fa backgrounds, white cards) across 72 authenticated and unauthenticated pages with `.page-container` structure.
+  - 63 pages redesigned with `PageHeader` component featuring breadcrumb navigation, title, description, and optional actions.
+  - `.section` wrapper class established for consistent spacing and content grouping across all pages.
+  - All pages use responsive `container mx-auto max-w-[2xl-6xl]` pattern with mobile-first padding (`px-4 sm:px-6 lg:px-8`).
+  - PageHeader breadcrumbs follow hierarchical pattern: Dashboard → Stores → [Optional Context] → Current Page.
+  - Visual consistency verified: no misalignment, no overflow, correct colors, borders, spacing throughout.
+  - All existing business logic and workflows preserved; no functionality broken.
+  - shadcn/ui components ensure accessibility (keyboard navigation, focus states, ARIA labels, WCAG AA contrast).
+  - Quality gates verified: `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run build:worker` all pass.
+  - Tracker and requirement both marked Done; 100% completion on all acceptance criteria.
+
 - **Combined review-fix follow-up** on `devin/review-fix-followup-1786062800`:
   - `src/app/api/meta/callback/route.ts` resolves redirect URLs against the validated `env.APP_URL` (no hard-coded `http://localhost`, no `Host` header) and uses `env.NODE_ENV` for the OAuth state cookie `secure` flag.
   - `src/modules/meta/infrastructure/meta-oauth.ts` passes `URLSearchParams` objects (not `.toString()`) to `fetch` so `Content-Type: application/x-www-form-urlencoded` is set automatically for the short- and long-lived token exchanges.

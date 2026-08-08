@@ -7,11 +7,14 @@ import {
   takeOverConversationAction,
   type ConversationChannel,
 } from "@/modules/conversations";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConversationTakeoverButton } from "@/components/conversation-takeover-button";
 import { PaginationControls, ListSearch } from "@/components/pagination-controls";
 import type { PaginationInput } from "@/shared/kernel";
+import { MessageCircle } from "lucide-react";
 
 const CHANNELS: { value: ConversationChannel; label: string }[] = [
   { value: "INSTAGRAM", label: "Instagram" },
@@ -80,20 +83,19 @@ export default async function InboxPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Unified Inbox</h1>
-          <p className="text-sm text-muted-foreground">
-            Triage customer conversations across all your stores.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Unified Inbox"
+          description="Triage customer conversations across all your stores"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Inbox" },
+          ]}
+        />
 
-      <Card className="mb-6">
+        <div className="section">
+        <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-sm font-medium">Filters</CardTitle>
         </CardHeader>
@@ -160,20 +162,21 @@ export default async function InboxPage({
           </div>
         </CardContent>
       </Card>
+        </div>
 
-      {items.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No conversations match your filters.
-            </p>
-            <Button asChild variant="outline" className="mt-4">
-              <Link href="/stores">Create or open a store</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
+        <div className="section">
+        {items.length === 0 ? (
+          <EmptyState
+            icon={MessageCircle}
+            title="No conversations yet"
+            description="No conversations match your filters. Create or connect a store to see conversations."
+            action={{
+              label: "Create or open a store",
+              onClick: () => window.location.href = "/stores",
+            }}
+          />
+        ) : (
+          <div className="space-y-6">
           <div className="space-y-3">
             {items.map((item) => (
               <Card
@@ -260,8 +263,10 @@ export default async function InboxPage({
             search={search}
             limit={pagination.limit}
           />
+          </div>
+        )}
         </div>
-      )}
-    </main>
+      </div>
+    </div>
   );
 }

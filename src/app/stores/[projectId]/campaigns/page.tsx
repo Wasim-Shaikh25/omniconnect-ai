@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { checkStoreAccess } from "@/modules/workspaces";
 import { couponsQueries } from "@/modules/coupons";
+import { PageHeader } from "@/components/page-header";
 import { CampaignsNextBestAction } from "@/components/campaigns-next-best-action";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,61 +31,64 @@ export default async function CampaignsHubPage({
   const campaign = await couponsQueries.getCampaign(projectId);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Campaigns</h1>
-          <p className="text-sm text-muted-foreground">
-            Active automations for {store.name}.
-          </p>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Campaigns"
+          description={`Active automations for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Campaigns" },
+          ]}
+        />
+
+        <div className="section">
+          <CampaignsNextBestAction projectId={projectId} />
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-      </header>
 
-      <CampaignsNextBestAction projectId={projectId} />
-
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>{campaign.name}</CardTitle>
-            <CardDescription>
-              Type: First-Time Follower · Status:{" "}
-              {campaign.active ? "Active" : "Paused"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="grid gap-2 sm:grid-cols-3">
-              <div>
-                <span className="text-muted-foreground">Discount</span>
-                <p className="font-medium">{campaign.discountPct}%</p>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>{campaign.name}</CardTitle>
+              <CardDescription>
+                Type: First-Time Follower · Status:{" "}
+                {campaign.active ? "Active" : "Paused"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div>
+                  <span className="text-muted-foreground">Discount</span>
+                  <p className="font-medium">{campaign.discountPct}%</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Coupon TTL</span>
+                  <p className="font-medium">{campaign.couponTtlDays} days</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Updated</span>
+                  <p className="font-medium">
+                    {new Date(campaign.updatedAt).toLocaleDateString("en-IN")}
+                  </p>
+                </div>
               </div>
               <div>
-                <span className="text-muted-foreground">Coupon TTL</span>
-                <p className="font-medium">{campaign.couponTtlDays} days</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Updated</span>
-                <p className="font-medium">
-                  {new Date(campaign.updatedAt).toLocaleDateString("en-IN")}
+                <span className="text-muted-foreground">Message template</span>
+                <p className="mt-1 rounded-md border bg-muted p-2 font-mono text-xs">
+                  {campaign.messageTemplate}
                 </p>
               </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Message template</span>
-              <p className="mt-1 rounded-md border bg-muted p-2 font-mono text-xs">
-                {campaign.messageTemplate}
-              </p>
-            </div>
-            <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={`/stores/${projectId}/campaigns/first-follower`}>
-                Configure campaign
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+              <Button asChild variant="outline" size="sm" className="mt-2">
+                <Link href={`/stores/${projectId}/campaigns/first-follower`}>
+                  Configure campaign
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

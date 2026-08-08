@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { checkStoreAccess } from "@/modules/workspaces";
 import { ecommerceQueries } from "@/modules/ecommerce";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,51 +50,54 @@ export default async function StoreCouponsPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Coupons</h1>
-          <p className="text-sm text-muted-foreground">
-            Discount codes for {store.name}.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Coupons"
+          description={`Discount codes for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Coupons" },
+          ]}
+        />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Coupons ({total})</CardTitle>
-          <CardDescription>
-            Edit discount, status, and expiry, or remove coupons.
-          </CardDescription>
-          <div className="pt-2">
-            <ListSearch placeholder="Search by code..." defaultValue={search} limit={pagination.limit} />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {coupons.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-sm text-muted-foreground">
-                No coupons yet. Generate one from the store page.
-              </p>
-              <Button asChild variant="outline" className="mt-4">
-                <Link href={`/stores/${projectId}`}>Generate coupon</Link>
-              </Button>
-            </div>
-          ) : (
-            <CouponList coupons={coupons} projectId={projectId} />
-          )}
-          <PaginationControls
-            page={pagination.page}
-            totalPages={totalPages}
-            total={total}
-            search={search}
-            limit={pagination.limit}
-          />
-        </CardContent>
-      </Card>
-    </main>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Coupons ({total})</CardTitle>
+              <CardDescription>
+                Edit discount, status, and expiry, or remove coupons.
+              </CardDescription>
+              <div className="pt-2">
+                <ListSearch placeholder="Search by code..." defaultValue={search} limit={pagination.limit} />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {coupons.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No coupons yet. Generate one from the store page.
+                  </p>
+                  <Button asChild variant="outline" className="mt-4">
+                    <Link href={`/stores/${projectId}`}>Generate coupon</Link>
+                  </Button>
+                </div>
+              ) : (
+                <CouponList coupons={coupons} projectId={projectId} />
+              )}
+              <PaginationControls
+                page={pagination.page}
+                totalPages={totalPages}
+                total={total}
+                search={search}
+                limit={pagination.limit}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

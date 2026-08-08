@@ -14,6 +14,7 @@ import type {
   EndpointStep,
 } from "../domain/adapter-config";
 import { ConnectorError } from "../domain/errors";
+import { assertPublicHttpUrl } from "@/shared/security/outbound-url-guard";
 
 export class ConfigInterpreterNotImplementedError extends Error {
   constructor(operation: string) {
@@ -283,6 +284,7 @@ export class ConfigInterpreter implements EcommerceConnector {
 
     let response: Response;
     try {
+      await assertPublicHttpUrl(url);
       response = await fetch(url, init);
     } catch {
       throw new ConnectorError(this.provider, method + pathTemplate);

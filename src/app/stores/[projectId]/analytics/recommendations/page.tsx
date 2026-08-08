@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { listContentRecommendationsAction, createContentRecommendationAction } from "@/modules/analytics";
+import { PageHeader } from "@/components/page-header";
 import { CreateRecommendationForm } from "@/components/create-recommendation-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ContentRecommendation } from "@/modules/analytics";
@@ -26,18 +25,22 @@ export default async function RecommendationsAnalyticsPage({
   const { recommendations, error } = await listContentRecommendationsAction(projectId);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Recommendations</h1>
-          <p className="text-sm text-muted-foreground">AI content ideas for {store.name}.</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics`}>Back to analytics</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Content Recommendations"
+          description={`AI content ideas for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Analytics", href: `/stores/${projectId}/analytics` },
+            { label: "Recommendations" },
+          ]}
+        />
 
-      <Card className="mb-6">
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Create a content idea</CardTitle>
           <CardDescription>Ask the AI for a post or reel idea.</CardDescription>
@@ -45,11 +48,17 @@ export default async function RecommendationsAnalyticsPage({
         <CardContent>
           <CreateRecommendationForm action={createContentRecommendationAction} projectId={projectId} />
         </CardContent>
-      </Card>
+          </Card>
+        </div>
 
-      {error && <p className="mb-4 text-sm text-destructive" role="alert">{error}</p>}
+        {error && (
+          <div className="section">
+            <p className="text-sm text-destructive" role="alert">{error}</p>
+          </div>
+        )}
 
-      <div className="grid gap-4 md:grid-cols-2">
+        <div className="section">
+          <div className="grid gap-4 md:grid-cols-2">
         {(recommendations ?? []).length === 0 ? (
           <Card className="md:col-span-2">
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
@@ -77,8 +86,10 @@ export default async function RecommendationsAnalyticsPage({
               </CardContent>
             </Card>
           ))
-        )}
+          )}
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

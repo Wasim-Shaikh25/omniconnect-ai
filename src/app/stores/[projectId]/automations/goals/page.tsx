@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 
 import { checkStoreAccess } from "@/modules/workspaces";
 import { getAutomationTemplatesAction, createGoalAutomationAction, goalAutomationService } from "@/modules/intelligence";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,20 +45,22 @@ export default async function GoalAutomationsPage({
   }));
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Goal-based automations</h1>
-          <p className="text-sm text-muted-foreground">
-            Outcome-first templates for {store.name}.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/automations`}>Back to automations</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Goal-based Automations"
+          description={`Outcome-first templates for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Automations", href: `/stores/${projectId}/automations` },
+            { label: "Goals" },
+          ]}
+        />
 
-      <div className="grid gap-4 md:grid-cols-2">
+        <div className="section">
+          <div className="grid gap-4 md:grid-cols-2">
         {templates.map((t) => (
           <Card key={t.id}>
             <CardHeader className="pb-2">
@@ -141,8 +143,10 @@ export default async function GoalAutomationsPage({
               })()}
             </CardContent>
           </Card>
-        ))}
+          ))}
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

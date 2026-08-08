@@ -1,4 +1,5 @@
 import { requireSuperAdmin } from "@/modules/auth";
+import { PageHeader } from "@/components/page-header";
 import { aiQueries } from "@/modules/ai/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -17,7 +18,19 @@ export default async function AdminAIUsagePage() {
   const totalCost = summary.reduce((sum, row) => sum + (row.cost ?? 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="AI Usage"
+          description="Token consumption and cost tracking"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "AI Usage" },
+          ]}
+        />
+
+        <div className="section space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>AI Usage Summary</CardTitle>
@@ -83,6 +96,8 @@ export default async function AdminAIUsagePage() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }

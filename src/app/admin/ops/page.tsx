@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/page-header";
 import { requireSuperAdmin } from "@/modules/auth";
 import { getOperationsSnapshotAction } from "./_actions";
 
@@ -20,8 +21,20 @@ export default async function AdminOpsPage() {
   const snapshot = await getOperationsSnapshotAction();
 
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">Generated at {snapshot.generatedAt}</p>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Operations"
+          description="Real-time system metrics and performance"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Operations" },
+          ]}
+        />
+
+        <div className="section space-y-6">
+          <p className="text-sm text-muted-foreground">Generated at {snapshot.generatedAt}</p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -211,6 +224,8 @@ export default async function AdminOpsPage() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }

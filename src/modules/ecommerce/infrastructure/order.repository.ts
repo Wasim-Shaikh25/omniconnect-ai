@@ -23,54 +23,6 @@ type PrismaOrder = {
 };
 
 export class PrismaOrderRepository implements OrderRepository {
-  async sync(projectId: string, orders: ConnectorOrder[]): Promise<{ upserted: number; removed: number }> {
-    const providedExternalIds = new Set(orders.map((o) => o.externalId));
-    const now = new Date();
-
-    const existing = await prisma.order.findMany({
-      where: { projectId },
-      select: { id: true, externalId: true },
-    });
-
-    const externalToId = new Map(existing.map((e) => [e.externalId, e.id]));
-
-    let upserted = 0;
-    for (const order of orders) {
-      const existingId = externalToId.get(order.externalId);
-      const isFirst = await this.isFirstTimeCustomer(
-        projectId,
-        order.customerEmail ?? null,
-        order.customerRef ?? null,
-        order.createdAt,
-      );
-      const data = {
-        externalId: order.externalId,
-        projectId,
-        total: order.total,
-        currency: order.currency,
-        orderDate: order.createdAt,
-        couponCode: order.couponCode ?? null,
-        customerRef: order.customerRef,
-        customerEmail: order.customerEmail,
-        isFirstTimeCustomer: isFirst,
-        syncedAt: now,
-      };
-
-      if (existingId) {
-        await prisma.order.update({ where: { id: existingId }, data });
-      } else {
-        await prisma.order.create({ data });
-      }
-      upserted++;
-    }
-
-    const removed = await prisma.order.deleteMany({
-      where: { projectId, externalId: { notIn: Array.from(providedExternalIds) } },
-    });
-
-    return { upserted, removed: removed.count };
-  }
-
   async upsertMany(projectId: string, orders: ConnectorOrder[]): Promise<number> {
     const now = new Date();
     const existing = await prisma.order.findMany({

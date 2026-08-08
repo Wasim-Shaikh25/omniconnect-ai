@@ -93,6 +93,8 @@ export interface UpsertAccountInsightInput {
   reach?: number | null;
   impressions?: number | null;
   websiteClicks?: number | null;
+  biography?: string | null;
+  profilePictureUrl?: string | null;
   audienceJson?: Record<string, unknown> | null;
   fetchedAt?: Date;
 }

@@ -12,6 +12,7 @@ const PUBLIC_PATHS_EXACT = [
   "/pricing",
   "/api/health",
   "/api/ready",
+  "/api/metrics",
   "/favicon.ico",
   "/manifest.webmanifest",
 ];

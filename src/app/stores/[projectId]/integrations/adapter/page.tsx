@@ -1,13 +1,12 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { checkStoreAccess } from "@/modules/workspaces";
 import {
   generateAdapterConfigAction,
   testAdapterConfigAction,
   connectAdapterAction,
 } from "@/modules/ecommerce";
+import { PageHeader } from "@/components/page-header";
 import { ConnectAdapterForm } from "@/components/connect-adapter-form";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -32,20 +31,22 @@ export default async function ConnectAdapterPage({
   const canManage = user.role === "SUPER_ADMIN" || user.role === "USER";
 
   return (
-    <main className="container mx-auto max-w-3xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Connect a custom store</h1>
-          <p className="text-sm text-muted-foreground">
-            Generate a dynamic adapter from API docs for {store.name}.
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/integrations`}>Back to integrations</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Connect a custom store"
+          description={`Generate a dynamic adapter from API docs for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Integrations", href: `/stores/${projectId}/integrations` },
+            { label: "Connect Custom Store" },
+          ]}
+        />
 
-      <Card>
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Dynamic adapter</CardTitle>
           <CardDescription>
@@ -66,7 +67,9 @@ export default async function ConnectAdapterPage({
             </p>
           )}
         </CardContent>
-      </Card>
-    </main>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

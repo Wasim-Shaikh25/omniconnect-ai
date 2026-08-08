@@ -79,13 +79,6 @@ export type { DetectCommerceInsights } from "./application/detect-insights";
 export type { ActionResult } from "./application/action-handlers";
 export { executeEcommerceAction } from "./application/action-handlers";
 
-// Provider registry (implement-and-register to add providers)
-export { getConnector } from "./infrastructure/provider-registry";
-export {
-  ConfigInterpreter,
-  ConfigInterpreterNotImplementedError,
-} from "./infrastructure/config-interpreter";
-
 // Use-cases + queries (composed)
 export {
   connectStore,

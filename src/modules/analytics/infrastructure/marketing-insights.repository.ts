@@ -104,6 +104,8 @@ function mapAccountInsight(row: {
   reach: number | null;
   impressions: number | null;
   websiteClicks: number | null;
+  biography: string | null;
+  profilePictureUrl: string | null;
   audienceJson: Prisma.JsonValue;
   fetchedAt: Date;
 }): AccountInsight {
@@ -116,6 +118,8 @@ function mapAccountInsight(row: {
     reach: row.reach,
     impressions: row.impressions,
     websiteClicks: row.websiteClicks,
+    biography: row.biography,
+    profilePictureUrl: row.profilePictureUrl,
     audienceJson: (row.audienceJson as Record<string, unknown>) ?? null,
     fetchedAt: row.fetchedAt,
   };
@@ -275,6 +279,8 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
       reach: input.reach ?? null,
       impressions: input.impressions ?? null,
       websiteClicks: input.websiteClicks ?? null,
+      biography: input.biography ?? null,
+      profilePictureUrl: input.profilePictureUrl ?? null,
       audienceJson: (input.audienceJson as unknown as Prisma.InputJsonValue) ?? Prisma.DbNull,
       fetchedAt: input.fetchedAt ?? new Date(),
     };

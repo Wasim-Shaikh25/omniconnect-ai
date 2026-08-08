@@ -227,7 +227,8 @@ Core tables (see `prisma/schema.prisma` for full model):
 3. Shared links drive checkouts; Shopify `orders/create|paid` webhooks and order sync publish an `OrderSynced` domain event for each fetched order.
 4. `attribution` module subscribes to `OrderSynced`, matches the order’s `couponCode` to a `Coupon` and `AttributionLink`, increments the link’s conversion/revenue totals and the coupon’s `usageCount`/`revenueAttributed`, then forwards the order to `MetaService.sendPurchaseEvent`.
 5. `MetaService.sendPurchaseEvent` sends a server-side Purchase event to the Meta Conversions API with SHA-256 hashed `em` and `external_id`, a stable `event_id` built from `purchase_${externalId}_${createdAt.getTime()}`, and `custom_data` containing currency, value, and line-item IDs. No-ops when `metaPixelId` or the access token is missing.
-6. The `/stores/[projectId]/analytics/attribution` dashboard lists every link with short code, full URL, UTM source, clicks, conversions, and revenue; groupings by source/medium/campaign and coupon can be derived from the link rows.
+6. The `/stores/[projectId]/analytics/attribution` dashboard lists every link with short code, full URL, UTM source, clicks, conversions, and revenue (coupon column shows the actual coupon code, not just "Yes"/"—"); groupings by source/medium/campaign and coupon can be derived from the link rows.
+7. `syncOrders()` fetches the connector's most recent 250 orders and calls `OrderRepository.upsertMany()`, which only inserts/updates — it never deletes orders absent from that batch. (A prior `sync()` method destructively deleted any DB order not present in the 250-item page, which silently lost order history on every sync for stores with >250 orders; it has been removed.) The analytics `profile_quality`/`attribution_breakdown`/etc. dataset fetcher reads orders without the previous 500-row cap, now bounded by `env.ANALYSIS_ORDER_CAP` (default 10,000, logs a warning if reached).
 
 ### 8.8 Billing and Plan Enforcement
 1. `Plan` enum (`FREE`, `PRO`, `BUSINESS`) and `PLAN_LIMITS` matrix live in `workspaces/domain/plan.ts` and are the single source of truth for user entitlements.
@@ -256,9 +257,12 @@ Core tables (see `prisma/schema.prisma` for full model):
 ### Meta
 - Webhook verification: HMAC-SHA256, constant-time compare, payload dedup via the shared `ProcessedWebhookEvent` ledger.
 - Graph API: page/account media, per-media insights, audience demographics, outbound messaging.
+- `getAccountMedia(projectId, limit)` paginates through the Graph API's `paging.next` cursor (25 items/page) until either no more pages remain or `limit` is reached; `syncMediaCatalog` requests up to 100 posts (raised from a previous hardcoded 25-post cap with no pagination). `MediaPost.thumbnailUrl` stores `thumbnail_url ?? media_url` since image/carousel posts only have `media_url`.
+- `getPageInsights` also requests `biography`, `profile_picture_url`, and the `website_clicks` metric; these are persisted on `AccountInsight.biography` / `AccountInsight.profilePictureUrl` / `AccountInsight.websiteClicks` (previously `websiteClicks` was always written as `null` despite the column existing, and biography/profile picture were never fetched at all, which meant `profile_quality` analysis always saw `bioLength: 0`).
+- Stories are **not** ingested (only outbound story publishing exists via `publishMedia`); see `REQ-0098` for the proposed Stories Graph API integration.
 - Conversions API: server-side `Purchase` events via `MetaService.sendPurchaseEvent`, with SHA-256 hashed user data, stable `event_id` dedup, and `custom_data` for currency/value/line items. Requires a `metaPixelId` on the project.
 - Permissions: `instagram_business_basic`, `instagram_business_manage_insights`, `pages_read_engagement`; optional `ads_management`/`ads_read` for ad insights.
-- Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure.
+- Rate limits: ~200 calls/hour/user; cache aggressively; mark `dataQuality` `partial` on failure. Pagination and per-item insight fetches both count against this budget, which bounds how high `syncMediaCatalog`'s request limit can practically go.
 
 ### OpenRouter
 - `OpenRouterProvider` implements `AIProvider` and `ContentModerator`.
@@ -366,41 +370,43 @@ Core tables (see `prisma/schema.prisma` for full model):
   omitted for the MVP; new env vars (`REQUIRE_EMAIL_VERIFICATION`, `TURNSTILE_*`, `SMS_PROVIDER`,
   `TWILIO_*`, `SUPER_ADMIN_RECONCILE`) are configured.
 
-### 11.1 Production readiness — 🔴 NO-GO as of 2026-07-31
+### 11.1 Production readiness — 🟡 CONDITIONAL GO as of 2026-08-07 (post third-pass audit)
 
-`PRODUCTION_READINESS_AUDIT.md` returned a NO-GO verdict. All 33 findings were re-verified as
-**open** at commit `33e2e0b`. The release-blocking defects are:
+`PRODUCTION_READINESS_AUDIT.md` was updated on 2026-08-07. All 33 original findings (C1, C2, H1–H10,
+M1–M15, L1–L7) were verified as **remediated**. Three new findings (N1–N3) identified in the third
+audit pass were resolved by `REQ-0093`:
 
-- **C1** — `trustHost` is now set from `AUTH_TRUST_HOST` (default `true` off Vercel) and the
-  `redirect` callback enforces same-origin against `APP_URL`; the CI smoke test asserts
-  `/api/auth/session` returns `200` on the standalone build.
-- **C2** — `RedisEventBus` no longer echoes its own published messages back to handlers on the
-  publishing instance (handlers fire once via Pub/Sub, or once locally when Redis is unreachable).
-  Durable, exactly-once delivery across the cluster (BullMQ `jobId` dedup) is still pending H6.
-- **H1** — `ensureSuperAdmin` in `instrumentation.ts` is now wrapped in `try/catch` and only fails
-  the release via `scripts/seed-super-admin.ts`; `/api/health` stays up during a transient DB outage.
-- **H2/H3** — `ProcessedWebhookEvent` ledger deduplicates Stripe, Shopify, and Meta webhook deliveries. Stripe `fulfillCheckout` now records the event and performs plan/coupon side effects inside one `Prisma` transaction so a crash mid-fulfillment does not mark an event processed while losing the update. Stripe subscription lifecycle handles `customer.subscription.created/updated`, `invoice.paid/payment_succeeded/payment_failed`, `planFromPriceId`, `resolveSubscriptionId`, and `past_due` retains the current plan. A `scripts/backfill-past-due.ts` backfill is available.
-- **H4** — `/api/export/[id]` now uses `getCurrentUser()`, enforces a 10 req/min rate limit, and
-  returns `Cache-Control: no-store, private`, so revoked sessions cannot download exports.
-- **H5** — `Project`/`ProjectMember` removed; no destructive archive path remains.
-- **H6** — `DomainEvent` now carries a stable `eventId`; `QueueEventBus` persists events to a BullMQ queue with `jobId` dedup, retries, and DLQ. The worker wires subscribers before consuming the `events` queue, and `/api/metrics` exports `events_failed_jobs`. `generateReply` is idempotent via `Message.inReplyToMessageId` and a composite unique constraint.
-- **H7** — Shopify `checkouts/create|update` upsert a `Cart` row without emitting events; `orders/create|paid` marks the matching cart `convertedAt`. The `Cart` model tracks `lastActivityAt`, `notifiedAt`, and `convertedAt`. A background sweep (every 15 minutes, threshold `ABANDONED_CART_THRESHOLD_MINUTES`, default 60) publishes `AbandonedCartDetected` exactly once per idle cart; the notifications module subscribes and creates an `ABANDONED_CART` in-app notification.
-- **H8** — Package A addressed: `redis:7-alpine` is now a CI service, `npm audit` and gitleaks
-  secret scanning run in CI, and the smoke test covers `/api/health`, `/api/auth/session`,
-  `/api/ready`, and `POST /api/shopify/webhooks`. A Redis ping test is added; Tier 1–2 regression
-  suites are still pending.
-- **H9** — `/api/shopify/webhooks` is now in `publicPaths`, so anonymous Shopify webhooks reach
-  HMAC verification; the CI smoke test asserts the route does not return `3xx`.
-- **H10** — `invite-member.ts` now uses `createWithinSeatLimit`, a serializable transaction with
-  bounded retries, so concurrent invites cannot exceed `teamSeats`. Other `planLimits()` callers
-  (`create-store`, AI reply counter) are already atomic.
-- **H8** — Package A addressed: `redis:7-alpine` is now a CI service, `npm audit` and gitleaks
-  secret scanning run in CI, and the smoke test covers `/api/health`, `/api/auth/session`,
-  `/api/ready`, and `POST /api/shopify/webhooks`. A Redis ping test is added; Tier 1–2 regression
-  suites are still pending.
+| Finding | Status | Resolution |
+|---------|--------|------------|
+| **C1** `trustHost` / open-redirect | ✅ Verified | `AUTH_TRUST_HOST` env var; `redirect` callback enforces `APP_URL` same-origin. |
+| **C2** Double-dispatch event bus | ✅ Verified | `QueueEventBus` + BullMQ `jobId` dedup; `RedisEventBus` no longer self-dispatches. |
+| **H1** Startup resilience | ✅ Verified | `ensureSuperAdmin` wrapped in `try/catch`; boot cannot fail. |
+| **H2/H3** Stripe webhook idempotency + past_due | ✅ Verified | `ProcessedWebhookEvent` ledger; Stripe fulfillment in single transaction; `past_due` retains plan. |
+| **H4** Export auth bypass | ✅ Verified | `getCurrentUser()` + `tokenVersion` check + rate limit + `no-store, private` headers. |
+| **H5** Project soft-delete | ✅ Verified | `archivedAt`/`deletedAt` on `Project`; queries filter `deletedAt: null`. |
+| **H6** DLQ / event delivery | ✅ Verified | `QueueEventBus` with BullMQ retries, DLQ, `jobId` dedup; `/api/metrics` gauge. |
+| **H7** Abandoned cart atomicity | ✅ Verified | Atomic sweep publishes `AbandonedCartDetected` once per idle cart. |
+| **H8** CI coverage (test count) | ✅ Verified | 345 tests / 81 files (up from 43/9); Redis CI service; secret scan in CI. |
+| **H9** Shopify webhook public path | ✅ Verified | `/api/shopify/webhooks` in `publicPaths`; CI smoke test asserts no 3xx. |
+| **H10** Seat-limit race condition | ✅ Verified | `createWithinSeatLimit` serializable transaction. |
+| **N1** SSRF in ConfigInterpreter | ✅ Fixed (REQ-0093) | `assertPublicHttpUrl()` guard before every outbound fetch; `baseUrl` requires HTTPS. |
+| **N2** Unauthenticated `/api/metrics` | ✅ Fixed (REQ-0093) | Bearer token check via `METRICS_TOKEN` env var. |
+| **N3** Stale NO-GO verdict in docs | ✅ Fixed (REQ-0093) | This section updated. |
+| **P1** `/api/metrics` unreachable by Prometheus | ✅ Fixed (REQ-0097) | The N2 bearer-token check never ran because the NextAuth middleware redirected unauthenticated requests (including scrapers) to `/login` before hitting the route. `/api/metrics` added to `PUBLIC_PATHS_EXACT`; bearer check still enforced in the route handler; `validateProductionSecrets()` now requires `METRICS_TOKEN` in production. |
+| **P2** Order sync destructive `deleteMany` | ✅ Fixed (REQ-0096) | `syncOrders()` deleted every DB order absent from the connector's 250-order batch on every sync, silently losing history for stores with >250 orders. Replaced with non-destructive `upsertMany()`; destructive `sync()` removed from `OrderRepository`. |
+| **P3** `/api/chat/stream` no per-request rate limit | ✅ Fixed (REQ-0097) | Added `rateLimit()` (15/min) ahead of the monthly AI-quota guard. |
+| M1–M15 medium findings | ✅ Verified | See audit report §4 for per-finding evidence. |
+| L1–L7 low findings | ✅ Verified / Accepted | See audit report §4. |
 
-Remediation is planned across `REQ-0067` … `REQ-0075`. The complete finding-to-requirement
-traceability map is `docs/audit/2026-07-31-remediation-index.md`.
+The complete finding-to-requirement traceability map is `docs/audit/2026-07-31-remediation-index.md`.
+Remaining conditions before a 🟢 GO:
+1. `METRICS_TOKEN` configured in the production environment's secrets.
+2. Manual penetration test of the dynamic adapter endpoint to confirm the SSRF guard holds under
+   HTTP redirect chains and international domain names.
+3. Completion of the two deferred medium findings (M3 project-race, M4 unbounded findMany) tracked
+   in the audit report as "Scheduled Post-Release".
+4. Stories ingestion (`REQ-0098`) is proposed but not implemented — content analytics has no data for
+   Instagram Stories today.
 
 ---
 

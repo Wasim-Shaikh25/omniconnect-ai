@@ -10,10 +10,12 @@ import {
 } from "@/modules/auth";
 import { env } from "@/shared/config";
 import { listDataExportsAction } from "@/modules/users";
+import { PageHeader } from "@/components/page-header";
 import { AccountActions } from "@/components/account-actions";
 import { AccountSecurityForms } from "@/components/account-security-forms";
 import { PhoneVerificationForm } from "@/components/phone-verification-form";
 import { SignOutEverywhereButton } from "@/components/sign-out-everywhere-button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -21,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CheckCircle2 } from "lucide-react";
 
 export default async function AccountPage({
   searchParams,
@@ -34,17 +37,28 @@ export default async function AccountPage({
   const exports = await listDataExportsAction();
 
   return (
-    <main className="container mx-auto max-w-2xl px-4 py-8">
-      <h1 className="text-xl font-semibold">Account</h1>
-      <p className="text-sm text-muted-foreground">{user.email}</p>
+    <div className="page-container">
+      <div className="container max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Account"
+          description="Manage your account security and preferences"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Settings", href: "/settings" },
+            { label: "Account" },
+          ]}
+        />
 
-      {emailChanged && (
-        <p className="mt-4 text-sm text-green-600" role="status">
-          Your email address has been updated.
-        </p>
-      )}
+        {emailChanged && (
+          <Alert className="section mb-6 border-green-600/20 bg-green-600/10">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-600">
+              Your email address has been updated.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div className="mt-8 space-y-6">
+        <div className="section space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Security</CardTitle>
@@ -116,7 +130,8 @@ export default async function AccountPage({
             <AccountActions mode="delete" />
           </CardContent>
         </Card>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

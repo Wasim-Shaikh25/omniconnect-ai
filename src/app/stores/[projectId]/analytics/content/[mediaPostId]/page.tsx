@@ -1,9 +1,8 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { getMediaPostAction, analyzeMediaAction } from "@/modules/analytics";
+import { PageHeader } from "@/components/page-header";
 import { AnalyzeMediaForm } from "@/components/analyze-media-form";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function formatNumber(value: number | null | undefined): string {
@@ -30,18 +29,23 @@ export default async function MediaPostDetailPage({
   if (error || !post) notFound();
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Content analysis</h1>
-          <p className="text-sm text-muted-foreground">{store.name} · {post.mediaType}</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}/analytics/content`}>Back to content</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Content analysis"
+          description={`${store.name} · ${post.mediaType}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Analytics", href: `/stores/${projectId}/analytics` },
+            { label: "Content", href: `/stores/${projectId}/analytics/content` },
+            { label: post.mediaType },
+          ]}
+        />
 
-      <Card className="mb-6">
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>{post.mediaType}</CardTitle>
           <CardDescription>
@@ -57,6 +61,14 @@ export default async function MediaPostDetailPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {post.thumbnailUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={post.thumbnailUrl}
+              alt={post.caption?.slice(0, 60) ?? post.mediaType}
+              className="mb-3 h-48 w-48 rounded object-cover"
+            />
+          )}
           <p className="mb-3 text-sm">{post.caption || "(no caption)"}</p>
           {post.hashtags.length > 0 && (
             <p className="mb-3 text-xs text-muted-foreground">{post.hashtags.join(" ")}</p>
@@ -78,14 +90,26 @@ export default async function MediaPostDetailPage({
                   <p>{formatNumber(metric.value)}</p>
                 </div>
               ))}
+              <div>
+                <span className="text-xs text-muted-foreground">Engagement rate</span>
+                <p>
+                  {post.latestInsight.engagementRate
+                    ? `${(post.latestInsight.engagementRate * 100).toFixed(2)}%`
+                    : "—"}
+                </p>
+              </div>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">No insights captured yet.</p>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+          </Card>
+        </div>
 
-      <AnalyzeMediaForm action={analyzeMediaAction} projectId={projectId} mediaPostId={mediaPostId} />
-    </main>
+        <div className="section">
+          <AnalyzeMediaForm action={analyzeMediaAction} projectId={projectId} mediaPostId={mediaPostId} />
+        </div>
+      </div>
+    </div>
   );
 }

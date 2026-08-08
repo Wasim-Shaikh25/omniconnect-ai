@@ -1,6 +1,5 @@
 
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { env } from "@/shared/config";
 import { checkStoreAccess } from "@/modules/workspaces";
 import { crmQueries } from "@/modules/crm";
@@ -9,9 +8,9 @@ import {
   updateCampaignAction,
   simulateFirstTimeFollower,
 } from "@/modules/coupons";
+import { PageHeader } from "@/components/page-header";
 import { FirstTimeFollowerCampaignForm } from "@/components/first-time-follower-campaign-form";
 import { FirstTimeFollowerSimulator } from "@/components/first-time-follower-simulator";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -41,20 +40,22 @@ export default async function FirstTimeFollowerCampaignPage({
   ]);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{store.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            First-Time Follower Campaign
-          </p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="First-Time Follower Campaign"
+          description={`Campaign settings for ${store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Campaigns", href: `/stores/${projectId}/campaigns` },
+            { label: "First Follower" },
+          ]}
+        />
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <div className="section">
+          <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Campaign settings</CardTitle>
@@ -98,9 +99,11 @@ export default async function FirstTimeFollowerCampaignPage({
             )}
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </div>
 
-      <Card className="mt-6">
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Recent followers</CardTitle>
           <CardDescription>
@@ -143,7 +146,9 @@ export default async function FirstTimeFollowerCampaignPage({
             </p>
           )}
         </CardContent>
-      </Card>
-    </main>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

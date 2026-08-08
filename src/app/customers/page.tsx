@@ -3,11 +3,14 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { isStaff } from "@/modules/auth/domain";
 import { customerDirectory } from "@/modules/crm";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/empty-state";
 import { CrmNextBestAction } from "@/components/crm-next-best-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaginationControls, ListSearch } from "@/components/pagination-controls";
 import type { PaginationInput } from "@/shared/kernel";
+import { Users } from "lucide-react";
 
 const LIFECYCLES = ["LEAD", "PROSPECT", "CUSTOMER", "CHURNED"] as const;
 const CONSENTS = ["PENDING", "GRANTED", "DECLINED"] as const;
@@ -86,22 +89,23 @@ export default async function CustomersPage({
   );
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Customers</h1>
-          <p className="text-sm text-muted-foreground">
-            Workspace customer directory with lifecycle, consent, and scores.
-          </p>
+    <div className="page-container">
+      <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Customers"
+          description="Workspace customer directory with lifecycle, consent, and scores"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Customers" },
+          ]}
+        />
+
+        <div className="section">
+        <CrmNextBestAction />
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
-      </header>
 
-      <CrmNextBestAction />
-
-      <Card className="mb-6">
+        <div className="section">
+        <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium">Filters</CardTitle>
         </CardHeader>
@@ -185,20 +189,21 @@ export default async function CustomersPage({
           </div>
         </CardContent>
       </Card>
+        </div>
 
-      {customers.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No customers match your filters.
-            </p>
-            <Button asChild variant="outline" className="mt-4">
-              <Link href="/stores">Simulate or connect a store</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
+        <div className="section">
+        {customers.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No customers yet"
+            description="No customers match your filters. Simulate or connect a store to see customers."
+            action={{
+              label: "Simulate or connect a store",
+              onClick: () => window.location.href = "/stores",
+            }}
+          />
+        ) : (
+          <div className="space-y-6">
           <div className="space-y-3">
             {customers.map((customer) => (
               <Card key={customer.id}>
@@ -266,8 +271,10 @@ export default async function CustomersPage({
             search={search}
             limit={pagination.limit}
           />
+          </div>
+        )}
         </div>
-      )}
-    </main>
+      </div>
+    </div>
   );
 }

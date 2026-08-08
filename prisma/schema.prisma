@@ -819,6 +819,8 @@ model AccountInsight {
   reach         Int?
   impressions   Int?
   websiteClicks Int?
+  biography     String?
+  profilePictureUrl String?
   audienceJson  Json?
   fetchedAt     DateTime @default(now())
 

@@ -1,5 +1,6 @@
 import { requireSuperAdmin } from "@/modules/auth";
 import { listSaaSCouponsAction, createSaaSCouponAction } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateSaaSCouponForm } from "@/components/create-saas-coupon-form";
 
@@ -25,8 +26,20 @@ export default async function AdminCouponsPage({ searchParams }: AdminCouponsPag
   const result = await listSaaSCouponsAction(page, limit);
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Coupon Management"
+          description="Create and manage discount coupons"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Coupons" },
+          ]}
+        />
+
+        <div className="section space-y-6">
+          <Card>
         <CardHeader>
           <CardTitle>Create SaaS coupon</CardTitle>
           <CardDescription>Generate a percentage discount coupon. Requires Stripe keys.</CardDescription>
@@ -106,6 +119,8 @@ export default async function AdminCouponsPage({ searchParams }: AdminCouponsPag
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }

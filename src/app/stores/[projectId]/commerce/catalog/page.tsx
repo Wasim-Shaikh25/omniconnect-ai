@@ -1,8 +1,8 @@
 "use client";
 
 import { use, useActionState, useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,14 +36,20 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
   }, [projectId, syncState, mediaState]);
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold">Commerce catalog</h1>
-        <p className="text-sm text-muted-foreground">Sync Shopify products to Instagram Shop and tag them in shoppable media.</p>
-        <Link href={`/stores/${projectId}`} className="text-sm text-muted-foreground underline">Back to store</Link>
-      </header>
+    <div className="page-container">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Commerce Catalog"
+          description="Sync Shopify products to Instagram Shop and tag them in shoppable media"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: "Commerce Catalog" },
+          ]}
+        />
 
-      <Card className="mb-6">
+        <div className="section">
+          <Card>
         <CardHeader>
           <CardTitle>Meta catalog sync</CardTitle>
           <CardDescription>Push the latest product catalog to Meta Commerce.</CardDescription>
@@ -58,12 +64,14 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
             {syncState.error && <p className="text-sm text-destructive">{syncState.error}</p>}
             {syncState.ok && <p className="text-sm text-green-600">Sync triggered</p>}
           </form>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Product mappings ({data?.mappings.length ?? 0})</CardTitle>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Product mappings ({data?.mappings.length ?? 0})</CardTitle>
           <CardDescription>Local products mapped to Meta catalog IDs.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,39 +90,43 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
             <p className="text-sm text-muted-foreground">No mappings yet. Sync the catalog to create them.</p>
           )}
         </CardContent>
-      </Card>
+          </Card>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Product promotion scores</CardTitle>
-          <CardDescription>Products ranked by content, engagement, conversation, sales, trend, and competitor signals.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data?.productScores && data.productScores.length > 0 ? (
-            <ul className="divide-y text-sm">
-              {data.productScores.map((p) => (
-                <li key={p.productId} className="py-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{p.productTitle}</span>
-                    <span className="text-xs text-muted-foreground">{Math.round(p.compositeScore * 100)} pts</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{p.evidence}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">No scores yet. Add products and conversations to generate scores.</p>
-          )}
-        </CardContent>
-      </Card>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Product promotion scores</CardTitle>
+              <CardDescription>Products ranked by content, engagement, conversation, sales, trend, and competitor signals.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {data?.productScores && data.productScores.length > 0 ? (
+                <ul className="divide-y text-sm">
+                  {data.productScores.map((p) => (
+                    <li key={p.productId} className="py-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{p.productTitle}</span>
+                        <span className="text-xs text-muted-foreground">{Math.round(p.compositeScore * 100)} pts</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{p.evidence}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">No scores yet. Add products and conversations to generate scores.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>AI caption generator</CardTitle>
-          <CardDescription>Generate viral captions, hooks, hashtags, and best posting times for shoppable media.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={captionAction} className="space-y-4">
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI caption generator</CardTitle>
+              <CardDescription>Generate viral captions, hooks, hashtags, and best posting times for shoppable media.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={captionAction} className="space-y-4">
             <input type="hidden" name="projectId" value={projectId} />
             <div>
               <Label htmlFor="captionMediaType">Media type</Label>
@@ -164,17 +176,19 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
                   <Button type="button" variant="outline" size="sm" onClick={() => setCaption(c.caption)}>Use this caption</Button>
                 </div>
               ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Shoppable media</CardTitle>
-          <CardDescription>Create an Instagram post or Reel with AI-suggested product tags.</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Shoppable media</CardTitle>
+              <CardDescription>Create an Instagram post or Reel with AI-suggested product tags.</CardDescription>
+            </CardHeader>
+            <CardContent>
           {data?.media.length ? (
             <ul className="divide-y text-sm mb-4">
               {data.media.map((m) => {
@@ -215,10 +229,12 @@ function CatalogPage({ params }: { params: Promise<{ projectId: string }> }) {
             </div>
             <Button type="submit" disabled={mediaPending}>{mediaPending ? "Publishing…" : "Create shoppable media"}</Button>
             {mediaState.error && <p className="text-sm text-destructive">{mediaState.error}</p>}
-            {mediaState.ok && <p className="text-sm text-green-600">Shoppable media created</p>}
-          </form>
-        </CardContent>
-      </Card>
-    </main>
+              {mediaState.ok && <p className="text-sm text-green-600">Shoppable media created</p>}
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

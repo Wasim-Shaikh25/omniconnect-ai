@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireSuperAdmin } from "@/modules/auth";
 import { listAllUsersAction, toggleUserSuperAdminAction } from "@/modules/users";
 import { Plan } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleSuperAdminButton } from "@/components/toggle-super-admin-button";
 import { UserStatusButtons } from "@/components/user-status-buttons";
@@ -56,12 +57,25 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Users</CardTitle>
-        <CardDescription>{result.total} registered accounts.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="User Management"
+          description="View and manage user accounts"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Users" },
+          ]}
+        />
+
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Users</CardTitle>
+              <CardDescription>{result.total} registered accounts.</CardDescription>
+            </CardHeader>
+            <CardContent>
         <form method="get" action="/admin/users" className="mb-4 flex flex-wrap items-end gap-2">
           <input
             name="search"
@@ -173,7 +187,10 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             </nav>
           </>
         )}
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

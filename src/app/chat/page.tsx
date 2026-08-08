@@ -18,8 +18,8 @@ export default async function ChatPage(): Promise<React.ReactElement> {
   const { items: sessions } = await listChatSessionsAction(projectId);
 
   return (
-    <main className="h-[calc(100vh-4rem)]">
+    <div className="page-container h-[calc(100vh-4rem)]">
       <ChatInterface projectId={projectId} initialSessions={sessions} />
-    </main>
+    </div>
   );
 }

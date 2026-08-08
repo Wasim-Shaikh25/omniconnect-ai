@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/modules/auth";
 import { checkStoreAccess } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { QueryAnalyticsForm } from "./query-analytics-form";
 
 export const metadata = {
@@ -21,15 +22,21 @@ export default async function AnalyticsDashboardPage() {
   }
 
   return (
-    <main className="container mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">AI analytics dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Ask a question in plain English and get a generated dashboard for {access.store.name}.
-        </p>
-      </header>
+    <div className="page-container">
+      <div className="container max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="AI analytics dashboard"
+          description={`Ask a question in plain English and get a generated dashboard for ${access.store.name}`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Analytics" },
+          ]}
+        />
 
-      <QueryAnalyticsForm projectId={projectId} />
-    </main>
+        <div className="section">
+          <QueryAnalyticsForm projectId={projectId} />
+        </div>
+      </div>
+    </div>
   );
 }

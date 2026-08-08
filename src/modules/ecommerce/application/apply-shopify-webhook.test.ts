@@ -36,7 +36,6 @@ function makeDeps() {
     delete: vi.fn(),
   };
   const orders: OrderRepository = {
-    sync: vi.fn(),
     upsertMany: vi.fn().mockResolvedValue(1),
     listByStore: vi.fn(),
     countByStore: vi.fn(),

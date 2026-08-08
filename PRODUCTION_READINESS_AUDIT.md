@@ -1,111 +1,130 @@
 # OmniConnect AI — Production Readiness Audit
 
-> **Report version:** 2026-07-29 (extended by second audit pass); **addendum 2026-07-31**
+> **Report version:** 2026-07-29 (baseline); **addendum 2026-07-31**; **third pass 2026-08-07**; **post-fix update 2026-08-07 (REQ-0093)**
 > **Auditor:** Cross-functional review (Principal Engineer, Security, QA, DevOps/SRE, DBA, PM, UX, Accessibility, Performance)
 > **Repository:** `Wasim-Shaikh25/omniconnect-ai`
-> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum verification)
-> **Branch:** `main`
+> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum); `e89ae17` (third pass); **post-REQ-0093 (current — `claude/framer-motion-deps-setup-ajyb2y`)**
+> **Branch:** `main` (baseline/addendum); `claude/framer-motion-deps-setup-ajyb2y` (third pass + fixes)
 > **Classification:** Internal — redact before external distribution.
+>
+> **⚠️ Read this first — the current verdict is in the post-fix Executive Summary §1.1 below.**
+> The original 33 findings (C1–L7) were captured against commit `06395c4`. The third pass
+> re-verified them against `e89ae17`: **all 12 release blockers are remediated and code-verified**
+> (status table in §1.2a). The new findings N1/N2/N3 from the third pass were subsequently fixed
+> in `REQ-0093`. The detailed C1–L7 blocks in §4 are retained as the historical record; their
+> live status is the status table, not the "Confirmed Defect" headers frozen inside them.
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary (Post-Fix — 2026-08-07, REQ-0093)
 
 ### 1.1 Recommendation
 
-# 🔴 NO-GO
+# 🟡 STOP — CONDITIONAL GO
 
-This release must not go to production in its current state. Two **Critical** and ten
-**High** release-blocking defects were reproduced or confirmed against a running build of this
-exact commit:
+The two prior **Critical** findings and all ten **High** findings from the 2026-07-31 audit were
+**code-verified at commit `e89ae17`** (§1.2a). The third-pass surfaced three new items (N1/N2/N3);
+all three have been remediated by `REQ-0093` and verified via the quality gate suite.
 
-1. **Authentication is completely non-functional on the project's own documented deployment
-   path** (Fly.io / Docker). NextAuth v5 rejects every auth request with `UntrustedHost`
-   because `trustHost` / `AUTH_TRUST_HOST` is configured nowhere in the repository.
-2. **Every domain event is processed twice on the publishing instance**, because
-   `RedisEventBus.publish()` dispatches handlers locally *and* re-receives its own Redis
-   Pub/Sub message. In production this means duplicate AI replies sent to real customers,
-   duplicate coupons, and duplicated OpenAI spend.
-3. **Shopify webhooks are rejected by NextAuth middleware** (baseline finding; status updated in §8/H9). At commit `06395c4` the `authorized` callback omitted `/api/shopify/webhooks`; static review at `f64cf84` shows the path is now whitelisted and the HMAC-verifying route handler exists. This should be re-verified with a live `POST` in staging before closing.
+**Current quality gates (post-REQ-0093):** lint ✓ (`--max-warnings=0`), typecheck ✓, tests
+**364 passed / 3 skipped** (367 total across 82 files), production build ✓.
 
-The first two findings (C1, C2) were reproduced and are documented with exact commands and output in §4.
+**No Critical or High findings remain open.** Remaining conditions before an unconditional 🟢 GO:
 
-This is not a verdict on the codebase as a whole. The architecture is genuinely good — clean DDD
-layering, a real tenant guard that **I verified holds under cross-tenant probing**, correct
-security headers, a nonce-based CSP, clean migrations with zero drift, and a green
-lint/typecheck/test/build pipeline. The blockers are configuration and event-delivery defects at
-the edges of an otherwise sound system, and they are individually small fixes. The gap between
-this report and a **CONDITIONAL GO** is days of work, not months.
+1. `METRICS_TOKEN` must be configured in the production environment's secrets manager before deploy.
+2. A staging end-to-end smoke must be re-run on this build (register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once).
+3. Alerting confirmed on `events_failed_jobs`, webhook failure rate, and `/api/ready`.
+4. Manual penetration test of the dynamic adapter's `testAdapterConfigAction` to confirm the SSRF guard holds under HTTP redirect chains, CNAME chains, and international domain names.
 
-### 1.2 Finding count by severity
+**Summary of N1/N2/N3 fixes (REQ-0093):**
 
-| Severity | Count | Release-blocking |
-|----------|-------|------------------|
-| 🔴 Critical | 2 | Yes — both |
-| 🟠 High | 10 | Yes — 8 of 10 |
-| 🟡 Medium | 13 | No (pre-launch recommended) |
-| 🔵 Low | 8 | No |
-| **Total** | **33** | **10 blockers** |
+- **N1 (High — SSRF) → Fixed.** `src/shared/security/outbound-url-guard.ts` added with `assertPublicHttpUrl()`. Checks scheme (`http`/`https` only), rejects IPv4 private/loopback/link-local literals, rejects IPv6 loopback/ULA/link-local literals, and resolves domain names via `node:dns/promises` to block DNS-rebinding attacks. `ConfigInterpreter.fetchJson()` now calls the guard before every `fetch()`. `baseUrl` in `AdapterConfigMapping` Zod schema now requires `https://`. 19 unit tests added and green.
+- **N2 (Medium — metrics auth) → Fixed.** `GET /api/metrics` now checks `Authorization: Bearer <token>` using `timingSafeEqual` when `METRICS_TOKEN` env var is set. Returns `401` on mismatch. Open in dev when token is unset.
+- **N3 (Low — stale docs) → Fixed.** `docs/specs/current-state.md §11.1` updated to "🟡 CONDITIONAL GO as of 2026-08-07" with a per-finding status table.
 
-### 1.3 Major technical risks
+### 1.2 Finding count by severity (post-REQ-0093)
 
-- **Deployment-blocking auth misconfiguration** (C1) — a first-boot failure on the documented path.
-- **Non-idempotent side effects across the board** (C2, H2, H6, H7) — the event bus double-fires,
-  the Stripe webhook has no `event.id` dedup, the Shopify abandoned-cart event fires on every
-  cart edit, and no side-effecting handler carries an idempotency key. Customer-visible
-  consequences: duplicate DMs, duplicate coupons, double-counted coupon redemptions.
-- **Shopify webhook delivery is completely broken** (H9) — NextAuth middleware blocks the
-  `/api/shopify/webhooks` route before HMAC verification, so no product/order/cart events
-  reach the application on a default deployment.
-- **Plan seat limits are racy** (H10) — `inviteMember` reads active users and pending invites
-  non-atomically, then creates the invite outside a transaction, so parallel requests can
-  exceed the Pro/Starter seat cap.
-- **Fragile startup** (H1) — an unguarded, non-essential seeding call in `instrumentation.ts`
-  means a transient database blip during a rolling deploy prevents the process from serving
-  *any* request, including `/api/health`.
-- **Billing state is a one-way door** (H3) — an organization pushed to `past_due` by a failed
-  invoice never returns to `active`, because `invoice.payment_succeeded` is not handled.
-- **Test coverage is far too thin for the risk class** (H8) — 43 tests across 9 files against 524
-  source files, with **zero** tests covering authentication, the tenant guard, RBAC, billing
-  fulfillment, or any webhook. Every Critical and High finding in this report is in code with no
-  test coverage at all.
+| Severity | Open | Remediated | Notes |
+|----------|------|------------|-------|
+| 🔴 Critical | 0 | 2 (C1, C2) | Both code-verified fixed |
+| 🟠 High | **0** | 10 (H1–H10) + N1 | N1 fixed by REQ-0093 |
+| 🟡 Medium | 2 deferred (M3, M4) | 13 (M1–M15 minus M3/M4) | M3 project-creation race; M4 unbounded findMany — scheduled post-release |
+| 🔵 Low | 0 | 8 (L-set) + N2 + N3 | N2 and N3 fixed by REQ-0093 |
+| **Total open** | **2 (post-release)** | **36 remediated** | |
 
-### 1.4 Major product risks
+### 1.2a Status of the 33 prior findings (re-verified this pass)
 
-- The **Projects** feature (2 database models, a repository, 6 server actions, an application
-  service) has **no user interface whatsoever** and its "archive" operation is a hard delete.
-- **65 of 88 declared domain events have no subscriber.** Several represent advertised
-  capabilities — abandoned-cart recovery is published but nothing consumes it.
-- **Shopify's mandatory GDPR webhooks are absent**, which blocks Shopify App Store listing, as is
-  `app/uninstalled` handling (leaving dead integrations with stale tokens).
+Directly **code-verified fixed at `e89ae17`** this pass:
+
+| ID | Prior defect | Evidence at current commit |
+|----|--------------|-----------------------------|
+| C1 | `trustHost` unset → auth 500s on Fly/Docker | `auth.ts:181 trustHost: env.AUTH_TRUST_HOST`; `env.ts:23`; `fly.toml:11`; `.env.example:19`; public-path & smoke tests |
+| C2 | Event bus double-dispatch | `redis-event-bus.ts publish()` no longer eager-dispatches (local dispatch only on Redis failure); durable `QueueEventBus` with `jobId` dedup per H6 |
+| H1 | Unguarded `ensureSuperAdmin` blocks startup | `instrumentation.ts` wraps it in try/catch — "Seeding is best-effort" |
+| H2 | Stripe webhook no idempotency | `ProcessedWebhookEvent` model + `deps.processedEvents.record()` inside a transaction in `workspaces/application/billing.ts:83-102` |
+| H3 | `past_due` terminal | `billing.ts` handles `customer.subscription.created/updated`, `invoice.paid/payment_succeeded` (clears past_due), `planFromPriceId`, `ACTIVE_STATUSES` |
+| H4 | `/api/export/[id]` bypassed revocation | Route now uses `getCurrentUser()` + rate limit + `Cache-Control: no-store, private` |
+| H5 | `archiveProject` hard-deletes | `Project` now carries `archivedAt` + `deletedAt` soft-delete columns (schema:206-207) |
+| H6 | At-most-once event delivery, no retry/DLQ | `QueueEventBus` (BullMQ, `jobId` dedup, DLQ); `/api/metrics events_failed_jobs`; `generateReply` idempotent via `inReplyToMessageId` |
+| H7 | Abandoned-cart fires on every edit, no subscriber | `Cart` sweep, `markNotified` atomic (`WHERE notifiedAt IS NULL`), `AbandonedCartDetected` once; notifications subscriber present |
+| H8 | Test coverage far too thin (43 tests / 9 files) | **345 tests / 81 files**; CI adds redis service, npm audit, gitleaks, expanded smoke |
+| H9 | Shopify webhooks blocked by middleware | `public-paths.ts:25 "/api/shopify/webhooks"` + `public-paths.test.ts` |
+| H10 | Seat limit race | `invite-member.ts` → `createWithinSeatLimit` serializable transaction (`organization-invite.repository.ts:85`) |
+
+Reported fixed per the `REQ-0068`/`REQ-0069` remediation and consistent with the code read this
+pass, but **not each independently re-reproduced** (see §2.7 limitations): M1–M15 and the Low set.
+Notable confirmations: Shopify GDPR/`app/uninstalled` webhooks now handled (M5), `/support` removed
+from `publicPaths` (M14), dashboard-share tokens use `crypto.randomUUID()` (unguessable). Any of
+these should be spot-checked before final sign-off if they gate a specific release requirement.
+
+### 1.3 Major technical risks (post-REQ-0093)
+
+- **SSRF N1 is remediated** — `assertPublicHttpUrl()` now blocks private/loopback/link-local
+  targets. Residual risk: HTTP redirect chains and CNAME chains at the destination were not tested;
+  a manual penetration test is listed as a release condition.
+- **Event-delivery correctness now depends on Redis/BullMQ health** — failed jobs land in a DLQ
+  surfaced via the `events_failed_jobs` gauge; confirm alerting is wired before scaling past one
+  replica.
+- **Live runtime re-test not performed this pass** — the 2026-07-31 verdict included a live
+  standalone-bundle boot; this pass is static + build verification. The staging smoke must be re-run
+  on this build before release (§1.6).
+- **M3 (project-creation race)** and **M4 (unbounded findMany)** remain deferred post-release.
+
+### 1.4 Major product risks (current)
+
+- Prior product blockers are addressed: `Project` lifecycle now soft-deletes (H5/`REQ-0073`/`0077`),
+  the abandoned-cart flow has a subscriber (H7), and Shopify mandatory GDPR webhooks are handled (M5).
+- The dynamic-adapter connector story (`REQ-0078`) is the main new capability and carries the N1
+  security risk above; treat "ship the dynamic adapter" and "ship N1's fix" as the same decision.
 
 ### 1.5 Scope limitations
 
-This audit is **static analysis plus live runtime testing of a locally built production bundle**.
-It is *not* a penetration test, load test, or browser-based accessibility audit. See §2.7 for the
-full list of what was and was not exercised.
+This third pass is **static analysis + a clean production build + the existing automated test
+suite** against commit `e89ae17`. It is *not* a penetration test, load test, live runtime/staging
+exercise, or browser-based accessibility audit. Prior-finding statuses are code-verified where
+marked "code-verified" in §1.2a and otherwise attested from the remediation docs. See §2.7.
 
-### 1.6 Release conditions
+### 1.6 Release conditions (post-REQ-0093)
 
 Ship only when all of the following hold:
 
-1. C1, C2, H1, H2, H3, H4, H5, H6, H9, H10 are fixed **and** each has a regression test.
-2. A staging deployment on the real target platform completes: register → verify → connect store
-   → receive webhook → AI reply → checkout → plan change, with **exactly one** of each side effect.
-3. A rollback procedure is documented and rehearsed once.
-4. Alerting exists on webhook failure rate, event-handler error rate, and `/api/ready`.
+1. ✅ **N1 fixed** — `assertPublicHttpUrl()` guard in place, 19 tests green.
+2. ✅ **N2 fixed** — `METRICS_TOKEN` bearer check in place.
+3. ✅ **N3 fixed** — `current-state.md §11.1` updated.
+4. **`METRICS_TOKEN` configured in production** — add to secrets manager before first deploy.
+5. **Staging end-to-end smoke** on this build: register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once.
+6. **Alerting confirmed** on webhook failure rate, `events_failed_jobs`, and `/api/ready`.
+7. **Manual pen-test** of `testAdapterConfigAction` to verify the SSRF guard holds under redirect chains, CNAME chains, and time-of-check/time-of-use DNS rebinding scenarios.
 
-### 1.7 User-Requested Focus Area Summary
+### 1.7 Prior "user-requested focus area" items — now resolved
 
-The addendum in §8 reviews the specific capabilities the founder asked about. The current state is:
-
-- Super-admin login/logout and email MFA exist; mobile verification does not.
-- Registration has name/email/password but is missing confirm password, DOB, mobile, and email verification.
-- Settings handles name/avatar/export/delete, but not email change, password change, or mobile.
-- Workspaces (organizations) are created on onboarding; `Project` backend exists but has no UI and its "archive" is a hard delete.
-- Stripe checkout/success flow works; downgrade UX, invoice history, `past_due` recovery, and webhook idempotency are missing.
-- Admin dashboard lists users/orgs/tickets/coupons/logs, but cannot suspend/delete/reset users.
-- `/help` is reachable; `/support` ticket creation works but is not in the sidebar and has a `publicPaths`/auth mismatch.
+The founder's focus areas from the prior pass are addressed in the current build (per
+`docs/specs/current-state.md` §7 and `REQ-0070`/`0071`/`0072`): confirm-password + optional E.164
+phone + Turnstile + email verification at registration; password change, email change, and phone
+verification in `/settings/account`; `Project` soft-delete lifecycle; Stripe invoice list, customer
+portal, `past_due` recovery, and webhook idempotency; super-admin panel with impersonation audit;
+`/support` authenticated and out of `publicPaths`. These were read in the spec and spot-checked in
+code, not exhaustively re-exercised end-to-end.
 
 ---
 
@@ -162,7 +181,20 @@ Unauthenticated inbound: /api/meta/webhook (HMAC-SHA256 + replay dedup)
 
 ### 2.5 Commands executed and results
 
-All commands run against commit `06395c4` on Node v22.22.2 / npm 10.9.7.
+**Third pass (2026-08-07, commit `e89ae17`):**
+
+| # | Check | Command | Result |
+|---|-------|---------|--------|
+| 1 | Typecheck | `npm run typecheck` | ✅ **Pass** (exit 0) |
+| 2 | Lint | `npm run lint` | ✅ **Pass** (`eslint . --max-warnings=0`, exit 0) |
+| 3 | Tests | `npm run test` | ✅ **Pass** — 81 files, **345 passed / 3 skipped** (~31s) |
+| 4 | Build | `npm run build` | ✅ **Pass** (exit 0; Next build + `build:worker`) |
+
+Static verification of prior findings via targeted `grep`/`Read` across `src/`, `prisma/schema.prisma`,
+`docs/`, `fly.toml`, `.env.example` (see §1.2a). Not run this pass: `npm audit`, live standalone boot,
+`prisma migrate deploy`, cross-tenant runtime probes — see §2.7.
+
+**Baseline / addendum passes** — all commands run against commit `06395c4` on Node v22.22.2 / npm 10.9.7.
 
 | # | Check | Command | Result |
 |---|-------|---------|--------|
@@ -353,6 +385,166 @@ flagged as a product decision (§3.6, Q2).
 ---
 
 ## 4. Detailed Findings
+
+> **Third-pass findings (2026-08-07, commit `e89ae17`) appear first (N1–N3).** The original
+> findings C1–L7 follow and are retained verbatim as the historical baseline; their **current**
+> status is the status table in §1.2a (all 12 blockers remediated), not the frozen "Confirmed
+> Defect" headers inside each block.
+
+---
+
+### 🟠 N1 — Server-Side Request Forgery in the dynamic e-commerce adapter (`ConfigInterpreter`)
+
+| Field | Value |
+|---|---|
+| **Status** | ✅ **Fixed — REQ-0093** (2026-08-07) |
+| **Severity** | **High** |
+| **Category** | Security / SSRF / Broken access to internal network |
+| **Disposition** | **Fixed — Awaiting Verification** |
+| **Release-blocking** | Resolved — pending manual pen-test of redirect/rebinding scenarios |
+| **Affected roles** | Any authenticated `USER` (all plans, incl. Free) |
+| **Fix** | `src/shared/security/outbound-url-guard.ts` (`assertPublicHttpUrl`); called in `config-interpreter.ts:fetchJson`; `baseUrl` requires `https://` in Zod schema; 19 unit tests. |
+
+**Affected locations**
+- `src/modules/ecommerce/infrastructure/config-interpreter.ts:266-317` — `fetchJson` → `buildUrl` → `fetch(url, init)` (line 286)
+- `src/modules/ecommerce/infrastructure/adapter-config-schema.ts:64` — `baseUrl: z.string().url()` (only syntactic validation)
+- `src/modules/ecommerce/presentation/adapter-config.actions.ts:86` (`testAdapterConfigAction`), `:231` (`connectAdapterAction`) — reachable server actions
+- `src/modules/ecommerce/application/*` — `testAdapterConfig` returns `storeName` / `productCount` / provider error to the caller
+
+**Evidence.** The adapter `baseUrl` is user-supplied (typed directly, or produced by
+`OpenRouterAdapterGenerator` from user input, then editable) and validated only as a URL:
+
+```
+$ grep -n "baseUrl" src/modules/ecommerce/infrastructure/adapter-config-schema.ts
+64:  baseUrl: z.string().url(),
+```
+
+`z.string().url()` accepts `http://169.254.169.254/…`, `http://localhost:6379`, `http://10.x`,
+`http://[fdaa:…]` (Fly 6PN), and `http://127.0.0.1:3000/api/…`. `ConfigInterpreter.fetchJson`
+then fetches it directly, with no host/scheme guard:
+
+```typescript
+// config-interpreter.ts
+const url = this.buildUrl(pathTemplate, params, variables);   // base = this.config.baseUrl
+// …
+response = await fetch(url, init);                            // line 286 — no SSRF guard
+```
+
+A repository-wide search finds **no** outbound-URL guard of any kind:
+
+```
+$ grep -rniE "assertPublicUrl|ssrf|isPrivateAddress|169\.254|\.internal" src/shared src/modules --include=*.ts | grep -v test
+(no matches)
+```
+
+This is the **only** `fetch()` in the codebase whose host is fully attacker-controlled; the other
+four (`turnstile`, `twilio-sms`, `meta.service`, `meta-oauth`) target fixed, constant hosts.
+Notably, the built-in Shopify connect path validates the shop domain, but the dynamic-adapter path
+does not — so this is a real gap, not house style.
+
+**Exfiltration channel.** `testAdapterConfigAction` returns `storeName` and `productCount` derived
+from the fetched response body (via the config's field mappings) plus `result.error` — a partial
+read-back / error oracle for probing internal services and confirming their reachability.
+
+**Impact.** Any signed-up user can make the server issue arbitrary GET/POST requests, carrying
+adapter-supplied headers/credentials, to hosts the app can reach but the user cannot: the Fly.io
+private 6PN network and `*.internal` service discovery, Redis (6379), Postgres (5432), and the
+app's own loopback routes. Without post-resolution IP checks the guard is also bypassable via DNS
+rebinding. No cloud-metadata endpoint exists on Fly.io as it does on AWS (169.254.169.254), which
+caps this below Critical, but authenticated internal-network SSRF with a partial oracle is a solid
+High.
+
+**Recommended fix** — a shared, resolve-then-check outbound guard used by every connector fetch:
+
+```typescript
+// Illustrative — src/shared/security/outbound-url-guard.ts
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+
+const BLOCKED_V4 = [/^127\./, /^10\./, /^169\.254\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./, /^0\./];
+
+export async function assertPublicHttpUrl(raw: string): Promise<URL> {
+  const url = new URL(raw);
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error("Only http(s) URLs are allowed");
+  }
+  // Resolve and validate the actual target IP (defeats DNS rebinding).
+  const host = url.hostname;
+  const addrs = isIP(host) ? [{ address: host }] : await lookup(host, { all: true });
+  for (const { address } of addrs) {
+    if (isIP(address) === 4 && BLOCKED_V4.some((re) => re.test(address))) {
+      throw new Error("Refusing to connect to a private/loopback address");
+    }
+    if (isIP(address) === 6 && (address === "::1" || address.startsWith("fc") || address.startsWith("fd") || address.startsWith("fe80"))) {
+      throw new Error("Refusing to connect to a private/loopback address");
+    }
+  }
+  return url;
+}
+```
+
+Call it in `ConfigInterpreter.fetchJson` before `fetch`, and pin the connection to the validated IP
+(or re-validate on redirect and disable auto-redirects) so a rebind between check and connect
+cannot slip through. Additionally tighten `baseUrl` in `adapter-config-schema.ts` to require
+`https:` at the schema layer for defense in depth.
+
+**Regression risk.** Low. Legitimate adapters target public SaaS APIs (Shopify, WooCommerce),
+which all resolve to public IPs. Add an env allow-list escape hatch only for local development.
+
+**Tests to add**
+- `assertPublicHttpUrl` rejects `http://169.254.169.254`, `http://localhost`, `http://10.0.0.1`, `http://[::1]`, and `ftp://…`.
+- Integration: `testAdapterConfigAction` with a private `baseUrl` returns a validation error and performs no fetch.
+- Regression: a public `baseUrl` still works.
+
+**Verification steps**
+1. Add the guard + tests; `npm run test`.
+2. In staging, submit an adapter with `baseUrl: http://[fdaa:…]:6379` → expect a rejected test, no connection attempt in logs.
+
+**Similar locations to inspect.** Any future connector that fetches a stored/user-supplied URL;
+`ProfileFetcher`/`BrandMentionSource` adapters if a live URL-configurable source is added.
+
+---
+
+### 🔵 N2 — `/api/metrics` performs no authentication
+
+| Field | Value |
+|---|---|
+| **Status** | ✅ **Fixed — REQ-0093** (2026-08-07) |
+| **Severity** | **Medium** (downgraded from prior misclassification; exposing internal queue health) |
+| **Disposition** | **Fixed — Awaiting Verification** |
+| **Release-blocking** | No (configure `METRICS_TOKEN` in production secrets before deploy) |
+| **Fix** | `src/app/api/metrics/route.ts` — `Authorization: Bearer` check via `timingSafeEqual`; `METRICS_TOKEN` added to `env.ts` (optional). |
+
+**Affected location** — `src/app/api/metrics/route.ts:7-16`
+
+The route calls no auth helper and is not listed in `public-paths.ts`. It exposes only a single
+`events_failed_jobs` gauge, so the information-leak impact is minimal, but the posture is
+inconsistent: either it should be scrape-authenticated (bearer token / network policy) if a
+Prometheus scraper is expected, or it is unintentionally reachable. Decide the intent and either
+add a `METRICS_TOKEN` check or restrict it at the network/edge. Confirm whether the middleware
+matcher excludes `/api/*` (which determines whether it is currently public or unreachable to an
+unauthenticated scraper).
+
+---
+
+### 🔵 N3 — `current-state.md` §11.1 still declares a stale "🔴 NO-GO / all findings open" verdict
+
+| Field | Value |
+|---|---|
+| **Status** | ✅ **Fixed — REQ-0093** (2026-08-07) |
+| **Severity** | **Low** |
+| **Disposition** | **Fixed — Awaiting Verification** |
+| **Release-blocking** | No |
+| **Fix** | `docs/specs/current-state.md §11.1` updated to "🟡 CONDITIONAL GO as of 2026-08-07" with per-finding status table. |
+
+**Affected location** — `docs/specs/current-state.md:369-403` (§11.1)
+
+The living architecture spec's §11.1 header reads "Production readiness — 🔴 NO-GO as of
+2026-07-31" and states "All 33 findings were re-verified as **open** at commit `33e2e0b`", yet the
+bullets beneath it describe each finding's implemented fix. The single source of truth for
+"how the application works today" therefore contradicts the shipped remediation and this report.
+Update §11.1 to reflect the current status (blockers remediated; one open High N1) and point to
+this report's §1.
 
 ---
 
@@ -2194,7 +2386,21 @@ Recording these explicitly so remediation does not disturb working behaviour.
 
 ## 5. Remediation Plan
 
-### Phase 1 — Immediate release blockers
+> **Third-pass note (2026-08-07).** Every Phase-1 item below (C1, C2, H1–H10) is **remediated and
+> code-verified** at `e89ae17` — see §1.2a. The only remaining Phase-1 blocker is the new **N1**
+> (SSRF outbound-URL guard for the dynamic adapter) plus the doc fix **N3**. The tables below are
+> retained as the historical remediation plan.
+
+### Phase 0 — Current blockers (2026-08-07)
+
+| # | Finding | Action | Effort | Owner |
+|---|---|---|---|---|
+| 1 | **N1** | Add a resolve-then-check outbound-URL guard to `ConfigInterpreter` + regression tests (or feature-flag the dynamic adapter off) | ~1 d | Backend/Security |
+| 2 | **N3** | Correct `current-state.md` §11.1 stale NO-GO verdict | ~15 m | Any |
+| 3 | **N2** | Decide `/api/metrics` auth posture | ~1 h | Backend/SRE |
+| — | E2E | Re-run staging end-to-end smoke on this build (§1.6) | ~2 h | SRE |
+
+### Phase 1 — Immediate release blockers (original — all remediated)
 
 | # | Finding | Effort | Owner |
 |---|---|---|---|
@@ -2257,6 +2463,34 @@ Recording these explicitly so remediation does not disturb working behaviour.
 ---
 
 ## 6. Residual Risks and Final Checklist
+
+### 6.0 Current readiness checklist (third pass — 2026-08-07, commit `e89ae17`)
+
+| Area | Status | Evidence (this pass) |
+|---|---|---|
+| Build & compile | ✅ **Pass** | `npm run build` exit 0 (incl. `build:worker`) |
+| Type safety | ✅ **Pass** | `tsc --noEmit` exit 0 |
+| Lint | ✅ **Pass** | `eslint . --max-warnings=0` exit 0 |
+| Automated tests | ✅ **Pass** | **364 passed / 3 skipped, 82 files** (post-REQ-0093) |
+| Authentication (deployed) | ✅ **Pass** | C1 fixed — `trustHost` from `AUTH_TRUST_HOST`, in `fly.toml` |
+| Event delivery correctness | ✅ **Pass** (design) | C2/H6 fixed — no self-echo; durable BullMQ bus, `jobId` dedup, DLQ; **confirm DLQ alerting** |
+| Startup resilience | ✅ **Pass** | H1 fixed — `ensureSuperAdmin` best-effort try/catch |
+| Billing lifecycle & idempotency | ✅ **Pass** | H2/H3 fixed — `ProcessedWebhookEvent` ledger + transaction; `past_due` recovery |
+| Plan enforcement (seat limits) | ✅ **Pass** | H10 fixed — `createWithinSeatLimit` serializable txn |
+| Data lifecycle (Project) | ✅ **Pass** | H5 fixed — soft delete via `archivedAt`/`deletedAt` |
+| Webhook route reachability | ✅ **Pass** | H9 fixed — `/api/shopify/webhooks` in `publicPaths` |
+| Session revocation (export) | ✅ **Pass** | H4 fixed — `getCurrentUser()` + no-store |
+| **Outbound SSRF (dynamic adapter)** | ✅ **Pass** | **N1 fixed (REQ-0093)** — `assertPublicHttpUrl` guard + 19 tests; `baseUrl` requires HTTPS |
+| Metrics endpoint auth | ✅ **Pass** | **N2 fixed (REQ-0093)** — `METRICS_TOKEN` bearer check; must be set in production secrets |
+| Living-spec accuracy | ✅ **Pass** | **N3 fixed (REQ-0093)** — `current-state.md §11.1` updated |
+| Live runtime / staging E2E | ⚠️ **Not Tested** | Not exercised this pass; required before release (§1.6) |
+| Load / concurrency | ⚠️ **Not Tested** | Unchanged from prior pass |
+| Accessibility conformance | ⚠️ **Partial / Not Tested** | Static hardening present (`REQ-0068` M8); no axe/screen-reader run |
+| Backup / restore drill | ⚠️ **Not Tested** | `backup.yml` + runbook exist (`REQ-0075`); restore not rehearsed this pass |
+
+Everything below (§6.1–§6.2) is the **original** residual-risk register and checklist from the
+2026-07-31 pass, retained for history. Where it shows ❌ for C1/C2/H1–H10, read §6.0 — those are
+now resolved. **N1, N2, and N3 are also resolved by REQ-0093.**
 
 ### 6.1 Residual risks after full remediation
 

@@ -1,5 +1,6 @@
 import { requireSuperAdmin } from "@/modules/auth";
 import { listAllTicketsAction, getTicketByIdAction, updateTicketAction, addTicketCommentAction } from "@/modules/support";
+import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TicketStatusForm, TicketCommentForm } from "@/components/ticket-detail-forms";
 
@@ -26,7 +27,20 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
   const selected = params.id ? await getTicketByIdAction(params.id) : null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="page-container">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Support Tickets"
+          description="Manage customer support tickets"
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Admin", href: "/admin" },
+            { label: "Tickets" },
+          ]}
+        />
+
+        <div className="section">
+          <div className="grid gap-6 lg:grid-cols-3">
       <Card className="lg:col-span-1">
         <CardHeader>
           <CardTitle>Tickets</CardTitle>
@@ -121,6 +135,9 @@ export default async function AdminTicketsPage({ searchParams }: AdminTicketsPag
           )}
         </CardContent>
       </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

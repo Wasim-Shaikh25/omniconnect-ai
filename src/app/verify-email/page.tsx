@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export default async function VerifyEmailPage({
   searchParams,
@@ -20,6 +21,8 @@ export default async function VerifyEmailPage({
 
   let title = "Verify your email";
   let description = "Use the link we sent to your inbox to verify your account.";
+  let isSuccess = false;
+  let isError = false;
   let redirectPath: string | null = null;
 
   if (token) {
@@ -27,14 +30,17 @@ export default async function VerifyEmailPage({
     if (!request) {
       title = "Verification failed";
       description = "This link is invalid, expired, or has already been used.";
+      isError = true;
     } else if (request.purpose === "signup") {
       const account = await emailVerificationService.verifySignupEmail(token);
       if (!account) {
         title = "Verification failed";
         description = "This link is invalid, expired, or has already been used.";
+        isError = true;
       } else {
         title = "Email verified";
         description = "Your email has been verified. You can now sign in.";
+        isSuccess = true;
         redirectPath = "/login";
       }
     } else if (request.purpose === "email_change") {
@@ -42,9 +48,11 @@ export default async function VerifyEmailPage({
       if (!changeResult.ok) {
         title = "Email change failed";
         description = changeResult.error.message;
+        isError = true;
       } else {
         title = "Email updated";
         description = "Your email address has been updated.";
+        isSuccess = true;
         redirectPath = "/settings/account";
         await auditCommands.create({
           userId: null,
@@ -72,18 +80,29 @@ export default async function VerifyEmailPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <Button asChild>
-            <Link href="/login">Go to sign in</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    </main>
+    <div className="page-container flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-surface-elevation/30">
+      <div className="w-full max-w-sm px-4">
+        <Card className="card-base shadow-lg">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              {isSuccess ? (
+                <CheckCircle2 className="h-12 w-12 text-green-600" />
+              ) : isError ? (
+                <AlertCircle className="h-12 w-12 text-red-600" />
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <CardTitle className="text-2xl">{title}</CardTitle>
+              <CardDescription className="text-base">{description}</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button asChild>
+              <Link href="/login">Go to sign in</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

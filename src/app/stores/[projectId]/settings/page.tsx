@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
 import { ECOMMERCE_PROVIDERS, checkStoreAccess, updateStoreAction } from "@/modules/workspaces";
+import { PageHeader } from "@/components/page-header";
 import { StoreSettingsForm } from "@/components/store-settings-form";
 import { MetaConnectionCard } from "@/components/meta-connection-card";
 import {
@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default async function StoreSettingsPage({
   params,
@@ -27,33 +26,41 @@ export default async function StoreSettingsPage({
   if (!store) notFound();
 
   return (
-    <main className="container mx-auto max-w-2xl px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Store settings</CardTitle>
-          <CardDescription>
-            Rename or reconnect {store.name}. This store is a Meta marketing data source, not a Shopify admin.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <StoreSettingsForm
-            store={store}
-            providers={ECOMMERCE_PROVIDERS}
-            updateAction={updateStoreAction}
-          />
-        </CardContent>
-      </Card>
+    <div className="page-container">
+      <div className="container mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
+        <PageHeader
+          title="Store Settings"
+          description={`Manage ${store.name} configuration`}
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Stores", href: "/stores" },
+            { label: store.name, href: `/stores/${projectId}` },
+            { label: "Settings" },
+          ]}
+        />
 
-      <MetaConnectionCard projectId={projectId} />
+        <div className="section">
+          <Card>
+            <CardHeader>
+              <CardTitle>Store settings</CardTitle>
+              <CardDescription>
+                Rename or reconnect {store.name}. This store is a Meta marketing data source, not a Shopify admin.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StoreSettingsForm
+                store={store}
+                providers={ECOMMERCE_PROVIDERS}
+                updateAction={updateStoreAction}
+              />
+            </CardContent>
+          </Card>
+        </div>
 
-      <div className="mt-6 flex items-center gap-2">
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/stores/${projectId}`}>Back to store</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/stores">All stores</Link>
-        </Button>
+        <div className="section">
+          <MetaConnectionCard projectId={projectId} />
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
