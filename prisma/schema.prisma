@@ -792,19 +792,23 @@ model MediaPost {
 }
 
 model MediaInsight {
-  id            String    @id @default(cuid())
-  mediaPostId   String
-  mediaPost     MediaPost @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
-  impressions   Int?
-  reach         Int?
-  likes         Int?
-  comments      Int?
-  shares        Int?
-  saves         Int?
-  plays         Int?
-  views         Int?
-  engagementRate Decimal? @db.Decimal(5, 4)
-  fetchedAt     DateTime  @default(now())
+  id                String    @id @default(cuid())
+  mediaPostId       String
+  mediaPost         MediaPost @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
+  impressions       Int?
+  reach             Int?
+  likes             Int?
+  comments          Int?
+  shares            Int?
+  saves             Int?
+  plays             Int?
+  views             Int?
+  engagementRate    Decimal? @db.Decimal(5, 4)
+  storyExits        Int?
+  storyRepliesCount Int?
+  storyTapsForward  Int?
+  storyTapsBack     Int?
+  fetchedAt         DateTime  @default(now())
 
   @@index([mediaPostId, fetchedAt])
 }

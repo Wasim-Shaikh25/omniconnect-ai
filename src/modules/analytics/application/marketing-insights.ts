@@ -2,6 +2,7 @@ import { metaService } from "@/modules/meta/server";
 import { analyzeMedia, analyzeTrendingReels, createContentIdea } from "@/modules/ai/ai-services";
 import { organizationQueries } from "@/modules/workspaces";
 import { eventBus } from "@/shared/events";
+import { logger } from "@/shared/observability";
 import type { MetaMediaItem, MetaMediaMetrics } from "@/modules/meta";
 import type {
   MarketingInsightsRepository,
@@ -36,6 +37,10 @@ function mapMetricsToInsightInput(metrics: MetaMediaMetrics): UpsertMediaInsight
     plays: metrics.plays ?? null,
     views: metrics.videoViews ?? metrics.crosspostedViews ?? null,
     engagementRate: metrics.engagement ?? null,
+    storyExits: metrics.storyExits ?? null,
+    storyRepliesCount: metrics.storyRepliesCount ?? null,
+    storyTapsForward: metrics.storyTapsForward ?? null,
+    storyTapsBack: metrics.storyTapsBack ?? null,
   };
 }
 
@@ -58,10 +63,14 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
       // Paginates through the Graph API's cursor-based media feed rather than
       // stopping at the first 25-item page; capped to bound Graph API call volume
       // against the 200 calls/hour per-project rate limit (each post also costs an
-      // insights call).
-      const items = await metaService.getAccountMedia(projectId, 100);
-      let upserted = 0;
-      for (const item of items) {
+      // insights call). Stories are fetched separately; expired/inaccessible
+      // story insights are tolerated so one bad story does not fail the whole sync.
+      const [feedItems, storyItems] = await Promise.all([
+        metaService.getAccountMedia(projectId, 100),
+        metaService.getAccountStories(projectId, 25),
+      ]);
+
+      const upsertOne = async (item: MetaMediaItem) => {
         const post = await repo.upsertMediaPost(projectId, {
           trackedAccountId: null,
           externalId: item.externalId,
@@ -86,7 +95,20 @@ export function makeMarketingInsightsService(deps: MakeMarketingInsightsServiceD
         await eventBus.publish(
           new MediaAnalyticsSynced(projectId, { mediaPostId: post.id, externalId: post.externalId, fetchedAt: new Date() }),
         );
-        upserted += 1;
+      };
+
+      let upserted = 0;
+      for (const item of [...feedItems, ...storyItems]) {
+        try {
+          await upsertOne(item);
+          upserted += 1;
+        } catch (error) {
+          logger.warn("marketingInsights.syncMediaCatalog.itemFailed", {
+            projectId,
+            externalId: item.externalId,
+            error: error instanceof Error ? error.message : "unknown",
+          });
+        }
       }
       return { upserted };
     },

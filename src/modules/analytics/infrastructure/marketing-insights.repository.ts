@@ -27,7 +27,7 @@ function mapMediaPost(row: {
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  insights: { id: string; mediaPostId: string; impressions: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; plays: number | null; views: number | null; engagementRate: Prisma.Decimal | null; fetchedAt: Date }[];
+  insights: { id: string; mediaPostId: string; impressions: number | null; reach: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; plays: number | null; views: number | null; engagementRate: Prisma.Decimal | null; storyExits: number | null; storyRepliesCount: number | null; storyTapsForward: number | null; storyTapsBack: number | null; fetchedAt: Date }[];
 }): MediaPost {
   const latest = row.insights[0];
   return {
@@ -59,6 +59,10 @@ function mapMediaPost(row: {
           plays: latest.plays,
           views: latest.views,
           engagementRate: latest.engagementRate ? Number(latest.engagementRate) : null,
+          storyExits: latest.storyExits,
+          storyRepliesCount: latest.storyRepliesCount,
+          storyTapsForward: latest.storyTapsForward,
+          storyTapsBack: latest.storyTapsBack,
           fetchedAt: latest.fetchedAt,
         }
       : null,
@@ -77,6 +81,10 @@ function mapMediaInsight(row: {
   plays: number | null;
   views: number | null;
   engagementRate: Prisma.Decimal | null;
+  storyExits: number | null;
+  storyRepliesCount: number | null;
+  storyTapsForward: number | null;
+  storyTapsBack: number | null;
   fetchedAt: Date;
 }): MediaInsight {
   return {
@@ -91,6 +99,10 @@ function mapMediaInsight(row: {
     plays: row.plays,
     views: row.views,
     engagementRate: row.engagementRate ? Number(row.engagementRate) : null,
+    storyExits: row.storyExits,
+    storyRepliesCount: row.storyRepliesCount,
+    storyTapsForward: row.storyTapsForward,
+    storyTapsBack: row.storyTapsBack,
     fetchedAt: row.fetchedAt,
   };
 }
@@ -226,6 +238,10 @@ export class PrismaMarketingInsightsRepository implements MarketingInsightsRepos
         plays: input.plays ?? null,
         views: input.views ?? null,
         engagementRate: input.engagementRate ?? null,
+        storyExits: input.storyExits ?? null,
+        storyRepliesCount: input.storyRepliesCount ?? null,
+        storyTapsForward: input.storyTapsForward ?? null,
+        storyTapsBack: input.storyTapsBack ?? null,
         fetchedAt: input.fetchedAt ?? new Date(),
       },
     });

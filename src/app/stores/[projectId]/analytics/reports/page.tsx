@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { GenerateReportForm } from "@/components/generate-report-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Report } from "@/modules/analytics";
+import { ReportView } from "@/components/report-view";
 
 export default async function ReportsAnalyticsPage({
   params,
@@ -72,9 +73,7 @@ export default async function ReportsAnalyticsPage({
                 <CardDescription>{new Date(report.generatedAt).toLocaleString()}</CardDescription>
               </CardHeader>
               <CardContent>
-                <pre className="max-h-48 overflow-auto rounded bg-muted p-3 text-xs">
-                  {JSON.stringify(report.content, null, 2)}
-                </pre>
+                <ReportView content={report.content} />
               </CardContent>
             </Card>
           ))
