@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/database";
 import { StoreRecord, StoreRepository } from "../application/ports";
 import { EcommerceProvider, isEcommerceProvider } from "../domain/provider";
-import { StoreLimitError } from "../domain/errors";
+import { StoreLimitError, StoreNameExistsError } from "../domain/errors";
 
 type PrismaStore = {
   id: string;
@@ -46,10 +46,22 @@ async function ensureWorkspace(
     select: { id: true },
   });
   if (existing) return existing.id;
-  const created = await tx.workspace.create({
-    data: { userId, name },
-  });
-  return created.id;
+  try {
+    const created = await tx.workspace.create({
+      data: { userId, name },
+    });
+    return created.id;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const fallback = await tx.workspace.findFirst({
+        where: { userId },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
+      if (fallback) return fallback.id;
+    }
+    throw error;
+  }
 }
 
 export class PrismaStoreRepository implements StoreRepository {
@@ -76,7 +88,32 @@ export class PrismaStoreRepository implements StoreRepository {
               );
             }
             const workspaceId = await ensureWorkspace(tx, input.userId, input.name);
-            return tx.project.create({
+            try {
+              return await tx.project.create({
+                data: {
+                  workspaceId,
+                  userId: input.userId,
+                  name: input.name,
+                  provider: input.provider,
+                  domain: input.domain,
+                },
+              });
+            } catch (error) {
+              if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2002"
+              ) {
+                throw new StoreNameExistsError(input.name);
+              }
+              throw error;
+            }
+          },
+          { isolationLevel: "Serializable" },
+        )
+      : await prisma.$transaction(async (tx) => {
+          const workspaceId = await ensureWorkspace(tx, input.userId, input.name);
+          try {
+            return await tx.project.create({
               data: {
                 workspaceId,
                 userId: input.userId,
@@ -85,20 +122,15 @@ export class PrismaStoreRepository implements StoreRepository {
                 domain: input.domain,
               },
             });
-          },
-          { isolationLevel: "Serializable" },
-        )
-      : await prisma.$transaction(async (tx) => {
-          const workspaceId = await ensureWorkspace(tx, input.userId, input.name);
-          return tx.project.create({
-            data: {
-              workspaceId,
-              userId: input.userId,
-              name: input.name,
-              provider: input.provider,
-              domain: input.domain,
-            },
-          });
+          } catch (error) {
+            if (
+              error instanceof Prisma.PrismaClientKnownRequestError &&
+              error.code === "P2002"
+            ) {
+              throw new StoreNameExistsError(input.name);
+            }
+            throw error;
+          }
         });
 
     return toRecord(store);

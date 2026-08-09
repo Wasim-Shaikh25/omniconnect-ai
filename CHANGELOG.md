@@ -15,6 +15,13 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0100` **Close remaining production-readiness audit gaps (M3, M4, N1 follow-up)** on `devin/close-audit-m3-m4-ssrf-1786253811`:
+  - Added `@@unique([userId, name])` constraints to `Project` and `Workspace` and the `add_project_workspace_name_uniqueness` migration. `PrismaStoreRepository.create()` and `ensureWorkspace()` catch `P2002` and surface a deterministic `StoreNameExistsError` or reuse the existing workspace instead of relying on a check-then-insert pre-check.
+  - Replaced the unbounded `message.findMany` in `MessageRepository.listLatestByConversationIds()` with a PostgreSQL `DISTINCT ON` raw query and explicit `LIMIT`, using the existing `Message(conversationId, createdAt DESC)` index.
+  - Hardened `ConfigInterpreter.fetchJson()` against SSRF via HTTP redirect chains and internationalized domain names: `outbound-url-guard.ts` now exports `fetchWithPublicRedirects()`, which re-runs `assertPublicHttpUrl()` on every `Location`, strips `Authorization`/`Cookie` headers on cross-origin hops, downgrades 301/302/303 to GET, and enforces a max-redirect limit.
+  - Added unit tests for `fetchWithPublicRedirects` (redirects, IDN, private-IP rejection, header stripping, too many redirects) and integration tests for the duplicate project-name guard.
+  - All quality gates pass: `lint`, `typecheck`, `399` unit tests, `27` integration tests, `build` + `build:worker`, `npm audit`, and `prisma migrate deploy`.
+
 - `REQ-0099` **Replace raw JSON dumps with structured viewers** on `devin/fix-ui-json-and-story-insights`:
   - Replaced `<pre>` JSON displays in `/admin/logs`, `/stores/[projectId]/analytics/trends`, `/stores/[projectId]/analytics/reports`, and `connect-adapter-form` with `JsonViewer`/`TrendSnapshotView`/`ReportView` components.
   - `JsonViewer` supports collapsible objects/arrays, max expansion depth, and primitive type badges; it is used for admin log metadata and adapter config display.

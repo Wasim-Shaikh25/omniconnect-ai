@@ -80,11 +80,14 @@ export class PrismaMessageRepository implements MessageRepository {
     conversationIds: string[],
   ): Promise<Record<string, MessageRecord>> {
     if (conversationIds.length === 0) return {};
-    const rows = await prisma.message.findMany({
-      where: { conversationId: { in: conversationIds } },
-      distinct: ["conversationId"],
-      orderBy: [{ conversationId: "asc" }, { createdAt: "desc" }],
-    });
+    const limit = conversationIds.length;
+    const rows = await prisma.$queryRaw<PrismaMessage[]>`
+      SELECT DISTINCT ON ("conversationId") *
+      FROM "Message"
+      WHERE "conversationId" = ANY(${conversationIds}::text[])
+      ORDER BY "conversationId", "createdAt" DESC
+      LIMIT ${limit}
+    `;
     const latest: Record<string, MessageRecord> = {};
     for (const row of rows) {
       latest[row.conversationId] = toRecord(row);

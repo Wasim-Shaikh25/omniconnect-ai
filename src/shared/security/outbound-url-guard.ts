@@ -94,3 +94,86 @@ export async function assertPublicHttpUrl(raw: string): Promise<URL> {
 
   return url;
 }
+
+function isRedirectStatus(status: number): boolean {
+  return status >= 300 && status < 400;
+}
+
+function sanitizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  const sanitized: Record<string, string> = {};
+  if (!headers) return sanitized;
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => {
+      sanitized[key] = value;
+    });
+  } else if (Array.isArray(headers)) {
+    for (const [key, value] of headers) {
+      sanitized[key] = value;
+    }
+  } else {
+    Object.assign(sanitized, headers);
+  }
+  return sanitized;
+}
+
+function stripAuthHeaders(headers: Record<string, string>): Record<string, string> {
+  const copy = { ...headers };
+  for (const key of Object.keys(copy)) {
+    const lower = key.toLowerCase();
+    if (lower === "authorization" || lower === "cookie") {
+      delete copy[key];
+    }
+  }
+  return copy;
+}
+
+/**
+ * Fetches `url` while manually following redirects. Every URL in the chain,
+ * including `Location` values that are relative or contain internationalized
+ * domain names, is validated by `assertPublicHttpUrl` before the next request
+ * is issued. This closes the SSRF gap left by native `fetch`, which follows
+ * redirects to private/loopback networks by default.
+ */
+export async function fetchWithPublicRedirects(
+  url: string,
+  init: RequestInit = {},
+  maxRedirects = 5,
+): Promise<Response> {
+  let currentUrl = url;
+  let currentInit: RequestInit = { ...init, redirect: "manual" };
+
+  for (let step = 0; step <= maxRedirects; step++) {
+    await assertPublicHttpUrl(currentUrl);
+
+    const response = await fetch(currentUrl, currentInit);
+    if (!isRedirectStatus(response.status)) {
+      return response;
+    }
+
+    const location = response.headers.get("location");
+    if (!location) {
+      throw new Error(`Redirect from ${currentUrl} is missing a Location header`);
+    }
+
+    const nextUrl = new URL(location, currentUrl).href;
+    const next = new URL(nextUrl);
+    const current = new URL(currentUrl);
+
+    const crossOrigin = next.origin !== current.origin;
+    const preserveMethod = response.status === 307 || response.status === 308;
+
+    const nextInit: RequestInit = { ...currentInit, redirect: "manual" };
+    if (!preserveMethod) {
+      nextInit.method = "GET";
+      nextInit.body = undefined;
+    }
+    if (crossOrigin) {
+      nextInit.headers = stripAuthHeaders(sanitizeHeaders(nextInit.headers));
+    }
+
+    currentUrl = nextUrl;
+    currentInit = nextInit;
+  }
+
+  throw new Error(`Too many redirects from ${url}`);
+}

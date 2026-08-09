@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { makeCreateStore } from "./create-store";
-import { StoreLimitError } from "../domain/errors";
+import { StoreLimitError, StoreNameExistsError } from "../domain/errors";
 import { Plan } from "../domain/plan";
 import type { OrganizationRepository, PlanConfigInput, PlanConfigRepository, StoreRecord, StoreRepository } from "./ports";
 
@@ -64,5 +64,21 @@ describe("createStore billing enforcement", () => {
     });
     const result = await createStore({ userId: "org-1", name: "Another", provider: "SHOPIFY" });
     expect(result.ok).toBe(true);
+  });
+
+  it("returns a StoreNameExistsError when the repository detects a duplicate name", async () => {
+    const createStore = makeCreateStore({
+      organizations: makeOrgRepo(Plan.FREE),
+      stores: {
+        ...makeStoreRepo(0),
+        create: async () => {
+          throw new StoreNameExistsError("Dup");
+        },
+      } as unknown as StoreRepository,
+      planConfigs: makePlanConfigRepo(),
+    });
+    const result = await createStore({ userId: "org-1", name: "Dup", provider: "SHOPIFY" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBeInstanceOf(StoreNameExistsError);
   });
 });

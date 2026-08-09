@@ -7,7 +7,7 @@ vi.mock("node:dns/promises", () => ({
 }));
 
 import { lookup } from "node:dns/promises";
-import { assertPublicHttpUrl } from "./outbound-url-guard";
+import { assertPublicHttpUrl, fetchWithPublicRedirects } from "./outbound-url-guard";
 
 const mockLookup = vi.mocked(lookup);
 
@@ -106,5 +106,131 @@ describe("assertPublicHttpUrl", () => {
       { address: "127.0.0.1", family: 4 },
     ]);
     await expect(assertPublicHttpUrl("https://mixed-dns.example.com")).rejects.toThrow("private/loopback");
+  });
+
+  it("allows an internationalized domain name that resolves to a public IP", async () => {
+    mockAddrs([{ address: "104.21.14.55", family: 4 }]);
+    await expect(
+      assertPublicHttpUrl("https://m\u00fcnchen.example"),
+    ).resolves.toBeInstanceOf(URL);
+    expect(mockLookup).toHaveBeenCalledWith(
+      expect.stringContaining("xn--mnchen-3ya"),
+      { all: true },
+    );
+  });
+});
+
+function mockResponse(status: number, headers?: Record<string, string>, body = "{}") {
+  return new Response(body, { status, headers });
+}
+
+describe("fetchWithPublicRedirects", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("follows a single public redirect and returns the final response", async () => {
+    mockAddrs([{ address: "104.21.14.55", family: 4 }]);
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        mockResponse(302, { location: "https://public.example.com/final" }),
+      )
+      .mockResolvedValueOnce(mockResponse(200));
+    vi.stubGlobal("fetch", mockFetch);
+
+    const response = await fetchWithPublicRedirects("https://public.example.com/initial");
+    expect(response.status).toBe(200);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects a redirect to a private IP", async () => {
+    mockLookup
+      .mockResolvedValueOnce([{ address: "104.21.14.55", family: 4 }] as unknown as LookupAddress)
+      .mockResolvedValueOnce([{ address: "127.0.0.1", family: 4 }] as unknown as LookupAddress);
+    const mockFetch = vi.fn().mockResolvedValueOnce(
+      mockResponse(302, { location: "https://evil.example.com/internal" }),
+    );
+    vi.stubGlobal("fetch", mockFetch);
+
+    await expect(
+      fetchWithPublicRedirects("https://public.example.com/initial"),
+    ).rejects.toThrow("private/loopback");
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("resolves relative Location headers against the current URL", async () => {
+    mockAddrs([{ address: "104.21.14.55", family: 4 }]);
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(mockResponse(302, { location: "/final" }))
+      .mockResolvedValueOnce(mockResponse(200));
+    vi.stubGlobal("fetch", mockFetch);
+
+    await fetchWithPublicRedirects("https://public.example.com/initial");
+    const secondCall = mockFetch.mock.calls[1] as [string, RequestInit];
+    expect(secondCall[0]).toBe("https://public.example.com/final");
+  });
+
+  it("strips Authorization and Cookie headers on cross-origin redirects", async () => {
+    mockAddrs([
+      { address: "104.21.14.55", family: 4 },
+      { address: "93.184.216.34", family: 4 },
+    ]);
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        mockResponse(302, { location: "https://other.example.com/final" }),
+      )
+      .mockResolvedValueOnce(mockResponse(200));
+    vi.stubGlobal("fetch", mockFetch);
+
+    await fetchWithPublicRedirects("https://public.example.com/initial", {
+      headers: {
+        Authorization: "Bearer secret",
+        Cookie: "session=abc",
+        "X-Custom": "keep",
+      },
+    });
+    const secondInit = mockFetch.mock.calls[1][1] as RequestInit;
+    expect((secondInit.headers as Record<string, string>).Authorization).toBeUndefined();
+    expect((secondInit.headers as Record<string, string>).Cookie).toBeUndefined();
+    expect((secondInit.headers as Record<string, string>)["X-Custom"]).toBe("keep");
+  });
+
+  it("accepts an IDN redirect that resolves to a public IP", async () => {
+    mockAddrs([
+      { address: "104.21.14.55", family: 4 },
+      { address: "93.184.216.34", family: 4 },
+    ]);
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        mockResponse(302, {
+          location: "https://m\u00fcnchen.example/path",
+        }),
+      )
+      .mockResolvedValueOnce(mockResponse(200));
+    vi.stubGlobal("fetch", mockFetch);
+
+    const response = await fetchWithPublicRedirects("https://public.example.com/initial");
+    expect(response.status).toBe(200);
+  });
+
+  it("rejects too many redirects", async () => {
+    mockAddrs([{ address: "104.21.14.55", family: 4 }]);
+    const mockFetch = vi.fn().mockResolvedValue(
+      mockResponse(302, { location: "https://public.example.com/next" }),
+    );
+    vi.stubGlobal("fetch", mockFetch);
+
+    await expect(
+      fetchWithPublicRedirects("https://public.example.com/initial", {}, 2),
+    ).rejects.toThrow("Too many redirects");
+    expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 });
