@@ -2,7 +2,11 @@ import { z } from "zod";
 import { eventBus } from "@/shared/events";
 import { Result, ok, err } from "@/shared/kernel";
 import { ECOMMERCE_PROVIDERS } from "../domain/provider";
-import { OrganizationNotFoundError, StoreLimitError } from "../domain/errors";
+import {
+  OrganizationNotFoundError,
+  StoreLimitError,
+  StoreNameExistsError,
+} from "../domain/errors";
 import { isWithinLimit, Plan, PLAN_LIMITS } from "../domain/plan";
 import { StoreCreated } from "../domain/events";
 import {
@@ -46,7 +50,9 @@ export function makeCreateStore(deps: {
 
   return async function createStore(
     raw: CreateStoreInput,
-  ): Promise<Result<StoreRecord, OrganizationNotFoundError | StoreLimitError>> {
+  ): Promise<
+    Result<StoreRecord, OrganizationNotFoundError | StoreLimitError | StoreNameExistsError>
+  > {
     const input = createStoreSchema.parse(raw);
 
     const org = await deps.organizations.findById(input.userId);
@@ -65,15 +71,23 @@ export function makeCreateStore(deps: {
       );
     }
 
-    const store = await deps.stores.create(
-      {
-        userId: input.userId,
-        name: input.name,
-        provider: input.provider,
-        domain: input.domain ?? null,
-      },
-      projectLimit,
-    );
+    let store: StoreRecord;
+    try {
+      store = await deps.stores.create(
+        {
+          userId: input.userId,
+          name: input.name,
+          provider: input.provider,
+          domain: input.domain ?? null,
+        },
+        projectLimit,
+      );
+    } catch (error) {
+      if (error instanceof StoreNameExistsError) {
+        return err(error);
+      }
+      throw error;
+    }
 
     await eventBus.publish(
       new StoreCreated(store.id, {

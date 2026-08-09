@@ -2,7 +2,7 @@
 
 - **Status:** Living document
 - **Owner:** Devin
-- **Last updated:** 2026-08-06
+- **Last updated:** 2026-08-09
 - **Changelog:** `CHANGELOG.md`
 - **Product charter:** `docs/requirements/REQ-0061-product-charter.md`
 
@@ -389,7 +389,7 @@ audit pass were resolved by `REQ-0093`:
 | **H8** CI coverage (test count) | ✅ Verified | 345 tests / 81 files (up from 43/9); Redis CI service; secret scan in CI. |
 | **H9** Shopify webhook public path | ✅ Verified | `/api/shopify/webhooks` in `publicPaths`; CI smoke test asserts no 3xx. |
 | **H10** Seat-limit race condition | ✅ Verified | `createWithinSeatLimit` serializable transaction. |
-| **N1** SSRF in ConfigInterpreter | ✅ Fixed (REQ-0093) | `assertPublicHttpUrl()` guard before every outbound fetch; `baseUrl` requires HTTPS. |
+| **N1** SSRF in ConfigInterpreter | ✅ Fixed (REQ-0093/REQ-0100) | `assertPublicHttpUrl()` guard before every outbound fetch; `baseUrl` requires HTTPS. `ConfigInterpreter.fetchJson()` now manually follows redirects and re-runs the guard on every `Location`, including relative URLs and IDN/punycode hostnames, so the guard cannot be bypassed by an HTTP redirect chain. |
 | **N2** Unauthenticated `/api/metrics` | ✅ Fixed (REQ-0093) | Bearer token check via `METRICS_TOKEN` env var. |
 | **N3** Stale NO-GO verdict in docs | ✅ Fixed (REQ-0093) | This section updated. |
 | **P1** `/api/metrics` unreachable by Prometheus | ✅ Fixed (REQ-0097) | The N2 bearer-token check never ran because the NextAuth middleware redirected unauthenticated requests (including scrapers) to `/login` before hitting the route. `/api/metrics` added to `PUBLIC_PATHS_EXACT`; bearer check still enforced in the route handler; `validateProductionSecrets()` now requires `METRICS_TOKEN` in production. |
@@ -400,13 +400,22 @@ audit pass were resolved by `REQ-0093`:
 | L1–L7 low findings | ✅ Verified / Accepted | See audit report §4. |
 
 The complete finding-to-requirement traceability map is `docs/audit/2026-07-31-remediation-index.md`.
+
+### REQ-0100: Remaining code-level audit gaps (M3, M4, N1 redirect/IDN follow-up)
+
+| Finding | Status | Resolution |
+|---------|--------|------------|
+| **M3** Project/workspace name race | ✅ Fixed (REQ-0100) | Added `@@unique([userId, name])` to `Project` and `Workspace` plus the `add_project_workspace_name_uniqueness` migration. `PrismaStoreRepository.create()` catches `P2002` and throws `StoreNameExistsError`; `ensureWorkspace()` catches `P2002` and returns the existing workspace. Unit + integration tests cover duplicate-name creation. |
+| **M4** Unbounded unified-inbox query | ✅ Fixed (REQ-0100) | `MessageRepository.listLatestByConversationIds()` now uses a PostgreSQL `DISTINCT ON` raw query with an explicit `LIMIT` and the existing composite index on `Message(conversationId, createdAt DESC)`. Returns exactly one latest message per conversation. |
+| **N1** Redirect/IDN SSRF bypass | ✅ Fixed (REQ-0100) | `outbound-url-guard.ts` exports `fetchWithPublicRedirects()`, which `ConfigInterpreter.fetchJson()` uses. Every URL in a redirect chain is validated by `assertPublicHttpUrl()`; cross-origin redirects strip `Authorization`/`Cookie` headers; 301/302/303 downgrade POST to GET and drop the body; 307/308 preserve method/body; too many redirects throw. |
+
 Remaining conditions before a 🟢 GO:
-1. `METRICS_TOKEN` configured in the production environment's secrets.
+1. `METRICS_TOKEN` configured in the production environment's secrets (production env-only; cannot be done in code).
 2. Manual penetration test of the dynamic adapter endpoint to confirm the SSRF guard holds under
-   HTTP redirect chains and international domain names.
-3. Completion of the two deferred medium findings (M3 project-race, M4 unbounded findMany) tracked
-   in the audit report as "Scheduled Post-Release".
-4. Deploy the `add_story_metrics` Prisma migration in production after this release.
+   HTTP redirect chains and international domain names. The automated guard and regression tests are in place;
+   a manual red-team run is still required before 🟢 GO.
+3. Deploy the `add_project_workspace_name_uniqueness` and `add_story_metrics` Prisma migrations in production
+   after this release (deploy step, not a code fix in this branch).
 
 ---
 

@@ -20,3 +20,10 @@ export class SeatLimitError extends OrganizationError {
     this.name = "SeatLimitError";
   }
 }
+
+export class StoreNameExistsError extends OrganizationError {
+  constructor(name: string) {
+    super(`A store named "${name}" already exists.`);
+    this.name = "StoreNameExistsError";
+  }
+}

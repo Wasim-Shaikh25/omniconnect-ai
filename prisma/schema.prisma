@@ -187,6 +187,7 @@ model Workspace {
 
   projects Project[]
 
+  @@unique([userId, name])
   @@index([userId])
 
 }
@@ -209,6 +210,7 @@ model Project {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  @@unique([userId, name])
   @@index([userId])
 
   ecommerceConnections EcommerceConnection[]
