@@ -1,60 +1,71 @@
 # OmniConnect AI — Production Readiness Audit
 
-> **Report version:** 2026-07-29 (baseline); **addendum 2026-07-31**; **third pass 2026-08-07**; **post-fix update 2026-08-07 (REQ-0093)**
+> **Report version:** 2026-07-29 (baseline); **addendum 2026-07-31**; **third pass 2026-08-07**; **post-fix update 2026-08-07 (REQ-0093)**; **fourth pass 2026-08-09 (commit `b5f1cb7`)**
 > **Auditor:** Cross-functional review (Principal Engineer, Security, QA, DevOps/SRE, DBA, PM, UX, Accessibility, Performance)
 > **Repository:** `Wasim-Shaikh25/omniconnect-ai`
-> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum); `e89ae17` (third pass); **post-REQ-0093 (current — `claude/framer-motion-deps-setup-ajyb2y`)**
-> **Branch:** `main` (baseline/addendum); `claude/framer-motion-deps-setup-ajyb2y` (third pass + fixes)
+> **Commit audited:** `06395c4` (baseline); `f64cf84` (addendum); `e89ae17` (third pass); **`b5f1cb7` (fourth pass — `main` post `claude/framer-motion-deps-setup-ajyb2y` merge)**
+> **Branch:** `main`
 > **Classification:** Internal — redact before external distribution.
 >
 > **⚠️ Read this first — the current verdict is in the post-fix Executive Summary §1.1 below.**
 > The original 33 findings (C1–L7) were captured against commit `06395c4`. The third pass
 > re-verified them against `e89ae17`: **all 12 release blockers are remediated and code-verified**
 > (status table in §1.2a). The new findings N1/N2/N3 from the third pass were subsequently fixed
-> in `REQ-0093`. The detailed C1–L7 blocks in §4 are retained as the historical record; their
-> live status is the status table, not the "Confirmed Defect" headers frozen inside them.
+> in `REQ-0093`. The fourth pass (commit `b5f1cb7`) adds one new **High** dependency-vulnerability
+> finding **N4** (`nanoid <3.3.17`) and reaffirms two deferred Medium findings (M3, M4). The detailed C1–L7
+> blocks in §4 are retained as the historical record; their live status is the status table, not
+> the "Confirmed Defect" headers frozen inside them.
 
 ---
 
-## 1. Executive Summary (Post-Fix — 2026-08-07, REQ-0093)
+## 1. Executive Summary (Commit `b5f1cb7` — 2026-08-09)
 
 ### 1.1 Recommendation
 
 # 🟡 STOP — CONDITIONAL GO
 
-The two prior **Critical** findings and all ten **High** findings from the 2026-07-31 audit were
-**code-verified at commit `e89ae17`** (§1.2a). The third-pass surfaced three new items (N1/N2/N3);
-all three have been remediated by `REQ-0093` and verified via the quality gate suite.
+The two prior **Critical** findings and all ten **High** findings from the 2026-07-31 audit remain
+**code-verified fixed at commit `b5f1cb7`** (§1.2a). REQ-0094, REQ-0096, and REQ-0097 are merged
+and their acceptance criteria are satisfied: Meta pagination / bio / profile-picture fixes,
+upsert-only order sync (no destructive synchronization), and authenticated `/api/metrics`.
 
-**Current quality gates (post-REQ-0093):** lint ✓ (`--max-warnings=0`), typecheck ✓, tests
-**364 passed / 3 skipped** (367 total across 82 files), production build ✓.
+**Current quality gates (commit `b5f1cb7`):** lint ✓ (`--max-warnings=0`), typecheck ✓, unit tests
+**372 passed / 3 skipped** (375 total), integration tests **25 passed**, production build ✓ (including
+`build:worker`), standalone smoke ✓ (health/ready/metrics/auth/HTTP-status probes all green),
+Prisma migrations 40/40 with zero drift.
 
-**No Critical or High findings remain open.** Remaining conditions before an unconditional 🟢 GO:
+**One new High finding is open:** `nanoid 3.3.16` (transitive via `postcss`) carries a
+denial-of-service CVE (GHSA-2v37-7h3g-55p8). `npm audit --audit-level=moderate` reports 1 high,
+which fails the CI dependency-audit gate and the release criterion of zero unpatched high/critical
+vulnerabilities.
 
-1. `METRICS_TOKEN` must be configured in the production environment's secrets manager before deploy.
-2. A staging end-to-end smoke must be re-run on this build (register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once).
-3. Alerting confirmed on `events_failed_jobs`, webhook failure rate, and `/api/ready`.
-4. Manual penetration test of the dynamic adapter's `testAdapterConfigAction` to confirm the SSRF guard holds under HTTP redirect chains, CNAME chains, and international domain names.
+**Remaining conditions before an unconditional 🟢 GO:**
 
-**Summary of N1/N2/N3 fixes (REQ-0093):**
+1. Remediate or explicitly accept **N4** (`nanoid` CVE) and restore `npm audit` to 0 high/critical.
+2. `METRICS_TOKEN` must be configured in the production environment's secrets manager before deploy.
+3. A staging end-to-end smoke must be re-run on this build (register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once).
+4. Alerting confirmed on `events_failed_jobs`, webhook failure rate, and `/api/ready`.
+5. Manual penetration test of the dynamic adapter's `testAdapterConfigAction` to confirm the SSRF guard holds under HTTP redirect chains, CNAME chains, and international domain names.
+
+**Summary of N1/N2/N3 fixes (REQ-0093) — still fixed at `b5f1cb7`:**
 
 - **N1 (High — SSRF) → Fixed.** `src/shared/security/outbound-url-guard.ts` added with `assertPublicHttpUrl()`. Checks scheme (`http`/`https` only), rejects IPv4 private/loopback/link-local literals, rejects IPv6 loopback/ULA/link-local literals, and resolves domain names via `node:dns/promises` to block DNS-rebinding attacks. `ConfigInterpreter.fetchJson()` now calls the guard before every `fetch()`. `baseUrl` in `AdapterConfigMapping` Zod schema now requires `https://`. 19 unit tests added and green.
 - **N2 (Medium — metrics auth) → Fixed.** `GET /api/metrics` now checks `Authorization: Bearer <token>` using `timingSafeEqual` when `METRICS_TOKEN` env var is set. Returns `401` on mismatch. Open in dev when token is unset.
 - **N3 (Low — stale docs) → Fixed.** `docs/specs/current-state.md §11.1` updated to "🟡 CONDITIONAL GO as of 2026-08-07" with a per-finding status table.
 
-### 1.2 Finding count by severity (post-REQ-0093)
+### 1.2 Finding count by severity (commit `b5f1cb7`)
 
 | Severity | Open | Remediated | Notes |
 |----------|------|------------|-------|
 | 🔴 Critical | 0 | 2 (C1, C2) | Both code-verified fixed |
-| 🟠 High | **0** | 10 (H1–H10) + N1 | N1 fixed by REQ-0093 |
+| 🟠 High | **1 (N4)** | 10 (H1–H10) + N1 | N1 fixed by REQ-0093; **N4 open — `nanoid` CVE (§4.4)** |
 | 🟡 Medium | 2 deferred (M3, M4) | 13 (M1–M15 minus M3/M4) | M3 project-creation race; M4 unbounded findMany — scheduled post-release |
 | 🔵 Low | 0 | 8 (L-set) + N2 + N3 | N2 and N3 fixed by REQ-0093 |
-| **Total open** | **2 (post-release)** | **36 remediated** | |
+| **Total open** | **3 (1 release-blocking High, 2 post-release Medium)** | **36 remediated** | |
 
-### 1.2a Status of the 33 prior findings (re-verified this pass)
+### 1.2a Status of the 33 prior findings (re-verified at `b5f1cb7`)
 
-Directly **code-verified fixed at `e89ae17`** this pass:
+Directly **code-verified fixed at `b5f1cb7`** this pass:
 
 | ID | Prior defect | Evidence at current commit |
 |----|--------------|-----------------------------|
@@ -67,7 +78,7 @@ Directly **code-verified fixed at `e89ae17`** this pass:
 | H5 | `archiveProject` hard-deletes | `Project` now carries `archivedAt` + `deletedAt` soft-delete columns (schema:206-207) |
 | H6 | At-most-once event delivery, no retry/DLQ | `QueueEventBus` (BullMQ, `jobId` dedup, DLQ); `/api/metrics events_failed_jobs`; `generateReply` idempotent via `inReplyToMessageId` |
 | H7 | Abandoned-cart fires on every edit, no subscriber | `Cart` sweep, `markNotified` atomic (`WHERE notifiedAt IS NULL`), `AbandonedCartDetected` once; notifications subscriber present |
-| H8 | Test coverage far too thin (43 tests / 9 files) | **345 tests / 81 files**; CI adds redis service, npm audit, gitleaks, expanded smoke |
+| H8 | Test coverage far too thin (43 tests / 9 files) | **372 tests / 82 files**; CI adds redis service, `npm audit` (currently failing on `nanoid`), gitleaks, expanded smoke |
 | H9 | Shopify webhooks blocked by middleware | `public-paths.ts:25 "/api/shopify/webhooks"` + `public-paths.test.ts` |
 | H10 | Seat limit race | `invite-member.ts` → `createWithinSeatLimit` serializable transaction (`organization-invite.repository.ts:85`) |
 
@@ -77,44 +88,61 @@ Notable confirmations: Shopify GDPR/`app/uninstalled` webhooks now handled (M5),
 from `publicPaths` (M14), dashboard-share tokens use `crypto.randomUUID()` (unguessable). Any of
 these should be spot-checked before final sign-off if they gate a specific release requirement.
 
-### 1.3 Major technical risks (post-REQ-0093)
+**N4** is a new fourth-pass finding and is not part of the 33 prior findings above. See §4.4 for
+details.
 
+### 1.3 Major technical risks (commit `b5f1cb7`)
+
+- **N4 — dependency vulnerability (`nanoid`)** — `npm audit` reports 1 high-severity finding for
+  `nanoid <3.3.17` (transitive via `postcss`). The `npm audit` CI gate fails, and the release
+  criterion for zero unpatched high/critical vulnerabilities is not met. Fix by overriding `nanoid`
+  to `^3.3.17` or updating `postcss`; then re-run `npm audit`.
 - **SSRF N1 is remediated** — `assertPublicHttpUrl()` now blocks private/loopback/link-local
   targets. Residual risk: HTTP redirect chains and CNAME chains at the destination were not tested;
   a manual penetration test is listed as a release condition.
 - **Event-delivery correctness now depends on Redis/BullMQ health** — failed jobs land in a DLQ
   surfaced via the `events_failed_jobs` gauge; confirm alerting is wired before scaling past one
   replica.
-- **Live runtime re-test not performed this pass** — the 2026-07-31 verdict included a live
-  standalone-bundle boot; this pass is static + build verification. The staging smoke must be re-run
-  on this build before release (§1.6).
+- **Live runtime re-test performed this pass** — the standalone production bundle was booted on
+  `localhost:3000`; health, readiness, metrics, auth, and HTTP-status probes all passed. A full
+  staging end-to-end smoke remains required before release.
 - **M3 (project-creation race)** and **M4 (unbounded findMany)** remain deferred post-release.
 
-### 1.4 Major product risks (current)
+### 1.4 Major product risks (commit `b5f1cb7`)
 
 - Prior product blockers are addressed: `Project` lifecycle now soft-deletes (H5/`REQ-0073`/`0077`),
   the abandoned-cart flow has a subscriber (H7), and Shopify mandatory GDPR webhooks are handled (M5).
 - The dynamic-adapter connector story (`REQ-0078`) is the main new capability and carries the N1
   security risk above; treat "ship the dynamic adapter" and "ship N1's fix" as the same decision.
+- **Order sync is not paginated** — `syncOrders` fetches only the connector's most recent page of
+  orders (default 250). Old orders are never deleted (REQ-0096), but they are also never refreshed
+  for stores with more than one page of history. This is a data-freshness limitation, not a security
+  defect; it should be called out in user-facing docs or fixed with pagination before stores with
+  long histories go live.
+- **Meta bio/profile-picture fields** — REQ-0094 added `biography` and `profilePictureUrl` handling.
+  The implementation is covered by updated tests and passes the build, but no live Meta account was
+  exercised during this pass.
 
 ### 1.5 Scope limitations
 
-This third pass is **static analysis + a clean production build + the existing automated test
-suite** against commit `e89ae17`. It is *not* a penetration test, load test, live runtime/staging
-exercise, or browser-based accessibility audit. Prior-finding statuses are code-verified where
-marked "code-verified" in §1.2a and otherwise attested from the remediation docs. See §2.7.
+This fourth pass is **static analysis + a clean production build + the full automated test
+suite + a standalone production-bundle smoke run** against commit `b5f1cb7`. It is *not* a
+penetration test, load test, full staging exercise, or browser-based accessibility audit.
+Prior-finding statuses are code-verified where marked "code-verified" in §1.2a and otherwise
+attested from the remediation docs. See §2.7.
 
-### 1.6 Release conditions (post-REQ-0093)
+### 1.6 Release conditions (commit `b5f1cb7`)
 
 Ship only when all of the following hold:
 
 1. ✅ **N1 fixed** — `assertPublicHttpUrl()` guard in place, 19 tests green.
 2. ✅ **N2 fixed** — `METRICS_TOKEN` bearer check in place.
 3. ✅ **N3 fixed** — `current-state.md §11.1` updated.
-4. **`METRICS_TOKEN` configured in production** — add to secrets manager before first deploy.
-5. **Staging end-to-end smoke** on this build: register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once.
-6. **Alerting confirmed** on webhook failure rate, `events_failed_jobs`, and `/api/ready`.
-7. **Manual pen-test** of `testAdapterConfigAction` to verify the SSRF guard holds under redirect chains, CNAME chains, and time-of-check/time-of-use DNS rebinding scenarios.
+4. ❌ **N4 remediated** — `nanoid` CVE patched and `npm audit --audit-level=moderate` returns 0 high/critical.
+5. **`METRICS_TOKEN` configured in production** — add to secrets manager before first deploy.
+6. **Staging end-to-end smoke** on this build: register → verify email → connect store → receive webhook → AI reply → checkout → plan change, each side effect exactly once.
+7. **Alerting confirmed** on webhook failure rate, `events_failed_jobs`, and `/api/ready`.
+8. **Manual pen-test** of `testAdapterConfigAction` to verify the SSRF guard holds under redirect chains, CNAME chains, and time-of-check/time-of-use DNS rebinding scenarios.
 
 ### 1.7 Prior "user-requested focus area" items — now resolved
 
@@ -180,6 +208,25 @@ Unauthenticated inbound: /api/meta/webhook (HMAC-SHA256 + replay dedup)
 | Docs | `AGENTS.md`, `README.md`, `docs/deployment.md`, requirements/tasks/trackers |
 
 ### 2.5 Commands executed and results
+
+**Fourth pass (2026-08-09, commit `b5f1cb7`):**
+
+|| # | Check | Command | Result |
+||---|-------|---------|--------|
+|| 1 | Typecheck | `npm run typecheck` | ✅ **Pass** (exit 0) |
+|| 2 | Lint | `npm run lint` | ✅ **Pass** (`eslint . --max-warnings=0`, exit 0) |
+|| 3 | Unit tests | `npm run test` | ✅ **Pass** — 81 files, **372 passed / 3 skipped** |
+|| 4 | Integration tests | `npm run test:integration` | ✅ **Pass** — 25 passed |
+|| 5 | Build | `npm run build` | ✅ **Pass** (exit 0; Next build + `build:worker`) |
+|| 6 | Migrations | `npx prisma migrate deploy` | ✅ **Pass** — 40 migrations applied |
+|| 7 | Schema drift | `npx prisma migrate diff … --exit-code` | ✅ "No difference detected" |
+|| 8 | Dependency audit | `npm audit --audit-level=moderate` | ❌ **1 high (`nanoid <3.3.17`)** |
+|| 9 | Runtime boot | `node .next/standalone/server.js` | ✅ Boots; health/ready/metrics/auth/HTTP-status probes pass |
+
+Static verification of prior findings via targeted `grep`/`Read` across `src/`, `prisma/schema.prisma`,
+`docs/`, `fly.toml`, `.env.example` (see §1.2a). Not run this pass: load test, browser-based
+accessibility audit, manual pen-test of the dynamic adapter SSRF guard, live Meta/Shopify/Stripe
+integration exercise.
 
 **Third pass (2026-08-07, commit `e89ae17`):**
 
@@ -545,6 +592,74 @@ bullets beneath it describe each finding's implemented fix. The single source of
 "how the application works today" therefore contradicts the shipped remediation and this report.
 Update §11.1 to reflect the current status (blockers remediated; one open High N1) and point to
 this report's §1.
+
+---
+
+### 🟠 N4 — `nanoid <3.3.17` dependency vulnerability breaks `npm audit`
+
+| Field | Value |
+|---|---|
+| **Status** | ❌ **Open — not remediated** |
+| **Severity** | **High** |
+| **Category** | Supply chain / Denial of service |
+| **Disposition** | **Confirmed** |
+| **Release-blocking** | **Yes** |
+| **Affected roles** | All — affects build/deployment pipeline and the `npm audit` quality gate |
+| **CVE** | GHSA-2v37-7h3g-55p8 |
+
+**Affected locations**
+- `package-lock.json` — `node_modules/nanoid` resolves to `3.3.16`
+- `package.json` — `postcss` dependency/override pulls `nanoid` into the tree
+
+**Evidence**
+
+```
+$ npm audit --audit-level=moderate
+{
+  "vulnerabilities": {
+    "nanoid": {
+      "name": "nanoid",
+      "severity": "high",
+      "isDirect": false,
+      "via": [{
+        "title": "nanoid: custom generators can loop indefinitely when size is zero",
+        "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+        "severity": "high",
+        "cwe": ["CWE-835"],
+        "cvss": { "score": 5.9, "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H" },
+        "range": "<3.3.17"
+      }],
+      "range": "<3.3.17",
+      "nodes": ["node_modules/nanoid"],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": { "info": 0, "low": 0, "moderate": 0, "high": 1, "critical": 0, "total": 1 }
+  }
+}
+```
+
+The `npm audit --audit-level=moderate` CI gate fails because of this single high-severity finding.
+It is a transitive dependency, introduced through the `postcss` override (`nanoid` is a `postcss`
+dependency). The `fixAvailable: true` flag indicates `npm audit fix` or an explicit override can
+resolve it.
+
+**Recommended fix**
+
+1. Update `package.json` to override `nanoid` to `^3.3.17` (or update the `postcss` override to a
+   version that depends on `nanoid >=3.3.17`).
+2. Run `npm install` to regenerate `package-lock.json`.
+3. Re-run `npm audit --audit-level=moderate` and confirm 0 high/critical vulnerabilities.
+4. Run `npm run test`, `npm run typecheck`, and `npm run build` to ensure the override does not
+   change build/runtime behavior.
+
+**Residual risk if accepted**
+
+If this CVE is accepted as a production risk, document an explicit exception in the release
+runbook. Note that `nanoid` is used at build time by `postcss` and is not exposed directly to
+untrusted user input, so the DoS vector is primarily build-time / developer-experience. However,
+the `npm audit` CI gate will continue to fail until the exception policy is also updated.
 
 ---
 
@@ -2386,18 +2501,18 @@ Recording these explicitly so remediation does not disturb working behaviour.
 
 ## 5. Remediation Plan
 
-> **Third-pass note (2026-08-07).** Every Phase-1 item below (C1, C2, H1–H10) is **remediated and
-> code-verified** at `e89ae17` — see §1.2a. The only remaining Phase-1 blocker is the new **N1**
-> (SSRF outbound-URL guard for the dynamic adapter) plus the doc fix **N3**. The tables below are
-> retained as the historical remediation plan.
+> **Fourth-pass note (2026-08-09, commit `b5f1cb7`).** Every Phase-1 item below (C1, C2, H1–H10)
+> plus the third-pass items **N1–N3** are **remediated and code-verified** at `b5f1cb7` — see
+> §1.2a. The only new release blocker is **N4** (`nanoid <3.3.17` CVE). The historical remediation
+> tables are retained below.
 
-### Phase 0 — Current blockers (2026-08-07)
+### Phase 0 — Current blockers (2026-08-09)
 
 | # | Finding | Action | Effort | Owner |
 |---|---|---|---|---|
-| 1 | **N1** | Add a resolve-then-check outbound-URL guard to `ConfigInterpreter` + regression tests (or feature-flag the dynamic adapter off) | ~1 d | Backend/Security |
-| 2 | **N3** | Correct `current-state.md` §11.1 stale NO-GO verdict | ~15 m | Any |
-| 3 | **N2** | Decide `/api/metrics` auth posture | ~1 h | Backend/SRE |
+| 1 | **N4** | Patch `nanoid` to `>=3.3.17` (override or update `postcss`) | ~15 m | Backend/Security |
+| 2 | — | N3 verified fixed (`current-state.md` §11.1 updated) | ~15 m | Any |
+| 3 | — | N2 verified fixed (`METRICS_TOKEN` bearer check in place) | ~1 h | Backend/SRE |
 | — | E2E | Re-run staging end-to-end smoke on this build (§1.6) | ~2 h | SRE |
 
 ### Phase 1 — Immediate release blockers (original — all remediated)
@@ -2464,14 +2579,14 @@ Recording these explicitly so remediation does not disturb working behaviour.
 
 ## 6. Residual Risks and Final Checklist
 
-### 6.0 Current readiness checklist (third pass — 2026-08-07, commit `e89ae17`)
+### 6.0 Current readiness checklist (fourth pass — 2026-08-09, commit `b5f1cb7`)
 
 | Area | Status | Evidence (this pass) |
 |---|---|---|
 | Build & compile | ✅ **Pass** | `npm run build` exit 0 (incl. `build:worker`) |
 | Type safety | ✅ **Pass** | `tsc --noEmit` exit 0 |
 | Lint | ✅ **Pass** | `eslint . --max-warnings=0` exit 0 |
-| Automated tests | ✅ **Pass** | **364 passed / 3 skipped, 82 files** (post-REQ-0093) |
+| Automated tests | ✅ **Pass** | **372 passed / 3 skipped, 82 files** (unit); **25 passed** (integration) (post-REQ-0093) |
 | Authentication (deployed) | ✅ **Pass** | C1 fixed — `trustHost` from `AUTH_TRUST_HOST`, in `fly.toml` |
 | Event delivery correctness | ✅ **Pass** (design) | C2/H6 fixed — no self-echo; durable BullMQ bus, `jobId` dedup, DLQ; **confirm DLQ alerting** |
 | Startup resilience | ✅ **Pass** | H1 fixed — `ensureSuperAdmin` best-effort try/catch |
@@ -2483,14 +2598,16 @@ Recording these explicitly so remediation does not disturb working behaviour.
 | **Outbound SSRF (dynamic adapter)** | ✅ **Pass** | **N1 fixed (REQ-0093)** — `assertPublicHttpUrl` guard + 19 tests; `baseUrl` requires HTTPS |
 | Metrics endpoint auth | ✅ **Pass** | **N2 fixed (REQ-0093)** — `METRICS_TOKEN` bearer check; must be set in production secrets |
 | Living-spec accuracy | ✅ **Pass** | **N3 fixed (REQ-0093)** — `current-state.md §11.1` updated |
-| Live runtime / staging E2E | ⚠️ **Not Tested** | Not exercised this pass; required before release (§1.6) |
+| Live runtime / staging E2E | 🟡 **Partial** | Standalone bundle booted and health/ready/metrics/auth/HTTP-status probes passed; full golden-path E2E not exercised (§1.6) |
 | Load / concurrency | ⚠️ **Not Tested** | Unchanged from prior pass |
 | Accessibility conformance | ⚠️ **Partial / Not Tested** | Static hardening present (`REQ-0068` M8); no axe/screen-reader run |
 | Backup / restore drill | ⚠️ **Not Tested** | `backup.yml` + runbook exist (`REQ-0075`); restore not rehearsed this pass |
+|| Dependency vulnerabilities | ❌ **Fail** | `npm audit --audit-level=moderate` reports 1 high (`nanoid <3.3.17`) |
 
 Everything below (§6.1–§6.2) is the **original** residual-risk register and checklist from the
 2026-07-31 pass, retained for history. Where it shows ❌ for C1/C2/H1–H10, read §6.0 — those are
-now resolved. **N1, N2, and N3 are also resolved by REQ-0093.**
+now resolved. **N1, N2, and N3 are also resolved by REQ-0093.** **N4 is a new open High finding
+(dependency vulnerability) reported by this fourth pass; see §4.4 and §1.6.**
 
 ### 6.1 Residual risks after full remediation
 
@@ -2544,18 +2661,22 @@ now resolved. **N1, N2, and N3 are also resolved by REQ-0093.**
 
 ## 7. Statement of Limitations
 
-This audit reflects commit `06395c4` as reviewed on 2026-07-29, under the conditions described in
-§2. Findings marked **Confirmed** are supported by reproducible evidence captured in this report.
-Findings marked **Probable Risk** or **Design Concern** are reasoned from code and are explicitly
-labelled as not empirically proven.
+This audit reflects commit `b5f1cb7` as reviewed on 2026-08-09, under the conditions described in
+§2 and the fourth-pass command results in §2.5. The fourth pass adds a standalone production-bundle
+smoke run (health, readiness, metrics auth, HTTP-status probes) and a dependency-audit scan. It is
+still not a penetration test, load test, full browser-based accessibility audit, or live
+Meta/Shopify/Stripe integration exercise. Findings marked **Confirmed** are supported by
+reproducible evidence captured in this report. Findings marked **Probable Risk** or
+**Design Concern** are reasoned from code and are explicitly labelled as not empirically proven.
 
 **No claim is made that this application is bug-free or secure.** Absence of a finding is not
 evidence of correctness — particularly in the areas listed as Not Tested in §6.2, where no
 assessment was possible. Readiness is stated only within the reviewed scope, the tested conditions,
 the available evidence, and the residual risks recorded above.
 
-The two Critical findings were reproduced against a running production build. They are not
-speculative, and neither is caught by the existing CI pipeline.
+The two Critical findings were reproduced against a running production build at the 2026-07-31
+baseline and remain remediated at `b5f1cb7`. The new N4 finding is a confirmed dependency
+vulnerability reported by `npm audit`; it is not speculative.
 
 ---
 
