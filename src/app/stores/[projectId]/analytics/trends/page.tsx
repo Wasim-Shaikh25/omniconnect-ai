@@ -6,6 +6,7 @@ import { SearchTrendsForm } from "@/components/search-trends-form";
 import { AnalyzeTrendingReelsForm } from "@/components/analyze-trending-reels-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TrendSnapshot } from "@/modules/analytics";
+import { TrendSnapshotView } from "@/components/trend-snapshot-view";
 
 export default async function TrendsAnalyticsPage({
   params,
@@ -86,9 +87,7 @@ export default async function TrendsAnalyticsPage({
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <pre className="max-h-48 overflow-auto rounded bg-muted p-3 text-xs">
-                      {JSON.stringify(snapshot.data, null, 2)}
-                    </pre>
+                    <TrendSnapshotView snapshot={snapshot} />
                   </CardContent>
                 </Card>
               ))}

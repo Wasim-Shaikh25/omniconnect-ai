@@ -122,6 +122,10 @@ export interface MediaInsight {
   plays: number | null;
   views: number | null;
   engagementRate: number | null;
+  storyExits: number | null;
+  storyRepliesCount: number | null;
+  storyTapsForward: number | null;
+  storyTapsBack: number | null;
   fetchedAt: Date;
 }
 

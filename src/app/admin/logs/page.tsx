@@ -2,6 +2,7 @@ import { requireSuperAdmin } from "@/modules/auth";
 import { listSystemLogs } from "@/shared/observability";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { JsonViewer } from "@/components/json-viewer";
 
 export default async function AdminLogsPage({
   searchParams,
@@ -67,9 +68,9 @@ export default async function AdminLogsPage({
                 </div>
                 <p className="mt-1">{log.message}</p>
                 {log.metadata && (
-                  <pre className="mt-2 max-h-32 overflow-auto rounded bg-muted p-2 text-xs">
-                    {JSON.stringify(log.metadata, null, 2)}
-                  </pre>
+                  <div className="mt-2 max-h-48 overflow-auto rounded bg-muted p-2 text-xs">
+                    <JsonViewer data={log.metadata} defaultExpandedDepth={0} />
+                  </div>
                 )}
               </div>
             ))}

@@ -290,13 +290,57 @@ export class GraphApiMetaService implements MetaService {
         .filter((m): m is MetaMediaItem => m !== null);
       await Promise.all(
         items.map(async (item) => {
-          const insights = await this.fetchMediaInsights(projectId, item.externalId, token);
+          const insights = await this.fetchMediaInsights(projectId, item.externalId, token, item.mediaProductType);
           item.metrics = { ...item.metrics, ...insights };
         }),
       );
       return items;
     } catch (error) {
       logger.error("meta.getAccountMedia.error", {
+        projectId,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+      return [];
+    }
+  }
+
+  async getAccountStories(projectId: string, limit = 10): Promise<MetaMediaItem[]> {
+    const token = await this.integrations.findAccessToken(projectId);
+    const integration = await this.integrations.findByStore(projectId);
+    if (!token || !integration?.accountId) {
+      logger.info("meta.getAccountStories.skipped", { projectId, reason: "not-configured" });
+      return [];
+    }
+
+    const fields = "id,media_type,media_url,permalink,caption,timestamp,like_count,comments_count,thumbnail_url,media_product_type";
+    const url = new URL(`${GRAPH_API_BASE}/${integration.accountId}/stories`);
+    url.searchParams.set("fields", fields);
+    url.searchParams.set("limit", String(limit));
+
+    try {
+      const res: Response = await this.graphApiFetch(projectId, url.toString(), withTimeout({
+        headers: { authorization: `Bearer ${token}` },
+      }));
+      if (!res.ok) {
+        logger.warn("meta.getAccountStories.failed", { projectId, status: res.status });
+        return [];
+      }
+      const payload: unknown = await res.json();
+      const rows = (payload as { data?: unknown[] }).data ?? [];
+
+      const items = rows
+        .slice(0, limit)
+        .map((row) => parseMediaItem(row, "INSTAGRAM"))
+        .filter((m): m is MetaMediaItem => m !== null);
+      await Promise.all(
+        items.map(async (item) => {
+          const insights = await this.fetchMediaInsights(projectId, item.externalId, token, item.mediaProductType);
+          item.metrics = { ...item.metrics, ...insights };
+        }),
+      );
+      return items;
+    } catch (error) {
+      logger.error("meta.getAccountStories.error", {
         projectId,
         error: error instanceof Error ? error.message : "unknown",
       });
@@ -441,9 +485,16 @@ export class GraphApiMetaService implements MetaService {
     projectId: string,
     mediaId: string,
     token: string,
+    mediaProductType?: MetaMediaItem["mediaProductType"] | null,
   ): Promise<Partial<MetaMediaMetrics>> {
     const url = new URL(`${GRAPH_API_BASE}/${mediaId}/insights`);
-    url.searchParams.set("metric", "engagement,impressions,reach,saved,profile_views,video_views");
+    const isStory = mediaProductType === "STORIES";
+    url.searchParams.set(
+      "metric",
+      isStory
+        ? "impressions,reach,exits,replies,taps_forward,taps_back"
+        : "engagement,impressions,reach,saved,profile_views,video_views",
+    );
     url.searchParams.set("period", "lifetime");
 
     try {
@@ -476,6 +527,10 @@ export class GraphApiMetaService implements MetaService {
         if (name === "saved") result.saved = value;
         if (name === "profile_views") result.profileViews = value;
         if (name === "video_views") result.videoViews = value;
+        if (name === "exits") result.storyExits = value;
+        if (name === "replies") result.storyRepliesCount = value;
+        if (name === "taps_forward") result.storyTapsForward = value;
+        if (name === "taps_back") result.storyTapsBack = value;
       }
       return result;
     } catch (error) {
@@ -743,6 +798,8 @@ function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaM
   const mediaUrl = typeof item.media_url === "string" ? item.media_url : null;
   const thumbnailUrl = typeof item.thumbnail_url === "string" ? item.thumbnail_url : null;
   const rawType = typeof item.media_type === "string" ? item.media_type : "OTHER";
+  const rawProductType = typeof item.media_product_type === "string" ? item.media_product_type : "";
+  const mediaProductType = mapMediaProductType(rawProductType);
   const timestamp = typeof item.timestamp === "string" ? item.timestamp : null;
   const publishedAt = timestamp ? new Date(timestamp) : null;
   const hashtags = caption ? extractHashtags(caption) : [];
@@ -752,7 +809,7 @@ function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaM
     comments: typeof item.comments_count === "number" ? item.comments_count : 0,
   };
 
-  const mediaType = mapMediaType(rawType);
+  const mediaType = deriveMediaType(rawType, mediaProductType);
 
   const childrenRows = Array.isArray((item.children as { data?: unknown[] })?.data)
     ? (item.children as { data: unknown[] }).data
@@ -768,6 +825,7 @@ function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaM
     externalId: id,
     platform,
     mediaType,
+    mediaProductType,
     caption,
     permalink,
     mediaUrl,
@@ -778,6 +836,37 @@ function parseMediaItem(raw: unknown, platform: "INSTAGRAM" | "FACEBOOK"): MetaM
     metrics,
     children,
   };
+}
+
+function mapMediaProductType(raw: string): MetaMediaItem["mediaProductType"] | null {
+  switch (raw.toUpperCase()) {
+    case "FEED":
+      return "FEED";
+    case "REELS":
+      return "REELS";
+    case "STORIES":
+      return "STORIES";
+    case "LIVE":
+      return "LIVE";
+    default:
+      return null;
+  }
+}
+
+function deriveMediaType(
+  mediaType: string,
+  mediaProductType: MetaMediaItem["mediaProductType"] | null,
+): MetaMediaItem["mediaType"] {
+  switch (mediaProductType) {
+    case "STORIES":
+      return "STORY";
+    case "REELS":
+      return "REEL";
+    case "LIVE":
+      return "VIDEO";
+    default:
+      return mapMediaType(mediaType);
+  }
 }
 
 function mapMediaType(raw: string): MetaMediaItem["mediaType"] {

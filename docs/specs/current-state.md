@@ -95,13 +95,13 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | `users` | User profile, organization membership, role changes, store assignment, GDPR export/delete. |
 | `workspaces` | Replaces `organizations`; workspace lifecycle, projects/stores, tenant guard, plan limits (`PlanConfig` DB overrides with `PLAN_LIMITS` fallback), team invites. |
 | `ecommerce` | `EcommerceConnector` framework, Shopify/Mock connectors, product/order/customer sync, coupons, adapter library, and dynamic adapter `AdapterConfigMapping` (Zod-validated) + `ConfigInterpreter` safe HTTP executor + `OpenRouterAdapterGenerator` AI config generation + `testAdapterConfigAction` validation + `saveAdapterConfigAction` persistence to `GeneratedAdapter` + `/stores/[projectId]/integrations/adapter` connection UI. WooCommerce, BigCommerce, and `shopify.connector.ts` hardcoded connectors were removed; Shopify is now resolved from a built-in `ConfigInterpreter` mapping that supports multi-step coupon creation, variable extraction, and optional lookup matching. |
-| `meta` | Meta Graph API client with per-project 200 calls/hour rate limiting, inbound webhook verification, outbound messaging, Meta Login OAuth connection flow (`/api/meta/auth` and `/api/meta/callback` that exchange a code for a long-lived token and persist the page token encrypted on `Project`); `MetaService.consumeGraphApiCall` exposes the bucket so cross-module Graph API callers such as `inspector` share the same 200 calls/hour limit. Also supports Instagram Content Publishing API (`publishMedia` with container → poll → publish) and server-side Meta Conversions API Purchase events (`sendPurchaseEvent` with hashed user data and a stable `event_id`). |
+| `meta` | Meta Graph API client with per-project 200 calls/hour rate limiting, inbound webhook verification, outbound messaging, Meta Login OAuth connection flow (`/api/meta/auth` and `/api/meta/callback` that exchange a code for a long-lived token and persist the page token encrypted on `Project`); `MetaService.consumeGraphApiCall` exposes the bucket so cross-module Graph API callers such as `inspector` share the same 200 calls/hour limit. Also supports Instagram Content Publishing API (`publishMedia` with container → poll → publish), server-side Meta Conversions API Purchase events (`sendPurchaseEvent` with hashed user data and a stable `event_id`), and Instagram Stories ingestion (`getAccountStories` + story-specific metrics). |
 | `ai` | `AIProvider` interface, OpenRouter provider, content/trend/competitor generation, `AIUsageGuard`, `TokenUsage` persistence, `ChatSession`/`ChatMessage` assistant chat, `AI_TOOLS` function-calling definitions, `BusinessBrain` / `askBusinessBrainAction`, and `POST /api/chat/stream` SSE endpoint. |
 | `intelligence` | Marketing Brain (`updateMarketingMemory`, `generateDailyBrief`), Next Best Action (`recommendationService`), predictions, hypotheses, business learnings, goal planning, and plan-tier access rules (`canUseIntelligenceFeature`). |
 | `coupons` | First-follower and DM campaign coupon orchestration. |
 | `crm` | Customer and follower records, `CustomerMemory`, tags/stages. |
 | `conversations` | Unified inbox, messages, human takeover/resume, and `sendMessage` use-case for outbound `HUMAN`/`AI` replies. |
-| `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. |
+| `analytics` | `getMarketingPerformance`, workspace KPIs, competitor tracking, growth dashboard, `MediaPost`/`MediaInsight`/`TrendSnapshot`/`ContentRecommendation`/`Report` domain, AI “why it worked” storyboards. Analytics trend snapshots, generated reports, admin system logs, and adapter configuration are rendered with structured `JsonViewer`/`TrendSnapshotView`/`ReportView` components instead of raw JSON dumps. |
 | `content` | Content ideation (`generateContentIdeas`), Instagram publishing (`publishMedia`), scheduling (`ScheduledPost` + delayed `publish-scheduled-post` queue job), reschedule, hashtag intelligence, best-time-to-post, and a drag-to-reschedule content calendar — all behind the `MetaService` port and `QueueService`. |
 | `reports` | AI-generated weekly/on-demand reports. |
 | `notifications` | In-app and email notifications, preference toggles. |
@@ -123,7 +123,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `Conversation` / `Message` — DM/comment threads; status `AI_ACTIVE` or `HUMAN_ACTIVE`.
 - `ChatSession` / `ChatMessage` — assistant chat history per project/user; separate from customer `Conversation`/`Message`; messages carry `role` (`system` | `user` | `assistant` | `tool`) and optional `toolCalls`/`toolCallId`. `ChatSessionRepository.delete` is scoped by `projectId` to enforce tenant isolation at the database level.
 - `Follower` / `Campaign` — first-follower campaign tracking.
-- `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports.
+- `MediaPost` / `MediaInsight` / `AccountInsight` / `TrendSnapshot` / `ContentRecommendation` / `Report` — Meta content intelligence, trends, AI ideas, and generated reports. `MediaInsight` now includes story-specific metrics (`storyExits`, `storyRepliesCount`, `storyTapsForward`, `storyTapsBack`).
 - `ScheduledPost` — pending/published/failed/cancelled Instagram posts with `scheduledAt` (UTC), `scheduledAtTimezone` (browser IANA zone for display), `mediaUrls`, and the dispatched `jobId`.
 - `Notification` / `NotificationPreference` — in-app notifications and per-user/channel settings.
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
@@ -395,6 +395,7 @@ audit pass were resolved by `REQ-0093`:
 | **P1** `/api/metrics` unreachable by Prometheus | ✅ Fixed (REQ-0097) | The N2 bearer-token check never ran because the NextAuth middleware redirected unauthenticated requests (including scrapers) to `/login` before hitting the route. `/api/metrics` added to `PUBLIC_PATHS_EXACT`; bearer check still enforced in the route handler; `validateProductionSecrets()` now requires `METRICS_TOKEN` in production. |
 | **P2** Order sync destructive `deleteMany` | ✅ Fixed (REQ-0096) | `syncOrders()` deleted every DB order absent from the connector's 250-order batch on every sync, silently losing history for stores with >250 orders. Replaced with non-destructive `upsertMany()`; destructive `sync()` removed from `OrderRepository`. |
 | **P3** `/api/chat/stream` no per-request rate limit | ✅ Fixed (REQ-0097) | Added `rateLimit()` (15/min) ahead of the monthly AI-quota guard. |
+| **N4** `nanoid` transitive CVE via `postcss` | ✅ Fixed (REQ-0099) | Forced `nanoid ^3.3.17` via npm override; `npm audit` passes. |
 | M1–M15 medium findings | ✅ Verified | See audit report §4 for per-finding evidence. |
 | L1–L7 low findings | ✅ Verified / Accepted | See audit report §4. |
 
@@ -405,8 +406,7 @@ Remaining conditions before a 🟢 GO:
    HTTP redirect chains and international domain names.
 3. Completion of the two deferred medium findings (M3 project-race, M4 unbounded findMany) tracked
    in the audit report as "Scheduled Post-Release".
-4. Stories ingestion (`REQ-0098`) is proposed but not implemented — content analytics has no data for
-   Instagram Stories today.
+4. Deploy the `add_story_metrics` Prisma migration in production after this release.
 
 ---
 

@@ -42,6 +42,10 @@ export interface MetaMediaMetrics {
   videoViews?: number;
   follows?: number;
   crosspostedViews?: number;
+  storyExits?: number;
+  storyRepliesCount?: number;
+  storyTapsForward?: number;
+  storyTapsBack?: number;
 }
 
 export interface MetaMediaItem {
@@ -130,6 +134,12 @@ export interface MetaService {
 
   /** Fetch the connected account's own media. */
   getAccountMedia(
+    projectId: string,
+    limit?: number,
+  ): Promise<MetaMediaItem[]>;
+
+  /** Fetch the connected account's active Instagram Stories. */
+  getAccountStories(
     projectId: string,
     limit?: number,
   ): Promise<MetaMediaItem[]>;

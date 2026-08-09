@@ -15,6 +15,21 @@ All notable changes to **OmniConnect AI** are documented here.
 
 ### ✅ Done
 
+- `REQ-0099` **Replace raw JSON dumps with structured viewers** on `devin/fix-ui-json-and-story-insights`:
+  - Replaced `<pre>` JSON displays in `/admin/logs`, `/stores/[projectId]/analytics/trends`, `/stores/[projectId]/analytics/reports`, and `connect-adapter-form` with `JsonViewer`/`TrendSnapshotView`/`ReportView` components.
+  - `JsonViewer` supports collapsible objects/arrays, max expansion depth, and primitive type badges; it is used for admin log metadata and adapter config display.
+  - All quality gates pass; unit tests added for `json-viewer`, `trend-snapshot-view`, and `report-view`.
+
+- `REQ-0098` **Instagram Stories ingestion and story-only insights** on `devin/fix-ui-json-and-story-insights`:
+  - Added `getAccountStories` to the `MetaService` port and `GraphApiMetaService`; fetches `/{pageId}/stories` and story-specific metrics (`exits`, `replies`, `taps_forward`, `taps_back`) via `/{mediaId}/insights`.
+  - Extended the `MediaInsight` Prisma model, domain type, repository `upsertMediaInsight`, and input port with `storyExits`, `storyRepliesCount`, `storyTapsForward`, `storyTapsBack`.
+  - `syncMediaCatalog` now fetches feed and stories in parallel and tolerates per-item failures.
+  - The content detail page renders a "Story metrics" grid when `mediaType === "STORY"` and any story metric is non-null.
+  - Added unit tests for `GraphApiMetaService.getAccountStories` and `marketing-insights.syncMediaCatalog` (including story + feed sync and failure tolerance).
+
+- **Security dependency fix** on `devin/fix-ui-json-and-story-insights`:
+  - Forced `nanoid ^3.3.17` via npm override to resolve `GHSA-2v37-7h3g-55p8` (CVE via transitive `postcss`); `npm audit --audit-level=moderate` now passes.
+
 - `REQ-0094`/`REQ-0096`/`REQ-0097` **Post-audit UI/data-integrity fixes** on `claude/framer-motion-deps-setup-ajyb2y`
   (follow-up to a UI/ecommerce-data/JSON-on-UI audit; `REQ-0095` partially done, `REQ-0098` split out as a follow-up):
   - **`REQ-0097` — `/api/metrics` was unreachable to Prometheus scrapers.** The NextAuth middleware
@@ -552,6 +567,8 @@ All notable changes to **OmniConnect AI** are documented here.
   approval gates, rollback rehearsal, load/accessibility testing, and operations dashboard.
 - `REQ-0067` **Release blockers (staging verification)** — end-to-end staging run, browser login on a
   proxied deployment, and final §1.6 release-condition sign-off.
+- **Production deployment:** run the `20260809050607_add_story_metrics` Prisma migration after the
+  `REQ-0098` release is deployed.
 
 ### 🧹 Legacy Docs Cleanup (2026-08-05)
 

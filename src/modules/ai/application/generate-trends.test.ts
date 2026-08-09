@@ -68,6 +68,10 @@ function makePost(id: string, likes: number, publishedAt: Date): MediaPost {
       plays: 0,
       views: 0,
       engagementRate: null,
+      storyExits: null,
+      storyRepliesCount: null,
+      storyTapsForward: null,
+      storyTapsBack: null,
       fetchedAt: new Date(),
     },
   } as MediaPost;

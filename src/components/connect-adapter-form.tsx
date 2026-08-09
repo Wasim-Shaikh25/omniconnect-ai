@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { JsonViewer } from "./json-viewer";
 
 type GenerateAction = (
   prev: AdapterConfigActionState,
@@ -113,9 +114,9 @@ export function ConnectAdapterForm({
         <>
           <div className="space-y-2 rounded-md border p-4">
             <h3 className="text-sm font-medium">Generated adapter config</h3>
-            <pre className="max-h-48 overflow-auto text-xs">
-              {JSON.stringify(config, null, 2)}
-            </pre>
+            <div className="max-h-48 overflow-auto rounded bg-muted p-2 text-xs">
+              <JsonViewer data={config} defaultExpandedDepth={1} />
+            </div>
           </div>
 
           <form action={testFormAction} className="space-y-4">

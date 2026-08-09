@@ -1,6 +1,6 @@
 # REQ-0098 — Instagram Story Insights Ingestion
 
-## Status: Proposed (follow-up, split out from REQ-0095)
+## Status: Done
 
 ## Problem
 

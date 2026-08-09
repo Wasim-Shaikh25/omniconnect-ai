@@ -74,31 +74,55 @@ export default async function MediaPostDetailPage({
             <p className="mb-3 text-xs text-muted-foreground">{post.hashtags.join(" ")}</p>
           )}
           {post.latestInsight ? (
-            <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-              {[
-                { label: "Likes", value: post.latestInsight.likes },
-                { label: "Comments", value: post.latestInsight.comments },
-                { label: "Shares", value: post.latestInsight.shares },
-                { label: "Saves", value: post.latestInsight.saves },
-                { label: "Reach", value: post.latestInsight.reach },
-                { label: "Impressions", value: post.latestInsight.impressions },
-                { label: "Plays", value: post.latestInsight.plays },
-                { label: "Views", value: post.latestInsight.views },
-              ].map((metric) => (
-                <div key={metric.label}>
-                  <span className="text-xs text-muted-foreground">{metric.label}</span>
-                  <p>{formatNumber(metric.value)}</p>
+            <>
+              <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                {[
+                  { label: "Likes", value: post.latestInsight.likes },
+                  { label: "Comments", value: post.latestInsight.comments },
+                  { label: "Shares", value: post.latestInsight.shares },
+                  { label: "Saves", value: post.latestInsight.saves },
+                  { label: "Reach", value: post.latestInsight.reach },
+                  { label: "Impressions", value: post.latestInsight.impressions },
+                  { label: "Plays", value: post.latestInsight.plays },
+                  { label: "Views", value: post.latestInsight.views },
+                ].map((metric) => (
+                  <div key={metric.label}>
+                    <span className="text-xs text-muted-foreground">{metric.label}</span>
+                    <p>{formatNumber(metric.value)}</p>
+                  </div>
+                ))}
+                <div>
+                  <span className="text-xs text-muted-foreground">Engagement rate</span>
+                  <p>
+                    {post.latestInsight.engagementRate
+                      ? `${(post.latestInsight.engagementRate * 100).toFixed(2)}%`
+                      : "—"}
+                  </p>
                 </div>
-              ))}
-              <div>
-                <span className="text-xs text-muted-foreground">Engagement rate</span>
-                <p>
-                  {post.latestInsight.engagementRate
-                    ? `${(post.latestInsight.engagementRate * 100).toFixed(2)}%`
-                    : "—"}
-                </p>
               </div>
-            </div>
+              {post.mediaType === "STORY" &&
+                (post.latestInsight.storyExits !== null ||
+                  post.latestInsight.storyRepliesCount !== null ||
+                  post.latestInsight.storyTapsForward !== null ||
+                  post.latestInsight.storyTapsBack !== null) && (
+                  <div className="mt-4 border-t pt-4">
+                    <p className="mb-2 text-sm font-medium">Story metrics</p>
+                    <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                      {[
+                        { label: "Exits", value: post.latestInsight.storyExits },
+                        { label: "Replies", value: post.latestInsight.storyRepliesCount },
+                        { label: "Taps forward", value: post.latestInsight.storyTapsForward },
+                        { label: "Taps back", value: post.latestInsight.storyTapsBack },
+                      ].map((metric) => (
+                        <div key={metric.label}>
+                          <span className="text-xs text-muted-foreground">{metric.label}</span>
+                          <p>{formatNumber(metric.value)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">No insights captured yet.</p>
           )}

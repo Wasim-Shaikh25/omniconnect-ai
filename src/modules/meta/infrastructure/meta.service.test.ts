@@ -164,3 +164,87 @@ describe("GraphApiMetaService.getAccountMedia pagination (REQ-0094)", () => {
     expect(mediaListCalls).toHaveLength(1);
   });
 });
+
+describe("GraphApiMetaService.getAccountStories (REQ-0098)", () => {
+  const projectId = "project-1";
+  let repo: MetaIntegrationRepository;
+  let service: GraphApiMetaService;
+
+  beforeEach(() => {
+    repo = {
+      connect: vi.fn(),
+      findByStore: vi.fn().mockResolvedValue({
+        id: "int-1",
+        projectId,
+        channel: "INSTAGRAM",
+        accountId: "account-1",
+        pixelId: null,
+        connectedAt: new Date(),
+      }),
+      findAccessToken: vi.fn().mockResolvedValue("token-1"),
+    } as unknown as MetaIntegrationRepository;
+    service = new GraphApiMetaService(repo, new TestRateLimitStore());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function storyRow(id: string) {
+    return {
+      id,
+      media_type: "IMAGE",
+      media_product_type: "STORIES",
+      media_url: `https://example.com/${id}.jpg`,
+      permalink: `https://instagram.com/stories/${id}`,
+      caption: `story ${id}`,
+      timestamp: "2026-01-01T00:00:00+0000",
+    };
+  }
+
+  it("fetches stories and maps them to STORY media type", async () => {
+    const page = { data: [storyRow("story-a")] };
+    const insightsResponse = {
+      data: [
+        { name: "impressions", values: [{ value: 100 }] },
+        { name: "exits", values: [{ value: 5 }] },
+      ],
+    };
+
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/insights")) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(insightsResponse), text: () => Promise.resolve("") });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(page), text: () => Promise.resolve("") });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const items = await service.getAccountStories(projectId, 5);
+
+    expect(items).toHaveLength(1);
+    expect(items[0].externalId).toBe("story-a");
+    expect(items[0].mediaType).toBe("STORY");
+    expect(items[0].mediaProductType).toBe("STORIES");
+    expect(items[0].metrics.impressions).toBe(100);
+    expect(items[0].metrics.storyExits).toBe(5);
+  });
+
+  it("returns empty array when integration is missing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ data: [] }), text: () => Promise.resolve("") }),
+    );
+    repo.findAccessToken = vi.fn().mockResolvedValue(null);
+    const items = await service.getAccountStories(projectId);
+    expect(items).toHaveLength(0);
+  });
+
+  it("returns empty array when the story endpoint returns 404", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 404, json: () => Promise.resolve({ error: "not found" }), text: () => Promise.resolve("not found") }),
+    );
+    const items = await service.getAccountStories(projectId);
+    expect(items).toHaveLength(0);
+  });
+});
