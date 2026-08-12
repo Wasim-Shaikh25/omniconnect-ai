@@ -24,6 +24,9 @@ All notable changes to **OmniConnect AI** are documented here.
   - Updated `/settings/billing`, `/pricing`, `/admin/coupons`, `/admin/payments`, and help copy to reference Razorpay.
   - All quality gates pass: `lint`, `typecheck`, `400` unit tests, `build` + `build:worker`, `npm audit`.
 
+- **CI workflow fix** on `devin/20260812-razorpay-ci-fix`:
+  - Replaced `STRIPE_*` test secrets with `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` and added `METRICS_TOKEN` so the `quality` job's smoke test can start the standalone Next.js server.
+
 - `REQ-0100` **Close remaining production-readiness audit gaps (M3, M4, N1 follow-up)** on `devin/close-audit-m3-m4-ssrf-1786253811`:
   - Added `@@unique([userId, name])` constraints to `Project` and `Workspace` and the `add_project_workspace_name_uniqueness` migration. `PrismaStoreRepository.create()` and `ensureWorkspace()` catch `P2002` and surface a deterministic `StoreNameExistsError` or reuse the existing workspace instead of relying on a check-then-insert pre-check.
   - Replaced the unbounded `message.findMany` in `MessageRepository.listLatestByConversationIds()` with a PostgreSQL `DISTINCT ON` raw query and explicit `LIMIT`, using the existing `Message(conversationId, createdAt DESC)` index.
