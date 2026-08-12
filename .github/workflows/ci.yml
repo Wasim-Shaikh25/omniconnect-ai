@@ -50,9 +50,9 @@ jobs:
       SMTP_USER: ci@example.com
       SMTP_FROM: ci@example.com
       META_APP_ID: ci-test
-      STRIPE_PUBLISHABLE_KEY: pk_test_ci
-      STRIPE_PRICE_STARTER: price_ci_starter
-      STRIPE_PRICE_PRO: price_ci_pro
+      RAZORPAY_KEY_ID: ci_test_key
+      RAZORPAY_PLAN_PRO: plan_ci_pro
+      RAZORPAY_PLAN_BUSINESS: plan_ci_business
       SUPER_ADMIN_EMAIL: admin@example.com
 
     steps:
@@ -74,8 +74,8 @@ jobs:
           secret_env OPENROUTER_API_KEY "sk-or-v1-$(openssl rand -hex 32)"
           secret_env META_APP_SECRET "$(openssl rand -hex 32)"
           secret_env META_WEBHOOK_VERIFY_TOKEN "$(openssl rand -hex 32)"
-          secret_env STRIPE_SECRET_KEY "sk_test_$(openssl rand -hex 24)"
-          secret_env STRIPE_WEBHOOK_SECRET "whsec_$(openssl rand -hex 32)"
+          secret_env RAZORPAY_KEY_SECRET "$(openssl rand -hex 32)"
+          secret_env RAZORPAY_WEBHOOK_SECRET "$(openssl rand -hex 32)"
           secret_env SHOPIFY_API_KEY "ci-placeholder-key-$(openssl rand -hex 16)"
           secret_env SHOPIFY_API_SECRET "$(openssl rand -hex 32)"
           secret_env SUPER_ADMIN_PASSWORD "$(openssl rand -hex 32)"
