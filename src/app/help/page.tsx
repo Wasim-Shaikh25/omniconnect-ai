@@ -36,17 +36,17 @@ const helpSections: HelpSection[] = [
   },
   {
     title: "Pricing and plans",
-    keywords: ["price", "plan", "billing", "subscription", "upgrade", "stripe", "free", "starter", "pro"],
+    keywords: ["price", "plan", "billing", "subscription", "upgrade", "razorpay", "free", "pro", "business"],
     content: (
       <>
         <p className="mb-2">We offer three simple plans:</p>
         <ul className="ml-5 list-disc space-y-1">
           <li><strong>Free — $0:</strong> 1 store, 1 Meta account, 50 AI replies/month, basic analytics.</li>
-          <li><strong>Starter — $4.99/mo:</strong> up to 3 stores, unlimited Meta accounts, 500 AI replies/month, advanced analytics, DM automation, competitor tracking, and AI content ideas.</li>
-          <li><strong>Pro — $9.99/mo:</strong> unlimited stores and AI replies, competitor benchmarking, brand-deal pipeline, team seats, priority support, and custom AI tuning.</li>
+          <li><strong>Pro — $4.99/mo:</strong> up to 3 stores, unlimited Meta accounts, 500 AI replies/month, advanced analytics, DM automation, competitor tracking, and AI content ideas.</li>
+          <li><strong>Business — $9.99/mo:</strong> unlimited stores and AI replies, competitor benchmarking, brand-deal pipeline, team seats, priority support, and custom AI tuning.</li>
         </ul>
         <p className="mt-2">
-          Upgrade from <strong>Settings → Billing</strong>. Payments are processed securely by Stripe.
+          Upgrade from <strong>Settings → Billing</strong>. Payments are processed securely by Razorpay.
           You can cancel at any time.
         </p>
       </>
@@ -251,7 +251,7 @@ const helpSections: HelpSection[] = [
           customer consent settings before sending profile data to the configured OpenRouter model.
         </p>
         <p>
-          Webhook endpoints verify Meta HMAC signatures and Stripe webhook signatures. All mutating
+          Webhook endpoints verify Meta HMAC signatures and Razorpay webhook signatures. All mutating
           server actions are scoped by organization via the tenant guard.
         </p>
       </>
@@ -269,7 +269,7 @@ const helpSections: HelpSection[] = [
           <li>Run <code>npx prisma migrate deploy</code> to apply database migrations.</li>
           <li>Build the Next.js app with <code>npm run build</code>.</li>
           <li>Start the web server and the BullMQ worker.</li>
-          <li>Register production webhook URLs in Meta and Stripe dashboards.</li>
+          <li>Register production webhook URLs in Meta and Razorpay dashboards.</li>
         </ol>
         <p className="mt-2">
           See <code>docs/deployment.md</code> and <code>README.md</code> in the repository for the full guide.
@@ -288,7 +288,7 @@ const helpSections: HelpSection[] = [
           <li><strong>AI not replying:</strong> check that the conversation is in AI_ACTIVE mode and the AI settings are saved.</li>
           <li><strong>Simulated events not appearing:</strong> confirm the correct store is selected and refresh the target page.</li>
           <li><strong>Meta webhooks failing:</strong> verify the webhook URL and token in your Meta app dashboard.</li>
-          <li><strong>Checkout not working:</strong> confirm Stripe keys and price IDs are set in your environment.</li>
+          <li><strong>Checkout not working:</strong> confirm Razorpay keys and plan IDs are set in your environment.</li>
           <li><strong>Build errors after schema changes:</strong> run <code>npx prisma generate</code> to refresh the Prisma client.</li>
         </ul>
       </>
@@ -296,13 +296,13 @@ const helpSections: HelpSection[] = [
   },
   {
     title: "Billing and SaaS coupons",
-    keywords: ["billing", "coupon", "discount", "stripe", "checkout", "upgrade", "plan", "promo"],
+    keywords: ["billing", "coupon", "discount", "razorpay", "checkout", "upgrade", "plan", "promo"],
     content: (
       <>
         <p className="mb-2">
-          Upgrade or downgrade from <strong>Settings → Billing</strong>. Choose Free, Starter, or
-          Pro. If you have a coupon code, enter it before choosing a plan; the discount is applied
-          at Stripe Checkout.
+          Upgrade or downgrade from <strong>Settings → Billing</strong>. Choose Free, Pro, or
+          Business. If you have a coupon code, enter it before choosing a plan; the discount is applied
+          at Razorpay Checkout.
         </p>
         <p>
           Coupons are percentage discounts and may be limited to specific plans, a maximum number of

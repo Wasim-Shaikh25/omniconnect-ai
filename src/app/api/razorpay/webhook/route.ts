@@ -8,10 +8,10 @@ import {
 export async function POST(request: Request) {
   try {
     if (!billingService) {
-      return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
+      return NextResponse.json({ error: "Razorpay not configured" }, { status: 503 });
     }
 
-    const signature = request.headers.get("stripe-signature");
+    const signature = request.headers.get("x-razorpay-signature");
     if (!signature) {
       return NextResponse.json({ error: "Missing signature" }, { status: 400 });
     }

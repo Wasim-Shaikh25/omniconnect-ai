@@ -78,19 +78,19 @@ export default async function BillingPage({
   const storeCount = overview?.stores.length ?? 0;
 
   let invoices: InvoiceRecord[] = [];
-  if (overview?.stripeCustomerId && billingService) {
+  if (overview?.paymentCustomerId && billingService) {
     try {
-      invoices = await billingService.listInvoices(overview.stripeCustomerId);
+      invoices = await billingService.listInvoices(overview.paymentCustomerId);
     } catch {
       invoices = [];
     }
   }
 
-  const stripeConfigured = Boolean(
-    env.STRIPE_SECRET_KEY &&
-      env.STRIPE_PUBLISHABLE_KEY &&
-      env.STRIPE_PRICE_STARTER &&
-      env.STRIPE_PRICE_PRO,
+  const razorpayConfigured = Boolean(
+    env.RAZORPAY_KEY_ID &&
+      env.RAZORPAY_KEY_SECRET &&
+      env.RAZORPAY_PLAN_PRO &&
+      env.RAZORPAY_PLAN_BUSINESS,
   );
 
   return (
@@ -111,7 +111,7 @@ export default async function BillingPage({
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertTitle className="text-green-600">Payment successful</AlertTitle>
             <AlertDescription className="text-green-600">
-              Your plan will update shortly once Stripe confirms the subscription.
+              Your plan will update shortly once Razorpay confirms the subscription.
             </AlertDescription>
           </Alert>
         )}
@@ -144,7 +144,7 @@ export default async function BillingPage({
               ? `Subscription status: ${overview.subscriptionStatus}`
               : "No active subscription. Upgrade below to unlock more features."}
           </p>
-          <ManageSubscriptionButton disabled={!overview?.stripeCustomerId || !stripeConfigured} />
+          <ManageSubscriptionButton disabled={!overview?.paymentCustomerId || !razorpayConfigured} />
         </CardContent>
       </Card>
 
@@ -178,12 +178,12 @@ export default async function BillingPage({
         </Card>
       )}
 
-      {!stripeConfigured && (
+      {!razorpayConfigured && (
         <Alert variant="destructive">
           <AlertTitle>Payments not configured</AlertTitle>
           <AlertDescription>
-            Stripe keys are missing. Add STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY,
-            STRIPE_PRICE_STARTER, and STRIPE_PRICE_PRO to your environment to enable upgrades.
+            Razorpay keys are missing. Add RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET,
+            RAZORPAY_PLAN_PRO, and RAZORPAY_PLAN_BUSINESS to your environment to enable upgrades.
           </AlertDescription>
         </Alert>
       )}

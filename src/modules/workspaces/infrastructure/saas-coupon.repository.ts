@@ -12,8 +12,6 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
     maxUses?: number | null;
     expiresAt?: Date | null;
     appliesTo: string[];
-    stripeCouponId?: string | null;
-    stripePromotionCodeId?: string | null;
     createdBy: string;
   }): Promise<SaaSCouponRecord> {
     const coupon = await prisma.saaSCoupon.create({
@@ -24,8 +22,6 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
         maxUses: input.maxUses,
         expiresAt: input.expiresAt,
         appliesTo: input.appliesTo,
-        stripeCouponId: input.stripeCouponId ?? null,
-        stripePromotionCodeId: input.stripePromotionCodeId ?? null,
         createdBy: input.createdBy,
       },
     });
@@ -85,8 +81,6 @@ export class PrismaSaaSCouponRepository implements SaaSCouponRepository {
     expiresAt: Date | null;
     appliesTo: string[];
     isActive: boolean;
-    stripeCouponId: string | null;
-    stripePromotionCodeId: string | null;
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;

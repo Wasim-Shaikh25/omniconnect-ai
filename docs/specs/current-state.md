@@ -79,7 +79,7 @@ It is **not** a customer-facing storefront, a Shopify/e-commerce admin replaceme
 | Cache / Queue / Pub-Sub | Redis (BullMQ, ioredis) |
 | Auth | NextAuth.js v5 (Auth.js), JWT sessions, bcrypt, token version invalidation |
 | AI | OpenRouter gateway via `AIProvider` interface (`OpenRouterProvider`; model routing centralized) |
-| Payments | Stripe subscriptions + promotion codes |
+| Payments | Razorpay subscriptions + local SaaS coupons |
 | E-commerce | Shopify Admin REST API (live) + webhooks for catalog/orders/abandoned cart + Mock connector (dev) |
 | Meta | Meta Graph API + Instagram webhooks (HMAC-SHA256 verified), Meta Login OAuth flow for Instagram/Facebook connection (`/api/meta/auth` + `/api/meta/callback`; state signed with `NEXTAUTH_SECRET`, redirect URL resolved from the validated `env.APP_URL`, and token exchange uses `URLSearchParams` form bodies) |
 | Observability | JSON logger, `SystemLog`, Sentry, OpenTelemetry. `src/instrumentation.ts` initialises Sentry/OpenTelemetry in every runtime (`nodejs` and `edge`) and patches `http`/`https` `Server.prototype.emit` in Node so `http.request` log entries are captured even when the framework creates the server before the `instrumentation.ts` `register()` hook runs; request metrics are batched into `SystemLog.metadata.requests` arrays and flushed every 5 s/500 requests to bound per-request DB writes; the logged `path` is the URL pathname only (no query strings), e-mails, UUIDs, and high-entropy token-like path segments are redacted, and static assets are excluded. `onRequestError` logs request errors via `http.error`. Shopify and Meta webhook routes write `shopify.webhook.*` / `meta.webhook.*` `SystemLog` entries so `/admin/ops` webhook health cards reflect real traffic. `/admin/ops` renders an operations dashboard with request/error rate, p95/mean latency, queue depth, and webhook health |
@@ -129,7 +129,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - `SystemLog` / `AuditLog` — structured operational and security-relevant logs.
 - `PlanConfig` — optional per-plan feature-limit overrides; `planConfigService.resolveLimits(plan)` falls back to the hardcoded `PLAN_LIMITS` when no override exists.
 - `AttributionLink` — checkout URL with coupon auto-apply, UTM tags, short code, clicks, conversions, and attributed revenue; linked to `Project` and `Coupon`.
-- `ProcessedWebhookEvent` — provider-scoped idempotency ledger for Stripe, Shopify, and Meta webhooks; pruned after 30 days.
+- `ProcessedWebhookEvent` — provider-scoped idempotency ledger for Razorpay, Shopify, and Meta webhooks; pruned after 30 days.
 - `ExportRequest` — GDPR data-export jobs.
 
 ---
@@ -242,7 +242,7 @@ Core tables (see `prisma/schema.prisma` for full model):
    - `createAttributionLinkAction` blocks new links beyond `maxAttributionLinksPerMonth` for the current project.
    - Intelligence features are gated by `canUseIntelligenceFeature(plan, feature)` in `intelligence/domain/access.ts`: Free users see `dailyBrief` only; Pro users get `marketingBrain`, `nextBestAction`, `signalDetection`, `hypotheses`, and `businessLearnings`; Business adds `predictions`. The gate is enforced in `intelligence` read/mutating server actions, `askBusinessBrainAction`, and the `business-brain` and `daily-marketing` pages.
 5. `PlanConfig` lets super admins override `PLAN_LIMITS` per plan from `/admin/plans`; `planConfigService.resolveLimits(plan)` merges stored overrides and falls back to defaults so existing behavior is preserved when no row exists.
-6. `/settings/billing` displays the current plan, a `PLAN_LIMITS` matrix with store usage progress, and `PricingCards` for upgrades. Stripe checkout and webhook lifecycle remain in `api/stripe/*` and `billingService`; `/admin/payments` lists paid invoices across organizations and lets super admins issue refunds through `BillingService.refundPayment`.
+6. `/settings/billing` displays the current plan, a `PLAN_LIMITS` matrix with store usage progress, and `PricingCards` for upgrades. Razorpay checkout and webhook lifecycle live in `api/razorpay/*` and `billingService`; `/admin/payments` lists paid invoices across organizations and lets super admins issue refunds through `BillingService.refundPayment`.
 7. The adapter library at `/admin/adapters` lists every `EcommerceConnection` with provider, project, status, last sync, and actions to approve/flag or validate the live connection.
 
 ---
@@ -291,13 +291,13 @@ Core tables (see `prisma/schema.prisma` for full model):
   OpenRouter; `generateReply` withholds flagged output, logs the categories (not the text),
   writes an audit log without PII, and escalates to a human before any Meta send.
 
-### Stripe
-- Checkout sessions for plan upgrades at `/api/stripe/checkout`; webhook fulfillment at `/api/stripe/webhook` updates `User` plan, `subscriptionId`, `subscriptionStatus`, and `stripeCustomerId`.
-- Webhook handlers: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`.
-- Subscription lifecycle derives the plan from the active `price.id` via `planFromPriceId`; `past_due` retains the current plan, while `canceled`/`unpaid`/`incomplete_expired` drops entitlement to `FREE`.
-- Customer portal at `/api/stripe/portal` and invoice list at `/api/stripe/invoices` (and server-side via `billingService.listInvoices`) let users manage payment methods and view paid invoices.
-- Stripe client pinned to `2024-09-30.acacia` API version.
-- SaaS promotion codes (`SaaSCoupon`) validated at checkout.
+### Razorpay
+- Checkout sessions for plan upgrades at `/api/razorpay/checkout` create a Razorpay subscription from a configured `plan_id` and return a `short_url` for the customer to authorize payment.
+- Webhook fulfillment at `/api/razorpay/webhook` verifies the `x-razorpay-signature` and updates `User` `plan`, `subscriptionId`, `subscriptionStatus`, and `paymentCustomerId`.
+- Handled webhook events: `subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`, `payment.failed`.
+- Subscription lifecycle derives the plan from `plan_id` via `planFromPlanId`; `past_due` retains the current plan, while `cancelled`/`completed` drops entitlement to `FREE`.
+- Customer management at `/api/razorpay/portal` links to the Razorpay dashboard; invoice list at `/api/razorpay/invoices` (and server-side via `billingService.listInvoices`) lets users view paid invoices.
+- SaaS coupons are validated locally at checkout and usage is tracked through `subscription.activated`; they are no longer synced to a payment-provider promotion-code system.
 
 ---
 
@@ -342,7 +342,7 @@ Core tables (see `prisma/schema.prisma` for full model):
 - Email verification at signup: credential users are created with `emailVerified: null`, receive a
   24-hour hashed token by email, and consume it at `/verify-email`. `authorize` returns a
   distinguishable `unverifiedEmail` code with a resend affordance; resends are rate-limited to
-  3/hour/address. `requireVerifiedEmail()` gates AI generation, store creation, and Stripe checkout.
+  3/hour/address. `requireVerifiedEmail()` gates AI generation, store creation, and Razorpay checkout.
 - Password and email self-service (`REQ-0070` Package D): `/settings/account` exposes forms to
   change password and request an email change. Password change requires the current password and is
   rate-limited; it bumps `tokenVersion` and re-issues the current session's JWT. Email change sends
@@ -381,7 +381,7 @@ audit pass were resolved by `REQ-0093`:
 | **C1** `trustHost` / open-redirect | ✅ Verified | `AUTH_TRUST_HOST` env var; `redirect` callback enforces `APP_URL` same-origin. |
 | **C2** Double-dispatch event bus | ✅ Verified | `QueueEventBus` + BullMQ `jobId` dedup; `RedisEventBus` no longer self-dispatches. |
 | **H1** Startup resilience | ✅ Verified | `ensureSuperAdmin` wrapped in `try/catch`; boot cannot fail. |
-| **H2/H3** Stripe webhook idempotency + past_due | ✅ Verified | `ProcessedWebhookEvent` ledger; Stripe fulfillment in single transaction; `past_due` retains plan. |
+| **H2/H3** Razorpay webhook idempotency + past_due | ✅ Verified | `ProcessedWebhookEvent` ledger; Razorpay fulfillment in single transaction; `past_due` retains plan. |
 | **H4** Export auth bypass | ✅ Verified | `getCurrentUser()` + `tokenVersion` check + rate limit + `no-store, private` headers. |
 | **H5** Project soft-delete | ✅ Verified | `archivedAt`/`deletedAt` on `Project`; queries filter `deletedAt: null`. |
 | **H6** DLQ / event delivery | ✅ Verified | `QueueEventBus` with BullMQ retries, DLQ, `jobId` dedup; `/api/metrics` gauge. |

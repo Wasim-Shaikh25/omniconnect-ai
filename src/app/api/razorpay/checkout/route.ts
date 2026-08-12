@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     const limit = await rateLimit({
-      key: `stripe-checkout:${user.id}:${clientIp(request.headers)}`,
+      key: `razorpay-checkout:${user.id}:${clientIp(request.headers)}`,
       limit: 10,
       windowMs: 60_000,
     });
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     }
     if (!billingService) {
       return NextResponse.json(
-        { error: "Stripe is not configured" },
+        { error: "Razorpay is not configured" },
         { status: 503 },
       );
     }
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    let promotionCodeId: string | undefined;
     let couponCode: string | undefined;
     if (body.couponCode) {
       couponCode = body.couponCode.trim().toUpperCase();
@@ -44,13 +43,6 @@ export async function POST(request: Request) {
       if (!couponResult.ok) {
         return NextResponse.json({ error: couponResult.error.message }, { status: 400 });
       }
-      if (!couponResult.value.stripePromotionCodeId) {
-        return NextResponse.json(
-          { error: "Coupon is not linked to a Stripe promotion code" },
-          { status: 400 },
-        );
-      }
-      promotionCodeId = couponResult.value.stripePromotionCodeId;
     }
 
     const appUrl = env.APP_URL ?? "http://localhost:3000";
@@ -59,7 +51,6 @@ export async function POST(request: Request) {
       plan: body.plan,
       successUrl: `${appUrl}/settings/billing?success=1`,
       cancelUrl: `${appUrl}/settings/billing?canceled=1`,
-      promotionCodeId,
       couponCode,
     });
     if (!url) {
@@ -78,8 +69,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     const message = error instanceof Error ? error.message : "Checkout failed";
-    logSystemError("stripe.checkout", error instanceof Error ? error : new Error(message), {
-      metadata: { path: "/api/stripe/checkout" },
+    logSystemError("razorpay.checkout", error instanceof Error ? error : new Error(message), {
+      metadata: { path: "/api/razorpay/checkout" },
     });
     return NextResponse.json({ error: message }, { status: 500 });
   }

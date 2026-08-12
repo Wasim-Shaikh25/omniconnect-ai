@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, beforeEach } from "vitest";
 import type { Prisma } from "@prisma/client";
-import Stripe from "stripe";
 import { env } from "@/shared/config/env";
 import { Plan } from "../domain/plan";
 import type { OrganizationRepository, OrganizationRecord } from "./ports";
@@ -11,8 +10,30 @@ import { makeBillingService, type BillingService, BillingSignatureError } from "
 import type { CheckoutSessionInput, PaymentGateway, InvoiceRecord, RefundInput, RefundResult } from "./payment-gateway";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 
-const STARTER_PRICE = "price_1_starter";
-const PRO_PRICE = "price_1_pro";
+const RAZORPAY_PLAN_PRO = "plan_pro_test";
+const RAZORPAY_PLAN_BUSINESS = "plan_business_test";
+
+interface RazorpayWebhookPayload {
+  entity: "event";
+  event: string;
+  id?: string;
+  payload: {
+    subscription?: {
+      id: string;
+      status: string;
+      plan_id: string;
+      customer_id: string | null;
+      notes?: Record<string, string>;
+      remaining_count: string | number;
+    };
+    payment?: {
+      id: string;
+      status: string;
+      invoice_id: string | null;
+      subscription_id?: string | null;
+    };
+  };
+}
 
 class FakeOrganizationRepository implements OrganizationRepository {
   private orgs = new Map<string, OrganizationRecord>();
@@ -24,7 +45,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
       plan: Plan.FREE,
       subscriptionId: null,
       subscriptionStatus: null,
-      stripeCustomerId: null,
+      paymentCustomerId: null,
       createdAt: new Date(),
     };
     this.orgs.set(record.id, record);
@@ -58,7 +79,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
 
   async updatePlan(
     id: string,
-    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; stripeCustomerId?: string | null },
+    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; paymentCustomerId?: string | null },
     _tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
     const org = this.orgs.get(id);
@@ -66,7 +87,7 @@ class FakeOrganizationRepository implements OrganizationRepository {
     org.plan = input.plan;
     if (input.subscriptionId !== undefined) org.subscriptionId = input.subscriptionId ?? null;
     if (input.subscriptionStatus !== undefined) org.subscriptionStatus = input.subscriptionStatus ?? null;
-    if (input.stripeCustomerId !== undefined) org.stripeCustomerId = input.stripeCustomerId ?? null;
+    if (input.paymentCustomerId !== undefined) org.paymentCustomerId = input.paymentCustomerId ?? null;
     return org;
   }
 
@@ -94,8 +115,6 @@ class FakeSaaSCouponRepository implements SaaSCouponRepository {
     createdBy: string;
     label?: string | undefined;
     expiresAt?: Date | null | undefined;
-    stripeCouponId?: string | null | undefined;
-    stripePromotionCodeId?: string | null | undefined;
   }) {
     const id = `coupon_${this.coupons.size + 1}`;
     const coupon: SaaSCouponRecord = {
@@ -108,8 +127,6 @@ class FakeSaaSCouponRepository implements SaaSCouponRepository {
       expiresAt: input.expiresAt ?? null,
       appliesTo: input.appliesTo,
       isActive: true,
-      stripeCouponId: input.stripeCouponId ?? null,
-      stripePromotionCodeId: input.stripePromotionCodeId ?? null,
       createdBy: input.createdBy,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -149,8 +166,6 @@ class FakeSaaSCouponRepository implements SaaSCouponRepository {
       expiresAt: null,
       appliesTo: [],
       isActive: true,
-      stripeCouponId: null,
-      stripePromotionCodeId: null,
       createdBy: "system",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -185,10 +200,10 @@ class FakeProcessedEventsRepository implements ProcessedEventsRepository {
 }
 
 class FakePaymentGateway implements PaymentGateway {
-  private events: Stripe.Event[] = [];
+  private events: RazorpayWebhookPayload[] = [];
   private shouldThrowSignature = false;
 
-  queue(event: Stripe.Event): void {
+  queue(event: RazorpayWebhookPayload): void {
     this.events.push(event);
   }
 
@@ -198,19 +213,17 @@ class FakePaymentGateway implements PaymentGateway {
 
   constructWebhookEvent(_payload: string | Buffer, _signature: string, _secret: string): unknown {
     if (this.shouldThrowSignature) {
-      const err = Object.create(Stripe.errors.StripeSignatureVerificationError.prototype) as Error;
-      err.message = "Invalid signature";
-      throw err;
+      throw new Error("Invalid signature");
     }
     return this.events.shift();
   }
 
   createCheckoutSession(_input: CheckoutSessionInput): Promise<{ url: string | null }> {
-    return Promise.resolve({ url: "https://checkout.stripe.com/test" });
+    return Promise.resolve({ url: "https://checkout.razorpay.com/test" });
   }
 
   createPortalSession(_input: { customerId: string; returnUrl: string }): Promise<{ url: string | null }> {
-    return Promise.resolve({ url: "https://billing.stripe.com/test" });
+    return Promise.resolve({ url: "https://dashboard.razorpay.com/test" });
   }
 
   listInvoices(_customerId: string): Promise<InvoiceRecord[]> {
@@ -218,81 +231,158 @@ class FakePaymentGateway implements PaymentGateway {
   }
 
   createRefund(_input: RefundInput): Promise<RefundResult> {
-    return Promise.resolve({ refundId: "ref_1", amount: _input.amount ?? 1000, status: "succeeded" });
+    return Promise.resolve({ refundId: "ref_1", amount: _input.amount ?? 1000, status: "processed" });
   }
 }
 
-function makeStripeEvent<T extends string>(id: string, type: T, object: unknown): Stripe.Event {
-  return {
-    id,
-    type,
-    data: { object },
-  } as unknown as Stripe.Event;
-}
-
-function makeCheckoutSessionEvent({
+function makeSubscriptionActivatedEvent({
   id,
-  sessionId,
+  subscriptionId,
   userId,
-  plan,
+  planId,
   couponCode,
+  customerId = null,
 }: {
   id: string;
-  sessionId: string;
+  subscriptionId: string;
   userId: string;
-  plan: Plan;
+  planId: string;
   couponCode?: string;
-}): Stripe.Event {
-  return makeStripeEvent(id, "checkout.session.completed", {
-    id: sessionId,
-    payment_status: "paid",
-    status: "complete",
-    client_reference_id: userId,
-    metadata: {
-      userId,
-      plan,
-      couponCode: couponCode ?? "",
+  customerId?: string | null;
+}): RazorpayWebhookPayload {
+  return {
+    entity: "event",
+    event: "subscription.activated",
+    id,
+    payload: {
+      subscription: {
+        id: subscriptionId,
+        status: "active",
+        plan_id: planId,
+        customer_id: customerId,
+        notes: {
+          userId,
+          plan: planFromPlanId(planId) ?? Plan.FREE,
+          ...(couponCode ? { couponCode } : {}),
+        },
+        remaining_count: 12,
+      },
     },
-    subscription: "sub_1",
-  });
+  };
 }
 
-function makeSubscriptionEvent({
+function makeSubscriptionChargedEvent({
   id,
   subscriptionId,
-  userId,
-  priceId,
-  status,
+  planId,
+  customerId = null,
 }: {
   id: string;
   subscriptionId: string;
-  userId: string;
-  priceId: string;
-  status: Stripe.Subscription.Status;
-}): Stripe.Event {
-  return makeStripeEvent(id, "customer.subscription.updated", {
-    id: subscriptionId,
-    status,
-    metadata: { userId },
-    items: {
-      data: [{ price: { id: priceId } }],
+  planId: string;
+  customerId?: string | null;
+}): RazorpayWebhookPayload {
+  return {
+    entity: "event",
+    event: "subscription.charged",
+    id,
+    payload: {
+      subscription: {
+        id: subscriptionId,
+        status: "active",
+        plan_id: planId,
+        customer_id: customerId,
+        notes: {},
+        remaining_count: 11,
+      },
     },
-  });
+  };
 }
 
-function makeInvoicePaidEvent({
+function makeSubscriptionHaltedEvent({
   id,
-  invoiceId,
+  subscriptionId,
+  planId,
+  customerId = null,
+}: {
+  id: string;
+  subscriptionId: string;
+  planId: string;
+  customerId?: string | null;
+}): RazorpayWebhookPayload {
+  return {
+    entity: "event",
+    event: "subscription.halted",
+    id,
+    payload: {
+      subscription: {
+        id: subscriptionId,
+        status: "halted",
+        plan_id: planId,
+        customer_id: customerId,
+        notes: {},
+        remaining_count: 0,
+      },
+    },
+  };
+}
+
+function makeSubscriptionCancelledEvent({
+  id,
+  subscriptionId,
+  planId,
+  customerId = null,
+}: {
+  id: string;
+  subscriptionId: string;
+  planId: string;
+  customerId?: string | null;
+}): RazorpayWebhookPayload {
+  return {
+    entity: "event",
+    event: "subscription.cancelled",
+    id,
+    payload: {
+      subscription: {
+        id: subscriptionId,
+        status: "cancelled",
+        plan_id: planId,
+        customer_id: customerId,
+        notes: {},
+        remaining_count: 0,
+      },
+    },
+  };
+}
+
+function makePaymentFailedEvent({
+  id,
+  paymentId,
   subscriptionId,
 }: {
   id: string;
-  invoiceId: string;
+  paymentId: string;
   subscriptionId: string;
-}): Stripe.Event {
-  return makeStripeEvent(id, "invoice.paid", {
-    id: invoiceId,
-    subscription: subscriptionId,
-  });
+}): RazorpayWebhookPayload {
+  return {
+    entity: "event",
+    event: "payment.failed",
+    id,
+    payload: {
+      payment: {
+        id: paymentId,
+        status: "failed",
+        invoice_id: null,
+        subscription_id: subscriptionId,
+      },
+    },
+  };
+}
+
+function planFromPlanId(planId: string): Plan | null {
+  if (planId === RAZORPAY_PLAN_BUSINESS) return Plan.BUSINESS;
+  if (planId === RAZORPAY_PLAN_PRO) return Plan.PRO;
+  return null;
 }
 
 interface Context {
@@ -313,9 +403,9 @@ function makeContext(): Context {
 }
 
 function setupEnv(): void {
-  (env as { STRIPE_WEBHOOK_SECRET?: string }).STRIPE_WEBHOOK_SECRET = "whsec_test_secret";
-  (env as { STRIPE_PRICE_STARTER?: string }).STRIPE_PRICE_STARTER = STARTER_PRICE;
-  (env as { STRIPE_PRICE_PRO?: string }).STRIPE_PRICE_PRO = PRO_PRICE;
+  (env as { RAZORPAY_WEBHOOK_SECRET?: string }).RAZORPAY_WEBHOOK_SECRET = "whsec_test_secret";
+  (env as { RAZORPAY_PLAN_PRO?: string }).RAZORPAY_PLAN_PRO = RAZORPAY_PLAN_PRO;
+  (env as { RAZORPAY_PLAN_BUSINESS?: string }).RAZORPAY_PLAN_BUSINESS = RAZORPAY_PLAN_BUSINESS;
 }
 
 describe("billing service", () => {
@@ -324,15 +414,15 @@ describe("billing service", () => {
   });
 
   describe("idempotency", () => {
-    it("fulfills a checkout session and records the event", async () => {
+    it("fulfills a subscription.activated event and records the event", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       ctx.paymentGateway.queue(
-        makeCheckoutSessionEvent({
+        makeSubscriptionActivatedEvent({
           id: "evt_1",
-          sessionId: "cs_1",
+          subscriptionId: "sub_1",
           userId: org.id,
-          plan: Plan.PRO,
+          planId: RAZORPAY_PLAN_PRO,
         }),
       );
 
@@ -340,17 +430,17 @@ describe("billing service", () => {
 
       const updated = await ctx.organizations.findById(org.id);
       expect(updated?.plan).toBe(Plan.PRO);
-      expect(ctx.processedEvents.has({ id: "evt_1", provider: "stripe", type: "checkout.session.completed" })).toBe(true);
+      expect(ctx.processedEvents.has({ id: "evt_1", provider: "razorpay", type: "subscription.activated" })).toBe(true);
     });
 
-    it("does not fulfill a duplicate Stripe event", async () => {
+    it("does not fulfill a duplicate Razorpay event", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
-      const event = makeCheckoutSessionEvent({
+      const event = makeSubscriptionActivatedEvent({
         id: "evt_dup",
-        sessionId: "cs_1",
+        subscriptionId: "sub_1",
         userId: org.id,
-        plan: Plan.PRO,
+        planId: RAZORPAY_PLAN_PRO,
       });
       ctx.paymentGateway.queue(event);
       await ctx.billing.fulfillCheckout("payload", "sig");
@@ -359,18 +449,18 @@ describe("billing service", () => {
 
       const updated = await ctx.organizations.findById(org.id);
       expect(updated?.plan).toBe(Plan.PRO);
-      expect(ctx.processedEvents.has({ id: "evt_dup", provider: "stripe", type: "checkout.session.completed" })).toBe(true);
+      expect(ctx.processedEvents.has({ id: "evt_dup", provider: "razorpay", type: "subscription.activated" })).toBe(true);
     });
 
-    it("only increments coupon usage once for a duplicate checkout", async () => {
+    it("only increments coupon usage once for a duplicate activation", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       ctx.coupons.seed("WELCOME", 10);
-      const event = makeCheckoutSessionEvent({
+      const event = makeSubscriptionActivatedEvent({
         id: "evt_coupon",
-        sessionId: "cs_1",
+        subscriptionId: "sub_1",
         userId: org.id,
-        plan: Plan.BUSINESS,
+        planId: RAZORPAY_PLAN_BUSINESS,
         couponCode: "WELCOME",
       });
       ctx.paymentGateway.queue(event);
@@ -383,22 +473,16 @@ describe("billing service", () => {
   });
 
   describe("subscription lifecycle", () => {
-    it("downgrades a Pro org to Starter when the subscription price changes to Starter", async () => {
+    it("upgrades an org to Pro on subscription.activated", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
-      await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.BUSINESS,
-        subscriptionId: "sub_change",
-        subscriptionStatus: "active",
-      });
-
       ctx.paymentGateway.queue(
-        makeSubscriptionEvent({
-          id: "evt_sub_change",
-          subscriptionId: "sub_change",
+        makeSubscriptionActivatedEvent({
+          id: "evt_upgrade",
+          subscriptionId: "sub_upgrade",
           userId: org.id,
-          priceId: STARTER_PRICE,
-          status: "active",
+          planId: RAZORPAY_PLAN_PRO,
+          customerId: "cust_1",
         }),
       );
 
@@ -407,9 +491,34 @@ describe("billing service", () => {
       const updated = await ctx.organizations.findById(org.id);
       expect(updated?.plan).toBe(Plan.PRO);
       expect(updated?.subscriptionStatus).toBe("active");
+      expect(updated?.paymentCustomerId).toBe("cust_1");
     });
 
-    it("retains the current plan when the subscription is past_due", async () => {
+    it("remains active on subscription.charged while preserving the plan", async () => {
+      const ctx = makeContext();
+      const org = await ctx.organizations.create({ name: "Test Org" });
+      await ctx.organizations.updatePlan(org.id, {
+        plan: Plan.BUSINESS,
+        subscriptionId: "sub_renew",
+        subscriptionStatus: "active",
+      });
+
+      ctx.paymentGateway.queue(
+        makeSubscriptionChargedEvent({
+          id: "evt_renew",
+          subscriptionId: "sub_renew",
+          planId: RAZORPAY_PLAN_BUSINESS,
+        }),
+      );
+
+      await ctx.billing.fulfillCheckout("payload", "sig");
+
+      const updated = await ctx.organizations.findById(org.id);
+      expect(updated?.plan).toBe(Plan.BUSINESS);
+      expect(updated?.subscriptionStatus).toBe("active");
+    });
+
+    it("marks the subscription as past_due on subscription.halted", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
@@ -419,12 +528,10 @@ describe("billing service", () => {
       });
 
       ctx.paymentGateway.queue(
-        makeSubscriptionEvent({
+        makeSubscriptionHaltedEvent({
           id: "evt_pastdue",
           subscriptionId: "sub_pastdue",
-          userId: org.id,
-          priceId: PRO_PRICE,
-          status: "past_due",
+          planId: RAZORPAY_PLAN_BUSINESS,
         }),
       );
 
@@ -435,46 +542,44 @@ describe("billing service", () => {
       expect(updated?.subscriptionStatus).toBe("past_due");
     });
 
-    it("clears past_due to active on invoice.paid while preserving the plan", async () => {
+    it("marks the subscription as past_due on payment.failed", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
-        plan: Plan.BUSINESS,
-        subscriptionId: "sub_recover",
-        subscriptionStatus: "past_due",
+        plan: Plan.PRO,
+        subscriptionId: "sub_payfail",
+        subscriptionStatus: "active",
       });
 
       ctx.paymentGateway.queue(
-        makeInvoicePaidEvent({
-          id: "evt_recover",
-          invoiceId: "in_1",
-          subscriptionId: "sub_recover",
+        makePaymentFailedEvent({
+          id: "evt_payfail",
+          paymentId: "pay_fail",
+          subscriptionId: "sub_payfail",
         }),
       );
 
       await ctx.billing.fulfillCheckout("payload", "sig");
 
       const updated = await ctx.organizations.findById(org.id);
-      expect(updated?.plan).toBe(Plan.BUSINESS);
-      expect(updated?.subscriptionStatus).toBe("active");
+      expect(updated?.plan).toBe(Plan.PRO);
+      expect(updated?.subscriptionStatus).toBe("past_due");
     });
 
-    it("drops entitlement to FREE when the subscription is unpaid", async () => {
+    it("downgrades an org to FREE when the subscription is cancelled", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
         plan: Plan.BUSINESS,
-        subscriptionId: "sub_unpaid",
+        subscriptionId: "sub_cancel",
         subscriptionStatus: "active",
       });
 
       ctx.paymentGateway.queue(
-        makeSubscriptionEvent({
-          id: "evt_unpaid",
-          subscriptionId: "sub_unpaid",
-          userId: org.id,
-          priceId: PRO_PRICE,
-          status: "unpaid",
+        makeSubscriptionCancelledEvent({
+          id: "evt_cancel",
+          subscriptionId: "sub_cancel",
+          planId: RAZORPAY_PLAN_BUSINESS,
         }),
       );
 
@@ -482,10 +587,10 @@ describe("billing service", () => {
 
       const updated = await ctx.organizations.findById(org.id);
       expect(updated?.plan).toBe(Plan.FREE);
-      expect(updated?.subscriptionStatus).toBe("unpaid");
+      expect(updated?.subscriptionStatus).toBe("canceled");
     });
 
-    it("preserves the current plan when the price is unknown", async () => {
+    it("preserves the current plan when the plan id is unknown", async () => {
       const ctx = makeContext();
       const org = await ctx.organizations.create({ name: "Test Org" });
       await ctx.organizations.updatePlan(org.id, {
@@ -495,12 +600,10 @@ describe("billing service", () => {
       });
 
       ctx.paymentGateway.queue(
-        makeSubscriptionEvent({
+        makeSubscriptionChargedEvent({
           id: "evt_unknown",
           subscriptionId: "sub_unknown",
-          userId: org.id,
-          priceId: "price_unknown",
-          status: "active",
+          planId: "plan_unknown",
         }),
       );
 
@@ -513,7 +616,7 @@ describe("billing service", () => {
   });
 
   describe("security", () => {
-    it("rejects a Stripe webhook with an invalid signature (S7)", async () => {
+    it("rejects a Razorpay webhook with an invalid signature", async () => {
       const ctx = makeContext();
       ctx.paymentGateway.throwSignatureError();
 

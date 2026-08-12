@@ -51,7 +51,7 @@ model User {
   plan                    Plan       @default(FREE)
   subscriptionId          String?
   subscriptionStatus      String?
-  stripeCustomerId        String?
+  paymentCustomerId       String?
   aiRepliesThisMonth      Int        @default(0)
   aiRepliesResetAt        DateTime?
   maxWorkspaces           Int        @default(1)  // cached plan limit
@@ -2007,8 +2007,6 @@ model SaaSCoupon {
   expiresAt             DateTime?
   appliesTo             String[]  @default([])
   isActive              Boolean   @default(true)
-  stripeCouponId        String?
-  stripePromotionCodeId String?
   createdBy             String
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

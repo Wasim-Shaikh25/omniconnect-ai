@@ -22,7 +22,7 @@ const PUBLIC_PATHS_PREFIX = [
   "/_next",
   "/share",
   "/api/meta/webhook",
-  "/api/stripe/webhook",
+  "/api/razorpay/webhook",
   "/api/shopify/webhooks",
 ];
 

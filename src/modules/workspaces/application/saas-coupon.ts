@@ -1,7 +1,5 @@
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
-import Stripe from "stripe";
-import { env } from "@/shared/config/env";
 import { logger } from "@/shared/observability/logger";
 import type { PaginationInput, PaginatedResult } from "@/shared/kernel";
 import { Result, ok, err } from "@/shared/kernel";
@@ -16,8 +14,6 @@ export interface SaaSCouponRecord {
   expiresAt: Date | null;
   appliesTo: string[];
   isActive: boolean;
-  stripeCouponId: string | null;
-  stripePromotionCodeId: string | null;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -31,8 +27,6 @@ export interface SaaSCouponRepository {
     maxUses?: number | null;
     expiresAt?: Date | null;
     appliesTo: string[];
-    stripeCouponId?: string | null;
-    stripePromotionCodeId?: string | null;
     createdBy: string;
   }): Promise<SaaSCouponRecord>;
   findByCode(code: string, tx?: Prisma.TransactionClient): Promise<SaaSCouponRecord | null>;
@@ -51,7 +45,7 @@ export const createSaaSCouponSchema = z.object({
   discountPct: z.coerce.number().int().min(1).max(100),
   maxUses: z.coerce.number().int().min(1).optional(),
   expiresAt: z.coerce.date().optional(),
-  appliesTo: z.array(z.enum(["FREE", "STARTER", "PRO"])).default([]),
+  appliesTo: z.array(z.enum(["FREE", "PRO", "BUSINESS"])).default([]),
 });
 
 export type CreateSaaSCouponInput = z.infer<typeof createSaaSCouponSchema>;
@@ -71,39 +65,9 @@ export function makeCreateSaaSCoupon(deps: {
     const existing = await deps.coupons.findByCode(parsed.data.code);
     if (existing) return err(new Error("Coupon code already exists"));
 
-    let stripeCouponId: string | null = null;
-    let stripePromotionCodeId: string | null = null;
-
-    if (env.STRIPE_SECRET_KEY) {
-      try {
-        const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-        const stripeCoupon = await stripe.coupons.create({
-          percent_off: parsed.data.discountPct,
-          duration: "forever",
-          max_redemptions: parsed.data.maxUses,
-          redeem_by: parsed.data.expiresAt
-            ? Math.floor(parsed.data.expiresAt.getTime() / 1000)
-            : undefined,
-        });
-        stripeCouponId = stripeCoupon.id;
-
-        const promotionCode = await stripe.promotionCodes.create({
-          coupon: stripeCoupon.id,
-          code: parsed.data.code,
-        });
-        stripePromotionCodeId = promotionCode.id;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Stripe coupon creation failed";
-        logger.error("saasCoupon.stripeCreateFailed", { code: parsed.data.code, error: message });
-        return err(new Error(`Stripe coupon creation failed: ${message}`));
-      }
-    }
-
     const coupon = await deps.coupons.create({
       ...parsed.data,
       createdBy,
-      stripeCouponId,
-      stripePromotionCodeId,
     });
 
     logger.info("saasCoupon.created", {

@@ -23,7 +23,7 @@ class InMemoryOrganizations implements OrganizationRepository {
       plan: Plan.FREE,
       subscriptionId: null,
       subscriptionStatus: null,
-      stripeCustomerId: null,
+      paymentCustomerId: null,
       createdAt: new Date(),
     };
     this.orgs.set(org.id, org);
@@ -47,7 +47,7 @@ class InMemoryOrganizations implements OrganizationRepository {
 
   updatePlan(
     _id?: string,
-    _input?: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; stripeCustomerId?: string | null },
+    _input?: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; paymentCustomerId?: string | null },
     _tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null> {
     throw new Error("not implemented");
