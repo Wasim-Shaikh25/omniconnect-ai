@@ -10,7 +10,7 @@ export function ManageSubscriptionButton({ disabled }: { disabled?: boolean }) {
   async function openPortal() {
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const res = await fetch("/api/razorpay/portal", { method: "POST" });
       const json = (await res.json()) as { url?: string; error?: string };
       if (res.ok && json.url) {
         window.location.href = json.url;

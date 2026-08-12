@@ -43,8 +43,8 @@ export async function listPaymentInvoicesAction(): Promise<{
   for (let p = 1; p <= totalPages; p++) {
     const result = p === 1 ? first : await listAllOrganizationsAction(p, 100);
     for (const org of result.items) {
-      if (!org.stripeCustomerId) continue;
-      const orgInvoices = await billingService.listInvoices(org.stripeCustomerId);
+      if (!org.paymentCustomerId) continue;
+      const orgInvoices = await billingService.listInvoices(org.paymentCustomerId);
       for (const invoice of orgInvoices) {
         invoices.push({
           ...invoice,

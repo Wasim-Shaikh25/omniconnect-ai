@@ -12,7 +12,7 @@ export interface OrganizationRecord {
   plan: Plan;
   subscriptionId: string | null;
   subscriptionStatus: string | null;
-  stripeCustomerId: string | null;
+  paymentCustomerId: string | null;
   createdAt: Date;
 }
 
@@ -38,7 +38,7 @@ export interface OrganizationRepository {
   listAll(pagination?: PaginationInput): Promise<PaginatedResult<OrganizationRecord>>;
   updatePlan(
     id: string,
-    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; stripeCustomerId?: string | null },
+    input: { plan: Plan; subscriptionId?: string | null; subscriptionStatus?: string | null; paymentCustomerId?: string | null },
     tx?: Prisma.TransactionClient,
   ): Promise<OrganizationRecord | null>;
   /**

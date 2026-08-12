@@ -36,7 +36,7 @@ describe("publicPaths (M13 / M14)", () => {
   it("keeps webhook and static paths public", () => {
     expect(isPublicPath("/api/shopify/webhooks")).toBe(true);
     expect(isPublicPath("/api/meta/webhook")).toBe(true);
-    expect(isPublicPath("/api/stripe/webhook")).toBe(true);
+    expect(isPublicPath("/api/razorpay/webhook")).toBe(true);
     expect(isPublicPath("/api/health")).toBe(true);
     expect(isPublicPath("/api/ready")).toBe(true);
     expect(isPublicPath("/manifest.webmanifest")).toBe(true);

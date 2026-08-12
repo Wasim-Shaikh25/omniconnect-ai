@@ -18,7 +18,7 @@ import { PrismaStoreRepository } from "./store.repository";
 import { PrismaSaaSCouponRepository } from "./saas-coupon.repository";
 import { PrismaOrganizationInviteRepository } from "./organization-invite.repository";
 import { PrismaPlanConfigRepository } from "./plan-config.repository";
-import { StripePaymentGateway } from "./stripe-payment-gateway";
+import { RazorpayPaymentGateway } from "./razorpay-payment-gateway";
 import { makePlanConfigService } from "../application/plan-config";
 import { setUserOrganization } from "@/modules/users";
 import { createEmailSender } from "@/shared/email";
@@ -31,7 +31,7 @@ const stores = new PrismaStoreRepository();
 
 function createPaymentGateway() {
   try {
-    return new StripePaymentGateway();
+    return new RazorpayPaymentGateway();
   } catch {
     return null;
   }

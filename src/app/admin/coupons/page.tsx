@@ -42,7 +42,7 @@ export default async function AdminCouponsPage({ searchParams }: AdminCouponsPag
           <Card>
         <CardHeader>
           <CardTitle>Create SaaS coupon</CardTitle>
-          <CardDescription>Generate a percentage discount coupon. Requires Stripe keys.</CardDescription>
+          <CardDescription>Generate a percentage discount coupon.</CardDescription>
         </CardHeader>
         <CardContent>
           <CreateSaaSCouponForm action={createSaaSCouponAction} />

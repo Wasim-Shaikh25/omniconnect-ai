@@ -51,7 +51,7 @@ export default function PricingPage() {
                     What payment methods do you accept?
                   </summary>
                   <p className="mt-2 text-sm text-muted-foreground group-open:block hidden">
-                    We use Stripe for secure card payments. All major cards and wallets are supported.
+                    We use Razorpay for secure card payments, UPI, wallets, and net banking.
                   </p>
                 </details>
                 <details className="group">
@@ -59,7 +59,7 @@ export default function PricingPage() {
                     Is there a free trial?
                   </summary>
                   <p className="mt-2 text-sm text-muted-foreground group-open:block hidden">
-                    The Free plan is free forever. Starter and Pro are billed monthly and you can cancel any
+                    The Free plan is free forever. Pro and Business are billed monthly and you can cancel any
                     time.
                   </p>
                 </details>

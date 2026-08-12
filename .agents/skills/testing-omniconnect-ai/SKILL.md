@@ -22,7 +22,7 @@ Use this skill before running end-to-end or integration tests against the OmniCo
    - Fill in `NEXTAUTH_SECRET`, `NEXTAUTH_URL=http://localhost:3000`, `APP_URL=http://localhost:3000`
    - Fill in `ENCRYPTION_KEY` with at least 32 characters.
    - Set `EMAIL_PROVIDER=console`.
-   - Leave all real third-party credentials (Stripe, Meta, Shopify, OpenAI, SMTP) blank/commented out for basic smoke tests.
+   - Leave all real third-party credentials (Razorpay, Meta, Shopify, OpenAI, SMTP) blank/commented out for basic smoke tests.
    - Comment out or remove `SUPER_ADMIN_EMAIL` and `SMTP_FROM` lines; empty strings fail Zod email validation.
 
 3. Install dependencies and prepare the database:
@@ -83,7 +83,7 @@ Use this skill before running end-to-end or integration tests against the OmniCo
   - `.txt` and `.md` extraction works through the `extractKnowledgeBaseFiles` server action.
   - PDF extraction uses `pdfjs-dist/legacy/build/pdf.mjs`; the worker path must resolve to an absolute file path on disk. `createRequire(import.meta.url).resolve` inside a Next.js RSC/server action can return a webpack internal module id such as `(rsc)/./node_modules/...`, producing an invalid `file://(rsc)/...` URL. A reliable fix is to derive `__dirname` from `fileURLToPath(import.meta.url)` and use `path.resolve(__dirname, "../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")`.
   - Product sync dispatches `ProductsSynced` through the in-memory queue when `REDIS_URL` is unset; `AIConfiguration.productKnowledge` is populated by the `onProductsSynced` subscriber.
-  - `/settings/billing` renders the Free plan, plan limits, and a "Payments not configured" alert when Stripe keys are absent; the **Manage subscription** button is disabled.
+  - `/settings/billing` renders the Free plan, plan limits, and a "Payments not configured" alert when Razorpay keys are absent; the **Manage subscription** button is disabled.
   - For headless Chrome file uploads, `fetch` to a local CORS server may be blocked. A reliable workaround is to place test files in `public/` temporarily, read them with a synchronous `XMLHttpRequest` using `overrideMimeType('text/plain; charset=x-user-defined')` to keep raw bytes, then build a `File` and assign it via `DataTransfer`:
   ```js
   function fetchFile(url, name, type) {
@@ -137,6 +137,23 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
 # DB check for a newly onboarded user
 docker exec -e PGPASSWORD=postgres omniconnect-postgres psql -U postgres -d omniconnect -c "SELECT u.email, o.name AS org, s.name AS store FROM \"User\" u LEFT JOIN \"Organization\" o ON u.\"organizationId\" = o.id LEFT JOIN \"Store\" s ON s.\"organizationId\" = o.id WHERE u.email = '<test-email>';"
 ```
+
+## Razorpay billing smoke test notes
+
+- The local `.env` should leave all `RAZORPAY_*` keys blank to test the "gateway disabled" path; `/api/razorpay/checkout` then returns `503` with `{"error":"Razorpay is not configured"}` and the UI shows a "Payments not configured" alert.
+- To verify the webhook signature check, temporarily set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` to any non-empty strings (no real Razorpay account needed). `POST /api/razorpay/webhook` with no `x-razorpay-signature` returns `400 { error: "Missing signature" }`; with an invalid signature it returns `400 { error: "Invalid Razorpay signature" }`. Revert the `.env` afterwards and restart the server to keep the default unconfigured state.
+- To test `/admin/payments` and `/admin/coupons` without going through super-admin MFA, register a normal user, update `User.isSuperAdmin = true` (keep `role = 'USER'`) in Postgres *before* completing `/onboarding`, and submit the workspace form. `completeOnboardingAction` calls `unstable_update`, which refreshes the JWT with `isSuperAdmin: true`, so the `/admin` middleware guard passes without re-authenticating.
+- Source grep for `Stripe`/`STRIPE_`/`stripe_` should return no matches in `src` when the migration is complete.
+
+## Production-build smoke testing workaround
+
+If `npm run dev` fails with `UnhandledSchemeError: Reading from "node:https" is not handled by plugins` (caused by `import https from "node:https"` in `src/instrumentation.ts`), and a plain `npm run start` fails because required production environment variables are unset, use the already-built output with:
+
+```bash
+NODE_ENV=development npm run start
+```
+
+This skips `validateProductionSecrets()` while still serving the production build, so local smoke tests can run with blank third-party credentials.
 
 ## Devin secrets needed
 

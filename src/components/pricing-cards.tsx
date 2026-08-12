@@ -43,7 +43,7 @@ export function PricingCards({
     }
     setLoadingPlan(plan);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/razorpay/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, couponCode: couponCode.trim() || undefined }),

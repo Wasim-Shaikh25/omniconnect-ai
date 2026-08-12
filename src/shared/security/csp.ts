@@ -32,7 +32,7 @@ export function buildCSP(nonce: string): string {
     "img-src 'self' https: data:",
     "font-src 'self'",
     "connect-src 'self'",
-    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+    "frame-src 'self' https://checkout.razorpay.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
