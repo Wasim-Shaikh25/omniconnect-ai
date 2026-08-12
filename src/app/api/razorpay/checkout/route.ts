@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole, requireVerifiedEmail, ForbiddenError, UnauthorizedError } from "@/modules/auth";
-import { billingService, isPlan, validateSaaSCoupon } from "@/modules/workspaces";
+import { billingService, isPlan } from "@/modules/workspaces";
 import { env } from "@/shared/config";
 import { rateLimit, clientIp } from "@/shared/security/rate-limit";
 import { logSystemError } from "@/shared/observability";
@@ -31,18 +31,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as { plan?: string; couponCode?: string };
+    const body = (await request.json()) as { plan?: string };
     if (!body.plan || !isPlan(body.plan)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-    }
-
-    let couponCode: string | undefined;
-    if (body.couponCode) {
-      couponCode = body.couponCode.trim().toUpperCase();
-      const couponResult = await validateSaaSCoupon(couponCode, body.plan);
-      if (!couponResult.ok) {
-        return NextResponse.json({ error: couponResult.error.message }, { status: 400 });
-      }
     }
 
     const appUrl = env.APP_URL ?? "http://localhost:3000";
@@ -51,7 +42,6 @@ export async function POST(request: Request) {
       plan: body.plan,
       successUrl: `${appUrl}/settings/billing?success=1`,
       cancelUrl: `${appUrl}/settings/billing?canceled=1`,
-      couponCode,
     });
     if (!url) {
       return NextResponse.json(

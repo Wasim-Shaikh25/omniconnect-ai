@@ -20,9 +20,13 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `razorpay` and implemented `RazorpayPaymentGateway` behind the existing `PaymentGateway` port; checkout creates a Razorpay subscription and returns `short_url`, webhooks verify `x-razorpay-signature`, and refunds/list-invoices route through Razorpay APIs.
   - Renamed `User.stripeCustomerId` to `paymentCustomerId` and added the `20260812170000_razorpay_payment_fields` migration.
   - Mapped Razorpay webhook events (`subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`, `payment.failed`) to plan and `subscriptionStatus` updates in `billingService`.
-  - Preserved local SaaS coupon validation and usage tracking; removed Stripe coupon/promotion-code syncing.
   - Updated `/settings/billing`, `/pricing`, `/admin/coupons`, `/admin/payments`, and help copy to reference Razorpay.
   - All quality gates pass: `lint`, `typecheck`, `400` unit tests, `build` + `build:worker`, `npm audit`.
+
+- `REQ-0102` **Razorpay review fixes** on `devin/20260812-razorpay-review-fixes`:
+  - Replaced the 32-bit `computeEventId` content hash in `billingService.fulfillCheckout` with a SHA-256 hash of the raw webhook body, eliminating hash collisions that could drop unrelated Razorpay events.
+  - Updated `scripts/backfill-past-due.ts` so `pending` and `halted` retry states keep the customer on their current paid plan and normalized Razorpay statuses (`active`, `past_due`, `canceled`, `completed`, `unknown`) before writing `User.subscriptionStatus`.
+  - Removed the SaaS coupon input from Razorpay checkout (`/api/razorpay/checkout`, `PricingCards`, `help`) and the coupon consumption path from `billingService` because Razorpay `offer_id` discounts were not actually being applied. Coupons remain for first-follower/DM campaigns in the `coupons` module.
 
 - `REQ-0100` **Close remaining production-readiness audit gaps (M3, M4, N1 follow-up)** on `devin/close-audit-m3-m4-ssrf-1786253811`:
   - Added `@@unique([userId, name])` constraints to `Project` and `Workspace` and the `add_project_workspace_name_uniqueness` migration. `PrismaStoreRepository.create()` and `ensureWorkspace()` catch `P2002` and surface a deterministic `StoreNameExistsError` or reuse the existing workspace instead of relying on a check-then-insert pre-check.

@@ -295,18 +295,13 @@ const helpSections: HelpSection[] = [
     ),
   },
   {
-    title: "Billing and SaaS coupons",
-    keywords: ["billing", "coupon", "discount", "razorpay", "checkout", "upgrade", "plan", "promo"],
+    title: "Billing",
+    keywords: ["billing", "razorpay", "checkout", "upgrade", "plan"],
     content: (
       <>
         <p className="mb-2">
           Upgrade or downgrade from <strong>Settings → Billing</strong>. Choose Free, Pro, or
-          Business. If you have a coupon code, enter it before choosing a plan; the discount is applied
-          at Razorpay Checkout.
-        </p>
-        <p>
-          Coupons are percentage discounts and may be limited to specific plans, a maximum number of
-          uses, or an expiration date.
+          Business and pay through Razorpay Checkout.
         </p>
       </>
     ),

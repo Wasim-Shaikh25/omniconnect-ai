@@ -47,9 +47,7 @@ export class RazorpayPaymentGateway implements PaymentGateway {
       notes: {
         userId: input.userId,
         plan: input.plan,
-        couponCode: input.couponCode ?? "",
       },
-      ...(input.promotionCodeId ? { offer_id: input.promotionCodeId } : {}),
     });
 
     return { url: subscription.short_url ?? null };

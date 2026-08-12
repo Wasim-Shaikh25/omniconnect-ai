@@ -4,7 +4,6 @@ import type { Prisma } from "@prisma/client";
 import { env } from "@/shared/config/env";
 import { Plan } from "../domain/plan";
 import type { OrganizationRepository, OrganizationRecord } from "./ports";
-import type { SaaSCouponRepository, SaaSCouponRecord } from "./saas-coupon";
 import type { ProcessedEventsRepository } from "@/shared/webhooks/processed-events.repository";
 import { makeBillingService, type BillingService, BillingSignatureError } from "./billing";
 import type { CheckoutSessionInput, PaymentGateway, InvoiceRecord, RefundInput, RefundResult } from "./payment-gateway";
@@ -104,79 +103,6 @@ class FakeOrganizationRepository implements OrganizationRepository {
   }
 }
 
-class FakeSaaSCouponRepository implements SaaSCouponRepository {
-  private coupons = new Map<string, SaaSCouponRecord>();
-
-  async create(input: {
-    code: string;
-    discountPct: number;
-    maxUses?: number | null;
-    appliesTo: string[];
-    createdBy: string;
-    label?: string | undefined;
-    expiresAt?: Date | null | undefined;
-  }) {
-    const id = `coupon_${this.coupons.size + 1}`;
-    const coupon: SaaSCouponRecord = {
-      id,
-      code: input.code,
-      label: input.label ?? null,
-      discountPct: input.discountPct,
-      maxUses: input.maxUses ?? null,
-      usedCount: 0,
-      expiresAt: input.expiresAt ?? null,
-      appliesTo: input.appliesTo,
-      isActive: true,
-      createdBy: input.createdBy,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.coupons.set(coupon.id, coupon);
-    return coupon;
-  }
-
-  async findByCode(code: string, _tx?: Prisma.TransactionClient) {
-    return Array.from(this.coupons.values()).find((c) => c.code === code) ?? null;
-  }
-
-  async findById(id: string) {
-    return this.coupons.get(id) ?? null;
-  }
-
-  async list() {
-    return { items: Array.from(this.coupons.values()), total: this.coupons.size, page: 1, limit: 10, totalPages: 1 };
-  }
-
-  async incrementUsage(id: string, _maxUses: number | null, _tx?: Prisma.TransactionClient): Promise<boolean> {
-    const coupon = this.coupons.get(id);
-    if (!coupon) return false;
-    coupon.usedCount += 1;
-    return true;
-  }
-
-  seed(code: string, maxUses: number | null = null): void {
-    const id = `coupon_${code}`;
-    this.coupons.set(id, {
-      id,
-      code,
-      label: null,
-      discountPct: 0,
-      usedCount: 0,
-      maxUses,
-      expiresAt: null,
-      appliesTo: [],
-      isActive: true,
-      createdBy: "system",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-  }
-
-  getUsedCount(code: string): number {
-    return Array.from(this.coupons.values()).find((c) => c.code === code)?.usedCount ?? 0;
-  }
-}
-
 class FakeProcessedEventsRepository implements ProcessedEventsRepository {
   private events = new Set<string>();
 
@@ -240,14 +166,12 @@ function makeSubscriptionActivatedEvent({
   subscriptionId,
   userId,
   planId,
-  couponCode,
   customerId = null,
 }: {
   id: string;
   subscriptionId: string;
   userId: string;
   planId: string;
-  couponCode?: string;
   customerId?: string | null;
 }): RazorpayWebhookPayload {
   return {
@@ -263,7 +187,6 @@ function makeSubscriptionActivatedEvent({
         notes: {
           userId,
           plan: planFromPlanId(planId) ?? Plan.FREE,
-          ...(couponCode ? { couponCode } : {}),
         },
         remaining_count: 12,
       },
@@ -387,7 +310,6 @@ function planFromPlanId(planId: string): Plan | null {
 
 interface Context {
   organizations: FakeOrganizationRepository;
-  coupons: FakeSaaSCouponRepository;
   processedEvents: FakeProcessedEventsRepository;
   paymentGateway: FakePaymentGateway;
   billing: BillingService;
@@ -395,11 +317,10 @@ interface Context {
 
 function makeContext(): Context {
   const organizations = new FakeOrganizationRepository();
-  const coupons = new FakeSaaSCouponRepository();
   const processedEvents = new FakeProcessedEventsRepository();
   const paymentGateway = new FakePaymentGateway();
-  const billing = makeBillingService({ organizations, paymentGateway, coupons, processedEvents });
-  return { organizations, coupons, processedEvents, paymentGateway, billing };
+  const billing = makeBillingService({ organizations, paymentGateway, processedEvents });
+  return { organizations, processedEvents, paymentGateway, billing };
 }
 
 function setupEnv(): void {
@@ -452,24 +373,6 @@ describe("billing service", () => {
       expect(ctx.processedEvents.has({ id: "evt_dup", provider: "razorpay", type: "subscription.activated" })).toBe(true);
     });
 
-    it("only increments coupon usage once for a duplicate activation", async () => {
-      const ctx = makeContext();
-      const org = await ctx.organizations.create({ name: "Test Org" });
-      ctx.coupons.seed("WELCOME", 10);
-      const event = makeSubscriptionActivatedEvent({
-        id: "evt_coupon",
-        subscriptionId: "sub_1",
-        userId: org.id,
-        planId: RAZORPAY_PLAN_BUSINESS,
-        couponCode: "WELCOME",
-      });
-      ctx.paymentGateway.queue(event);
-      await ctx.billing.fulfillCheckout("payload", "sig");
-      ctx.paymentGateway.queue(event);
-      await ctx.billing.fulfillCheckout("payload", "sig");
-
-      expect(ctx.coupons.getUsedCount("WELCOME")).toBe(1);
-    });
   });
 
   describe("subscription lifecycle", () => {

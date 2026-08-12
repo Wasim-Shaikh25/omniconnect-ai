@@ -88,7 +88,7 @@ export const organizationQueries = makeOrganizationQueries({
 export const organizationUsage = makeOrganizationUsageService({ organizations, planConfigs: planConfigRepository });
 export const tenantGuard = makeTenantGuard({ queries: organizationQueries });
 export const billingService = paymentGateway
-  ? makeBillingService({ organizations, paymentGateway, coupons: saasCouponRepository, processedEvents })
+  ? makeBillingService({ organizations, paymentGateway, processedEvents })
   : null;
 export const createSaaSCoupon = makeCreateSaaSCoupon({ coupons: saasCouponRepository });
 export const validateSaaSCoupon = makeValidateSaaSCoupon({ coupons: saasCouponRepository });
