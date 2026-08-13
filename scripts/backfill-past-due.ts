@@ -13,7 +13,28 @@ const razorpay = new Razorpay({
   key_secret: env.RAZORPAY_KEY_SECRET,
 });
 
-const RETAINED_STATUSES = new Set<string>(["active", "authenticated", "created"]);
+const RETAINED_STATUSES = new Set<string>([
+  "active",
+  "authenticated",
+  "created",
+  "pending",
+  "halted",
+]);
+
+const ACTIVE_STATUSES = new Set<string>(["active", "authenticated", "created"]);
+const PAST_DUE_STATUSES = new Set<string>(["pending", "halted"]);
+const CANCELED_STATUSES = new Set<string>(["cancelled", "canceled"]);
+const COMPLETED_STATUSES = new Set<string>(["completed"]);
+
+function normalizeSubscriptionStatus(
+  status: string,
+): "active" | "past_due" | "canceled" | "completed" | "unknown" {
+  if (ACTIVE_STATUSES.has(status)) return "active";
+  if (PAST_DUE_STATUSES.has(status)) return "past_due";
+  if (CANCELED_STATUSES.has(status)) return "canceled";
+  if (COMPLETED_STATUSES.has(status)) return "completed";
+  return "unknown";
+}
 
 function planFromPlanId(planId: string | undefined): Plan | null {
   if (!planId) return null;
@@ -45,10 +66,8 @@ async function backfillPastDue(): Promise<void> {
         ? basePlan
         : Plan.FREE;
 
-      const subscriptionId = subscription.id;
       const paymentCustomerId = subscription.customer_id;
-
-      const newStatus = subscription.status;
+      const newStatus = normalizeSubscriptionStatus(subscription.status);
 
       if (
         user.plan !== entitledPlan ||
@@ -61,7 +80,6 @@ async function backfillPastDue(): Promise<void> {
             plan: entitledPlan,
             subscriptionStatus: newStatus,
             paymentCustomerId,
-            subscriptionId,
           },
         });
         updated++;

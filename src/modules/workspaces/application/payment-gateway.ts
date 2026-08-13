@@ -5,8 +5,6 @@ export interface CheckoutSessionInput {
   plan: Plan;
   successUrl: string;
   cancelUrl: string;
-  promotionCodeId?: string;
-  couponCode?: string;
 }
 
 export interface CheckoutSessionResult {
