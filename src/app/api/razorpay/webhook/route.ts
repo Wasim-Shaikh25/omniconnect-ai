@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   billingService,
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.text();
-    await billingService.fulfillCheckout(payload, signature);
+    const razorpayEventId = request.headers.get("x-razorpay-event-id");
+    const eventId = razorpayEventId ?? crypto.createHash("sha256").update(payload).digest("hex");
+
+    await billingService.fulfillCheckout(payload, signature, eventId);
     return NextResponse.json({ received: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Webhook failed";
