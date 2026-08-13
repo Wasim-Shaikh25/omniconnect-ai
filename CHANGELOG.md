@@ -20,8 +20,12 @@ All notable changes to **OmniConnect AI** are documented here.
   - Added `razorpay` and implemented `RazorpayPaymentGateway` behind the existing `PaymentGateway` port; checkout creates a Razorpay subscription and returns `short_url`, webhooks verify `x-razorpay-signature`, and refunds/list-invoices route through Razorpay APIs.
   - Renamed `User.stripeCustomerId` to `paymentCustomerId` and added the `20260812170000_razorpay_payment_fields` migration.
   - Mapped Razorpay webhook events (`subscription.activated`, `subscription.charged`, `subscription.pending`, `subscription.halted`, `subscription.cancelled`, `subscription.completed`, `payment.failed`) to plan and `subscriptionStatus` updates in `billingService`.
+  - Preserved local SaaS coupon validation and usage tracking; removed Stripe coupon/promotion-code syncing.
   - Updated `/settings/billing`, `/pricing`, `/admin/coupons`, `/admin/payments`, and help copy to reference Razorpay.
   - All quality gates pass: `lint`, `typecheck`, `400` unit tests, `build` + `build:worker`, `npm audit`.
+
+- **CI workflow fix** on `devin/20260812-razorpay-ci-fix`:
+  - Replaced `STRIPE_*` test secrets with `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` and added `METRICS_TOKEN` so the `quality` job's smoke test can start the standalone Next.js server.
 
 - `REQ-0102` **Razorpay review fixes** on `devin/20260812-razorpay-review-fixes`:
   - Replaced the 32-bit `computeEventId` content hash in `billingService.fulfillCheckout` with a SHA-256 hash of the raw webhook body, eliminating hash collisions that could drop unrelated Razorpay events.
